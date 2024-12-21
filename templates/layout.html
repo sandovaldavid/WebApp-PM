@@ -8,12 +8,14 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.3/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'styles/layout.css' %}">
-    {% block script %}{% endblock %}
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.3/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    {% block style %}{% endblock %}
 </head>
 <body>
     <div class="sidebar">
-        <a href="../Alertas/index.html"><i class="fas fa-bell"></i> Alertas</a>
+        <a href="{%url 'alertas:index'%}"><i class="fas fa-bell"></i> Alertas</a>
         <a href="../dashboard/index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
         <a href="../EstimacionesRNN/index.html"><i class="fas fa-chart-line"></i> Estimaciones RNN</a>
         <a href="../GestionDeTareas/index.html"><i class="fas fa-tasks"></i> Gestión de Tareas</a>
@@ -26,13 +28,14 @@
         <a href="../seguridad_y_auditoria/index.html"><i class="fas fa-shield-alt"></i> Seguridad</a>
     </div>
     <div class="content">
-      <div class="header">
-        <div class="header-left">
-          <h2>{%block title_body%} {%endblock%}</h2>
-        </div>
-      </div>
+          <!-- Cabecera -->
+      <header class="flex justify-between items-center p-4 bg-blue-600 text-white">
+        <div class="text-2xl font-bold">{%block title_body%} {% endblock %}</div>
+        <i class="{%block icon%}{%endblock%}"></i>
+      </header>
       {%block body%}
       {%endblock%}
     </div>
+    {% block script %}{% endblock %}
 </body>
 </html>
