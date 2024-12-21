@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'dashboard',
     'estimaciones_rnn',
     'gestion',
-    'herraminetas_externas',
+    'herramientas_externas',
     'reportes',
     'django.contrib.admin',
     'django.contrib.auth',
