@@ -60,26 +60,6 @@ button:hover {
   color: #e53e3e;
 }
 
-/* Estilo del encabezado */
-header {
-  background-color: #4a90e2;
-  color: white;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-header img {
-  border-radius: 50%;
-  margin-right: 0.5rem;
-}
-
-header span {
-  margin-left: 10px;
-  font-weight: 600;
-}
-
 /* Formulario emergente */
 
 #taskForm .bg-white {
