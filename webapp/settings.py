@@ -31,13 +31,13 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'alertas',
-    'auditoria',
-    'dashboard',
-    'estimaciones_rnn',
-    'gestion',
-    'herramientas_externas',
-    'reportes',
+    'gestion_equipos',
+    'gestion_proyectos',
+    'gestion_recursos',
+    'integracion',
+    'notificaciones',
+    'redes_neuronales',
+    'usuarios',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -131,9 +131,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # El directorio donde Django buscará los archivos estáticos durante el desarrollo
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # El directorio 'static' en la raíz del proyecto
-]
+# STATICFILES_DIRS = [
+#     BASE_DIR / 'static',  # El directorio 'static' en la raíz del proyecto
+# ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

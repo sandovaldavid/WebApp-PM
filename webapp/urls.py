@@ -19,6 +19,12 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('dashboard', include('dashboard.urls')),
-    path('alertas', include('alertas.urls')),
+    path('', include('usuarios.urls')),
+    path('gestion-equipos', include('gestion_equipos.urls')),
+    # path('gestion-proyectos', include('gestion_proyectos.urls')),
+    # path('gestion-recursos', include('gestion_recursos.urls')),
+    # path('integracion', include('integracion.urls')),
+    path('notificaciones', include('notificaciones.urls')),
+    # path('redes-neuronales', include('redes_neuronales.urls')),
+    # path('usuarios', include('usuarios.urls')),
 ]
