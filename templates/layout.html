@@ -16,9 +16,9 @@
 <body>
     <div class="sidebar">
         <a href="{%url 'alertas:index'%}"><i class="fas fa-bell"></i> Alertas</a>
-        <a href="../dashboard/index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
         <a href="../EstimacionesRNN/index.html"><i class="fas fa-chart-line"></i> Estimaciones RNN</a>
-        <a href="../GestionDeTareas/index.html"><i class="fas fa-tasks"></i> Gestión de Tareas</a>
+        <a href="{%url 'gestion:index'%}"><i class="fas fa-tasks"></i> Gestión de Tareas</a>
         <a href="../GestionRecursos/index.html"><i class="fas fa-cogs"></i> Gestión de Recursos</a>
         <a href="../GestionTareasProgramadas/index.html"><i class="fas fa-calendar-alt"></i> Tareas Programadas</a>
         <a href="../GestionUsuarios/index.html"><i class="fas fa-users"></i> Gestión de Usuarios</a>
@@ -31,6 +31,7 @@
           <!-- Cabecera -->
       <header class="flex justify-between items-center p-4 bg-blue-600 text-white">
         <div class="text-2xl font-bold">{%block title_body%} {% endblock %}</div>
+        {%block Perfil%} {%endblock%}
         <i class="{%block icon%}{%endblock%}"></i>
       </header>
       {%block body%}
