@@ -32,5 +32,4 @@ urlpatterns = [
     path('notificaciones', include('notificaciones.urls')),
     # path('redes-neuronales', include('redes_neuronales.urls')),
     # path('usuarios', include('usuarios.urls')),
->>>>>>> frontend
 ]
