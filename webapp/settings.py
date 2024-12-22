@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'usuarios',
     'dashboard',
     'gestion_tareas',
+    'auditoria',
+    'reportes',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
