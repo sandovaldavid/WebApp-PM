@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'DbWebAp_PM',
+        'NAME': 'dbtest_webapp_pm', # Nombre de la base de datos
         'USER': 'development',
         'PASSWORD': '123456',
         'HOST': 'db-webapp-PM',
@@ -114,6 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'usuarios.Usuario' # Se indica el modelo personalizado de usuario
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
