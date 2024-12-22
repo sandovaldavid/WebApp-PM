@@ -8,37 +8,37 @@
 
     <!-- Contenedor principal -->
     <main class="mt-5">
-      <div class="flex justify-between items-center mb-4">
-          <h2><i class="fas fa-list"></i> Lista de Tareas</h2>
-          <button class="bg-green-500 text-white px-4 py-2 rounded" onclick="openTaskForm()"><i class="fas fa-plus"></i> Crear Tarea</button>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <!-- Tarjeta de Tarea -->
-          <div class="task-card p-6 rounded-lg shadow-lg">
-              <h3>Tarea 1</h3>
-              <div class="mt-2">
-                  <span class="text-sm font-semibold">Estado:</span>
-                  <span class="status">En progreso</span>
-              </div>
-              <div class="mt-2">
-                  <span class="text-sm font-semibold">Fecha de Inicio:</span>
-                  <span>01/01/2022</span>
-              </div>
-              <div class="mt-2">
-                  <span class="text-sm font-semibold">Fecha de Fin:</span>
-                  <span>15/01/2022</span>
-              </div>
-              <div class="mt-2">
-                  <span class="text-sm font-semibold">Responsable:</span>
-                  <span class="responsible">Juan Pérez</span>
-              </div>
-              <div class="mt-4 flex justify-between">
-                  <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="openTaskForm()"><i class="fas fa-edit"></i> Editar</button>
-                  <button class="bg-red-500 text-white px-4 py-2 rounded" onclick="confirmDelete()"><i class="fas fa-trash"></i> Eliminar</button>
-              </div>
-          </div>
-          <!-- Más tarjetas de tareas -->
-      </div>
+        <div class="flex justify-between items-center mb-4">
+            <h2><i class="fas fa-list"></i> Lista de Tareas</h2>
+            <button class="bg-green-500 text-white px-4 py-2 rounded" onclick="openTaskForm()"><i class="fas fa-plus"></i> Crear Tarea</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <!-- Tarjeta de Tarea -->
+            <div class="task-card p-6 rounded-lg shadow-lg">
+                <h3>Tarea 1</h3>
+                <div class="mt-2">
+                    <span class="text-sm font-semibold">Estado:</span>
+                    <span class="status">En progreso</span>
+                </div>
+                <div class="mt-2">
+                    <span class="text-sm font-semibold">Fecha de Inicio:</span>
+                    <span>01/01/2022</span>
+                </div>
+                <div class="mt-2">
+                    <span class="text-sm font-semibold">Fecha de Fin:</span>
+                    <span>15/01/2022</span>
+                </div>
+                <div class="mt-2">
+                    <span class="text-sm font-semibold">Responsable:</span>
+                    <span class="responsible">Juan Pérez</span>
+                </div>
+                <div class="mt-4 flex justify-between">
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="openTaskForm()"><i class="fas fa-edit"></i> Editar</button>
+                    <button class="bg-red-500 text-white px-4 py-2 rounded" onclick="confirmDelete()"><i class="fas fa-trash"></i> Eliminar</button>
+                </div>
+            </div>
+              <!-- Más tarjetas de tareas -->
+        </div>
 
       <!-- Estadísticas de Tareas -->
       <div class="stats-card mt-8 p-6 rounded-lg shadow-lg">
