@@ -26,6 +26,7 @@ urlpatterns = [
     # path('gestion-recursos/', include('gestion_recursos.urls')),
     path('dashboard/integracion/', include('integracion.urls')),
     path('dashboard/notificaciones/', include('notificaciones.urls')),
+    path('dashboard/', include('dashboard.urls')),
     # path('redes-neuronales/', include('redes_neuronales.urls')),
     # path('usuarios/', include('usuarios.urls')),
 ]
