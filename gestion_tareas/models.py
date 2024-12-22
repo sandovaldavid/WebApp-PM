@@ -29,7 +29,8 @@ class Tarea(models.Model):
         verbose_name_plural = 'Tareas'
 
 class Tarearecurso(models.Model):
-    idtarea = models.ForeignKey(Tarea, models.DO_NOTHING, db_column='idtarea', primary_key=True)  # Aquí quitamos OneToOneField
+    id = models.AutoField(primary_key=True)
+    idtarea = models.OneToOneField('Tarea', on_delete=models.CASCADE)
     idrecurso = models.ForeignKey(Recurso, models.DO_NOTHING, db_column='idrecurso')
     cantidad = models.IntegerField(blank=True, null=True)
 
@@ -37,7 +38,6 @@ class Tarearecurso(models.Model):
         db_table = 'tarea_recurso'
         verbose_name = 'Tarea Recurso'
         verbose_name_plural = 'Tareas Recursos'
-        unique_together = ('idtarea', 'idrecurso')  # Asegura que no haya duplicados de tarea y recurso
 
 class Monitoreotarea(models.Model):
     idtarea = models.OneToOneField('Tarea', models.DO_NOTHING, db_column='idtarea', primary_key=True)
