@@ -1,0 +1,82 @@
+/* General Form Styles */
+form {
+  margin: 20px auto;
+  padding: 20px;
+  max-width: 400px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Labels */
+form label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+/* Form Inputs */
+form .form-control {
+  font-size: 0.9rem;
+  height: 45px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ced4da;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+form .form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Placeholders */
+form .form-control::placeholder {
+  font-style: italic;
+  color: #6c757d;
+}
+
+/* Submit Button */
+form .btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: #fff;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+form .btn:hover {
+  background-color: #0056b3;
+  box-shadow: 0 4px 6px rgba(0, 91, 179, 0.3);
+}
+
+/* Form Header (Optional) */
+form h2 {
+  font-size: 1.5rem;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #343a40;
+}
+
+/* Custom Styling for Select Inputs */
+form select.form-control {
+  padding: 10px;
+  height: auto;
+  border-radius: 5px;
+}
+
+/* Error Messages */
+form .invalid-feedback {
+  display: block;
+  font-size: 0.8rem;
+  color: #dc3545;
+}
+
+/* Spacing between fields */
+form .form-group {
+  margin-bottom: 15px;
+}
