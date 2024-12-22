@@ -1,5 +1,4 @@
 from django.db import models
-from usuarios.models import Usuario
 
 class Equipo(models.Model):
     idequipo = models.AutoField(primary_key=True)
@@ -15,7 +14,7 @@ class Equipo(models.Model):
 
 class Miembro(models.Model):
     idmiembro = models.AutoField(primary_key=True)
-    idrecurso = models.ForeignKey('Recurso', models.DO_NOTHING, db_column='idrecurso')
+    idrecurso = models.ForeignKey('gestion_recursos.Recurso', models.DO_NOTHING, db_column='idrecurso')
     idequipo = models.ForeignKey(Equipo, models.DO_NOTHING, db_column='idequipo')
 
     class Meta:

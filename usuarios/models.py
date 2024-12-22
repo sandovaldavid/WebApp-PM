@@ -14,6 +14,12 @@ class Usuario(AbstractUser):
     ])
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'usuario'
+        ordering = ['id']
+        verbose_name = 'Usuario'
+        verbose_name_plural = 'Usuarios'
 
 class RolModuloAcceso(models.Model):
     nombre_rol = models.CharField(max_length=50)
@@ -23,13 +29,19 @@ class RolModuloAcceso(models.Model):
         ('escritura', 'Escritura'),
         ('lectura-escritura', 'Lectura-Escritura'),
     ])
+    
+    class Meta:
+        db_table = 'rol_modulo_acceso'
+        ordering = ['id']
+        verbose_name = 'Rol Modulo Acceso'
+        verbose_name_plural = 'Roles Modulos Acceso'
 
 class UsuarioRolModulo(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     rol_modulo = models.ForeignKey(RolModuloAcceso, on_delete=models.CASCADE)
-
-class Meta:
-    db_table = 'usuario'
-    ordering = ['id']
-    verbose_name = 'Usuario'
-    verbose_name_plural = 'Usuarios'
+    
+    class Meta:
+        db_table = 'usuario_rol_modulo'
+        ordering = ['id']
+        verbose_name = 'Usuario Rol Modulo'
+        verbose_name_plural = 'Usuarios Roles Modulos'
