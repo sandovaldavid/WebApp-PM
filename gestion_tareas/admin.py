@@ -1,24 +1,25 @@
 from django.contrib import admin
-from .models import Tarea, Tarearecurso, Monitoreotarea
+from .models import Tarea, TareaRecurso, MonitoreoTarea, HistorialTarea
 
-# Register your models here.
-
-@admin.register(Tarea)
 class TareaAdmin(admin.ModelAdmin):
-    list_display = ('idtarea', 'nombretarea', 'fechainicio', 'fechafin', 'estado', 'prioridad', 'costoestimado', 'costoactual')
-    search_fields = ('nombretarea',)
-    list_filter = ('estado', 'prioridad', 'fechainicio', 'fechafin')
-    ordering = ('fechainicio',)
+    list_display = ('idTarea', 'nombreTarea', 'fechaInicio', 'fechaFin', 'duracionEstimada', 'estado', 'prioridad', 'costoEstimado', 'costoActual', 'fechaCreacion', 'fechaModificacion')
+    list_filter = ('estado', 'prioridad', 'fechaInicio', 'fechaFin')  # Filtro por estado, prioridad, fechas
+    search_fields = ('nombreTarea', 'requerimiento__proyecto__nombreProyecto')  # Búsqueda por nombre de tarea y nombre de proyecto
 
-@admin.register(Tarearecurso)
-class TarearecursoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'idtarea', 'idrecurso', 'cantidad')
-    search_fields = ('idtarea__nombretarea', 'idrecurso__nombrerecurso')
-    list_filter = ('idtarea',)
+class TareaRecursoAdmin(admin.ModelAdmin):
+    list_display = ('tarea', 'recurso', 'cantidad')
+    search_fields = ('tarea__nombreTarea', 'recurso__nombreRecurso')  # Búsqueda por tarea y recurso
 
-@admin.register(Monitoreotarea)
-class MonitoreotareaAdmin(admin.ModelAdmin):
-    list_display = ('idtarea', 'fechainicioreal', 'fechafinreal', 'porcentajecompletado', 'alertagenerada', 'fechamodificacion')
-    search_fields = ('idtarea__nombretarea',)
-    list_filter = ('alertagenerada', 'porcentajecompletado', 'fechainicioreal', 'fechafinreal')
+class MonitoreoTareaAdmin(admin.ModelAdmin):
+    list_display = ('tarea', 'fechaInicioReal', 'fechaFinReal', 'porcentajeCompletado', 'alertaGenerada', 'fechaModificacion')
+    search_fields = ('tarea__nombreTarea',)  # Búsqueda por tarea
 
+class HistorialTareaAdmin(admin.ModelAdmin):
+    list_display = ('tarea', 'fechaCambio', 'descripcionCambio')
+    search_fields = ('tarea__nombreTarea', 'descripcionCambio')  # Búsqueda por tarea y descripción del cambio
+
+# Registrar los modelos en el panel de administración
+admin.site.register(Tarea, TareaAdmin)
+admin.site.register(TareaRecurso, TareaRecursoAdmin)
+admin.site.register(MonitoreoTarea, MonitoreoTareaAdmin)
+admin.site.register(HistorialTarea, HistorialTareaAdmin)

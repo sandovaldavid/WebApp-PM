@@ -1,27 +1,27 @@
 from django.contrib import admin
 from .models import Recurso, TipoRecurso, RecursoHumano, RecursoMaterial
 
-# Register your models here.
-
-@admin.register(Recurso)
 class RecursoAdmin(admin.ModelAdmin):
-    list_display = ('idrecurso', 'nombrerecurso', 'idtiporecurso', 'disponibilidad', 'fechacreacion', 'fechamodificacion')
-    search_fields = ('nombrerecurso',)
-    list_filter = ('disponibilidad', 'fechacreacion')
+    list_display = ('idRecurso', 'nombreRecurso', 'idTipoRecurso', 'disponibilidad', 'fechaCreacion', 'fechaModificacion')
+    list_filter = ('idTipoRecurso', 'disponibilidad')  # Filtro por tipo de recurso y disponibilidad
+    search_fields = ('nombreRecurso', 'idTipoRecurso__nameTipoRecurso')  # Búsqueda por nombre de recurso y tipo de recurso
 
-@admin.register(TipoRecurso)
 class TipoRecursoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nombre_tipo_recurso', 'descripcion')
-    search_fields = ('nombre_tipo_recurso',)
+    list_display = ('idTipoRecurso', 'nameTipoRecurso', 'descripcion')
+    search_fields = ('nameTipoRecurso',)  # Búsqueda por nombre del tipo de recurso
 
-@admin.register(RecursoHumano)
 class RecursoHumanoAdmin(admin.ModelAdmin):
-    list_display = ('recurso', 'cargo', 'usuario', 'tarifa_hora')
-    search_fields = ('cargo', 'usuario__username')
-    list_filter = ('cargo',)
+    list_display = ('recurso', 'cargo', 'habilidades', 'tarifaHora', 'usuario')
+    list_filter = ('cargo',)  # Filtro por cargo
+    search_fields = ('recurso__nombreRecurso', 'cargo', 'usuario__username')  # Búsqueda por nombre del recurso y cargo
 
-@admin.register(RecursoMaterial)
 class RecursoMaterialAdmin(admin.ModelAdmin):
-    list_display = ('recurso', 'costo_unidad', 'fecha_compra')
-    search_fields = ('recurso__nombrerecurso',)
-    list_filter = ('fecha_compra',)
+    list_display = ('recurso', 'costoUnidad', 'fechaCompra')
+    search_fields = ('recurso__nombreRecurso',)  # Búsqueda por nombre del recurso
+    list_filter = ('fechaCompra',)  # Filtro por fecha de compra
+
+# Registrar los modelos en el panel de administración
+admin.site.register(Recurso, RecursoAdmin)
+admin.site.register(TipoRecurso, TipoRecursoAdmin)
+admin.site.register(RecursoHumano, RecursoHumanoAdmin)
+admin.site.register(RecursoMaterial, RecursoMaterialAdmin)

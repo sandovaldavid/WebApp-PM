@@ -1,16 +1,26 @@
 from django.contrib import admin
-from .models import Notificacion
+from .models import Notificacion, Alerta, HistorialNotificacion, HistorialAlerta
 
-# Register your models here.
-
-@admin.register(Notificacion)
 class NotificacionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'usuario', 'mensaje_resumido', 'fecha_creacion', 'leido')
-    list_filter = ('leido', 'fecha_creacion')
-    search_fields = ('usuario__username', 'mensaje')
-    ordering = ('-fecha_creacion',)
-    list_editable = ('leido',)
+    list_display = ('usuario', 'mensaje', 'leido', 'fechaCreacion')
+    list_filter = ('leido', 'fechaCreacion')  # Filtro por leído y fecha de creación
+    search_fields = ('usuario__nombreUsuario', 'mensaje')  # Búsqueda por nombre de usuario y mensaje
 
-    def mensaje_resumido(self, obj):
-        return obj.mensaje[:50] + ('...' if len(obj.mensaje) > 50 else '')
-    mensaje_resumido.short_description = 'Mensaje'
+class AlertaAdmin(admin.ModelAdmin):
+    list_display = ('tarea', 'tipoAlerta', 'mensaje', 'activa', 'fechaCreacion')
+    list_filter = ('activa', 'fechaCreacion', 'tipoAlerta')  # Filtro por activa, tipo de alerta, fecha de creación
+    search_fields = ('tarea__nombreTarea', 'mensaje')  # Búsqueda por nombre de tarea y mensaje
+
+class HistorialNotificacionAdmin(admin.ModelAdmin):
+    list_display = ('notificacion', 'fechaLectura')
+    search_fields = ('notificacion__mensaje',)  # Búsqueda por mensaje de la notificación
+
+class HistorialAlertaAdmin(admin.ModelAdmin):
+    list_display = ('alerta', 'fechaResolucion')
+    search_fields = ('alerta__mensaje',)  # Búsqueda por mensaje de la alerta
+
+# Registrar los modelos en el panel de administración
+admin.site.register(Notificacion, NotificacionAdmin)
+admin.site.register(Alerta, AlertaAdmin)
+admin.site.register(HistorialNotificacion, HistorialNotificacionAdmin)
+admin.site.register(HistorialAlerta, HistorialAlertaAdmin)
