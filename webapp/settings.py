@@ -88,10 +88,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'DbWebAp_PM',
-        'USER': 'development',
+        'USER': 'postgres',
         'PASSWORD': '123456',
-        'HOST': 'db-webapp-PM',
-        'PORT': '5432',
+        'HOST': 'localhost',
+        'PORT': '5433',
     }
 }
 

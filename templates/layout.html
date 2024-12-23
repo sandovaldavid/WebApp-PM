@@ -4,42 +4,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{%block title%} {%endblock%} </title>
+    <title>{% block title %}{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.3/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.3/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% block style %}{% endblock %}
+    <style>
+        
+        /* Estilo para la barra lateral */
+        .sidebar {
+            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+            width: 16rem;
+        }
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+        /* Resaltar el enlace activo */
+        .sidebar a.active {
+            background-color: #e2e8f0; /* Color más claro */
+            color: #1a202c; /* Color del texto para mejor contraste */
+        }
+        /* Estilo para el botón de alternar */
+        #toggleSidebar {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 50;
+            background-color: #1a202c; /* Fondo oscuro */
+            color: white;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #toggleSidebar:hover {
+            background-color: #4a5568; /* Fondo más claro al pasar el mouse */
+        }
+        /* Estilo para el contenido principal */
+        .content.expanded {
+            transition: margin-left 0.3s ease-in-out;
+            margin-left: 0; /* Sin espacio para la barra lateral */
+        }
+        .content {
+            transition: margin-left 0.3s ease-in-out;
+            margin-left: 16rem; /* Espacio para la barra lateral */
+        }
+    </style>
 </head>
 <body>
-    <div class="sidebar">
-        <a href="{%url 'notificaciones:index'%}"><i class="fas fa-bell"></i> Alertas</a>
-        <a href="../dashboard/index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a href="../EstimacionesRNN/index.html"><i class="fas fa-chart-line"></i> Estimaciones RNN</a>
-        <a href="{% url 'gestion_tareas:index' %}"><i class="fas fa-tasks"></i> Gestión de Tareas</a>
-        <a href="../GestionRecursos/index.html"><i class="fas fa-cogs"></i> Gestión de Recursos</a>
-        <a href="{% url 'gestion_tareas:tareas_programadas' %}"><i class="fas fa-calendar-alt"></i> Tareas Programadas</a>
-        <a href="../GestionUsuarios/index.html"><i class="fas fa-users"></i> Gestión de Usuarios</a>
-        <a href="../Integracion_Herramientas_Externas/index.html"><i class="fas fa-plug"></i> Integración</a>
-        <a href="../ProjectManagent/index.html"><i class="fas fa-project-diagram"></i> Proyectos</a>
-        <a href="../ReportesYAnalisis/index.html"><i class="fas fa-chart-pie"></i> Reportes</a>
-        <a href="../seguridad_y_auditoria/index.html"><i class="fas fa-shield-alt"></i> Seguridad</a>
-    </div>
-    <div class="content">
-          <!-- Cabecera -->
-      <header class="flex justify-between items-center p-4 bg-blue-600 text-white">
-        <div class="text-2xl font-bold">{%block title_body%} {% endblock %}</div>
-        <i class="{%block icon%}{%endblock%}"></i>
-        <div class="flex items-center">
-            <img id="img_perfil" src="https://via.placeholder.com/40" alt="Usuario">
-            <span>John Doe</span>
+    <!-- Botón para alternar la barra lateral -->
+    <button id="toggleSidebar" class="focus:outline-none mt-5">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="flex">
+        <!-- Barra lateral -->
+        <div class="sidebar bg-gray-800 text-white h-screen hidden lg:block">
+            <div class="mt-20">
+                <a href="{% url 'notificaciones:index' %}" class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'notificaciones' %}active{% endif %}">
+                    <i class="fas fa-bell"></i> Alertas
+                </a>
+                <a href="{% url 'dashboard:index' %}" class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="../EstimacionesRNN/index.html"><i class="fas fa-chart-line"></i> Estimaciones RNN</a>
+                <a href="{% url 'gestion_tareas:index' %}" class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'gestion_tareas' %}active{% endif %}">
+                    <i class="fas fa-tasks"></i> Gestión de Tareas
+                </a>
+                <a href="../GestionRecursos/index.html"><i class="fas fa-cogs"></i> Gestión de Recursos</a>
+                <a href="{% url 'gestion_tareas:tareas_programadas' %}" class="{% if request.resolver_match.url_name == 'tareas_programadas' %}active{% endif %}">
+                    <i class="fas fa-calendar-alt"></i> Tareas Programadas
+                </a>
+                <a href="../GestionUsuarios/index.html"><i class="fas fa-users"></i> Gestión de Usuarios</a>
+                <a href="../Integracion_Herramientas_Externas/index.html"><i class="fas fa-plug"></i> Integración</a>
+                <a href="../ProjectManagent/index.html"><i class="fas fa-project-diagram"></i> Proyectos</a>
+                <a href="../ReportesYAnalisis/index.html"><i class="fas fa-chart-pie"></i> Reportes</a>
+                <a href="../seguridad_y_auditoria/index.html"><i class="fas fa-shield-alt"></i> Seguridad</a>
+            </div>
+            
         </div>
-      </header>
-      {%block body%}
-      {%endblock%}
+
+        <!-- Contenido principal -->
+        <div class="content flex-1 expanded">
+            <!-- Cabecera -->
+            <header class="flex justify-between items-center p-4 bg-blue-600 text-white">
+                <div class="text-2xl font-bold ml-6">{% block title_body %}{% endblock %}</div>
+                <i class="{% block icon %}{% endblock %}"></i>
+                <div class="flex items-center">
+                    <img id="img_perfil" src="https://via.placeholder.com/40" alt="Usuario" class="rounded-full">
+                    <span>John Doe</span>
+                </div>
+            </header>
+            {% block body %}{% endblock %}
+        </div>
     </div>
+
+    <script>
+        const toggleButton = document.getElementById('toggleSidebar');
+        const sidebar = document.querySelector('.sidebar');
+        const content = document.querySelector('.content');
+        
+        toggleButton.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            content.classList.toggle('expanded');
+        });
+    </script>
     {% block script %}{% endblock %}
 </body>
 </html>
