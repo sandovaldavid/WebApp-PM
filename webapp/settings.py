@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-n-x&o40u)1z$i1p7rkun1_qx$7*tb+to=0py&b87__95$-b)oe
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost','0.0.0.0']
 
 
 # Application definition
@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'usuarios',
     'dashboard',
     'gestion_tareas',
+    'auditoria',
+    'reporte',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -64,7 +66,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-             BASE_DIR / 'templates',
+            BASE_DIR / 'dashboard/templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -87,7 +89,7 @@ WSGI_APPLICATION = 'webapp.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'DbWebAp_PM',
+        'NAME': 'dbtest_webapp_pm', # Nombre de la base de datos
         'USER': 'development',
         'PASSWORD': '123456',
         'HOST': 'db-webapp-PM',
@@ -114,6 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'usuarios.Usuario' # Se indica el modelo personalizado de usuario
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -133,9 +136,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # El directorio donde Django buscará los archivos estáticos durante el desarrollo
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # El directorio 'static' en la raíz del proyecto
-]
+# STATICFILES_DIRS = [
+#     BASE_DIR / 'static',  # El directorio 'static' en la raíz del proyecto
+# ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
