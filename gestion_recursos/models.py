@@ -1,18 +1,17 @@
 from django.db import models
-from gestion_proyectos.models import Proyecto
 
 # Create your models here.
 
 class Recurso(models.Model):
-    idrecurso = models.AutoField(primary_key=True)
-    nombrerecurso = models.CharField(max_length=255)
-    idtiporecurso = models.IntegerField()
-    disponibilidad = models.BooleanField(blank=True, null=True)
-    fechacreacion = models.DateTimeField(blank=True, null=True)
-    fechamodificacion = models.DateTimeField(blank=True, null=True)
+    idRecurso = models.AutoField(primary_key=True)
+    nombreRecurso = models.CharField(max_length=255)
+    idTipoRecurso = models.ForeignKey('TipoRecurso', on_delete=models.CASCADE, related_name="recursos")
+    disponibilidad = models.BooleanField(default=True)
+    fechaCreacion = models.DateTimeField(auto_now_add=True)
+    fechaModificacion = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.nombrerecurso} - {self.proyecto}"
+        return self.nombreRecurso
     
     class Meta:
         db_table = 'recurso'
@@ -20,11 +19,12 @@ class Recurso(models.Model):
         verbose_name_plural = 'Recursos'   
         
 class TipoRecurso(models.Model):
-    nombre_tipo_recurso = models.CharField(max_length=255)
-    descripcion = models.TextField(null=True, blank=True)
-    
+    idTipoRecurso = models.AutoField(primary_key=True)
+    nameTipoRecurso = models.CharField(max_length=255)
+    descripcion = models.TextField(blank=True, null=True)
+
     def __str__(self):
-        return self.nombre_tipo_recurso
+        return self.nameTipoRecurso
     
     class Meta:
         db_table = 'tipo_recurso'
@@ -32,14 +32,15 @@ class TipoRecurso(models.Model):
         verbose_name_plural = 'Tipos de Recursos'
 
 class RecursoHumano(models.Model):
-    recurso = models.OneToOneField(Recurso, on_delete=models.CASCADE, primary_key=True)
-    cargo = models.CharField(max_length=255)
-    habilidades = models.TextField(null=True, blank=True)
-    tarifa_hora = models.DecimalField(max_digits=10, decimal_places=2)
-    usuario = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE)
-    
+    recurso = models.OneToOneField(Recurso, on_delete=models.CASCADE, primary_key=True, related_name="recurso_humano")
+    cargo = models.CharField(max_length=255, blank=True, null=True)
+    habilidades = models.TextField(blank=True, null=True)
+    tarifaHora = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    usuario = models.OneToOneField('usuarios.Usuario', on_delete=models.CASCADE,related_name="recurso_humano")
+
     def __str__(self):
-        return f"{self.recurso} - {self.usuario}"
+        return f"{self.recurso.nombreRecurso} ({self.cargo})"
+
     
     class Meta:
         db_table = 'recurso_humano'
@@ -47,12 +48,13 @@ class RecursoHumano(models.Model):
         verbose_name_plural = 'Recursos Humanos'
 
 class RecursoMaterial(models.Model):
-    recurso = models.OneToOneField(Recurso, on_delete=models.CASCADE, primary_key=True)
-    costo_unidad = models.DecimalField(max_digits=10, decimal_places=2)
-    fecha_compra = models.DateField()
-    
+    recurso = models.OneToOneField('Recurso', on_delete=models.CASCADE, primary_key=True, related_name="recurso_material")
+    costoUnidad = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    fechaCompra = models.DateField(blank=True, null=True)
+
     def __str__(self):
-        return f"{self.recurso} - {self.costo_unidad}"
+        return f"{self.recurso.nombreRecurso} - Costo: {self.costoUnidad}"
+
     
     class Meta:
         db_table = 'recurso_material'
