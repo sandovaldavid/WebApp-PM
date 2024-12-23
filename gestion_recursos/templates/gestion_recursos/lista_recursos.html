@@ -12,7 +12,7 @@
 
 <main class="p-8">
     <div class="flex justify-end">
-        <a href="{% url 'crear_recurso' %}" class="btn-secondary px-4 py-2 rounded bg-green-500 text-white inline-block">
+        <a href="{% url 'gestionRecursos:crear_recurso' %}" class="btn-secondary px-4 py-2 rounded bg-green-500 text-white inline-block">
             <i class="fas fa-plus"></i> Registrar Recurso
         </a>
         <button onclick="openModal()" class="btn-secondary px-4 py-2 rounded bg-blue-500 text-white inline-block ml-2">
@@ -43,8 +43,8 @@
                 <td class="p-4">{{ item.recurso.disponibilidad|yesno:"Disponible,No disponible" }}</td>
                 <td class="p-4">{{ item.costo }}</td>
                 <td class="p-4">
-                    <a href="{% url 'editar_recurso' item.recurso.idrecurso %}" class="text-blue-500"><i class="fas fa-edit"></i> Editar</a>
-                    <a href="{% url 'eliminar_recurso' item.recurso.idrecurso %}" class="text-red-500"><i class="fas fa-trash"></i> Eliminar</a>
+                    <a href="{% url 'gestionRecursos:editar_recurso' item.recurso.idrecurso %}" class="text-blue-500"><i class="fas fa-edit"></i> Editar</a>
+                    <a href="{% url 'gestionRecursos:eliminar_recurso' item.recurso.idrecurso %}" class="text-red-500"><i class="fas fa-trash"></i> Eliminar</a>
                 </td>
             </tr>
             {% endfor %}
@@ -55,7 +55,7 @@
     <div id="modal-assign-resource" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
         <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
             <h3 class="text-xl font-semibold mb-4">Asignar Recurso</h3>
-            <form method="post" action="{% url 'asignar_recurso' %}">
+            <form method="post" action="{% url 'gestionRecursos:asignar_recurso' %}">
                 {% csrf_token %}
                 <div class="mb-4">
                     <label for="resource" class="block text-gray-700">Seleccionar Recurso</label>

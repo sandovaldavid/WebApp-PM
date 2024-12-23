@@ -30,7 +30,7 @@ def dashboard(request):
         'proyectos': proyectos,
         'tareas_estadisticas': json.dumps(tareas_estadisticas, cls=DjangoJSONEncoder),
     }
-    return render(request, 'dashboard1/index.html', context)
+    return render(request, 'dashboard/index.html', context)
 
 def api_requerimientos(request, proyecto_id):
     requerimientos = Requerimiento.objects.filter(idproyecto=proyecto_id)

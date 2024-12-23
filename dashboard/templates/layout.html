@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% block style %}{% endblock %}
     <style>
         
@@ -73,7 +72,9 @@
                 <a href="{% url 'gestion_tareas:index' %}" class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'gestion_tareas' %}active{% endif %}">
                     <i class="fas fa-tasks"></i> Gestión de Tareas
                 </a>
-                <a href="../GestionRecursos/index.html"><i class="fas fa-cogs"></i> Gestión de Recursos</a>
+                <a href="{% url 'gestionRecursos:lista_recursos' %}" class="{% if request.resolver_match.url_name == 'lista_recursos' and request.resolver_match.app_name == 'gestionRecursos' %}active{% endif %}">
+                    <i class="fas fa-cogs"></i> Gestión de Recursos
+                </a>
                 <a href="{% url 'gestion_tareas:tareas_programadas' %}" class="{% if request.resolver_match.url_name == 'tareas_programadas' %}active{% endif %}">
                     <i class="fas fa-calendar-alt"></i> Tareas Programadas
                 </a>

@@ -58,7 +58,7 @@ def crear_recurso(request):
                     fechacompra=fechacompra
                 )
         
-        return redirect('lista_recursos')
+        return redirect('gestionRecursos:lista_recursos')
     tipos = Tiporecurso.objects.all()
     return render(request, 'gestion_recursos/crear_recurso.html', {'tipos': tipos})
 
@@ -68,14 +68,14 @@ def editar_recurso(request, id):
         recurso.nombrerecurso = request.POST.get('nombre')
         recurso.idtiporecurso = Tiporecurso.objects.get(pk=request.POST.get('tipo_recurso')).idtiporecurso
         recurso.save()
-        return redirect('lista_recursos')
+        return redirect('gestionRecursos:lista_recursoss')
     tipos = Tiporecurso.objects.all()
     return render(request, 'gestion_recursos/editar_recurso.html', {'recurso': recurso, 'tipos': tipos})
 
 def eliminar_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
     recurso.delete()
-    return redirect('lista_recursos')
+    return redirect('gestionRecursos:lista_recursos')
 
 def asignar_recurso(request):
     if request.method == 'POST':
@@ -86,8 +86,9 @@ def asignar_recurso(request):
         recurso = get_object_or_404(Recurso, pk=recurso_id)
         tarea = get_object_or_404(Tarea, pk=tarea_id)
         
-        # Crear la asignación del recurso a la tarea
-        Tarearecurso.objects.create(idtarea=tarea, idrecurso=recurso, cantidad=1)
+        # Verificar si ya existe la asignación del recurso a la tarea
+        if not Tarearecurso.objects.filter(idtarea=tarea, idrecurso=recurso).exists():
+            Tarearecurso.objects.create(idtarea=tarea, idrecurso=recurso, cantidad=1)
         
-        return redirect('lista_recursos')
-    return redirect('lista_recursos')
+        return redirect('gestionRecursos:lista_recursos')
+    return redirect('gestionRecursos:lista_recursos')

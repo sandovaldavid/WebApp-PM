@@ -7,7 +7,7 @@
 {% block body %}
 <main class="p-8">
     <h2 class="text-2xl font-semibold mb-4">Registrar Nuevo Recurso</h2>
-    <form method="post" action="{% url 'crear_recurso' %}">
+    <form method="post" action="{% url 'gestionRecursos:crear_recurso' %}">
         {% csrf_token %}
         <div class="mb-4">
             <label for="nombre" class="block text-gray-700">Nombre del Recurso</label>
@@ -25,7 +25,7 @@
         <div id="campos-adicionales"></div>
         <div class="flex justify-end">
             <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Registrar</button>
-            <a href="{% url 'lista_recursos' %}" class="ml-2 text-red-500">Cancelar</a>
+            <a href="{% url 'gestionRecursos:lista_recursos' %}" class="ml-2 text-red-500">Cancelar</a>
         </div>
     </form>
 </main>
