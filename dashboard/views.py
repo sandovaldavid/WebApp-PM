@@ -1,5 +1,6 @@
-from django.shortcuts import render
-from .models import Proyecto, Tarea
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from .models import Proyecto, Tarea, Requerimiento
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Case, When, Count, Q, FloatField
 from django.db.models.functions import Coalesce
@@ -30,6 +31,16 @@ def dashboard(request):
         'tareas_estadisticas': json.dumps(tareas_estadisticas, cls=DjangoJSONEncoder),
     }
     return render(request, 'dashboard1/index.html', context)
+
+def api_requerimientos(request, proyecto_id):
+    requerimientos = Requerimiento.objects.filter(idproyecto=proyecto_id)
+    data = list(requerimientos.values('idrequerimiento', 'descripcion'))
+    return JsonResponse(data, safe=False)
+
+def api_tareas(request, requerimiento_id):
+    tareas = Tarea.objects.filter(idrequerimiento=requerimiento_id)
+    data = list(tareas.values('idtarea', 'nombretarea'))
+    return JsonResponse(data, safe=False)
 
 
 

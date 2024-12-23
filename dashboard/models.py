@@ -215,7 +215,7 @@ class Recursohumano(models.Model):
     cargo = models.CharField(max_length=255, blank=True, null=True)
     habilidades = models.TextField(blank=True, null=True)
     tarifahora = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    idusuario = models.ForeignKey('Usuario', models.DO_NOTHING, db_column='idusuario')
+    idusuario = models.ForeignKey('Usuario', models.DO_NOTHING, db_column='idusuario', blank=True, null=True)
 
     class Meta:
         managed = False

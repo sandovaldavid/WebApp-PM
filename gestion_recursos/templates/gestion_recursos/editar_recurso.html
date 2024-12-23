@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+
+{% block title %}Editar Recurso{% endblock %}
+
+{% block title_body %}<i class="fas fa-edit header-icon"></i> Editar Recurso{% endblock %}
+
+{% block body %}
+<main class="p-8">
+    <h2 class="text-2xl font-semibold mb-4">Editar Recurso</h2>
+    <form method="post" action="{% url 'editar_recurso' recurso.idrecurso %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="nombre" class="block text-gray-700">Nombre del Recurso</label>
+            <input type="text" id="nombre" name="nombre" class="w-full p-2 border rounded" value="{{ recurso.nombrerecurso }}" required>
+        </div>
+        <div class="mb-4">
+            <label for="tipo_recurso" class="block text-gray-700">Tipo de Recurso</label>
+            <select id="tipo_recurso" name="tipo_recurso" class="w-full p-2 border rounded" required>
+                {% for tipo in tipos %}
+                <option value="{{ tipo.idtiporecurso }}" {% if tipo.idtiporecurso == recurso.idtiporecurso %}selected{% endif %}>{{ tipo.nametiporecurso }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex justify-end">
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Guardar</button>
+            <a href="{% url 'lista_recursos' %}" class="ml-2 text-red-500">Cancelar</a>
+        </div>
+    </form>
+</main>
+{% endblock %}
