@@ -1,1 +1,115 @@
-<h2>Integracion</h2>
+{% extends 'layout_integracion.html' %}
+
+{% block title %}
+	Integracion
+{% endblock %}
+
+{% block title_body %}
+	<i class="fas fa-cogs icon"></i>         Configuración de Integración
+{% endblock %}
+
+{% block body %}
+
+    <!-- Contenido principal -->
+    <main class="p-8">
+        <!-- Configuración de API -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+            <h2 class="text-xl font-semibold mb-4"><i class="fas fa-plug icon"></i>Conectar con Herramientas Externas</h2>
+            <form id="api-config-form">
+                <div class="mb-4">
+                    <label for="tool" class="block text-gray-700">Seleccionar Herramienta</label>
+                    <select id="tool" class="w-full p-2 border rounded custom-input">
+                        <option>Jira</option>
+                        <option>Trello</option>
+                        <option>Google Sheets</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="api-key" class="block text-gray-700">Clave API</label>
+                    <input type="text" id="api-key" class="w-full p-2 border rounded custom-input" placeholder="Ingresar clave API" required>
+                </div>
+                <div class="mb-4">
+                    <label for="sync-options" class="block text-gray-700">Opciones de Sincronización</label>
+                    <select id="sync-options" class="w-full p-2 border rounded custom-input">
+                        <option>Sincronización Manual</option>
+                        <option>Sincronización Automática (Diaria)</option>
+                        <option>Sincronización Automática (Semanal)</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded custom-button"><i class="fas fa-link icon"></i>Conectar</button>
+            </form>
+        </div>
+
+        <!-- Importación/Exportación de Datos -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+            <h2 class="text-xl font-semibold mb-4"><i class="fas fa-file-import icon"></i>Importar/Exportar Datos</h2>
+            <div class="mb-4">
+                <label class="block text-gray-700">Importar desde Archivo</label>
+                <input type="file" class="w-full p-2 border rounded custom-input mb-4">
+                <button class="bg-green-500 text-white px-4 py-2 rounded custom-button"><i class="fas fa-file-upload icon"></i>Importar</button>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Exportar a Formato</label>
+                <select class="w-full p-2 border rounded custom-input mb-4">
+                    <option>CSV</option>
+                    <option>Excel</option>
+                    <option>Google Sheets</option>
+                </select>
+                <button class="bg-yellow-500 text-white px-4 py-2 rounded custom-button"><i class="fas fa-file-export icon"></i>Exportar</button>
+            </div>
+        </div>
+
+        <!-- Vista de Datos Importados -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4"><i class="fas fa-table icon"></i>Vista de Datos Importados</h2>
+            <table class="w-full bg-white shadow-lg rounded-lg">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="p-4 text-left">Nombre del Proyecto</th>
+                        <th class="p-4 text-left">Tareas</th>
+                        <th class="p-4 text-left">Responsables</th>
+                        <th class="p-4 text-left">Fecha de Creación</th>
+                        <th class="p-4 text-left">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="hover:bg-gray-100">
+                        <td class="p-4">Proyecto A</td>
+                        <td class="p-4">10</td>
+                        <td class="p-4">Juan Pérez</td>
+                        <td class="p-4">01/01/2024</td>
+                        <td class="p-4 text-green-500"><i class="fas fa-check-circle icon"></i>Importado Correctamente</td>
+                    </tr>
+                    <tr class="hover:bg-gray-100">
+                        <td class="p-4">Proyecto B</td>
+                        <td class="p-4">5</td>
+                        <td class="p-4">María López</td>
+                        <td class="p-4">10/12/2023</td>
+                        <td class="p-4 text-red-500"><i class="fas fa-times-circle icon"></i>Error en Importación</td>
+                    </tr>
+                    <tr class="hover:bg-gray-100">
+                        <td class="p-4">Proyecto C</td>
+                        <td class="p-4">8</td>
+                        <td class="p-4">Carlos García</td>
+                        <td class="p-4">15/11/2023</td>
+                        <td class="p-4 text-green-500"><i class="fas fa-check-circle icon"></i>Importado Correctamente</td>
+                    </tr>
+                    <tr class="hover:bg-gray-100">
+                        <td class="p-4">Proyecto D</td>
+                        <td class="p-4">12</td>
+                        <td class="p-4">Ana Martínez</td>
+                        <td class="p-4">20/10/2023</td>
+                        <td class="p-4 text-red-500"><i class="fas fa-times-circle icon"></i>Error en Importación</td>
+                    </tr>
+                    <tr class="hover:bg-gray-100">
+                        <td class="p-4">Proyecto E</td>
+                        <td class="p-4">7</td>
+                        <td class="p-4">Luis Fernández</td>
+                        <td class="p-4">05/09/2023</td>
+                        <td class="p-4 text-green-500"><i class="fas fa-check-circle icon"></i>Importado Correctamente</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+{% endblock %}
