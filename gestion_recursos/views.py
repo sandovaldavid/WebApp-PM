@@ -38,7 +38,7 @@ def crear_recurso(request):
                 fechacreacion=timezone.now()
             )
             
-            if tipo.idtiporecurso == 1:  # Recurso Humano
+            if (tipo.idtiporecurso == 1):  # Recurso Humano
                 cargo = request.POST.get('cargo')
                 habilidades = request.POST.get('habilidades')
                 tarifahora = request.POST.get('tarifahora')
@@ -49,7 +49,7 @@ def crear_recurso(request):
                     tarifahora=tarifahora,
                     idusuario=request.user.idusuario if request.user.is_authenticated else None  # Asignar el usuario actual si está autenticado
                 )
-            elif tipo.idtiporecurso == 2:  # Recurso Material
+            elif (tipo.idtiporecurso == 2):  # Recurso Material
                 costounidad = request.POST.get('costounidad')
                 fechacompra = request.POST.get('fechacompra')
                 Recursomaterial.objects.create(
@@ -66,9 +66,23 @@ def editar_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
     if request.method == 'POST':
         recurso.nombrerecurso = request.POST.get('nombre')
-        recurso.idtiporecurso = Tiporecurso.objects.get(pk=request.POST.get('tipo_recurso')).idtiporecurso
+        recurso.fechamodificacion = timezone.now()
         recurso.save()
-        return redirect('gestionRecursos:lista_recursoss')
+        
+        if recurso.idtiporecurso == 1:  # Recurso Humano
+            recursohumano = get_object_or_404(Recursohumano, pk=id)
+            recursohumano.cargo = request.POST.get('cargo')
+            recursohumano.habilidades = request.POST.get('habilidades')
+            recursohumano.tarifahora = request.POST.get('tarifahora')
+            recursohumano.save()
+        elif recurso.idtiporecurso == 2:  # Recurso Material
+            recursomaterial = get_object_or_404(Recursomaterial, pk=id)
+            recursomaterial.costounidad = request.POST.get('costounidad')
+            recursomaterial.fechacompra = request.POST.get('fechacompra')
+            recursomaterial.save()
+        
+        return redirect('gestionRecursos:lista_recursos')
+    
     tipos = Tiporecurso.objects.all()
     return render(request, 'gestion_recursos/editar_recurso.html', {'recurso': recurso, 'tipos': tipos})
 

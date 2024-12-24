@@ -78,7 +78,9 @@
                 <a href="{% url 'gestion_tareas:tareas_programadas' %}" class="{% if request.resolver_match.url_name == 'tareas_programadas' %}active{% endif %}">
                     <i class="fas fa-calendar-alt"></i> Tareas Programadas
                 </a>
-                <a href="../GestionUsuarios/index.html"><i class="fas fa-users"></i> Gestión de Usuarios</a>
+                <a href="{% url 'gestionUsuarios:lista_usuarios' %}" class="{% if request.resolver_match.url_name == 'lista_usuarios' and request.resolver_match.app_name == 'gestionUsuarios' %}active{% endif %}">
+                    <i class="fas fa-users"></i> Gestión de Usuarios
+                </a>                
                 <a href="../Integracion_Herramientas_Externas/index.html"><i class="fas fa-plug"></i> Integración</a>
                 <a href="../ProjectManagent/index.html"><i class="fas fa-project-diagram"></i> Proyectos</a>
                 <a href="../ReportesYAnalisis/index.html"><i class="fas fa-chart-pie"></i> Reportes</a>

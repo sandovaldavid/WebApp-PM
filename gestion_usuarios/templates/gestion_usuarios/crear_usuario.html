@@ -1,0 +1,41 @@
+{%extends 'layout.html'%}
+
+{%block style%}
+{%endblock%}
+
+{% block title %}Gestion-Usuarios{% endblock %}
+
+{% block title_body %}<i class="fas fa-users header-icon"></i>   Gestion de Usuarios{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <h3 class="text-xl font-semibold mb-4"><i class="fas fa-user-plus"></i> Crear Usuario</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="nombreUsuario" class="block text-gray-700">Nombre Completo</label>
+            <input type="text" id="nombreUsuario" name="nombreUsuario" class="w-full p-2 border rounded" required>
+        </div>
+        <div class="mb-4">
+            <label for="email" class="block text-gray-700">Correo Electrónico</label>
+            <input type="email" id="email" name="email" class="w-full p-2 border rounded" required>
+        </div>
+        <div class="mb-4">
+            <label for="contrasena" class="block text-gray-700">Contraseña</label>
+            <input type="password" id="contrasena" name="contrasena" class="w-full p-2 border rounded" required>
+        </div>
+        <div class="mb-4">
+            <label for="rol" class="block text-gray-700">Rol</label>
+            <select id="rol" name="rol" class="w-full p-2 border rounded">
+                <option>Administrador</option>
+                <option>Desarrollador</option>
+                <option>JefeProyecto</option>
+                <option>Cliente</option>
+                <option>Tester</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-primary text-white px-4 py-2 rounded"><i class="fas fa-save"></i> Crear Usuario</button>
+        <a href="{% url 'gestionUsuarios:lista_usuarios' %}" class="ml-2 btn-secondary text-white px-4 py-2 rounded"><i class="fas fa-times"></i> Cancelar</a>
+    </form>
+</div>
+{% endblock %}
