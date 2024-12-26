@@ -2,20 +2,26 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from .models import Proyecto, Tarea, Requerimiento
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Case, When, Count, Q, FloatField
+from django.db.models import Case, When, Count, Q, FloatField, F
 from django.db.models.functions import Coalesce
 import json
 
 def dashboard(request):
     # Obtiene los primeros 3 proyectos
     proyectos = Proyecto.objects.annotate(
+        total_tareas=Count('requerimiento__tarea'),
+        tareas_completadas=Count(
+            Case(
+                When(requerimiento__tarea__estado='Completada', then=1)
+            ),
+            output_field=FloatField()
+        ),
         porcentaje_progreso=Coalesce(
-            100.0 * Count(
-                Case(
-                    When(requerimiento__tarea__estado='Completada', then=1)
-                ),
+            Case(
+                When(total_tareas=0, then=0.0),
+                default=100.0 * F('tareas_completadas') / F('total_tareas'),
                 output_field=FloatField()
-            ) / Count('requerimiento__tarea'),
+            ),
             0.0  # Si no hay tareas, el progreso es 0.0
         )
     )[:3]  # Obtén los primeros 3 proyectos

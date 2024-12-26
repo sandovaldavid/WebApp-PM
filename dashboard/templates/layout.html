@@ -54,7 +54,7 @@
 </head>
 <body>
     <!-- Botón para alternar la barra lateral -->
-    <button id="toggleSidebar" class="focus:outline-none mt-5">
+    <button id="toggleSidebar" class="focus:outline-none">
         <i class="fas fa-bars"></i>
     </button>
 
@@ -80,28 +80,35 @@
                 </a>
                 <a href="{% url 'gestionUsuarios:lista_usuarios' %}" class="{% if request.resolver_match.url_name == 'lista_usuarios' and request.resolver_match.app_name == 'gestionUsuarios' %}active{% endif %}">
                     <i class="fas fa-users"></i> Gestión de Usuarios
-                </a>                
+                </a>                                
                 <a href="../Integracion_Herramientas_Externas/index.html"><i class="fas fa-plug"></i> Integración</a>
-                <a href="../ProjectManagent/index.html"><i class="fas fa-project-diagram"></i> Proyectos</a>
+                <a href="{% url 'gestion_proyectos:lista_proyectos' %}" class="{% if request.resolver_match.url_name == 'lista_proyectos' and request.resolver_match.app_name == 'gestionProyectos' %}active{% endif %}">
+                    <i class="fas fa-project-diagram"></i> Proyectos
+                </a> 
                 <a href="../ReportesYAnalisis/index.html"><i class="fas fa-chart-pie"></i> Reportes</a>
-                <a href="../seguridad_y_auditoria/index.html"><i class="fas fa-shield-alt"></i> Seguridad</a>
+                <a href="{% url 'auditoria:registro_actividades' %}" class="{% if request.resolver_match.url_name == 'registro_actividades' and request.resolver_match.app_name == 'auditoria' %}active{% endif %}">
+                    <i class="fas fa-plus fa-shield-alt"></i> Seguridad
+                </a>
             </div>
             
         </div>
 
-        <!-- Contenido principal -->
         <div class="content flex-1 expanded">
             <!-- Cabecera -->
-            <header class="flex justify-between items-center p-4 bg-blue-600 text-white">
-                <div class="text-2xl font-bold ml-6">{% block title_body %}{% endblock %}</div>
+            <header class="fixed top-0 left-0 w-full flex justify-between items-center p-4 px-14 bg-blue-600 text-white">
+                <div class="text-2xl font-bold">{% block title_body %}{% endblock %}</div>
                 <i class="{% block icon %}{% endblock %}"></i>
                 <div class="flex items-center">
                     <img id="img_perfil" src="https://via.placeholder.com/40" alt="Usuario" class="rounded-full">
                     <span>John Doe</span>
                 </div>
             </header>
-            {% block body %}{% endblock %}
+            <!-- Ajustar el contenido para que no quede oculto detrás de la cabecera fija -->
+            <div class="mt-16">
+                {% block body %}{% endblock %}
+            </div>
         </div>
+        
     </div>
 
     <script>

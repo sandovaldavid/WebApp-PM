@@ -16,7 +16,7 @@ class Tarea(models.Model):
     costoActual = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     fechaCreacion = models.DateTimeField(auto_now_add=True)
     fechaModificacion = models.DateTimeField(auto_now=True)
-    requerimiento = models.ForeignKey('gestion_proyectos.Requerimiento', on_delete=models.CASCADE, related_name="tareas")
+    requerimiento = models.ForeignKey('dashboard.Requerimiento', on_delete=models.CASCADE, related_name="tareas")
 
     def __str__(self):
         return f"Tarea {self.nombreTarea} - {self.requerimiento.proyecto.nombreProyecto}"

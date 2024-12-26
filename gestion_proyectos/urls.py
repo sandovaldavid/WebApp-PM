@@ -3,5 +3,8 @@ from . import views
 
 app_name = 'gestion_proyectos'
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.lista_proyectos, name='lista_proyectos'),
+    path('proyecto/<int:idproyecto>/', views.detalle_proyecto, name='detalle_proyecto'),
+    path('crear-proyecto/', views.crear_proyecto, name='crear_proyecto'),
+    path('editar-proyecto/<int:idproyecto>/', views.editar_proyecto, name='editar_proyecto'),
 ]
