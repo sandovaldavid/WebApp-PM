@@ -19,10 +19,10 @@
         <tbody>
             {% for actividad in actividades %}
             <tr>
-                <td class="p-4">{{ actividad.usuario }}</td>
+                <td class="p-4">{{ actividad.idusuario.nombreusuario }}</td>
                 <td class="p-4">{{ actividad.accion }}</td>
-                <td class="p-4">{{ actividad.fecha_hora }}</td>
-                <td class="p-4">{{ actividad.detalles }}</td>
+                <td class="p-4">{{ actividad.fechacreacion }}</td>
+                <td class="p-4">{{ actividad.descripcion }}</td>
             </tr>
             {% endfor %}
         </tbody>

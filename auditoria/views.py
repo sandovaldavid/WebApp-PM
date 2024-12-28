@@ -1,8 +1,8 @@
 from django.shortcuts import render
-from dashboard.models import Usuario
+from dashboard.models import Usuario, Actividad
 
 def registro_actividades(request):
-    actividades = []  # Obtén los datos necesarios desde la base de datos.
+    actividades = Actividad.objects.all()  # Obtén los datos necesarios desde la base de datos.
     return render(request, 'auditoria/registro_actividades.html', {'actividades': actividades})
 
 def intentos_acceso(request):

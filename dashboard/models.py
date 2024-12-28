@@ -8,6 +8,19 @@
 from django.db import models
 
 
+class Actividad(models.Model):
+    idactividad = models.IntegerField(primary_key=True)
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField(blank=True, null=True)
+    fechacreacion = models.DateTimeField(blank=True, null=True)
+    idusuario = models.ForeignKey('Usuario', models.DO_NOTHING, db_column='idusuario')
+    accion = models.CharField(max_length=255)
+
+    class Meta:
+        managed = False
+        db_table = 'actividad'
+        
+
 class Administrador(models.Model):
     idusuario = models.OneToOneField('Usuario', models.DO_NOTHING, db_column='idusuario', primary_key=True)
 
