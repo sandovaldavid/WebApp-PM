@@ -15,30 +15,6 @@ from dashboard.models import (
 )
 
 # @login_required
-def index(request):
-    # Obtener notificaciones y alertas activas
-    notificaciones = (
-        Notificacion.objects.filter(leido=False)
-        .select_related("idusuario")
-        .order_by("-fechacreacion")
-    )
-
-    alertas = (
-        Alerta.objects.filter(activa=True)
-        .select_related("idtarea")
-        .order_by("-fechacreacion")
-    )
-
-    context = {
-        "notificaciones": notificaciones,
-        "alertas": alertas,
-        "fecha_actual": timezone.now(),
-    }
-
-    return render(request, "notificaciones/index.html", context)
-
-
-# @login_required
 def crear_notificacion(request):
     if request.method == "POST":
         usuario_id = request.POST.get("usuario")
@@ -60,8 +36,7 @@ def crear_notificacion(request):
         request, "notificaciones/crear_notificacion.html", {"usuarios": usuarios}
     )
 
-
-# @login_required
+#@login_required
 def crear_alerta(request):
     if request.method == "POST":
         tarea_id = request.POST.get("tarea")
@@ -80,16 +55,14 @@ def crear_alerta(request):
         messages.success(request, "Alerta creada exitosamente")
         return redirect("notificaciones:index")
 
-    tareas = Tarea.objects.all()
-    tipos_alerta = ["retraso", "presupuesto", "riesgo", "bloqueo"]
+    context = {
+        "tareas": Tarea.objects.all().order_by("-fechacreacion"),
+        "tipos_alerta": ["retraso", "presupuesto", "riesgo", "bloqueo"],
+    }
 
-    return render(
-        request,
-        "notificaciones/crear_alerta.html",
-        {"tareas": tareas, "tipos_alerta": tipos_alerta},
-    )
+    return render(request, "alertas/crear_alerta.html", context)
 
-#@login_required
+# @login_required
 def dashboard(request):
     # Obtener fecha hace 30 días para filtrar
     fecha_30_dias = timezone.now() - timedelta(days=30)
