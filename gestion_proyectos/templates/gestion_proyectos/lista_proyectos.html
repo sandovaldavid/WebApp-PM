@@ -1,0 +1,130 @@
+{% extends 'layout.html' %}
+
+{% block style %}
+<style>
+    .hidden {
+        display: none;
+    }
+    .details-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+    }
+    .details-table th, .details-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    .details-table th {
+        background-color: #f2f2f2;
+        text-align: left;
+    }
+    .details-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .details-table tr:hover {
+        background-color: #ddd;
+    }
+    .btn-selected {
+        background-color: #4a90e2;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block title %}Gestion-Proyectos{% endblock %}
+
+{% block title_body %}<i class="fas fa-project-diagram header-icon"></i> Gestion de Proyectos{% endblock %}
+
+{% block body %}
+<main class="p-8">
+    <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center">
+            <h2 class="text-xl font-semibold mr-10">Lista de Proyectos</h2>
+            <button id="btn-cards" class="bg-blue-500 text-white px-4 py-2 mr-2 rounded btn-selected" onclick="toggleView('cards')"><i class="fas fa-th-large mr-2"></i>Vista de Tarjetas</button>
+            <button id="btn-table" class="bg-blue-500 text-white px-4 py-2 rounded" onclick="toggleView('table')"><i class="fas fa-table mr-2"></i>Vista de Tabla</button>
+        </div>
+        <a href="{% url 'gestion_proyectos:crear_proyecto' %}" class="bg-green-500 text-white px-4 py-2 rounded btn">
+            <i class="fas fa-plus mr-2"></i>Crear Proyecto
+        </a>
+    </div>
+    <div id="cards-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for proyecto in proyectos %}
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold">{{ proyecto.nombreproyecto }}</h3>
+            <p class="text-gray-600">{{ proyecto.descripcion }}</p>
+            <div class="mt-2">
+                <span class="text-sm font-semibold">Estado:</span>
+                <span class="text-yellow-500">{{ proyecto.estado }}</span>
+            </div>
+            <div class="mt-2">
+                <span class="text-sm font-semibold">Fecha de Inicio:</span>
+                <span>{{ proyecto.fechainicio }}</span>
+            </div>
+            <div class="mt-2">
+                <span class="text-sm font-semibold">Fecha de Finalización:</span>
+                <span>{{ proyecto.fechafin }}</span>
+            </div>
+            <div class="mt-2">
+                <span class="text-sm font-semibold">Presupuesto:</span>
+                <span>${{ proyecto.presupuesto }}</span>
+            </div>
+            <div class="mt-4 flex justify-between">
+                <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" class="bg-blue-500 text-white px-4 py-2 rounded btn"><i class="fas fa-eye mr-2"></i>Ver Detalles</a>
+                <a href="{% url 'gestion_proyectos:editar_proyecto' proyecto.idproyecto %}" class="bg-yellow-500 text-white px-4 py-2 rounded btn"><i class="fas fa-edit mr-2"></i>Editar</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div id="table-view" class="hidden">
+        <table class="details-table">
+            <thead>
+                <tr>
+                    <th>Nombre del Proyecto</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Fecha de Inicio</th>
+                    <th>Fecha de Finalización</th>
+                    <th>Presupuesto</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proyecto in proyectos %}
+                <tr>
+                    <td>{{ proyecto.nombreproyecto }}</td>
+                    <td>{{ proyecto.descripcion }}</td>
+                    <td>{{ proyecto.estado }}</td>
+                    <td>{{ proyecto.fechainicio }}</td>
+                    <td>{{ proyecto.fechafin }}</td>
+                    <td>${{ proyecto.presupuesto }}</td>
+                    <td>
+                        <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" class="bg-blue-500 text-white px-4 py-2 rounded btn"><i class="fas fa-eye mr-2"></i>Ver Detalles</a>
+                        <a href="{% url 'gestion_proyectos:editar_proyecto' proyecto.idproyecto %}" class="bg-yellow-500 text-white px-4 py-2 rounded btn"><i class="fas fa-edit mr-2"></i>Editar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<script>
+    function toggleView(view) {
+        var cardsView = document.getElementById('cards-view');
+        var tableView = document.getElementById('table-view');
+        var btnCards = document.getElementById('btn-cards');
+        var btnTable = document.getElementById('btn-table');
+        if (view === 'cards') {
+            cardsView.classList.remove('hidden');
+            tableView.classList.add('hidden');
+            btnCards.classList.add('btn-selected');
+            btnTable.classList.remove('btn-selected');
+        } else {
+            cardsView.classList.add('hidden');
+            tableView.classList.remove('hidden');
+            btnCards.classList.remove('btn-selected');
+            btnTable.classList.add('btn-selected');
+        }
+    }
+</script>
+{% endblock %}

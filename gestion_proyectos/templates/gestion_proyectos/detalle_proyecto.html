@@ -1,0 +1,153 @@
+{% extends 'layout.html' %}
+
+{% block style %}
+<style>
+    .details-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+    }
+    .details-table th, .details-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    .details-table th {
+        background-color: #f2f2f2;
+        text-align: left;
+    }
+    .details-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .details-table tr:hover {
+        background-color: #ddd;
+    }
+    .collapsible {
+        cursor: pointer;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+        background-color: #f2f2f2;
+        padding: 10px;
+        margin-bottom: 5px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .content2 {
+        display: none;
+        overflow: hidden;
+        padding: 10px 18px;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block title %}Detalles del Proyecto{% endblock %}
+
+{% block title_body %}<i class="fas fa-project-diagram header-icon"></i> Gestion de Proyectos{% endblock %}
+
+{% block body %}
+<main class="px-8">
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-semibold mb-4">Detalles del Proyecto: {{proyecto.nombreproyecto}}</h2>
+        <div class="grid grid-cols-1 gap-4">
+            <div>
+                <h3 class="text-lg font-semibold mb-2">Requerimientos y Tareas Asociadas</h3>
+                {% for requerimiento in requerimientos %}
+                <div class="collapsible">
+                    <span>{{ requerimiento.descripcion }}</span>
+                </div>
+                <div class="content2">
+                    <table class="details-table">
+                        <thead>
+                            <tr>
+                                <th>Tarea</th>
+                                <th>Estado</th>
+                                <th>Prioridad</th>
+                                <th>Tiempo Estimado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tarea in tareas %}
+                            {% if tarea.idrequerimiento_id == requerimiento.idrequerimiento %}
+                            <tr>
+                                <td>{{ tarea.nombretarea }}</td>
+                                <td>{{ tarea.estado }}</td>
+                                <td>{{ tarea.prioridad }}</td>
+                                <td>{{ tarea.duracionestimada }} horas</td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endfor %}
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-2">Recursos Asignados</h3>
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th>Recurso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for recurso in recursos %}
+                        <tr>
+                            <td>{{ recurso.idrecurso.nombrerecurso }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="mt-4">
+            <h3 class="text-lg font-semibold mb-2">Estimaciones y Presupuesto</h3>
+            <table class="details-table">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Presupuesto Total</td>
+                        <td>${{ proyecto.presupuesto }}</td>
+                    </tr>
+                    <tr>
+                        <td>Presupuesto Utilizado</td>
+                        <td>${{ proyecto.presupuesto_utilizado }}</td>
+                    </tr>
+                    <tr>
+                        <td>Presupuesto Restante</td>
+                        <td>${{ proyecto.presupuesto_restante }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="flex justify-between mt-4">
+            <button class="bg-green-500 text-white px-4 py-2 rounded btn"><i class="fas fa-tasks mr-2"></i>Añadir Tarea</button>
+            <button class="bg-blue-500 text-white px-4 py-2 rounded btn"><i class="fas fa-user-plus mr-2"></i>Asignar Recursos</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded btn"><i class="fas fa-calendar-alt mr-2"></i>Ajustar Fechas</button>
+            <button class="bg-purple-500 text-white px-4 py-2 rounded btn"><i class="fas fa-dollar-sign mr-2"></i>Ajustar Presupuesto</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var coll = document.getElementsByClassName("collapsible");
+        for (var i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
