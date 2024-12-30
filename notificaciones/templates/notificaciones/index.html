@@ -1,136 +1,137 @@
-{%extends 'layout_notificaciones.html' %} 
+{% extends 'layout_notificaciones.html' %}
 
-{% block title %}Notificaciones{% endblock %} 
+{% block title %}Notificaciones{% endblock %}
 
 {% block title_body %}
-<i class="fas fa-bell header-icon"></i>Notificaciones
+<i class="fas fa-bell header-icon"></i> Centro de Notificaciones
 {% endblock %}
 
 {% block body %}
 <!-- Notificaciones Emergentes -->
 <div class="notification" id="notification">
-    <strong>¡Alerta!</strong> Tienes una nueva notificación.
+    <strong>¡Alerta!</strong> Tienes notificaciones sin leer.
 </div>
 
 <!-- Contenido principal -->
-<main class="p-8 flex">
-    <!-- Panel de Alertas (Lateral) -->
-    <div class="w-1/4 bg-white p-4 rounded-lg shadow-lg mr-6">
-        <h2 class="text-xl font-semibold mb-4">Alertas Activas</h2>
-        <ul>
-            <li class="mb-4">
-                <div class="font-bold">
-                    <i class="fas fa-exclamation-circle"></i> Retraso en Tarea 1
-                </div>
-                <div class="text-sm text-gray-500">
-                    La tarea "Desarrollo de Backend" está atrasada.
-                </div>
-                <button class="btn-details mt-2">
-                    <i class="fas fa-info-circle"></i> Ver detalles
-                </button>
-            </li>
-            <li class="mb-4">
-                <div class="font-bold">
-                    <i class="fas fa-dollar-sign"></i> Sobrepresupuesto en
-                    Proyecto X
-                </div>
-                <div class="text-sm text-gray-500">
-                    El presupuesto del Proyecto X ha excedido el límite.
-                </div>
-                <button class="btn-details mt-2">
-                    <i class="fas fa-info-circle"></i> Ver detalles
-                </button>
-            </li>
-            <li class="mb-4">
-                <div class="font-bold">
-                    <i class="fas fa-check-circle"></i> Tarea Completada
-                </div>
-                <div class="text-sm text-gray-500">
-                    La tarea "Pruebas de Integración" ha sido completada.
-                </div>
-                <button class="btn-details mt-2">
-                    <i class="fas fa-info-circle"></i> Ver detalles
-                </button>
-            </li>
-        </ul>
+<main class="p-8 flex flex-wrap">
+    <!-- Panel de Notificaciones -->
+    <div class="w-full lg:w-1/2 p-4">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-bell text-blue-500"></i> Notificaciones
+                <span class="text-sm text-gray-500">(No leídas)</span>
+            </h2>
+            {% if notificaciones %}
+            <ul class="divide-y divide-gray-200">
+                {% for notif in notificaciones %}
+                <li class="py-4 hover:bg-gray-50 rounded transition duration-150">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-grow">
+                            <p class="font-semibold text-gray-900">{{ notif.mensaje }}</p>
+                            <div class="flex items-center mt-1">
+                                <i class="fas fa-clock text-gray-400 mr-2"></i>
+                                <p class="text-sm text-gray-500">
+                                    {{ notif.fechacreacion|timesince }} atrás
+                                </p>
+                            </div>
+                        </div>
+                        <button class="text-blue-500 hover:text-blue-700 transition duration-150" 
+                                onclick="marcarComoLeida({{ notif.idnotificacion }})">
+                            <i class="fas fa-check-circle"></i>
+                        </button>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-gray-500 text-center py-4">No tienes notificaciones sin leer</p>
+            {% endif %}
+        </div>
     </div>
 
-    <!-- Panel Principal de Alertas (Detalle y Gráficos) -->
-    <div class="w-3/4 bg-white p-6 rounded-lg shadow-lg">
-        <h2 class="text-xl font-semibold mb-4">Detalles de la Alerta</h2>
-        <!-- Detalles de la alerta seleccionada -->
-        <div class="mb-6">
-            <h3 class="font-semibold">Retraso en Tarea 1</h3>
-            <p class="text-sm text-gray-500">
-                La tarea "Desarrollo de Backend" debería haberse completado el
-                15 de agosto. Se encuentra retrasada por 3 días.
-            </p>
-            <p class="text-sm text-gray-500">
-                Acción recomendada: Asignar más recursos o ajustar la fecha de
-                entrega.
-            </p>
-        </div>
-
-        <!-- Filtros de Alertas -->
-        <div class="mb-6">
-            <h3 class="font-semibold mb-2">Filtros de Alertas</h3>
-            <div>
-                <label class="block">Tipo de Alerta:</label>
-                <select class="w-full p-2 border rounded mb-4">
-                    <option>Retrasos</option>
-                    <option>Sobrepresupuesto</option>
-                    <option>Recursos insuficientes</option>
-                    <option>Tareas completadas</option>
-                </select>
-            </div>
-            <div>
-                <label class="block">Fecha:</label>
-                <input type="date" class="w-full p-2 border rounded" />
-            </div>
-        </div>
-
-        <!-- Gráfico de Tendencias -->
-        <div>
-            <h3 class="font-semibold mb-4">Tendencias de Alertas</h3>
-            <!-- Aquí se implementaría un gráfico utilizando Chart.js o D3.js -->
-            <div id="trend-chart" class="h-64 bg-gray-200 rounded"></div>
-        </div>
-
-        <!-- Configuración de Alertas -->
-        <div class="alert-settings">
-            <h3 class="font-semibold mb-2">Configuración de Alertas</h3>
-            <div>
-                <label class="block">Tipos de Alerta:</label>
-                <select class="w-full p-2 border rounded mb-4">
-                    <option>Retrasos</option>
-                    <option>Sobrepresupuesto</option>
-                    <option>Recursos insuficientes</option>
-                    <option>Tareas completadas</option>
-                    <option>Eventos importantes</option>
-                </select>
-            </div>
-            <div>
-                <label class="block">Método de Entrega:</label>
-                <select class="w-full p-2 border rounded mb-4">
-                    <option>Correo Electrónico</option>
-                    <option>Notificaciones en la Aplicación</option>
-                    <option>Ambos</option>
-                </select>
-            </div>
-            <div>
-                <label class="block">Frecuencia de las Alertas:</label>
-                <select class="w-full p-2 border rounded">
-                    <option>Instantánea</option>
-                    <option>Diaria</option>
-                    <option>Semanal</option>
-                </select>
-            </div>
-        </div>
-        <div class="flex justify-end">
-            <button class="btn bg-blue-600 p-4 text-white mt-4 rounded-full">
-                <i class="fas fa-save"></i> Guardar
-            </button>
+    <!-- Panel de Alertas -->
+    <div class="w-full lg:w-1/2 p-4">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-exclamation-circle text-red-500"></i> Alertas Activas
+            </h2>
+            {% if alertas %}
+            <ul class="divide-y divide-gray-200">
+                {% for alerta in alertas %}
+                <li class="py-4 hover:bg-gray-50 rounded transition duration-150">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-grow">
+                            <div class="flex items-center">
+                                {% if alerta.tipoalerta == 'retraso' %}
+                                    <i class="fas fa-clock text-orange-500 mr-2"></i>
+                                {% elif alerta.tipoalerta == 'presupuesto' %}
+                                    <i class="fas fa-dollar-sign text-red-500 mr-2"></i>
+                                {% else %}
+                                    <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                                {% endif %}
+                                <h3 class="font-semibold text-gray-900">
+                                    {{ alerta.tipoalerta|title }} - {{ alerta.idtarea.nombretarea }}
+                                </h3>
+                            </div>
+                            <p class="text-gray-600 mt-1">{{ alerta.mensaje }}</p>
+                            <div class="flex items-center mt-2">
+                                <i class="fas fa-calendar text-gray-400 mr-2"></i>
+                                <span class="text-sm text-gray-500">
+                                    Creada: {{ alerta.fechacreacion|timesince }} atrás
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <button class="text-red-500 hover:text-red-700 transition duration-150" 
+                                    onclick="resolverAlerta({{ alerta.idalerta }})">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                            <a href="{% url 'gestion_tareas:detalle_tarea' alerta.idtarea.idtarea %}" 
+                               class="text-blue-500 hover:text-blue-700 text-sm mt-2">
+                                Ver tarea <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-gray-500 text-center py-4">No hay alertas activas</p>
+            {% endif %}
         </div>
     </div>
 </main>
-{%endblock%}
+
+{% endblock %}
+
+{% block script %}
+<script>
+function marcarComoLeida(idNotificacion) {
+    // Aquí implementarías la lógica para marcar como leída
+    fetch(`/notificaciones/marcar-leida/${idNotificacion}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    }).then(response => {
+        if (response.ok) {
+            location.reload();
+        }
+    });
+}
+
+function resolverAlerta(idAlerta) {
+    // Aquí implementarías la lógica para resolver la alerta
+    fetch(`/notificaciones/resolver-alerta/${idAlerta}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    }).then(response => {
+        if (response.ok) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}
