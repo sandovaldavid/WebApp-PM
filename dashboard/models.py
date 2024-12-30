@@ -3,10 +3,10 @@
 #   * Rearrange models' order
 #   * Make sure each model has one field with primary_key=True
 #   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
+#   * Remove `managed = True` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
-
+from django.contrib.auth.models import AbstractUser
 
 class Actividad(models.Model):
     idactividad = models.IntegerField(primary_key=True)
@@ -17,15 +17,14 @@ class Actividad(models.Model):
     accion = models.CharField(max_length=255)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'actividad'
-        
 
 class Administrador(models.Model):
     idusuario = models.OneToOneField('Usuario', models.DO_NOTHING, db_column='idusuario', primary_key=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'administrador'
 
 
@@ -38,7 +37,7 @@ class Alerta(models.Model):
     fechacreacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'alerta'
 
 
@@ -46,7 +45,7 @@ class Cliente(models.Model):
     idusuario = models.OneToOneField('Usuario', models.DO_NOTHING, db_column='idusuario', primary_key=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'cliente'
 
 
@@ -56,7 +55,7 @@ class Desarrollador(models.Model):
     tiempototalempleado = models.DurationField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'desarrollador'
 
 
@@ -66,7 +65,7 @@ class Entradamodeloestimacionrnn(models.Model):
     tipodato = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'entradamodeloestimacionrnn'
 
 
@@ -78,7 +77,7 @@ class Equipo(models.Model):
     fechamodificacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'equipo'
 
 
@@ -88,7 +87,7 @@ class Historialalerta(models.Model):
     fecharesolucion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'historialalerta'
 
 
@@ -98,7 +97,7 @@ class Historialnotificacion(models.Model):
     fechalectura = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'historialnotificacion'
 
 
@@ -109,7 +108,7 @@ class Historialreporte(models.Model):
     descripcioncambio = models.TextField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'historialreporte'
 
 
@@ -120,7 +119,7 @@ class Historialreporteusuario(models.Model):
     fechamodificacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'historialreporteusuario'
 
 
@@ -131,7 +130,7 @@ class Historialtarea(models.Model):
     descripcioncambio = models.TextField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'historialtarea'
 
 
@@ -140,7 +139,7 @@ class Jefeproyecto(models.Model):
     proyectosgestionados = models.IntegerField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'jefeproyecto'
 
 
@@ -150,7 +149,7 @@ class Miembro(models.Model):
     idequipo = models.ForeignKey(Equipo, models.DO_NOTHING, db_column='idequipo')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'miembro'
 
 
@@ -164,7 +163,7 @@ class Modeloestimacionrnn(models.Model):
     fechamodificacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'modeloestimacionrnn'
 
 
@@ -177,7 +176,7 @@ class Monitoreotarea(models.Model):
     fechamodificacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'monitoreotarea'
 
 
@@ -189,7 +188,7 @@ class Notificacion(models.Model):
     fechacreacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'notificacion'
 
 
@@ -206,7 +205,7 @@ class Proyecto(models.Model):
     fechamodificacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'proyecto'
 
 
@@ -219,7 +218,7 @@ class Recurso(models.Model):
     fechamodificacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'recurso'
 
 
@@ -231,7 +230,7 @@ class Recursohumano(models.Model):
     idusuario = models.ForeignKey('Usuario', models.DO_NOTHING, db_column='idusuario', blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'recursohumano'
 
 
@@ -241,7 +240,7 @@ class Recursomaterial(models.Model):
     fechacompra = models.DateField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'recursomaterial'
 
 
@@ -252,7 +251,7 @@ class Reporte(models.Model):
     idproyecto = models.ForeignKey(Proyecto, models.DO_NOTHING, db_column='idproyecto')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'reporte'
 
 
@@ -264,7 +263,7 @@ class Reporteusuario(models.Model):
     fechacreacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'reporteusuario'
 
 
@@ -276,7 +275,7 @@ class Requerimiento(models.Model):
     idproyecto = models.ForeignKey(Proyecto, models.DO_NOTHING, db_column='idproyecto')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'requerimiento'
 
 
@@ -291,7 +290,7 @@ class Resultadosrnn(models.Model):
     fechamodificacion = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'resultadosrnn'
         unique_together = (('idtarea', 'idmodelo'),)
 
@@ -303,7 +302,7 @@ class Rolmoduloacceso(models.Model):
     permisos = models.CharField(max_length=50)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'rolmoduloacceso'
 
 
@@ -313,7 +312,7 @@ class Salidamodeloestimacionrnn(models.Model):
     tipodato = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'salidamodeloestimacionrnn'
 
 
@@ -334,7 +333,7 @@ class Tarea(models.Model):
     idrequerimiento = models.ForeignKey(Requerimiento, models.DO_NOTHING, db_column='idrequerimiento')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'tarea'
 
 
@@ -344,7 +343,7 @@ class Tarearecurso(models.Model):
     cantidad = models.IntegerField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'tarearecurso'
         unique_together = (('idtarea', 'idrecurso'),)
 
@@ -353,7 +352,7 @@ class Tester(models.Model):
     idusuario = models.OneToOneField('Usuario', models.DO_NOTHING, db_column='idusuario', primary_key=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'tester'
 
 
@@ -363,30 +362,36 @@ class Tiporecurso(models.Model):
     descripcion = models.TextField(blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'tiporecurso'
 
-
-class Usuario(models.Model):
+class Usuario(AbstractUser):
     idusuario = models.AutoField(primary_key=True)
-    nombreusuario = models.CharField(max_length=255)
+    nombreusuario = models.CharField(max_length=255 , unique=True)
     email = models.CharField(unique=True, max_length=255)
     contrasena = models.CharField(max_length=255)
     rol = models.CharField(max_length=50)
     fechacreacion = models.DateTimeField(blank=True, null=True)
     fechamodificacion = models.DateTimeField(blank=True, null=True)
 
-    class Meta:
-        managed = False
-        db_table = 'usuario'
+    # Obligatorio para modelos de usuario personalizados
+    USERNAME_FIELD = "nombreusuario"  # Este campo debe ser un string
+    REQUIRED_FIELDS = [
+        "email"
+    ]  # Campos adicionales requeridos para crear un superusuario
 
+    class Meta:
+        managed = True
+        db_table = "usuario"
+
+    def __str__(self):
+        return self.nombreusuario
 
 class Usuariorolmodulo(models.Model):
     idusuario = models.OneToOneField(Usuario, models.DO_NOTHING, db_column='idusuario', primary_key=True)  # The composite primary key (idusuario, idrolmodulo) found, that is not supported. The first column is selected.
     idrolmodulo = models.ForeignKey(Rolmoduloacceso, models.DO_NOTHING, db_column='idrolmodulo')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'usuariorolmodulo'
         unique_together = (('idusuario', 'idrolmodulo'),)
-
