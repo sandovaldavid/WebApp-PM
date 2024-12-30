@@ -1,0 +1,177 @@
+{% extends 'layout_notificaciones.html' %}
+
+{% block title %}Panel de Notificaciones{% endblock %}
+
+{% block title_body %}
+<i class="fas fa-bell header-icon"></i> Centro de Notificaciones
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <!-- Tarjetas de Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-blue-100 rounded-lg p-6 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-800 text-sm">Total Notificaciones</p>
+                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total_notificaciones }}</h3>
+                </div>
+                <i class="fas fa-bell text-3xl text-blue-500"></i>
+            </div>
+        </div>
+        
+        <div class="bg-yellow-100 rounded-lg p-6 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-yellow-800 text-sm">No Leídas</p>
+                    <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.no_leidas }}</h3>
+                </div>
+                <i class="fas fa-envelope text-3xl text-yellow-500"></i>
+            </div>
+        </div>
+        
+        <div class="bg-red-100 rounded-lg p-6 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-red-800 text-sm">Alertas Activas</p>
+                    <h3 class="text-2xl font-bold text-red-900">{{ estadisticas.alertas_activas }}</h3>
+                </div>
+                <i class="fas fa-exclamation-triangle text-3xl text-red-500"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="flex gap-4 mb-8">
+        <a href="{% url 'notificaciones:crear_notificacion' %}" 
+           class="bg-blue-500 text-white px-6 py-2 rounded-lg flex items-center hover:bg-blue-600 transition">
+            <i class="fas fa-plus mr-2"></i> Nueva Notificación
+        </a>
+        <a href="{% url 'notificaciones:crear_alerta' %}" 
+           class="bg-red-500 text-white px-6 py-2 rounded-lg flex items-center hover:bg-red-600 transition">
+            <i class="fas fa-exclamation-circle mr-2"></i> Nueva Alerta
+        </a>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Panel de Notificaciones -->
+        <div class="w-full lg:w-1/2">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-bell text-blue-500 mr-2"></i> Notificaciones Recientes
+                </h2>
+                {% if notificaciones %}
+                    <div class="divide-y divide-gray-200">
+                        {% for notif in notificaciones %}
+                        <div class="py-4 hover:bg-gray-50 rounded transition">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-grow">
+                                    <p class="font-medium text-gray-900">{{ notif.mensaje }}</p>
+                                    <div class="flex items-center mt-1 text-sm text-gray-500">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        {{ notif.fechacreacion|timesince }} atrás
+                                    </div>
+                                </div>
+                                <button onclick="marcarComoLeida({{ notif.idnotificacion }})"
+                                        class="text-blue-500 hover:text-blue-700">
+                                    <i class="fas fa-check-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 text-center py-4">No hay notificaciones sin leer</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Panel de Alertas -->
+        <div class="w-full lg:w-1/2">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-500 mr-2"></i> Alertas Activas
+                </h2>
+                {% if alertas %}
+                    <div class="divide-y divide-gray-200">
+                        {% for alerta in alertas %}
+                        <div class="py-4 hover:bg-gray-50 rounded transition">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-grow">
+                                    <div class="flex items-center">
+                                        {% if alerta.tipoalerta == 'retraso' %}
+                                            <i class="fas fa-clock text-orange-500 mr-2"></i>
+                                        {% elif alerta.tipoalerta == 'presupuesto' %}
+                                            <i class="fas fa-dollar-sign text-red-500 mr-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                                        {% endif %}
+                                        <p class="font-medium text-gray-900">
+                                            {{ alerta.tipoalerta|title }} - {{ alerta.idtarea.nombretarea }}
+                                        </p>
+                                    </div>
+                                    <p class="text-gray-600 mt-1">{{ alerta.mensaje }}</p>
+                                    <div class="flex items-center mt-1 text-sm text-gray-500">
+                                        <i class="fas fa-calendar mr-1"></i>
+                                        {{ alerta.fechacreacion|timesince }} atrás
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <button onclick="resolverAlerta({{ alerta.idalerta }})"
+                                            class="text-red-500 hover:text-red-700">
+                                        <i class="fas fa-times-circle"></i>
+                                    </button>
+                                    <a href="{% url 'gestion_tareas:detalle_tarea' alerta.idtarea.idtarea %}"
+                                       class="text-blue-500 hover:text-blue-700 text-sm mt-2">
+                                        Ver tarea <i class="fas fa-arrow-right ml-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 text-center py-4">No hay alertas activas</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+function showNotification(message, type = 'success') {
+    // Implementar notificación temporal
+}
+
+function marcarComoLeida(idNotificacion) {
+    fetch(`/notificaciones/marcar-leida/${idNotificacion}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    }).then(response => {
+        if (response.ok) {
+            location.reload();
+            showNotification('Notificación marcada como leída');
+        }
+    });
+}
+
+function resolverAlerta(idAlerta) {
+    fetch(`/notificaciones/resolver-alerta/${idAlerta}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    }).then(response => {
+        if (response.ok) {
+            location.reload();
+            showNotification('Alerta resuelta correctamente');
+        }
+    });
+}
+</script>
+{% endblock %}
