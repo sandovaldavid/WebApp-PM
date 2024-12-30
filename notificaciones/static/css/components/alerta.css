@@ -1,0 +1,26 @@
+/* Solo incluir estilos que no se puedan lograr con Tailwind */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.alerta-item {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Transiciones personalizadas */
+.alerta-item {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Si necesitas algún estilo específico que no proporciona Tailwind */
+.alerta-item.destacada {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
