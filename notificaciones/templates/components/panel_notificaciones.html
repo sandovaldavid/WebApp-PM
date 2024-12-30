@@ -1,0 +1,54 @@
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <!-- Encabezado del Panel -->
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">
+            <i class="fas fa-bell text-blue-500"></i> Notificaciones
+            <span class="text-sm text-gray-500">({{ notificaciones|length }})</span>
+        </h2>
+        <div class="flex items-center space-x-2">
+            <select id="filtro-prioridad" class="text-sm border rounded-md px-2 py-1">
+                <option value="todas">Todas las prioridades</option>
+                <option value="alta">Alta prioridad</option>
+                <option value="media">Media prioridad</option>
+                <option value="baja">Baja prioridad</option>
+            </select>
+            <button onclick="marcarTodasComoLeidas()" 
+                    class="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-200">
+                <i class="fas fa-check-double mr-1"></i> Marcar todas como leídas
+            </button>
+        </div>
+    </div>
+
+    <!-- Lista de Notificaciones -->
+    <div class="space-y-4">
+        {% if notificaciones %}
+            {% for notificacion in notificaciones %}
+                {% include 'components/notificacion.html' with notificacion=notificacion %}
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-check-circle text-4xl mb-2"></i>
+                <p>No tienes notificaciones pendientes</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Paginación si es necesaria -->
+    {% if notificaciones.has_other_pages %}
+    <div class="mt-4 flex justify-center">
+        <nav class="inline-flex rounded-md shadow">
+            {% if notificaciones.has_previous %}
+                <a href="?page={{ notificaciones.previous_page_number }}" class="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% endif %}
+            <span class="px-3 py-1 bg-blue-500 text-white">{{ notificaciones.number }}</span>
+            {% if notificaciones.has_next %}
+                <a href="?page={{ notificaciones.next_page_number }}" class="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
