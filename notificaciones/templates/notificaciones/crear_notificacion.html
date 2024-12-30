@@ -11,12 +11,20 @@
 {% block body %}
 <div class="p-8">
     <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-6 flex items-center">
+            <i class="fas fa-bell text-blue-500 mr-2"></i>
+            Crear Nueva Notificación
+        </h2>
+
         <form method="POST" class="space-y-6">
             {% csrf_token %}
             
+            <!-- Usuario Destino -->
             <div class="mb-4">
                 <label for="usuario" class="block text-sm font-medium text-gray-700">Usuario Destino</label>
-                <select name="usuario" id="usuario" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                <select name="usuario" id="usuario" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                        required>
                     <option value="">Seleccione un usuario</option>
                     {% for usuario in usuarios %}
                         <option value="{{ usuario.idusuario }}">{{ usuario.nombreusuario }}</option>
@@ -24,38 +32,115 @@
                 </select>
             </div>
 
+            <!-- Mensaje -->
             <div class="mb-4">
                 <label for="mensaje" class="block text-sm font-medium text-gray-700">Mensaje</label>
                 <textarea name="mensaje" id="mensaje" rows="4" 
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></textarea>
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                    placeholder="Escriba el mensaje de la notificación..."
+                    required></textarea>
             </div>
 
+            <!-- Prioridad -->
             <div class="mb-4">
                 <label for="prioridad" class="block text-sm font-medium text-gray-700">Prioridad</label>
-                <select name="prioridad" id="prioridad" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                    <option value="baja">Baja</option>
-                    <option value="media" selected>Media</option>
-                    <option value="alta">Alta</option>
+                <select name="prioridad" id="prioridad" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="baja" class="text-green-600">Baja</option>
+                    <option value="media" class="text-yellow-600" selected>Media</option>
+                    <option value="alta" class="text-red-600">Alta</option>
                 </select>
             </div>
 
+            <!-- Categoría -->
             <div class="mb-4">
                 <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
-                <input type="text" name="categoria" id="categoria" 
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <select name="categoria" id="categoria" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="Frontend">Frontend</option>
+                    <option value="Backend">Backend</option>
+                    <option value="QA">QA</option>
+                    <option value="Otro">Otro</option>
+                </select>
             </div>
 
+            <!-- Fecha de Recordatorio -->
+            <div class="mb-4">
+                <label for="fecha_recordatorio" class="block text-sm font-medium text-gray-700">
+                    Fecha de Recordatorio (Opcional)
+                </label>
+                <input type="datetime-local" name="fecha_recordatorio" id="fecha_recordatorio" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
+            <!-- Vista Previa -->
+            <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 class="text-sm font-medium text-gray-700 mb-2">Vista Previa</h3>
+                <div class="p-4 rounded-lg bg-white shadow-sm">
+                    <div class="flex items-center mb-2" id="preview-priority">
+                        <i class="fas fa-circle text-yellow-500 mr-2"></i>
+                        <span class="font-medium">Prioridad Media</span>
+                    </div>
+                    <p class="text-gray-600" id="preview-message">El mensaje aparecerá aquí...</p>
+                    <div class="mt-2 text-sm text-gray-500">
+                        <i class="fas fa-tag mr-1"></i>
+                        <span id="preview-category">Categoría</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
             <div class="flex justify-end space-x-4">
                 <a href="{% url 'notificaciones:index' %}" 
                    class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
-                    Cancelar
+                    <i class="fas fa-times mr-2"></i>Cancelar
                 </a>
                 <button type="submit" 
                         class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
-                    Crear Notificación
+                    <i class="fas fa-paper-plane mr-2"></i>Enviar Notificación
                 </button>
             </div>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mensaje = document.getElementById('mensaje');
+    const prioridad = document.getElementById('prioridad');
+    const categoria = document.getElementById('categoria');
+    const previewMessage = document.getElementById('preview-message');
+    const previewPriority = document.getElementById('preview-priority');
+    const previewCategory = document.getElementById('preview-category');
+
+    function updatePreview() {
+        // Actualizar mensaje
+        previewMessage.textContent = mensaje.value || 'El mensaje aparecerá aquí...';
+        
+        // Actualizar prioridad
+        const prioridadIcon = previewPriority.querySelector('i');
+        const prioridadText = previewPriority.querySelector('span');
+        switch(prioridad.value) {
+            case 'baja':
+                prioridadIcon.className = 'fas fa-circle text-green-500 mr-2';
+                break;
+            case 'alta':
+                prioridadIcon.className = 'fas fa-circle text-red-500 mr-2';
+                break;
+            default:
+                prioridadIcon.className = 'fas fa-circle text-yellow-500 mr-2';
+        }
+        prioridadText.textContent = `Prioridad ${prioridad.value.charAt(0).toUpperCase() + prioridad.value.slice(1)}`;
+        
+        // Actualizar categoría
+        previewCategory.textContent = categoria.value;
+    }
+
+    mensaje.addEventListener('input', updatePreview);
+    prioridad.addEventListener('change', updatePreview);
+    categoria.addEventListener('change', updatePreview);
+});
+</script>
 {% endblock %}
