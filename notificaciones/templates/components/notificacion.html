@@ -1,0 +1,50 @@
+{% load static %}
+
+<div class="notification-item" data-notification-id="{{ notificacion.idnotificacion }}">
+    <div class="flex justify-between items-start">
+        <!-- Contenido Principal -->
+        <div class="flex-grow">
+            <!-- Mensaje y Estado -->
+            <div class="flex items-start space-x-3">
+                {% if not notificacion.leido %}
+                    <span class="notification-badge">
+                        <span class="notification-ping"></span>
+                        <span class="notification-dot"></span>
+                    </span>
+                {% endif %}
+                <div>
+                    <p class="notification-message {% if not notificacion.leido %}font-semibold{% endif %}">
+                        {{ notificacion.mensaje }}
+                    </p>
+                    <div class="notification-metadata">
+                        <i class="fas fa-clock mr-2"></i>
+                        <span>{{ notificacion.fechacreacion|timesince }} atrás</span>
+                        {% if notificacion.idusuario %}
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-user mr-2"></i>
+                            <span>{{ notificacion.idusuario.nombreusuario }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="notification-actions">
+            {% if not notificacion.leido %}
+                <button onclick="NotificationManager.marcarComoLeida({{ notificacion.idnotificacion }})" 
+                        class="action-button mark-as-read">
+                    <i class="fas fa-check-circle"></i>
+                </button>
+            {% endif %}
+            <a href="{% url 'notificaciones:detalle_notificacion' notificacion.idnotificacion %}" 
+               class="action-button view-details">
+                <i class="fas fa-eye mr-1"></i> Ver detalle
+            </a>
+            <button onclick="NotificationManager.eliminarNotificacion({{ notificacion.idnotificacion }})"
+                    class="action-button delete">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+    </div>
+</div>
