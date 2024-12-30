@@ -28,7 +28,7 @@ class Tarea(models.Model):
     costoActual = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     fechaCreacion = models.DateTimeField(auto_now_add=True)
     fechaModificacion = models.DateTimeField(auto_now=True)
-    requerimiento = models.ForeignKey('gestion_proyectos.Requerimiento', on_delete=models.CASCADE, related_name="tareas")
+    requerimiento = models.ForeignKey('dashboard.Requerimiento', on_delete=models.CASCADE, related_name="tareas")
     tarea_padre = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name="subtareas")
 
     def __str__(self):
