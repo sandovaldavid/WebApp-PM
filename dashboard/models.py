@@ -186,7 +186,18 @@ class Notificacion(models.Model):
     mensaje = models.TextField()
     leido = models.BooleanField(blank=True, null=True)
     fechacreacion = models.DateTimeField(blank=True, null=True)
-
+    prioridad = models.CharField(
+        max_length=20,
+        choices=[
+            ("baja", "Baja"),
+            ("media", "Media"),
+            ("alta", "Alta"),
+        ],
+        default="media",
+    )
+    categoria = models.CharField(max_length=50, blank=True, null=True)
+    archivada = models.BooleanField(default=False)
+    fecha_recordatorio = models.DateTimeField(blank=True, null=True)
     class Meta:
         managed = True
         db_table = 'notificacion'
