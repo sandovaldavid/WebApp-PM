@@ -22,13 +22,18 @@ def crear_notificacion(request):
     if request.method == "POST":
         usuario_id = request.POST.get("usuario")
         mensaje = request.POST.get("mensaje")
+        prioridad = request.POST.get("prioridad", "media")
+        categoria = request.POST.get("categoria")
+        fecha_recordatorio = request.POST.get("fecha_recordatorio")
 
-        # Crear nueva notificación
         notificacion = Notificacion.objects.create(
             idusuario_id=usuario_id,
             mensaje=mensaje,
             leido=False,
             fechacreacion=timezone.now(),
+            prioridad=prioridad,
+            categoria=categoria,
+            fecha_recordatorio=fecha_recordatorio if fecha_recordatorio else None,
         )
 
         messages.success(request, "Notificación creada exitosamente")
