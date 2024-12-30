@@ -1,0 +1,67 @@
+{% extends 'layout_notificaciones.html' %}
+
+{% block title %}Detalle de Alerta{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <!-- Detalles de la Alerta -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold mb-4">{{ alerta.tipoalerta|title }}</h2>
+            <p class="text-gray-700">{{ alerta.mensaje }}</p>
+            
+            <div class="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                    <span class="font-semibold">Estado:</span> 
+                    {% if alerta.activa %}
+                        <span class="text-red-500">Activa</span>
+                    {% else %}
+                        <span class="text-green-500">Resuelta</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <span class="font-semibold">Fecha de creación:</span>
+                    {{ alerta.fechacreacion|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex justify-between items-center mb-6">
+            <a href="{% url 'notificaciones:lista_alertas' %}" 
+               class="bg-gray-500 text-white px-4 py-2 rounded">
+                Volver
+            </a>
+            
+            {% if alerta.activa %}
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" name="resolver_alerta" 
+                        class="bg-green-500 text-white px-4 py-2 rounded">
+                    Marcar como Resuelta
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <!-- Historial -->
+        <div class="mt-8">
+            <h3 class="text-xl font-semibold mb-4">Historial de la Alerta</h3>
+            {% if historial %}
+                <ul class="divide-y divide-gray-200">
+                    {% for registro in historial %}
+                    <li class="py-3">
+                        <div class="flex justify-between">
+                            <span>{{ registro.estado }}</span>
+                            <span>{{ registro.fecharesolucion|date:"d/m/Y H:i" }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-gray-500">No hay registros en el historial</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
