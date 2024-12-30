@@ -1,13 +1,16 @@
-{%extends 'layout.html'%}
+{%extends 'layout.html'%} 
 
 {%block style%}
-<link rel="stylesheet" href="/static/css/dashboard/index.css">
+<link rel="stylesheet" href="/static/css/dashboard/index.css" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{%endblock%}
+{%endblock%} 
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock %} 
 
-{% block title_body %}<i class="fas fa-tasks header-icon"></i>   Proyect Management{% endblock %}
+{% block title_body %}
+<i class="fas fa-tasks header-icon" ></i>
+Proyect Management
+{% endblock %} 
 
 {% block body %}
 
@@ -24,12 +27,20 @@
                     <div class="font-bold">{{ proyecto.nombreproyecto }}</div>
                     <div>Fecha de inicio: {{ proyecto.fechainicio }}</div>
                     <div>Estado: {{ proyecto.estado }}</div>
-                    <div>Progreso: </div>
+                    <div>Progreso:</div>
                     <div class="mt-2">
-                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ proyecto.porcentaje_progreso }}%;"></div>
+                        <div
+                            class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700"
+                        >
+                            <div
+                                class="bg-blue-600 h-2.5 rounded-full"
+                                style="width: {{ proyecto.porcentaje_progreso }}%;"
+                            ></div>
                         </div>
-                        <span class="text-sm text-gray-600">{{ proyecto.porcentaje_progreso|floatformat:2 }}%</span>
+                        <span class="text-sm text-gray-600"
+                            >{{ proyecto.porcentaje_progreso|floatformat:2
+                            }}%</span
+                        >
                     </div>
                 </li>
                 {% endfor %}
@@ -38,60 +49,73 @@
 
         <!-- Estadísticas de Tareas -->
         <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-4"><i class="fas fa-chart-bar"></i> Estadísticas de Tareas</h2>
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-chart-bar"></i> Estadísticas de Tareas
+            </h2>
             <canvas id="taskChart" width="400" height="200"></canvas>
         </div>
 
         <!-- Accesos Directos -->
         <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-4"><i class="fas fa-link"></i> Accesos Directos</h2>
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-link"></i> Accesos Directos
+            </h2>
             <div class="space-y-2">
-                <button class="w-full py-2 px-4 bg-blue-500 text-white rounded"><i class="fas fa-plus"></i> Crear Proyecto</button>
-                <button class="w-full py-2 px-4 bg-green-500 text-white rounded"><i class="fas fa-tasks"></i> Crear Tarea</button>
-                <button class="w-full py-2 px-4 bg-yellow-500 text-white rounded"><i class="fas fa-users"></i> Gestionar Recursos</button>
+                <button class="w-full py-2 px-4 bg-blue-500 text-white rounded">
+                    <i class="fas fa-plus"></i> Crear Proyecto
+                </button>
+                <button
+                    class="w-full py-2 px-4 bg-green-500 text-white rounded"
+                >
+                    <i class="fas fa-tasks"></i> Crear Tarea
+                </button>
+                <button
+                    class="w-full py-2 px-4 bg-yellow-500 text-white rounded"
+                >
+                    <i class="fas fa-users"></i> Gestionar Recursos
+                </button>
             </div>
         </div>
     </div>
-</main>  
-{% endblock %}
+</main>
+{% endblock %} {% block script %}
+<script type="application/json" id="task-data">
+    {{ tareas_estadisticas|safe }}
+</script>
 
-{% block script %}
-    <script type="application/json" id="task-data">
-        {{ tareas_estadisticas|safe }}
-    </script>
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        // Obtener los datos del script JSON
+        const taskDataElement = document.getElementById("task-data");
+        const taskData = JSON.parse(taskDataElement.textContent);
 
-    <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", function () {
-            // Obtener los datos del script JSON
-            const taskDataElement = document.getElementById('task-data');
-            const taskData = JSON.parse(taskDataElement.textContent);
-
-            // Gráfico de tareas
-            const ctx = document.getElementById('taskChart').getContext('2d');
-            const taskChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Pendientes', 'En Progreso', 'Completadas'],
-                    datasets: [{
-                        label: 'Tareas',
+        // Gráfico de tareas
+        const ctx = document.getElementById("taskChart").getContext("2d");
+        const taskChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: ["Pendientes", "En Progreso", "Completadas"],
+                datasets: [
+                    {
+                        label: "Tareas",
                         data: [
-                            taskData.pendientes, 
-                            taskData.en_progreso, 
-                            taskData.completadas
+                            taskData.pendientes,
+                            taskData.en_progreso,
+                            taskData.completadas,
                         ],
-                        backgroundColor: ['#f39c12', '#3498db', '#2ecc71']
-                    }]
+                        backgroundColor: ["#f39c12", "#3498db", "#2ecc71"],
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                    },
                 },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
+            },
         });
-    </script>
+    });
+</script>
 {% endblock %}
-
