@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count
+from django.core.paginator import Paginator
 from dashboard.models import (
     Notificacion,
     Alerta,
@@ -68,46 +69,36 @@ def crear_alerta(request):
 
 # @login_required
 def dashboard(request):
-    fecha_30_dias = timezone.now() - timedelta(days=30)
+    """
+    Vista del dashboard para fase de desarrollo
+    """
+    # TEST: Usar ID de usuario por defecto para desarrollo
+    user_id = 1  # ID del usuario de prueba
 
     # Estadísticas generales
     estadisticas = {
-        "total_notificaciones": Notificacion.objects.filter(
-            idusuario=request.user
-        ).count(),
-        "no_leidas": Notificacion.objects.filter(
-            idusuario=request.user, leido=False
-        ).count(),
-        "alertas_activas": Alerta.objects.filter(
-            idtarea__idrequerimiento__idproyecto__idequipo__miembro__idrecurso__recursohumano__idusuario=request.user,
-            activa=True,
-        ).count(),
+        "total_notificaciones": Notificacion.objects.all().count(),
+        "no_leidas": Notificacion.objects.filter(leido=False).count(),
+        "alertas_activas": Alerta.objects.filter(activa=True).count(),
     }
 
     # Notificaciones recientes sin leer
     notificaciones = (
-        Notificacion.objects.filter(idusuario=request.user, leido=False)
+        Notificacion.objects.filter(leido=False)
         .select_related("idusuario")
         .order_by("-fechacreacion")[:5]
     )
 
     # Alertas activas
     alertas = (
-        Alerta.objects.filter(
-            idtarea__idrequerimiento__idproyecto__idequipo__miembro__idrecurso__recursohumano__idusuario=request.user,
-            activa=True,
-        )
+        Alerta.objects.filter(activa=True)
         .select_related("idtarea")
         .order_by("-fechacreacion")[:5]
     )
 
     # Análisis de tipos de alertas
     tipos_alertas = (
-        Alerta.objects.filter(
-            fechacreacion__gte=fecha_30_dias,
-            idtarea__idrequerimiento__idproyecto__idequipo__miembro__idrecurso__recursohumano__idusuario=request.user,
-        )
-        .values("tipoalerta")
+        Alerta.objects.values("tipoalerta")
         .annotate(total=Count("idalerta"))
         .order_by("-total")
     )
@@ -118,6 +109,27 @@ def dashboard(request):
         "alertas": alertas,
         "tipos_alertas": tipos_alertas,
         "fecha_actual": timezone.now(),
+    }
+
+    page_number = request.GET.get("page", 1)
+    notificaciones_list = Notificacion.objects.filter(leido=False).order_by(
+        "-fechacreacion"
+    )
+    alertas_list = Alerta.objects.filter(activa=True).order_by("-fechacreacion")
+
+    # Paginadores
+    notificaciones_paginator = Paginator(notificaciones_list, 5)
+    alertas_paginator = Paginator(alertas_list, 5)
+
+    notificaciones = notificaciones_paginator.get_page(page_number)
+    alertas = alertas_paginator.get_page(page_number)
+
+    context = {
+        "notificaciones": notificaciones,
+        "alertas": alertas,
+        "tipos_alertas": Alerta.objects.values("tipoalerta").annotate(
+            total=Count("idalerta")
+        ),
     }
 
     return render(request, "notificaciones/dashboard.html", context)
