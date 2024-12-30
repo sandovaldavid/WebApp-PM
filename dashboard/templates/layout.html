@@ -106,6 +106,12 @@
                         <i class="fas fa-calendar-alt"></i> Tareas Programadas
                     </a>
                     <a
+                        href="{% url 'gestion_equipos:index' %}"
+                        class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'gestion_equipos' %}active{% endif %}"
+                    >
+                        <i class="fas fa-users"></i> Gestion de Equipos
+                    </a>
+                    <a
                         href="{% url 'gestionUsuarios:lista_usuarios' %}"
                         class="{% if request.resolver_match.url_name == 'lista_usuarios' and request.resolver_match.app_name == 'gestionUsuarios' %}active{% endif %}"
                     >
