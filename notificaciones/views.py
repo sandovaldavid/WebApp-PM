@@ -14,6 +14,7 @@ from dashboard.models import (
     Historialnotificacion,
 )
 
+
 # @login_required
 def crear_notificacion(request):
     if request.method == "POST":
@@ -36,7 +37,8 @@ def crear_notificacion(request):
         request, "notificaciones/crear_notificacion.html", {"usuarios": usuarios}
     )
 
-#@login_required
+
+# @login_required
 def crear_alerta(request):
     if request.method == "POST":
         tarea_id = request.POST.get("tarea")
@@ -61,6 +63,7 @@ def crear_alerta(request):
     }
 
     return render(request, "alertas/crear_alerta.html", context)
+
 
 # @login_required
 def dashboard(request):
@@ -120,3 +123,79 @@ def dashboard(request):
     }
 
     return render(request, "notificaciones/dashboard.html", context)
+
+
+# @login_required
+def detalle_alerta(request, id):
+    alerta = get_object_or_404(Alerta, idalerta=id)
+    historial = Historialalerta.objects.filter(idalerta=alerta).order_by(
+        "-fecharesolucion"
+    )
+
+    if request.method == "POST" and "resolver_alerta" in request.POST:
+        alerta.activa = False
+        alerta.save()
+
+        # Crear registro en historial
+        Historialalerta.objects.create(
+            idalerta=alerta, fecharesolucion=timezone.now(), estado="Resuelta"
+        )
+
+        messages.success(request, "Alerta marcada como resuelta")
+        return redirect("notificaciones:lista_alertas")
+
+    context = {
+        "alerta": alerta,
+        "historial": historial,
+        "tarea": alerta.idtarea,
+    }
+
+    return render(request, "alertas/detalle_alerta.html", context)
+
+
+# @login_required
+def marcar_notificacion(request, id):
+    if request.method == "POST":
+        notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+        notificacion.leido = True
+        notificacion.save()
+
+        # Crear registro en historial
+        Historialnotificacion.objects.create(
+            idnotificacion=notificacion, fechalectura=timezone.now()
+        )
+
+        messages.success(request, "Notificación marcada como leída")
+        return redirect("notificaciones:lista_notificaciones")
+
+    return redirect("notificaciones:lista_notificaciones")
+
+
+@login_required
+def detalle_notificacion(request, id):
+    # Obtener la notificación o devolver 404 si no existe
+    notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+
+    # Obtener el historial de la notificación
+    historial = Historialnotificacion.objects.filter(
+        idnotificacion=notificacion
+    ).order_by("-fechalectura")
+
+    # Si la notificación no está leída, marcarla como leída
+    if not notificacion.leido:
+        notificacion.leido = True
+        notificacion.save()
+
+        # Crear registro en historial
+        Historialnotificacion.objects.create(
+            idnotificacion=notificacion, fechalectura=timezone.now()
+        )
+
+    context = {
+        "notificacion": notificacion,
+        "historial": historial,
+        "usuario": notificacion.idusuario,
+        "fecha_actual": timezone.now(),
+    }
+
+    return render(request, "notificaciones/detalle_notificacion.html", context)
