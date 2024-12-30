@@ -217,7 +217,16 @@ class Notificacion(models.Model):
         ],
         default="media",
     )
-    categoria = models.CharField(max_length=50, blank=True, null=True)
+    categoria = models.CharField(
+        max_length=20,
+        choices=[
+            ("Frontend", "Frontend"),
+            ("Backend", "Backend"),
+            ("QA", "QA"),
+            ("Otro", "Otro"),
+        ],
+        default="media",
+    )
     archivada = models.BooleanField(default=False)
     fecha_recordatorio = models.DateTimeField(blank=True, null=True)
 
