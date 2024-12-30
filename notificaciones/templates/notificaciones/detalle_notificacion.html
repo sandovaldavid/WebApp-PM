@@ -1,0 +1,109 @@
+{% extends 'layout_notificaciones.html' %}
+
+{% block title %}Detalle de Notificación{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-bell text-blue-500 mr-2"></i> Detalle de Notificación
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <!-- Información Principal -->
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-900">
+                Información de la Notificación
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Mensaje:</label>
+                        <p class="mt-1 text-gray-900">{{ notificacion.mensaje }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Estado:</label>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm 
+                            {% if notificacion.leido %}
+                                bg-green-100 text-green-800
+                            {% else %}
+                                bg-yellow-100 text-yellow-800
+                            {% endif %}">
+                            <i class="fas {% if notificacion.leido %}fa-check-circle{% else %}fa-clock{% endif %} mr-2"></i>
+                            {{ notificacion.leido|yesno:"Leído,No leído" }}
+                        </span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Usuario:</label>
+                        <p class="mt-1 text-gray-900">{{ notificacion.idusuario.nombreusuario }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Fecha de Creación:</label>
+                        <p class="mt-1 text-gray-900">{{ notificacion.fechacreacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial de Lecturas -->
+        <div class="mt-8">
+            <h3 class="text-lg font-semibold mb-4 text-gray-900">
+                <i class="fas fa-history text-blue-500 mr-2"></i>
+                Historial de Lecturas
+            </h3>
+            {% if historial %}
+            <div class="bg-gray-50 rounded-lg p-4">
+                <ul class="divide-y divide-gray-200">
+                    {% for registro in historial %}
+                    <li class="py-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            <span class="text-sm text-gray-600">
+                                Leído el {{ registro.fechalectura|date:"d/m/Y" }} a las {{ registro.fechalectura|date:"H:i" }}
+                            </span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-4">No hay registros de lecturas previas</p>
+            {% endif %}
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="mt-6 flex justify-end space-x-4">
+            <a href="{% url 'notificaciones:index' %}" 
+               class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Volver
+            </a>
+            {% if not notificacion.leido %}
+            <button onclick="marcarComoLeida({{ notificacion.idnotificacion }})"
+                    class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                <i class="fas fa-check-circle mr-2"></i>Marcar como leída
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+function marcarComoLeida(idNotificacion) {
+    fetch(`/notificaciones/marcar-leida/${idNotificacion}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    }).then(response => {
+        if (response.ok) {
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}
