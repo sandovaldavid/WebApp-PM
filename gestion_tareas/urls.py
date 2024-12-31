@@ -9,10 +9,11 @@ urlpatterns = [
     path("detalle-tarea/<int:id>/", views.detalle_tarea, name="detalle_tarea"),
     path("editar-tarea/<int:id>/", views.editar_tarea, name="editar_tarea"),
     path(
-        "notificacion/marcar-completada/<int:id>/",
-        views.notificacion_marcar_completada,
-        name="notificacion_marcar_completada",
+        "tarea/marcar-completada/<int:id>/",
+        views.tarea_marcar_completada,
+        name="tarea_marcar_completada",
     ),
     path("ejecutar-tarea/<int:id>/", views.ejecutar_tarea, name="ejecutar_tarea"),
     path("eliminar-tarea/<int:id>/", views.eliminar_tarea, name="eliminar_tarea"),
+    path("lista-tareas/", views.lista_tareas, name="lista_tareas"),
 ]
