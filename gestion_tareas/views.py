@@ -594,11 +594,25 @@ def ejecutar_tarea(request, id):
     return redirect("gestion_tareas:detalle_tarea", id=id)
 
 
+@login_required
 def eliminar_tarea(request, id):
-    tarea = get_object_or_404(Tarea, idtarea=id)
-    tarea.delete()
-    messages.success(request, "Tarea eliminada")
-    return redirect("gestion_tareas:index")
+    """Vista para eliminar una tarea y sus registros relacionados"""
+    try:
+        tarea = get_object_or_404(Tarea, idtarea=id)
+
+        # Eliminar registros relacionados
+        Historialtarea.objects.filter(idtarea=tarea).delete()
+        Tarearecurso.objects.filter(idtarea=tarea).delete()
+        Alerta.objects.filter(idtarea=tarea).delete()
+        # Eliminar la tarea
+        tarea.delete()
+
+        messages.success(request, "Tarea eliminada exitosamente")
+        return redirect("gestion_tareas:index")
+
+    except Exception as e:
+        messages.error(request, f"Error al eliminar la tarea: {str(e)}")
+        return redirect("gestion_tareas:index")
 
 
 @login_required
@@ -910,3 +924,6 @@ def crear_tarea_programada(request):
     except Exception as e:
         messages.error(request, f"Error al cargar el formulario: {str(e)}")
         return redirect("gestion_tareas:lista_tareas_programadas")
+
+def eliminar_tarea_programada(request):
+    return None
