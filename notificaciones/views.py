@@ -609,7 +609,7 @@ def detalle_alerta(request, id):
     """
     # Obtener la alerta o devolver 404
     alerta = get_object_or_404(Alerta, idalerta=id)
-    is_admin = request.user.is_staff or request.user.rol == "Administrador"
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
 
     # La tarea está relacionada con un requerimiento que pertenece a un proyecto
     tarea = alerta.idtarea
@@ -626,7 +626,7 @@ def detalle_alerta(request, id):
 
     if not tiene_permiso:
         messages.error(request, "No tienes permiso para ver esta alerta")
-        return redirect("notificaciones:lista_alertas")
+        return redirect("notificaciones:index")
 
     # Obtener historial ordenado por fecha
     historial = Historialalerta.objects.filter(idalerta=alerta).order_by(
