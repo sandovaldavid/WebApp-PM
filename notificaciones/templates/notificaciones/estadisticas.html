@@ -1,0 +1,101 @@
+{% extends 'layout_notificaciones.html' %}
+
+{% block title %}Estadísticas de Notificaciones{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-chart-pie text-blue-500 mr-2"></i> Estadísticas de Notificaciones
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <!-- Tarjetas de Resumen -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Total -->
+        <div class="bg-blue-100 rounded-lg p-6 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-800 text-sm">Total Notificaciones</p>
+                    <h3 class="text-2xl font-bold text-blue-900">{{ total }}</h3>
+                </div>
+                <i class="fas fa-bell text-3xl text-blue-500"></i>
+            </div>
+        </div>
+        
+        <!-- No Leídas -->
+        <div class="bg-yellow-100 rounded-lg p-6 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-yellow-800 text-sm">No Leídas</p>
+                    <h3 class="text-2xl font-bold text-yellow-900">{{ no_leidas }}</h3>
+                </div>
+                <i class="fas fa-envelope text-3xl text-yellow-500"></i>
+            </div>
+        </div>
+        
+        <!-- Archivadas -->
+        <div class="bg-gray-100 rounded-lg p-6 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-800 text-sm">Archivadas</p>
+                    <h3 class="text-2xl font-bold text-gray-900">{{ archivadas }}</h3>
+                </div>
+                <i class="fas fa-archive text-3xl text-gray-500"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Por Prioridad -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">
+                <i class="fas fa-exclamation-circle text-blue-500 mr-2"></i>
+                Por Prioridad
+            </h3>
+            <div class="space-y-4">
+                {% for item in por_prioridad %}
+                <div class="flex items-center justify-between">
+                    <span class="font-medium">{{ item.prioridad|title }}</span>
+                    <div class="flex items-center">
+                        <div class="w-48 bg-gray-200 rounded-full h-2.5 mr-2">
+                            <div class="h-2.5 rounded-full 
+                                {% if item.prioridad == 'alta' %}bg-red-500
+                                {% elif item.prioridad == 'media' %}bg-yellow-500
+                                {% else %}bg-green-500{% endif %}"
+                                style="width: {{ item.total|div:total|mul:100 }}%">
+                            </div>
+                        </div>
+                        <span class="text-sm text-gray-600">{{ item.total }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Por Categoría -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">
+                <i class="fas fa-tags text-blue-500 mr-2"></i>
+                Por Categoría
+            </h3>
+            <div class="space-y-4">
+                {% for item in por_categoria %}
+                <div class="flex items-center justify-between">
+                    <span class="font-medium">{{ item.categoria }}</span>
+                    <div class="flex items-center">
+                        <div class="w-48 bg-gray-200 rounded-full h-2.5 mr-2">
+                            <div class="h-2.5 rounded-full bg-blue-500"
+                                style="width: {{ item.total|div:total|mul:100 }}%">
+                            </div>
+                        </div>
+                        <span class="text-sm text-gray-600">{{ item.total }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
