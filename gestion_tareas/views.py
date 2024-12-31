@@ -412,7 +412,7 @@ def editar_tarea(request, id):
 
 
 @login_required
-def notificacion_marcar_completada(request, id):
+def tarea_marcar_completada(request, id):
     """Vista para marcar una tarea como completada"""
     if request.method == "POST":
         try:
@@ -511,3 +511,61 @@ def eliminar_tarea(request, id):
     tarea.delete()
     messages.success(request, "Tarea eliminada")
     return redirect("gestion_tareas:index")
+
+
+@login_required
+def lista_tareas(request):
+    """Vista para listar tareas"""
+    # Verificar si es admin
+    is_admin = (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.rol == "Admin"
+    )
+
+    # Query base
+    if is_admin:
+        tareas = Tarea.objects.all()
+    else:
+        tareas = Tarea.objects.filter(
+            idrequerimiento__idproyecto__idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+        )
+
+    # Aplicar filtros
+    estado = request.GET.get("estado")
+    prioridad = request.GET.get("prioridad")
+    fecha_desde = request.GET.get("fecha_desde")
+    fecha_hasta = request.GET.get("fecha_hasta")
+    busqueda = request.GET.get("busqueda")
+
+    if estado:
+        tareas = tareas.filter(estado=estado)
+    if prioridad:
+        tareas = tareas.filter(prioridad=prioridad)
+    if fecha_desde:
+        tareas = tareas.filter(fechainicio__gte=fecha_desde)
+    if fecha_hasta:
+        tareas = tareas.filter(fechafin__lte=fecha_hasta)
+    if busqueda:
+        tareas = tareas.filter(nombretarea__icontains=busqueda)
+
+    # Ordenar y obtener relaciones
+    tareas = tareas.select_related("idrequerimiento__idproyecto").order_by(
+        "-fechacreacion"
+    )
+
+    context = {
+        "tareas": tareas,
+        "estados": ["Pendiente", "En Progreso", "Completada"],
+        "prioridades": [1, 2, 3],
+        "filtros": {
+            "estado": estado,
+            "prioridad": prioridad,
+            "fecha_desde": fecha_desde,
+            "fecha_hasta": fecha_hasta,
+            "busqueda": busqueda,
+        },
+        "is_admin": is_admin,
+    }
+
+    return render(request, "gestion_tareas/lista_tareas.html", context)
