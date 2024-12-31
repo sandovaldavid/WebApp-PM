@@ -1,7 +1,11 @@
 {% load static %}
 
-<div class="alerta-item bg-white rounded-lg shadow-sm p-4 mb-3 hover:shadow-md transition duration-200" 
-     data-alerta-id="{{ alerta.idalerta }}">
+<div class="alerta-item bg-white rounded-lg shadow-sm p-4 mb-3 hover:shadow-md transition duration-200 
+    {% if alerta.activa %}border-l-4 
+    {% if alerta.tipoalerta == 'retraso' %}border-orange-500
+    {% elif alerta.tipoalerta == 'presupuesto' %}border-red-500
+    {% elif alerta.tipoalerta == 'riesgo' %}border-yellow-500
+    {% else %}border-purple-500{% endif %}{% endif %}">
     
     <div class="flex justify-between items-start">
         <!-- Contenido Principal -->
@@ -63,10 +67,15 @@
             
             <!-- Botón Resolver -->
             {% if alerta.activa %}
-            <button onclick="resolverAlerta({{ alerta.idalerta }})" 
-                    class="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-200">
-                <i class="fas fa-check-circle mr-2"></i> Resolver
-            </button>
+            <form method="POST" action="{% url 'notificaciones:resolver_alerta' alerta.idalerta %}" 
+                  class="inline"
+                  onsubmit="return confirm('¿Estás seguro de resolver esta alerta?');">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-200 w-full">
+                    <i class="fas fa-check-circle mr-2"></i> Resolver
+                </button>
+            </form>
             {% endif %}
 
             <!-- Botón Ver Tarea -->
@@ -77,36 +86,3 @@
         </div>
     </div>
 </div>
-
-{% block script %}
-<script>
-function resolverAlerta(idAlerta) {
-    if (confirm('¿Estás seguro de que deseas resolver esta alerta?')) {
-        fetch(`/notificaciones/resolver-alerta/${idAlerta}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json'
-            },
-        }).then(response => {
-            if (response.ok) {
-                const alertaElement = document.querySelector(`[data-alerta-id="${idAlerta}"]`);
-                alertaElement.classList.add('opacity-0', 'translate-x-full');
-                setTimeout(() => {
-                    alertaElement.remove();
-                    // Actualizar contador de alertas si existe
-                    const contador = document.getElementById('contador-alertas');
-                    if (contador) {
-                        const actual = parseInt(contador.textContent);
-                        contador.textContent = actual - 1;
-                    }
-                }, 300);
-            }
-        }).catch(error => {
-            console.error('Error:', error);
-            alert('Hubo un error al resolver la alerta');
-        });
-    }
-}
-</script>
-{% endblock %}
