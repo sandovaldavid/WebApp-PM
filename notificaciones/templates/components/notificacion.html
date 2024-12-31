@@ -1,50 +1,89 @@
 {% load static %}
 
-<div class="notification-item" data-notification-id="{{ notificacion.idnotificacion }}">
+<div class="bg-white rounded-lg shadow-sm p-4 mb-3 hover:shadow-md transition duration-200
+    {% if not notificacion.leido %}border-l-4 border-blue-500{% endif %}">
+    
     <div class="flex justify-between items-start">
         <!-- Contenido Principal -->
         <div class="flex-grow">
-            <!-- Mensaje y Estado -->
+            <!-- Encabezado con Estado y Mensaje -->
             <div class="flex items-start space-x-3">
-                {% if not notificacion.leido %}
-                    <span class="notification-badge">
-                        <span class="notification-ping"></span>
-                        <span class="notification-dot"></span>
-                    </span>
-                {% endif %}
-                <div>
-                    <p class="notification-message {% if not notificacion.leido %}font-semibold{% endif %}">
+                <!-- Indicador de Estado (leído/no leído) -->
+                <div class="flex-shrink-0 w-6">
+                    {% if not notificacion.leido %}
+                        <span class="flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-blue-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                        </span>
+                    {% else %}
+                        <i class="fas fa-check-circle text-green-500"></i>
+                    {% endif %}
+                </div>
+
+                <!-- Contenido del Mensaje -->
+                <div class="flex-grow">
+                    <!-- Mensaje -->
+                    <p class="text-gray-900 {% if not notificacion.leido %}font-medium{% endif %}">
                         {{ notificacion.mensaje }}
                     </p>
-                    <div class="notification-metadata">
-                        <i class="fas fa-clock mr-2"></i>
-                        <span>{{ notificacion.fechacreacion|timesince }} atrás</span>
-                        {% if notificacion.idusuario %}
-                            <span class="mx-2">•</span>
-                            <i class="fas fa-user mr-2"></i>
+
+                    <!-- Metadata -->
+                    <div class="flex items-center mt-2 text-sm text-gray-500">
+                        <!-- Fecha -->
+                        <div class="flex items-center">
+                            <i class="fas fa-clock mr-1"></i>
+                            <span>{{ notificacion.fechacreacion|timesince }} atrás</span>
+                        </div>
+
+                        <!-- Separador -->
+                        <span class="mx-2">•</span>
+
+                        <!-- Usuario -->
+                        <div class="flex items-center">
+                            <i class="fas fa-user mr-1"></i>
                             <span>{{ notificacion.idusuario.nombreusuario }}</span>
-                        {% endif %}
+                        </div>
+
+                        <!-- Prioridad -->
+                        <span class="mx-2">•</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                            {% if notificacion.prioridad == 'alta' %}bg-red-100 text-red-800
+                            {% elif notificacion.prioridad == 'media' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-green-100 text-green-800{% endif %}">
+                            <i class="fas fa-flag mr-1"></i>
+                            {{ notificacion.prioridad|title }}
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Botones de Acción -->
-        <div class="notification-actions">
+        <div class="flex items-center space-x-2 ml-4">
             {% if not notificacion.leido %}
-                <button onclick="NotificationManager.marcarComoLeida({{ notificacion.idnotificacion }})" 
-                        class="action-button mark-as-read">
+            <form method="POST" action="{% url 'notificaciones:marcar_leida' notificacion.idnotificacion %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="inline-flex items-center p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
                     <i class="fas fa-check-circle"></i>
                 </button>
+            </form>
             {% endif %}
+
             <a href="{% url 'notificaciones:detalle_notificacion' notificacion.idnotificacion %}" 
-               class="action-button view-details">
-                <i class="fas fa-eye mr-1"></i> Ver detalle
+               class="inline-flex items-center p-2 text-gray-600 hover:bg-gray-50 rounded-full transition-colors">
+                <i class="fas fa-eye"></i>
             </a>
-            <button onclick="NotificationManager.eliminarNotificacion({{ notificacion.idnotificacion }})"
-                    class="action-button delete">
-                <i class="fas fa-trash-alt"></i>
-            </button>
+
+            <form method="POST" action="{% url 'notificaciones:eliminar_notificacion' notificacion.idnotificacion %}" 
+                  class="inline"
+                  onsubmit="return confirm('¿Estás seguro de eliminar esta notificación?');">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="inline-flex items-center p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </form>
         </div>
     </div>
 </div>
