@@ -1,4 +1,5 @@
 # notificaciones/views.py
+from urllib import request
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -667,3 +668,139 @@ def lista_alertas(request):
     }
 
     return render(request, "alertas/listar_alertas.html", context)
+
+
+@login_required
+def estadisticas_notificaciones(request):
+    """Vista para mostrar estadísticas de notificaciones según el rol del usuario"""
+    try:
+        # Determinar si el usuario es admin
+        is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+        fecha_fin = request.GET.get("fecha_fin")
+        fecha_inicio = request.GET.get("fecha_inicio")
+
+        if fecha_fin:
+            fecha_fin = timezone.datetime.strptime(fecha_fin, "%Y-%m-%d")
+            fecha_fin = timezone.make_aware(fecha_fin)
+        else:
+            fecha_fin = timezone.now()
+
+        if fecha_inicio:
+            fecha_inicio = timezone.datetime.strptime(fecha_inicio, "%Y-%m-%d")
+            fecha_inicio = timezone.make_aware(fecha_inicio)
+        else:
+            fecha_inicio = fecha_fin - timedelta(days=30)
+
+        # Calcular período anterior
+        periodo_anterior_inicio = fecha_inicio - timedelta(days=30)
+        periodo_anterior_fin = fecha_fin - timedelta(days=30)
+
+        # Query base según el rol
+        if is_admin:
+            base_query = Notificacion.objects.filter(
+                fechacreacion__range=[fecha_inicio, fecha_fin]
+            )
+            query_anterior = Notificacion.objects.filter(
+                fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin]
+            )
+        else:
+            base_query = Notificacion.objects.filter(
+                idusuario=request.user, fechacreacion__range=[fecha_inicio, fecha_fin]
+            )
+            query_anterior = Notificacion.objects.filter(
+                idusuario=request.user,
+                fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin],
+            )
+
+        # Calcular totales
+        total = base_query.count()
+        no_leidas = base_query.filter(leido=False).count()
+        leidas = base_query.filter(leido=True).count()
+        archivadas = base_query.filter(archivada=True).count()
+        no_archivadas = base_query.filter(archivada=False).count()
+
+        # Totales período anterior
+        total_anterior = query_anterior.count()
+        no_leidas_anterior = query_anterior.filter(leido=False).count()
+        leidas_anterior = query_anterior.filter(leido=True).count()
+        archivadas_anterior = query_anterior.filter(archivada=True).count()
+        no_archivadas_anterior = query_anterior.filter(archivada=False).count()
+
+        def calcular_porcentaje_cambio(actual, anterior):
+            if anterior == 0:
+                return 100 if actual > 0 else 0
+            return ((actual - anterior) / anterior) * 100
+
+        porcentaje_cambio = {
+            "total": calcular_porcentaje_cambio(total, total_anterior),
+            "no_leidas": calcular_porcentaje_cambio(no_leidas, no_leidas_anterior),
+            "leidas": calcular_porcentaje_cambio(leidas, leidas_anterior),
+            "archivadas": calcular_porcentaje_cambio(archivadas, archivadas_anterior),
+            "no_archivadas": calcular_porcentaje_cambio(
+                no_archivadas, no_archivadas_anterior
+            ),
+        }
+
+        # Estadísticas por prioridad
+        por_prioridad = list(
+            base_query.values("prioridad")
+            .annotate(total=Count("idnotificacion"))
+            .order_by("-total")
+        )
+
+        # Calcular porcentajes para prioridad
+        total_prioridad = sum(item["total"] for item in por_prioridad)
+        for item in por_prioridad:
+            item["porcentaje"] = (
+                (item["total"] / total_prioridad * 100) if total_prioridad > 0 else 0
+            )
+
+        # Estadísticas por categoría
+        por_categoria = list(
+            base_query.values("categoria")
+            .annotate(total=Count("idnotificacion"))
+            .order_by("-total")
+        )
+
+        # Calcular porcentajes para categoría
+        total_categoria = sum(item["total"] for item in por_categoria)
+        for item in por_categoria:
+            item["porcentaje"] = (
+                (item["total"] / total_categoria * 100) if total_categoria > 0 else 0
+            )
+
+        # Estadísticas por usuario (solo para admin)
+        por_usuario = []
+        if is_admin:
+            por_usuario = list(
+                base_query.values("idusuario__nombreusuario")
+                .annotate(total=Count("idnotificacion"))
+                .order_by("-total")
+            )
+            total_usuario = sum(item["total"] for item in por_usuario)
+            for item in por_usuario:
+                item["porcentaje"] = (
+                    (item["total"] / total_usuario * 100) if total_usuario > 0 else 0
+                )
+
+        context = {
+            "total": total,
+            "no_leidas": no_leidas,
+            "leidas": leidas,
+            "archivadas": archivadas,
+            "no_archivadas": no_archivadas,
+            "porcentaje_cambio": porcentaje_cambio,
+            "por_prioridad": por_prioridad,
+            "por_categoria": por_categoria,
+            "por_usuario": por_usuario if is_admin else [],
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+            "is_admin": is_admin,
+        }
+
+        return render(request, "notificaciones/estadisticas.html", context)
+
+    except Exception as e:
+        messages.error(request, f"Error al procesar las estadísticas: {str(e)}")
+        return redirect("notificaciones:index")
