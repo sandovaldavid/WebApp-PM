@@ -2,64 +2,118 @@
 
 {% block title %}Detalle de Alerta{% endblock %}
 
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas {% if alerta.tipoalerta == 'retraso' %}fa-clock text-orange-500
+             {% elif alerta.tipoalerta == 'presupuesto' %}fa-dollar-sign text-red-500
+             {% elif alerta.tipoalerta == 'riesgo' %}fa-exclamation-triangle text-yellow-500
+             {% else %}fa-ban text-purple-500{% endif %} mr-2"></i>
+    Detalle de Alerta
+</div>
+{% endblock %}
+
 {% block body %}
 <div class="p-8">
     <div class="bg-white rounded-lg shadow-lg p-6">
         <!-- Detalles de la Alerta -->
         <div class="mb-6">
-            <h2 class="text-2xl font-bold mb-4">{{ alerta.tipoalerta|title }}</h2>
-            <p class="text-gray-700">{{ alerta.mensaje }}</p>
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                {{ alerta.tipoalerta|title }}
+                <span class="ml-2 px-3 py-1 text-sm rounded-full 
+                    {% if alerta.activa %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                    {% if alerta.activa %}Activa{% else %}Resuelta{% endif %}
+                </span>
+            </h2>
             
-            <div class="mt-4 grid grid-cols-2 gap-4">
-                <div>
-                    <span class="font-semibold">Estado:</span> 
-                    {% if alerta.activa %}
-                        <span class="text-red-500">Activa</span>
-                    {% else %}
-                        <span class="text-green-500">Resuelta</span>
-                    {% endif %}
+            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                <p class="text-gray-700">{{ alerta.mensaje }}</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Información de la Tarea -->
+                <div class="space-y-3">
+                    <h3 class="text-lg font-semibold">Tarea Relacionada</h3>
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <p class="font-medium">{{ alerta.idtarea.nombretarea }}</p>
+                        <div class="mt-2 space-y-2 text-sm text-gray-600">
+                            <div class="flex items-center">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                <span>Inicio: {{ alerta.idtarea.fechainicio|date:"d/m/Y" }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-flag-checkered mr-2"></i>
+                                <span>Fin: {{ alerta.idtarea.fechafin|date:"d/m/Y" }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-tasks mr-2"></i>
+                                <span>Estado: {{ alerta.idtarea.estado }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <span class="font-semibold">Fecha de creación:</span>
-                    {{ alerta.fechacreacion|date:"d/m/Y H:i" }}
+
+                <!-- Información de la Alerta -->
+                <div class="space-y-3">
+                    <h3 class="text-lg font-semibold">Detalles de la Alerta</h3>
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <div class="flex items-center">
+                                <i class="fas fa-clock mr-2"></i>
+                                <span>Creada: {{ alerta.fechacreacion|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            {% if not alerta.activa %}
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle mr-2 text-green-500"></i>
+                                <span>Resuelta: {{ alerta.fecharesolucion|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Acciones -->
-        <div class="flex justify-between items-center mb-6">
-            <a href="{% url 'notificaciones:lista_alertas' %}" 
-               class="bg-gray-500 text-white px-4 py-2 rounded">
-                Volver
-            </a>
-            
-            {% if alerta.activa %}
-            <form method="POST">
-                {% csrf_token %}
-                <button type="submit" name="resolver_alerta" 
-                        class="bg-green-500 text-white px-4 py-2 rounded">
-                    Marcar como Resuelta
-                </button>
-            </form>
-            {% endif %}
         </div>
 
         <!-- Historial -->
         <div class="mt-8">
             <h3 class="text-xl font-semibold mb-4">Historial de la Alerta</h3>
             {% if historial %}
-                <ul class="divide-y divide-gray-200">
-                    {% for registro in historial %}
-                    <li class="py-3">
-                        <div class="flex justify-between">
-                            <span>{{ registro.estado }}</span>
-                            <span>{{ registro.fecharesolucion|date:"d/m/Y H:i" }}</span>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
+                <div class="bg-white rounded-lg border border-gray-200">
+                    <ul class="divide-y divide-gray-200">
+                        {% for registro in historial %}
+                        <li class="p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-history text-gray-400 mr-2"></i>
+                                    <span class="text-sm text-gray-600">
+                                        {{ registro.fecharesolucion|date:"d/m/Y H:i" }}
+                                    </span>
+                                </div>
+                                <span class="text-sm font-medium text-green-600">{{ registro.estado }}</span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             {% else %}
-                <p class="text-gray-500">No hay registros en el historial</p>
+                <p class="text-center text-gray-500 py-4">No hay registros en el historial</p>
+            {% endif %}
+        </div>
+
+        <!-- Acciones -->
+        <div class="mt-6 flex justify-end space-x-4">
+            <a href="{% url 'notificaciones:lista_alertas' %}" 
+               class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Volver
+            </a>
+            
+            {% if alerta.activa %}
+            <form method="POST" action="{% url 'notificaciones:resolver_alerta' alerta.idalerta %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
+                    <i class="fas fa-check-circle mr-2"></i>Marcar como Resuelta
+                </button>
+            </form>
             {% endif %}
         </div>
     </div>
