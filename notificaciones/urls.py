@@ -44,7 +44,8 @@ urlpatterns = [
         views.eliminar_notificacion,
         name="eliminar_notificacion",
     ),
+    path("alertas/", views.lista_alertas, name="lista_alertas"),
     path("alerta/crear/", views.crear_alerta, name="crear_alerta"),
-    path("alerta/<int:id>/", views.detalle_alerta, name="detalle_alerta"),
+    path("detalle-alerta/<int:id>/", views.detalle_alerta, name="detalle_alerta"),
     path("alerta/resolver/<int:id>/", views.resolver_alerta, name="resolver_alerta"),
 ]
