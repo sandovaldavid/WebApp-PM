@@ -18,6 +18,7 @@
             rel="stylesheet"
         />
         <link rel="stylesheet" href="{% static 'css/layout.css' %}" />
+        <script src="https://unpkg.com/alpinejs" defer></script>
         {% block style %}{% endblock %}
         <style>
             /* Estilo para la barra lateral */
@@ -146,19 +147,122 @@
                     <div class="text-2xl font-bold">
                         {% block title_body %}{% endblock %}
                     </div>
-                    <i class="{% block icon %}{% endblock %}"></i>
-                    <div class="flex items-center">
-                        <img
-                            id="img_perfil"
-                            src="https://via.placeholder.com/40"
-                            alt="Usuario"
-                            class="rounded-full"
-                        />
-                        <span>John Doe</span>
+
+                    <!-- Perfil y Menú Usuario -->
+                    {% if user.is_authenticated %}
+                    <div class="flex items-center space-x-4">
+                        <!-- Notificaciones -->
+                        <a
+                            href="{% url 'notificaciones:index' %}"
+                            class="relative"
+                        >
+                            <i
+                                class="fas fa-bell text-xl hover:text-gray-200 transition-colors"
+                            ></i>
+                            {% if notificaciones_no_leidas %}
+                            <span
+                                class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                            >
+                                {{ notificaciones_no_leidas }}
+                            </span>
+                            {% endif %}
+                        </a>
+
+                        <!-- Perfil -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button
+                                @click="open = !open"
+                                class="flex items-center space-x-3 hover:bg-blue-700 rounded-lg p-2 transition-colors"
+                            >
+                                <img
+                                    src="{% if user.imagen_perfil %}{{ user.imagen_perfil.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}"
+                                    alt="{{ user.nombreusuario }}"
+                                    class="w-10 h-10 rounded-full object-cover border-2 border-white"
+                                />
+                                <div class="text-left">
+                                    <div class="font-semibold">
+                                        {{ user.nombreusuario }}
+                                    </div>
+                                    <div class="text-sm text-gray-300">
+                                        {{ user.rol }}
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down text-sm"></i>
+                            </button>
+
+                            <!-- Menú desplegable -->
+                            <div
+                                x-show="open"
+                                @click.away="open = false"
+                                class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50"
+                            >
+                                <!-- Perfil -->
+                                <a
+                                    href="{% url 'gestionUsuarios:perfil' %}"
+                                    class="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                                >
+                                    <i class="fas fa-user mr-2"></i> Mi Perfil
+                                </a>
+
+                                <!-- Configuración -->
+                                <a
+                                    href="{% url 'gestionUsuarios:configuracion' %}"
+                                    class="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                                >
+                                    <i class="fas fa-cog mr-2"></i>
+                                    Configuración
+                                </a>
+
+                                <!-- Separador -->
+                                <div
+                                    class="border-t border-gray-200 my-1"
+                                ></div>
+
+                                <!-- Cerrar Sesión -->
+                                <form
+                                    method="POST"
+                                    action="{% url 'gestionUsuarios:logout' %}"
+                                    class="block"
+                                >
+                                    {% csrf_token %}
+                                    <button
+                                        type="submit"
+                                        class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                                    >
+                                        <i class="fas fa-sign-out-alt mr-2"></i>
+                                        Cerrar Sesión
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
+                    {% else %}
+                    <div class="flex items-center space-x-4">
+                        <a
+                            href="{% url 'gestionUsuarios:login' %}"
+                            class="text-white hover:text-gray-200 transition-colors"
+                        >
+                            <i class="fas fa-sign-in-alt mr-2"></i> Iniciar
+                            Sesión
+                        </a>
+                    </div>
+                    {% endif %}
                 </header>
-                <!-- Ajustar el contenido para que no quede oculto detrás de la cabecera fija -->
-                <div class="mt-16">{% block body %}{% endblock %}</div>
+
+                <!-- Contenido Principal -->
+                <div class="mt-16">
+                    {% if messages %}
+                    <div class="fixed top-20 right-4 z-50">
+                        {% for message in messages %}
+                        <div
+                            class="notification bg-{{ message.tags }} text-white p-4 rounded-lg shadow-lg mb-2"
+                        >
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %} {% block body %}{% endblock %}
+                </div>
             </div>
         </div>
 
