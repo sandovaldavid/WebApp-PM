@@ -825,3 +825,88 @@ def lista_tareas_programadas(request):
     return render(
         request, "gestion_tareas_programadas/lista_tareas_programadas.html", context
     )
+
+
+@login_required
+def crear_tarea_programada(request):
+    """Vista para crear una nueva tarea programada"""
+    if request.method == "POST":
+        try:
+            # Obtener datos del formulario
+            requerimiento_id = request.POST.get("requerimiento")
+            nombre = request.POST.get("nombre")
+            estado = request.POST.get("estado")
+            prioridad = request.POST.get("prioridad")
+            frecuencia = request.POST.get("frecuencia")
+            duracion_estimada = request.POST.get("duracion_estimada")
+            costo_estimado = request.POST.get("costo_estimado")
+            fecha_inicio = request.POST.get("fecha_inicio")
+            fecha_fin = request.POST.get("fecha_fin")
+
+            # Validaciones
+            if not all(
+                [
+                    requerimiento_id,
+                    nombre,
+                    estado,
+                    prioridad,
+                    frecuencia,
+                    duracion_estimada,
+                    costo_estimado,
+                    fecha_inicio,
+                    fecha_fin,
+                ]
+            ):
+                messages.error(request, "Todos los campos son requeridos")
+                return redirect("gestion_tareas:crear_tarea_programada")
+
+            # Verificar que la fecha de fin sea posterior a la de inicio
+            if fecha_fin < fecha_inicio:
+                messages.error(
+                    request, "La fecha límite debe ser posterior a la primera ejecución"
+                )
+                return redirect("gestion_tareas:crear_tarea_programada")
+
+            # Crear la tarea programada
+            tarea = Tarea.objects.create(
+                idrequerimiento_id=requerimiento_id,
+                nombretarea=nombre,
+                estado=estado,
+                prioridad=prioridad,
+                duracionestimada=duracion_estimada,
+                costoestimado=costo_estimado,
+                fechainicio=fecha_inicio,
+                fechafin=fecha_fin,
+                fechacreacion=timezone.now(),
+                fechamodificacion=timezone.now(),
+            )
+
+            # Registrar en el historial
+            Historialtarea.objects.create(
+                idtarea=tarea,
+                fechacambio=timezone.now(),
+                descripcioncambio=f"Tarea programada creada con frecuencia {frecuencia}",
+            )
+
+            messages.success(request, "Tarea programada creada exitosamente")
+            return redirect("gestion_tareas:lista_tareas_programadas")
+
+        except Exception as e:
+            messages.error(request, f"Error al crear la tarea programada: {str(e)}")
+            return redirect("gestion_tareas:crear_tarea_programada")
+
+    # GET request
+    try:
+        context = {
+            "requerimientos": Requerimiento.objects.all(),
+            "estados_tarea": ["Pendiente", "En Progreso"],
+            "frecuencias": ["Diaria", "Semanal", "Mensual"],
+            "fecha_minima": timezone.now(),
+        }
+        return render(
+            request, "gestion_tareas_programadas/crear_tarea_programada.html", context
+        )
+
+    except Exception as e:
+        messages.error(request, f"Error al cargar el formulario: {str(e)}")
+        return redirect("gestion_tareas:lista_tareas_programadas")
