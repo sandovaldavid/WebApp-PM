@@ -7,24 +7,30 @@ from django.core.exceptions import ValidationError
 from dashboard.models import Usuario
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_protect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
 def lista_usuarios(request):
     usuarios = Usuario.objects.all()
-    return render(request, 'gestion_usuarios/lista_usuarios.html', {'usuarios': usuarios})
+    return render(
+        request, "gestion_usuarios/lista_usuarios.html", {"usuarios": usuarios}
+    )
+
 
 def crear_usuario(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         # Captura los datos enviados desde el formulario
-        nombre = request.POST.get('nombreUsuario')
-        email = request.POST.get('email')
-        contrasena = request.POST.get('contrasena')
-        rol = request.POST.get('rol')
+        nombre = request.POST.get("nombreUsuario")
+        email = request.POST.get("email")
+        contrasena = request.POST.get("contrasena")
+        rol = request.POST.get("rol")
 
         # Crea el usuario
-        Usuario.objects.create(nombreUsuario=nombre, email=email, contrasena=contrasena, rol=rol)
-        return redirect('gestionUsuarios:lista_usuarios')
-    return render(request, 'gestion_usuarios/crear_usuario.html')
+        Usuario.objects.create(
+            nombreUsuario=nombre, email=email, contrasena=contrasena, rol=rol
+        )
+        return redirect("gestionUsuarios:lista_usuarios")
+    return render(request, "gestion_usuarios/crear_usuario.html")
 
 
 def register(request):
@@ -83,13 +89,14 @@ def register(request):
                 Tester.objects.create(idusuario=usuario)
 
             messages.success(request, "Usuario registrado exitosamente")
-            return redirect("login")
+            return redirect("gestionUsuarios:login")
 
         except Exception as e:
             messages.error(request, f"Error al crear el usuario: {str(e)}")
-            return redirect("register")
+            return redirect("gestionUsuarios:register")
 
     return render(request, "registration/register.html")
+
 
 @csrf_protect
 def login_view(request):
@@ -115,3 +122,22 @@ def login_view(request):
             messages.error(request, "Nombre de usuario o contraseña incorrectos")
 
     return render(request, "registration/login.html")
+
+
+@login_required
+def logout_view(request):
+    if request.method == "POST":
+        logout(request)
+        messages.success(request, "Has cerrado sesión correctamente")
+        return redirect("login")
+    return redirect("dashboard:index")
+
+
+@login_required
+def perfil_view(request):
+    return render(request, "gestion_usuarios/perfil.html")
+
+
+@login_required
+def configuracion_view(request):
+    return render(request, "gestion_usuarios/configuracion.html")
