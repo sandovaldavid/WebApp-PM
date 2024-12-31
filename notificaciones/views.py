@@ -600,3 +600,69 @@ def eliminar_notificacion(request, id):
 
     # Si no es POST, redirigir al index
     return redirect("notificaciones:index")
+
+
+@login_required
+def detalle_alerta(request, id):
+    """
+    Vista para mostrar los detalles de una alerta específica
+    """
+    # Obtener la alerta o devolver 404
+    alerta = get_object_or_404(Alerta, idalerta=id)
+    is_admin = request.user.is_staff or request.user.rol == "Administrador"
+
+    # La tarea está relacionada con un requerimiento que pertenece a un proyecto
+    tarea = alerta.idtarea
+
+    # Verificar permisos - El usuario debe ser admin o estar relacionado con el proyecto
+    tiene_permiso = (
+        is_admin
+        or request.user.is_staff
+        or Proyecto.objects.filter(
+            idequipo__miembro__idrecurso__recursohumano__idusuario=request.user,
+            requerimiento__tarea=tarea,
+        ).exists()
+    )
+
+    if not tiene_permiso:
+        messages.error(request, "No tienes permiso para ver esta alerta")
+        return redirect("notificaciones:lista_alertas")
+
+    # Obtener historial ordenado por fecha
+    historial = Historialalerta.objects.filter(idalerta=alerta).order_by(
+        "-fecharesolucion"
+    )
+
+    context = {"alerta": alerta, "historial": historial, "tarea": tarea}
+
+    return render(request, "alertas/detalle_alerta.html", context)
+
+
+@login_required
+def lista_alertas(request):
+    """
+    Vista para listar todas las alertas
+    """
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+    if is_admin:
+        alertas = Alerta.objects.all()
+    else:
+        alertas = Alerta.objects.filter(
+            idtarea__in=Tarea.objects.filter(idusuario=request.user)
+        )
+
+    # Aplicar filtros si existen
+    tipo = request.GET.get("tipo")
+    if tipo:
+        alertas = alertas.filter(tipoalerta=tipo)
+
+    # Ordenar por fecha
+    alertas = alertas.order_by("-fechacreacion")
+
+    context = {
+        "alertas": alertas,
+        "tipos_alerta": ["retraso", "presupuesto", "riesgo", "bloqueo"],
+    }
+
+    return render(request, "alertas/lista_alertas.html", context)
