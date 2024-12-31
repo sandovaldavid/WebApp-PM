@@ -1,0 +1,137 @@
+<div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+    <!-- Encabezado -->
+    <div class="p-4 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-800 truncate" title="{{ tarea.nombretarea }}">
+                {{ tarea.nombretarea }}
+            </h3>
+            <!-- Estado con Badges -->
+            <div class="flex space-x-2">
+                <!-- Estado -->
+                <span class="px-3 py-1 rounded-full text-sm font-semibold 
+                    {% if tarea.estado == 'Pendiente' %}bg-yellow-100 text-yellow-800
+                    {% elif tarea.estado == 'En Progreso' %}bg-blue-100 text-blue-800
+                    {% elif tarea.estado == 'Completada' %}bg-green-100 text-green-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    <i class="fas {% if tarea.estado == 'Pendiente' %}fa-clock
+                              {% elif tarea.estado == 'En Progreso' %}fa-spinner fa-spin
+                              {% elif tarea.estado == 'Completada' %}fa-check
+                              {% else %}fa-question{% endif %} mr-1"></i>
+                    {{ tarea.estado }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="p-4 space-y-4">
+        <!-- Información del Proyecto/Requerimiento -->
+        <div class="text-sm">
+            <p class="text-gray-600">Requerimiento:</p>
+            <p class="font-medium">{{ tarea.idrequerimiento.descripcion|truncatechars:100 }}</p>
+            <p class="text-gray-600 mt-2">Proyecto:</p>
+            <p class="font-medium">{{ tarea.idrequerimiento.idproyecto.nombreproyecto }}</p>
+        </div>
+
+        <!-- Tiempos y Progreso -->
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <p class="text-gray-600">Duración Estimada:</p>
+                <p class="font-medium">{{ tarea.duracionestimada }} horas</p>
+            </div>
+            <div>
+                <p class="text-gray-600">Duración Actual:</p>
+                <p class="font-medium">{{ tarea.duracionactual|default:"No iniciada" }}</p>
+            </div>
+        </div>
+
+        <!-- Fechas -->
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <p class="text-gray-600">Inicio:</p>
+                <div class="flex items-center">
+                    <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                    <p class="font-medium">{{ tarea.fechainicio|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+            <div>
+                <p class="text-gray-600">Fin:</p>
+                <div class="flex items-center">
+                    <i class="fas fa-calendar-check text-gray-400 mr-2"></i>
+                    <p class="font-medium">{{ tarea.fechafin|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Progreso -->
+        {% if tarea.duracionactual and tarea.duracionestimada %}
+            {% widthratio tarea.duracionactual tarea.duracionestimada 100 as progreso %}
+            <div class="relative pt-1">
+                <div class="flex mb-2 items-center justify-between">
+                    <div class="text-xs font-semibold inline-block text-blue-600">
+                        Progreso: {{ progreso }}%
+                    </div>
+                </div>
+                <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-100">
+                    <div style="width:{{ progreso }}%" 
+                         class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500">
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Recursos Asignados -->
+        {% if tarea.tarearecurso_set.all %}
+        <div class="text-sm">
+            <p class="text-gray-600 mb-2">Recursos Asignados:</p>
+            <div class="flex flex-wrap gap-2">
+                {% for tr in tarea.tarearecurso_set.all %}
+                    <span class="px-2 py-1 bg-gray-100 rounded-full text-gray-700 text-xs flex items-center">
+                        <i class="fas {% if tr.idrecurso.idtiporecurso == 1 %}fa-user
+                                  {% else %}fa-cube{% endif %} mr-1"></i>
+                        {{ tr.idrecurso.nombrerecurso }}
+                        {% if tr.cantidad > 1 %}
+                            <span class="ml-1 text-gray-500">({{ tr.cantidad }})</span>
+                        {% endif %}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pie con Acciones -->
+    <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+        <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}" 
+           class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-100 transition-colors"
+           title="Ver detalles">
+            <i class="fas fa-eye"></i>
+        </a>
+        <a href="{% url 'gestion_tareas:editar_tarea' tarea.idtarea %}" 
+           class="text-yellow-600 hover:text-yellow-800 p-2 rounded-full hover:bg-yellow-100 transition-colors"
+           title="Editar">
+            <i class="fas fa-edit"></i>
+        </a>
+        {% if tarea.estado != 'Completada' %}
+            <!-- Botón para ejecutar ahora -->
+            <form method="POST" action="{% url 'gestion_tareas:ejecutar_tarea' tarea.idtarea %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="text-green-600 hover:text-green-800 p-2 rounded-full hover:bg-green-100 transition-colors"
+                        title="Ejecutar ahora">
+                    <i class="fas fa-play"></i>
+                </button>
+            </form>
+        {% endif %}
+        <form method="POST" action="{% url 'gestion_tareas:eliminar_tarea' tarea.idtarea %}" 
+              class="inline" 
+              onsubmit="return confirm('¿Está seguro de eliminar esta tarea programada?');">
+            {% csrf_token %}
+            <button type="submit" 
+                    class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100 transition-colors"
+                    title="Eliminar">
+                <i class="fas fa-trash"></i>
+            </button>
+        </form>
+    </div>
+</div>
