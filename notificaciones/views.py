@@ -369,3 +369,168 @@ def resolver_alerta(request, id):
 
     # Si el método no es POST, redirigir al index
     return redirect("notificaciones:index")
+
+
+# @login_required
+def marcar_todas_leidas(request):
+    """Vista para marcar todas las notificaciones como leídas"""
+    if request.method == "POST":
+        try:
+            # Obtener notificaciones no leídas del usuario
+            notificaciones = Notificacion.objects.filter(
+                idusuario=request.user, leido=False
+            )
+
+            # Marcar como leídas
+            for notif in notificaciones:
+                notif.leido = True
+                notif.save()
+
+                # Registrar en historial
+                Historialnotificacion.objects.create(
+                    idnotificacion=notif, fechalectura=timezone.now()
+                )
+
+            messages.success(
+                request, f"{notificaciones.count()} notificaciones marcadas como leídas"
+            )
+            return redirect("notificaciones:listar_notificaciones")
+
+        except Exception as e:
+            messages.error(request, f"Error al marcar notificaciones: {str(e)}")
+
+    return redirect("notificaciones:listar_notificaciones")
+
+
+# @login_required
+def filtrar_notificaciones(request):
+    """Vista para filtrar notificaciones"""
+    prioridad = request.GET.get("prioridad", "todas")
+
+    # Query base
+    notificaciones = Notificacion.objects.filter(
+        idusuario=request.user.idusuario,  # Usar idusuario del usuario autenticado
+        archivada=False,
+    ).order_by("-fechacreacion")
+
+    # Aplicar filtro de prioridad
+    if prioridad != "todas":
+        notificaciones = notificaciones.filter(prioridad=prioridad)
+
+    # Paginación
+    paginator = Paginator(notificaciones, 5)  # 5 notificaciones por página
+    page = request.GET.get("page", 1)
+
+    try:
+        notificaciones_pag = paginator.page(page)
+    except:
+        notificaciones_pag = paginator.page(1)
+
+    context = {"notificaciones": notificaciones_pag, "prioridad_actual": prioridad}
+
+    if request.headers.get("HX-Request"):
+        return render(request, "components/lista_notificaciones.html", context)
+
+    return render(request, "notificaciones/lista_filtrada.html", context)
+
+def listar_notificaciones(request):
+    """Vista para listar notificaciones con filtros"""
+    # Obtener parámetros de filtro
+    prioridad = request.GET.get("prioridad", "todas")
+    page = request.GET.get("page", 1)
+
+    # Query base
+    notificaciones = Notificacion.objects.filter(
+        idusuario=request.user, archivada=False
+    ).order_by("-fechacreacion")
+
+    # Aplicar filtro de prioridad
+    if prioridad != "todas":
+        notificaciones = notificaciones.filter(prioridad=prioridad)
+
+    # Paginación
+    paginator = Paginator(notificaciones, 5)  # 5 notificaciones por página
+    try:
+        notificaciones_pag = paginator.page(page)
+    except:
+        notificaciones_pag = paginator.page(1)
+
+    context = {"notificaciones": notificaciones_pag, "prioridad_actual": prioridad}
+
+    return render(request, "notificaciones/panel_notificaciones.html", context)
+
+
+# @login_required
+def archivar_notificacion(request, id):
+    """
+    Vista para archivar una notificación
+    """
+    if request.method == "POST":
+        notificacion = get_object_or_404(
+            Notificacion, idnotificacion=id, idusuario=request.user
+        )
+        notificacion.archivada = True
+        notificacion.save()
+
+        messages.success(request, "Notificación archivada correctamente")
+    return redirect("notificaciones:index")
+
+
+# @login_required
+def notificaciones_archivadas(request):
+    """
+    Vista para mostrar notificaciones archivadas
+    """
+    notificaciones = Notificacion.objects.filter(
+        idusuario=request.user, archivada=True
+    ).order_by("-fechacreacion")
+
+    paginator = Paginator(notificaciones, 10)
+    page = request.GET.get("page")
+
+    try:
+        notificaciones = paginator.page(page)
+    except:
+        notificaciones = paginator.page(1)
+
+    return render(
+        request, "notificaciones/archivadas.html", {"notificaciones": notificaciones}
+    )
+
+
+# @login_required
+def estadisticas_notificaciones(request):
+    """
+    Vista para mostrar estadísticas de notificaciones
+    """
+    total_notificaciones = Notificacion.objects.filter(idusuario=request.user).count()
+    no_leidas = Notificacion.objects.filter(idusuario=request.user, leido=False).count()
+    archivadas = Notificacion.objects.filter(
+        idusuario=request.user, archivada=True
+    ).count()
+
+    # Estadísticas por prioridad
+    por_prioridad = (
+        Notificacion.objects.filter(idusuario=request.user)
+        .values("prioridad")
+        .annotate(total=Count("idnotificacion"))
+    )
+
+    # Estadísticas por categoría
+    por_categoria = (
+        Notificacion.objects.filter(idusuario=request.user)
+        .values("categoria")
+        .annotate(total=Count("idnotificacion"))
+    )
+
+    return render(
+        request,
+        "notificaciones/estadisticas.html",
+        {
+            "total": total_notificaciones,
+            "no_leidas": no_leidas,
+            "archivadas": archivadas,
+            "por_prioridad": por_prioridad,
+            "por_categoria": por_categoria,
+        },
+    )
