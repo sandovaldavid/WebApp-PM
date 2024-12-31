@@ -931,3 +931,64 @@ def estadisticas_alertas(request):
     except Exception as e:
         messages.error(request, f"Error al procesar las estadísticas: {str(e)}")
         return redirect("notificaciones:index")
+
+
+@login_required
+def filtrar_alertas(request):
+    """Vista para filtrar alertas por tipo"""
+    tipo = request.GET.get("tipo", "todas")
+    page = request.GET.get("page", 1)
+
+    # Determinar si el usuario es admin
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+    # Query base según permisos
+    if is_admin:
+        alertas = Alerta.objects.all()
+    else:
+        alertas = Alerta.objects.filter(
+            idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+            )
+        )
+
+    # Aplicar filtro por tipo
+    if tipo != "todas":
+        alertas = alertas.filter(tipoalerta=tipo)
+
+    # Ordenar por fecha
+    alertas = alertas.order_by("-fechacreacion")
+
+    # Paginación
+    paginator = Paginator(alertas, 10)
+    try:
+        alertas_page = paginator.page(page)
+    except:
+        alertas_page = paginator.page(1)
+
+    # Calcular estadísticas por tipo
+    tipos_alertas = (
+        alertas.values("tipoalerta")
+        .annotate(
+            total=Count("idalerta"),
+            porcentaje=(
+                100.0 * Count("idalerta") / alertas.count()
+                if alertas.count() > 0
+                else 0
+            ),
+        )
+        .order_by("-total")
+    )
+
+    context = {
+        "alertas": alertas_page,
+        "tipos_alertas": tipos_alertas,
+        "tipo_actual": tipo,
+        "is_admin": is_admin,
+    }
+
+    # Si es una petición HTMX
+    if request.headers.get("HX-Request"):
+        return render(request, "alertas/lista_filtrada.html", context)
+
+    return render(request, "alertas/listar_alertas.html", context)
