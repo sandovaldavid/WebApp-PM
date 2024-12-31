@@ -62,4 +62,5 @@ urlpatterns = [
         views.vista_previa_notificacion,
         name="vista_previa_notificacion",
     ),
+    path("vista-previa-alerta/", views.vista_previa_alerta, name="vista_previa_alerta"),
 ]
