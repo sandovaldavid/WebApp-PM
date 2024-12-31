@@ -16,4 +16,6 @@ urlpatterns = [
     path("ejecutar-tarea/<int:id>/", views.ejecutar_tarea, name="ejecutar_tarea"),
     path("eliminar-tarea/<int:id>/", views.eliminar_tarea, name="eliminar_tarea"),
     path("lista-tareas/", views.lista_tareas, name="lista_tareas"),
+    path("panel-tareas/", views.panel_tareas, name="panel_tareas"),
+    path("filtrar-tareas/", views.filtrar_tareas, name="filtrar_tareas"),
 ]
