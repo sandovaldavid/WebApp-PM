@@ -732,11 +732,13 @@ def filtrar_tareas(request):
         elif filtro == "completadas":
             tareas = tareas.filter(estado="Completada")
 
-        # Ordenar por fecha de modificación
-        tareas = tareas.order_by("-fechamodificacion")
+        # Optimizar consultas
+        tareas = tareas.select_related(
+            "idrequerimiento", "idrequerimiento__idproyecto"
+        ).order_by("-fechamodificacion")
 
         # Paginación
-        paginator = Paginator(tareas, 9)  # 9 tareas por página
+        paginator = Paginator(tareas, 9)
         page = request.GET.get("page", 1)
         tareas_paginadas = paginator.get_page(page)
 
@@ -746,7 +748,6 @@ def filtrar_tareas(request):
             "is_admin": is_admin,
         }
 
-        # Retornar solo la sección de tareas
         return render(request, "components/lista_tareas.html", context)
 
     except Exception as e:
