@@ -167,15 +167,20 @@
 
         <!-- Botones de Acción -->
         <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
-            <button class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+            <a href="{% url 'gestion_tareas:editar_tarea' tarea.idtarea %}" 
+            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
                 <i class="fas fa-edit mr-2"></i>
                 Editar Tarea
-            </button>
+            </a>
             {% if not tarea.estado == 'Completada' %}
-            <button class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center">
-                <i class="fas fa-check mr-2"></i>
-                Marcar como Completada
-            </button>
+            <form method="POST" action="{% url 'gestion_tareas:notificacion_marcar_completada' tarea.idtarea %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center">
+                    <i class="fas fa-check mr-2"></i>
+                    Marcar como Completada
+                </button>
+            </form>
             {% endif %}
         </div>
     </div>
