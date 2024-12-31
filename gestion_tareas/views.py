@@ -110,8 +110,59 @@ def crear_tarea(request):
     )
 
 
+@login_required
 def tareas_programadas(request):
-    return render(request, "gestion_tareas_programadas/index.html")
+    """Vista para gestionar tareas programadas"""
+    # Obtener filtros
+    estado = request.GET.get("estado", "")
+    frecuencia = request.GET.get("frecuencia", "")
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
+
+    # Query base
+    tareas = Tarea.objects.all().select_related("idrequerimiento__idproyecto")
+
+    # Aplicar filtros
+    if estado:
+        tareas = tareas.filter(estado=estado)
+    if frecuencia:
+        tareas = tareas.filter(frecuencia=frecuencia)
+    if fecha_desde:
+        tareas = tareas.filter(fechainicio__gte=fecha_desde)
+    if fecha_hasta:
+        tareas = tareas.filter(fechafin__lte=fecha_hasta)
+
+    # Estadísticas
+    estadisticas = {
+        "total": tareas.count(),
+        "completadas": tareas.filter(estado="Completada").count(),
+        "en_progreso": tareas.filter(estado="En progreso").count(),
+        "pendientes": tareas.filter(estado="Pendiente").count(),
+    }
+
+    # Historial de ejecuciones
+    historial = (
+        Historialtarea.objects.filter(idtarea__in=tareas)
+        .select_related("idtarea")
+        .order_by("-fechacambio")[:10]
+    )
+
+    context = {
+        "tareas_programadas": tareas,
+        "estadisticas": estadisticas,
+        "historial_ejecuciones": historial,
+        "estados_tarea": ["Pendiente", "En Progreso", "Completada"],
+        "frecuencias": ["Diaria", "Semanal", "Mensual"],
+        # Mantener los filtros seleccionados
+        "filtros": {
+            "estado": estado,
+            "frecuencia": frecuencia,
+            "fecha_desde": fecha_desde,
+            "fecha_hasta": fecha_hasta,
+        },
+    }
+
+    return render(request, "gestion_tareas_programadas/index.html", context)
 
 
 @login_required
@@ -453,6 +504,7 @@ def ejecutar_tarea(request, id):
     )
     messages.success(request, "Tarea en progreso")
     return redirect("gestion_tareas:detalle_tarea", id=id)
+
 
 def eliminar_tarea(request, id):
     tarea = get_object_or_404(Tarea, idtarea=id)
