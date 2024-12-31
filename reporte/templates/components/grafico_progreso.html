@@ -1,0 +1,89 @@
+<div class="relative">
+    <!-- Canvas para el gráfico -->
+    <canvas id="graficoProgreso" class="w-full h-64"></canvas>
+</div>
+
+<!-- Script para inicializar el gráfico -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('graficoProgreso').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ datos_progreso.labels|safe }},
+            datasets: [
+                {
+                    label: 'Tareas Completadas',
+                    data: {{ datos_progreso.completadas|safe }},
+                    backgroundColor: '#34D399',
+                    stack: 'Stack 0',
+                },
+                {
+                    label: 'Tareas En Progreso',
+                    data: {{ datos_progreso.en_progreso|safe }},
+                    backgroundColor: '#60A5FA',
+                    stack: 'Stack 0',
+                },
+                {
+                    label: 'Tareas Pendientes',
+                    data: {{ datos_progreso.pendientes|safe }},
+                    backgroundColor: '#FCD34D',
+                    stack: 'Stack 0',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Progreso por Proyecto',
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y + ' tareas';
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Proyectos'
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Número de Tareas'
+                    },
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
