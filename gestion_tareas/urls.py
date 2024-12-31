@@ -5,7 +5,9 @@ app_name = "gestion_tareas"
 urlpatterns = [
     path("", views.index, name="index"),
     path("crear-tarea/", views.crear_tarea, name="crear_tarea"),
-    path("tareas_programadas/", views.tareas_programadas, name="tareas_programadas"),
+    path(
+        "tareas_programadas/", views.tareas_programadas, name="lista_tareas_programadas"
+    ),
     path("detalle-tarea/<int:id>/", views.detalle_tarea, name="detalle_tarea"),
     path("editar-tarea/<int:id>/", views.editar_tarea, name="editar_tarea"),
     path(
@@ -21,7 +23,7 @@ urlpatterns = [
     path(
         "lista-tareas-programadas/",
         views.lista_tareas_programadas,
-        name="lista_tareas_programadas",
+        name="tareas_programadas",
     ),
     path(
         "crear-tarea-programada/",
