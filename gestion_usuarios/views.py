@@ -129,7 +129,7 @@ def logout_view(request):
     if request.method == "POST":
         logout(request)
         messages.success(request, "Has cerrado sesión correctamente")
-        return redirect("login")
+        return redirect("gestionUsuarios:login")
     return redirect("dashboard:index")
 
 
