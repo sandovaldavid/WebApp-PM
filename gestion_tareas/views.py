@@ -37,7 +37,7 @@ def index(request):
     estadisticas = {
         "total": tareas.count(),
         "pendientes": tareas.filter(estado="Pendiente").count(),
-        "en_progreso": tareas.filter(estado="En Progreso").count(),
+        "en_progreso": tareas.filter(estado="En progreso").count(),
         "completadas": tareas.filter(estado="Completada").count(),
     }
 
