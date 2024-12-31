@@ -33,6 +33,9 @@
         margin-bottom: 5px;
         border: 1px solid #ddd;
         border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     .content2 {
         display: none;
@@ -118,42 +121,9 @@
                 <div id="requerimientos-container">
                     {% for requerimiento in requerimientos %}
                     <div class="collapsible">
-                        <span onclick="toggleTareas({{ requerimiento.idrequerimiento }})">{{ requerimiento.descripcion }}</span>
+                        <span onclick="editarRequerimiento({{ requerimiento.idrequerimiento }}, '{{ requerimiento.descripcion }}')">{{ requerimiento.descripcion }}</span>
                         <input type="hidden" name="requerimiento_{{ requerimiento.idrequerimiento }}" value="{{ requerimiento.descripcion }}">
-                        <button type="button" class="bg-red-500 text-white px-2 py-1 rounded btn" onclick="eliminarRequerimiento({{ requerimiento.idrequerimiento }})"><i class="fas fa-trash"></i></button>
-                        <div id="tareas_{{ requerimiento.idrequerimiento }}" class="content2">
-                            <table class="details-table">
-                                <thead>
-                                    <tr>
-                                        <th>Tarea</th>
-                                        <th>Estado</th>
-                                        <th>Prioridad</th>
-                                        <th>Tiempo Estimado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tareas-body_{{ requerimiento.idrequerimiento }}">
-                                    {% for tarea in tareas %}
-                                    {% if tarea.idrequerimiento_id == requerimiento.idrequerimiento %}
-                                    <tr id="tarea_requerimiento_{{ requerimiento.idrequerimiento }}_{{ tarea.idtarea }}">
-                                        <td>{{ tarea.nombretarea }}</td>
-                                        <td>{{ tarea.estado }}</td>
-                                        <td>{{ tarea.prioridad }}</td>
-                                        <td>{{ tarea.duracionestimada }}</td>
-                                        <td>
-                                            <button type="button" class="bg-red-500 text-white px-2 py-1 rounded btn" onclick="eliminarTarea({{ requerimiento.idrequerimiento }}, {{ tarea.idtarea }})"><i class="fas fa-trash"></i></button>
-                                            <input type="hidden" name="tarea_requerimiento_{{ requerimiento.idrequerimiento }}_{{ tarea.idtarea }}_nombre" value="{{ tarea.nombretarea }}">
-                                            <input type="hidden" name="tarea_requerimiento_{{ requerimiento.idrequerimiento }}_{{ tarea.idtarea }}_estado" value="{{ tarea.estado }}">
-                                            <input type="hidden" name="tarea_requerimiento_{{ requerimiento.idrequerimiento }}_{{ tarea.idtarea }}_prioridad" value="{{ tarea.prioridad }}">
-                                            <input type="hidden" name="tarea_requerimiento_{{ requerimiento.idrequerimiento }}_{{ tarea.idtarea }}_duracionestimada" value="{{ tarea.duracionestimada }}">
-                                        </td>
-                                    </tr>
-                                    {% endif %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            <button type="button" class="bg-green-500 text-white px-4 py-2 rounded btn" onclick="openModalNuevaTarea({{ requerimiento.idrequerimiento }})"><i class="fas fa-plus mr-2"></i>Añadir Tarea</button>
-                        </div>
+                        <button type="button" class="bg-red-500 text-white px-2 py-1 rounded btn" onclick="confirmarEliminarRequerimiento({{ requerimiento.idrequerimiento }})"><i class="fas fa-trash"></i></button>
                     </div>
                     {% endfor %}
                 </div>
@@ -167,131 +137,94 @@
 
     <script>
         let nuevos_requerimientos = [];
-        let nuevas_tareas = {};
+        let editando_requerimiento = null;
 
         function openModal(modalId) {
             var modal = document.getElementById(modalId);
             modal.style.display = "block";
+            if (modalId === 'modalNuevoRequerimiento') {
+                document.getElementById('nueva_descripcion_requerimiento').value = editando_requerimiento !== null ? document.querySelector(`input[name="requerimiento_${editando_requerimiento}"]`).value : '';
+            }
         }
 
         function closeModal(modalId) {
             var modal = document.getElementById(modalId);
             modal.style.display = "none";
+            if (modalId === 'modalNuevoRequerimiento') {
+                editando_requerimiento = null;
+                document.getElementById('nueva_descripcion_requerimiento').value = '';
+            }
         }
 
         function addRequerimiento() {
             var descripcion = document.getElementById('nueva_descripcion_requerimiento').value;
-            var nuevoRequerimiento = {
-                idrequerimiento: 'nuevo_' + nuevos_requerimientos.length,  // Usar índice como ID temporal
-                descripcion: descripcion,
-                tareas: []
-            };
-            nuevos_requerimientos.push(nuevoRequerimiento);
-            nuevas_tareas[nuevoRequerimiento.idrequerimiento] = []; // Inicializar tareas para el nuevo requerimiento
+            if (editando_requerimiento !== null) {
+                // Actualizar requerimiento existente
+                if (editando_requerimiento.toString().startsWith('nuevo_')) {
+                    nuevos_requerimientos[editando_requerimiento.split('_')[1]].descripcion = descripcion;
+                } else {
+                    document.querySelector(`input[name="requerimiento_${editando_requerimiento}"]`).value = descripcion;
+                    document.querySelector(`span[onclick="editarRequerimiento(${editando_requerimiento}, '${descripcion}')"]`).innerText = descripcion;
+                }
+            } else {
+                // Añadir nuevo requerimiento
+                var nuevoRequerimiento = {
+                    idrequerimiento: 'nuevo_' + nuevos_requerimientos.length,  // Usar índice como ID temporal
+                    descripcion: descripcion
+                };
+                nuevos_requerimientos.push(nuevoRequerimiento);
+            }
             closeModal('modalNuevoRequerimiento');
             renderRequerimientos();
         }
 
         function eliminarRequerimiento(idrequerimiento) {
-            nuevos_requerimientos = nuevos_requerimientos.filter(req => req.idrequerimiento !== idrequerimiento);
-            delete nuevas_tareas[idrequerimiento]; // Eliminar tareas asociadas al requerimiento
-            renderRequerimientos();
+            fetch(`{% url 'gestion_proyectos:eliminar_requerimiento' 0 %}`.replace('0', idrequerimiento), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = `{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}`;
+                } else {
+                    alert('Error al eliminar el requerimiento.');
+                }
+            });
         }
 
-        function addTarea() {
-            var idrequerimiento = document.getElementById('idrequerimiento_tarea').value;
-            var nombretarea = document.getElementById('nueva_nombretarea').value;
-            var estado = document.getElementById('nuevo_estado_tarea').value;
-            var prioridad = document.getElementById('nueva_prioridad_tarea').value;
-            var duracionestimada = document.getElementById('nueva_duracionestimada_tarea').value;
+        function editarRequerimiento(idrequerimiento, descripcion) {
+            editando_requerimiento = idrequerimiento;
+            document.getElementById('nueva_descripcion_requerimiento').value = descripcion;
+            openModal('modalNuevoRequerimiento');
+        }
 
-            var nuevaTarea = {
-                idtarea: 'nueva_' + (nuevas_tareas[idrequerimiento] ? nuevas_tareas[idrequerimiento].length : 0),
-                nombretarea: nombretarea,
-                estado: estado,
-                prioridad: prioridad,
-                duracionestimada: duracionestimada
-            };
-
-            if (!nuevas_tareas[idrequerimiento]) {
-                nuevas_tareas[idrequerimiento] = [];
+        function confirmarEliminarRequerimiento(idrequerimiento) {
+            if (confirm("¿Está seguro de que desea eliminar este requerimiento? Se eliminarán todas las tareas asociadas.")) {
+                eliminarRequerimiento(idrequerimiento);
             }
-            nuevas_tareas[idrequerimiento].push(nuevaTarea);
-            closeModal('modalNuevaTarea');
-            renderTareas(idrequerimiento);
-        }
-
-        function eliminarTarea(idrequerimiento, idtarea) {
-            nuevas_tareas[idrequerimiento] = nuevas_tareas[idrequerimiento].filter(tarea => tarea.idtarea !== idtarea);
-            renderTareas(idrequerimiento);
         }
 
         function renderRequerimientos() {
             var container = document.getElementById('requerimientos-container');
             container.innerHTML = '';
-            nuevos_requerimientos.forEach(function(requerimiento) {
+            {% for requerimiento in requerimientos %}
+            var requerimientoDiv = document.createElement('div');
+            requerimientoDiv.classList.add('collapsible');
+            requerimientoDiv.innerHTML = `<span onclick="editarRequerimiento({{ requerimiento.idrequerimiento }}, '{{ requerimiento.descripcion }}')">{{ requerimiento.descripcion }}</span>
+                                          <input type="hidden" name="requerimiento_{{ requerimiento.idrequerimiento }}" value="{{ requerimiento.descripcion }}">
+                                          <button type="button" class="bg-red-500 text-white px-2 py-1 rounded btn" onclick="confirmarEliminarRequerimiento({{ requerimiento.idrequerimiento }})"><i class="fas fa-trash"></i></button>`;
+            container.appendChild(requerimientoDiv);
+            {% endfor %}
+            nuevos_requerimientos.forEach(function(requerimiento, index) {
                 var requerimientoDiv = document.createElement('div');
                 requerimientoDiv.classList.add('collapsible');
-                requerimientoDiv.innerHTML = `<span onclick="toggleTareas('${requerimiento.idrequerimiento}')">${requerimiento.descripcion}</span>
-                                              <input type="hidden" name="requerimiento_${requerimiento.idrequerimiento}" value="${requerimiento.descripcion}">
-                                              <button type="button" class="bg-red-500 text-white px-2 py-1 rounded btn" onclick="eliminarRequerimiento('${requerimiento.idrequerimiento}')"><i class="fas fa-trash"></i></button>
-                                              <div id="tareas_${requerimiento.idrequerimiento}" class="content2">
-                                                  <table class="details-table">
-                                                      <thead>
-                                                          <tr>
-                                                              <th>Tarea</th>
-                                                              <th>Estado</th>
-                                                              <th>Prioridad</th>
-                                                              <th>Tiempo Estimado</th>
-                                                              <th>Acciones</th>
-                                                          </tr>
-                                                      </thead>
-                                                      <tbody id="tareas-body_${requerimiento.idrequerimiento}">
-                                                          <!-- Aquí se agregarán las tareas dinámicamente -->
-                                                      </tbody>
-                                                  </table>
-                                                  <button type="button" class="bg-green-500 text-white px-4 py-2 rounded btn" onclick="openModalNuevaTarea('${requerimiento.idrequerimiento}')"><i class="fas fa-plus mr-2"></i>Añadir Tarea</button>
-                                              </div>`;
+                requerimientoDiv.innerHTML = `<span onclick="editarRequerimiento('nuevo_${index}', '${requerimiento.descripcion}')">${requerimiento.descripcion}</span>
+                                              <input type="hidden" name="nuevo_requerimiento_${index}" value="${requerimiento.descripcion}">
+                                              <button type="button" class="bg-red-500 text-white px-2 py-1 rounded btn" onclick="eliminarRequerimiento(${index})"><i class="fas fa-trash"></i></button>`;
                 container.appendChild(requerimientoDiv);
-                renderTareas(requerimiento.idrequerimiento); // Renderizar tareas para cada requerimiento
             });
-        }
-
-        function renderTareas(idrequerimiento) {
-            var container = document.getElementById(`tareas-body_${idrequerimiento}`);
-            container.innerHTML = '';
-            if (nuevas_tareas[idrequerimiento]) {
-                nuevas_tareas[idrequerimiento].forEach(function(tarea) {
-                    var tareaRow = document.createElement('tr');
-                    tareaRow.id = `tarea_requerimiento_${idrequerimiento}_${tarea.idtarea}`;
-                    tareaRow.innerHTML = `<td>${tarea.nombretarea}</td>
-                                          <td>${tarea.estado}</td>
-                                          <td>${tarea.prioridad}</td>
-                                          <td>${tarea.duracionestimada}</td>
-                                          <td>
-                                              <button type="button" class="bg-red-500 text-white px-2 py-1 rounded btn" onclick="eliminarTarea('${idrequerimiento}', '${tarea.idtarea}')"><i class="fas fa-trash"></i></button>
-                                              <input type="hidden" name="tarea_requerimiento_${idrequerimiento}_${tarea.idtarea}_nombre" value="${tarea.nombretarea}">
-                                              <input type="hidden" name="tarea_requerimiento_${idrequerimiento}_${tarea.idtarea}_estado" value="${tarea.estado}">
-                                              <input type="hidden" name="tarea_requerimiento_${idrequerimiento}_${tarea.idtarea}_prioridad" value="${tarea.prioridad}">
-                                              <input type="hidden" name="tarea_requerimiento_${idrequerimiento}_${tarea.idtarea}_duracionestimada" value="${tarea.duracionestimada}">
-                                          </td>`;
-                    container.appendChild(tareaRow);
-                });
-            }
-        }
-
-        function toggleTareas(idrequerimiento) {
-            var content = document.getElementById(`tareas_${idrequerimiento}`);
-            if (content.style.display === "block") {
-                content.style.display = "none";
-            } else {
-                content.style.display = "block";
-            }
-        }
-
-        function openModalNuevaTarea(idrequerimiento) {
-            document.getElementById('idrequerimiento_tarea').value = idrequerimiento;
-            openModal('modalNuevaTarea');
         }
     </script>
 </main>
@@ -300,7 +233,7 @@
 <div id="modalNuevoRequerimiento" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal('modalNuevoRequerimiento')">&times;</span>
-        <h2>Nuevo Requerimiento</h2>
+        <h2 id="modal-title">Nuevo Requerimiento</h2>
         <form>
             <div class="mb-4">
                 <label for="nueva_descripcion_requerimiento" class="block text-sm font-medium text-gray-700">Descripción</label>
@@ -308,36 +241,6 @@
             </div>
             <div class="mt-4 flex justify-end">
                 <button type="button" class="bg-green-500 text-white px-4 py-2 rounded btn" onclick="addRequerimiento()"><i class="fas fa-save mr-2"></i>Guardar Requerimiento</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal para nueva tarea -->
-<div id="modalNuevaTarea" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal('modalNuevaTarea')">&times;</span>
-        <h2>Nueva Tarea</h2>
-        <form>
-            <input type="hidden" name="idrequerimiento" id="idrequerimiento_tarea">
-            <div class="mb-4">
-                <label for="nueva_nombretarea" class="block text-sm font-medium text-gray-700">Nombre de la Tarea</label>
-                <input type="text" name="nueva_nombretarea" id="nueva_nombretarea" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            </div>
-            <div class="mb-4">
-                <label for="nuevo_estado_tarea" class="block text-sm font-medium text-gray-700">Estado</label>
-                <input type="text" name="nuevo_estado_tarea" id="nuevo_estado_tarea" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            </div>
-            <div class="mb-4">
-                <label for="nueva_prioridad_tarea" class="block text-sm font-medium text-gray-700">Prioridad</label>
-                <input type="number" name="nueva_prioridad_tarea" id="nueva_prioridad_tarea" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            </div>
-            <div class="mb-4">
-                <label for="nueva_duracionestimada_tarea" class="block text-sm font-medium text-gray-700">Duración Estimada (horas)</label>
-                <input type="number" name="nueva_duracionestimada_tarea" id="nueva_duracionestimada_tarea" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            </div>
-            <div class="mt-4 flex justify-end">
-                <button type="button" class="bg-green-500 text-white px-4 py-2 rounded btn" onclick="addTarea()"><i class="fas fa-save mr-2"></i>Guardar Tarea</button>
             </div>
         </form>
     </div>

@@ -1,10 +1,17 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from .models import Proyecto, Tarea, Requerimiento
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Case, When, Count, Q, FloatField, F
 from django.db.models.functions import Coalesce
 import json
+
+def verificar_rol_administrador(view_func):
+    def wrapper(request, *args, **kwargs):
+        if request.session.get('usuario_rol') != 'Administrador':
+            return redirect('usuarios:login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 def dashboard(request):
     # Obtiene los primeros 3 proyectos

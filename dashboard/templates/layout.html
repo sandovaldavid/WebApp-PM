@@ -100,7 +100,8 @@
                 <i class="{% block icon %}{% endblock %}"></i>
                 <div class="flex items-center">
                     <img id="img_perfil" src="https://via.placeholder.com/40" alt="Usuario" class="rounded-full">
-                    <span>John Doe</span>
+                    <span>{{ request.session.usuario_nombre }}</span> <!-- Mostrar el nombre del usuario -->
+                    <a href="{% url 'usuarios:logout' %}" class="ml-4 bg-red-500 text-white px-3 py-1 rounded">Cerrar Sesión</a> <!-- Botón de cerrar sesión -->
                 </div>
             </header>
             <!-- Ajustar el contenido para que no quede oculto detrás de la cabecera fija -->

@@ -1,19 +1,26 @@
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/Login/style.css">
-</head>
-<body>
-    <div class="container">
-        <h2>Iniciar Sesión</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Ingresar</button>
-        </form>
+{% extends "usuarios/base.html" %}
+
+{% block title %}Iniciar Sesión{% endblock %}
+
+{% block body %}
+<h2>Iniciar Sesión</h2>
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="email">Correo Electrónico</label>
+        <input type="email" class="form-control" id="email" name="email" value="{{ email }}" required>
     </div>
-</body>
-</html>
+    <div class="form-group">
+        <label for="contrasena">Contraseña</label>
+        <input type="password" class="form-control" id="contrasena" name="contrasena" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Ingresar</button>
+</form>
+<div class="links">
+    <a href="{% url 'usuarios:register' %}">Crear cuenta</a>
+    <a href="{% url 'usuarios:olvide_password' %}">Olvidé mi contraseña</a>
+</div>
+{% endblock %}
