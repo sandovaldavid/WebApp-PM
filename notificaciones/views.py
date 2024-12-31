@@ -556,9 +556,13 @@ def eliminar_notificacion(request, id):
         try:
             # Obtener la notificación o devolver 404
             notificacion = get_object_or_404(Notificacion, idnotificacion=id)
-
+            is_admin = request.user.is_staff or request.user.rol == "Admin"
             # Verificar que el usuario sea el propietario o admin
-            if notificacion.idusuario == request.user or request.user.is_staff:
+            if (
+                notificacion.idusuario == request.user
+                or request.user.is_staff
+                or is_admin
+            ):
                 # Eliminar la notificación y su historial
                 Historialnotificacion.objects.filter(
                     idnotificacion=notificacion
