@@ -4,117 +4,127 @@
 
 {% block title_body %}
 <div class="flex items-center">
-    <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i> Crear Nueva Alerta
+    <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Nueva Alerta
 </div>
 {% endblock %}
 
 {% block body %}
 <div class="p-8">
     <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">
-            <i class="fas fa-exclamation-circle text-red-500"></i> Nueva Alerta
-        </h2>
-        
+        <!-- Encabezado -->
+        <div class="border-b border-gray-200 pb-4 mb-6">
+            <h2 class="text-xl font-semibold flex items-center text-gray-800">
+                <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                Crear Nueva Alerta
+            </h2>
+            <p class="text-sm text-gray-500 mt-1">Complete los detalles de la nueva alerta</p>
+        </div>
+
         <form method="POST" class="space-y-6">
             {% csrf_token %}
             
-            <!-- Selección de Tarea -->
-            <div class="mb-4">
-                <label for="tarea" class="block text-sm font-medium text-gray-700">Tarea Relacionada</label>
-                <select id="tarea" name="tarea" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                    <option value="">Seleccione una tarea</option>
-                    {% for tarea in tareas %}
-                    <option value="{{ tarea.idtarea }}">
-                        {{ tarea.nombretarea }} - Estado: {{ tarea.estado }} - Prioridad: {{ tarea.prioridad }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Tipo de Alerta -->
-            <div class="mb-4">
-                <label for="tipo_alerta" class="block text-sm font-medium text-gray-700">Tipo de Alerta</label>
-                <select id="tipo_alerta" name="tipo_alerta" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                    <option value="">Seleccione el tipo de alerta</option>
-                    {% for tipo in tipos_alerta %}
-                    <option value="{{ tipo }}" class="
-                        {% if tipo == 'retraso' %}text-orange-500
-                        {% elif tipo == 'presupuesto' %}text-red-500
-                        {% elif tipo == 'riesgo' %}text-yellow-500
-                        {% else %}text-blue-500{% endif %}">
-                        {{ tipo|title }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Mensaje de la Alerta -->
-            <div class="mb-4">
-                <label for="mensaje" class="block text-sm font-medium text-gray-700">Mensaje de la Alerta</label>
-                <textarea id="mensaje" name="mensaje" rows="4" 
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" 
-                    placeholder="Describa el motivo de la alerta..." required></textarea>
-            </div>
-
-            <!-- Panel de Vista Previa -->
-            <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h3 class="text-sm font-medium text-gray-700 mb-2">Vista Previa de la Alerta</h3>
-                <div id="preview" class="p-4 rounded-lg bg-white shadow-sm">
-                    <div class="flex items-center" id="preview-header">
-                        <i class="fas fa-exclamation-circle text-yellow-500 mr-2"></i>
-                        <span class="font-medium" id="preview-type">Tipo de Alerta</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Columna Izquierda -->
+                <div class="space-y-6">
+                    <!-- Selección de Tarea -->
+                    <div>
+                        <label for="tarea" class="block text-sm font-medium text-gray-700">Tarea Relacionada</label>
+                        <div class="mt-1 relative">
+                            <select id="tarea" name="tarea" 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10" 
+                                    required>
+                                <option value="">Seleccione una tarea</option>
+                                {% for tarea in tareas %}
+                                <option value="{{ tarea.idtarea }}">
+                                    {{ tarea.nombretarea }} - {{ tarea.estado }} ({{ tarea.prioridad|title }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-tasks text-gray-400"></i>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">Seleccione la tarea a la que se asociará la alerta</p>
                     </div>
-                    <p class="text-gray-600 mt-2" id="preview-message">El mensaje de la alerta aparecerá aquí...</p>
+
+                    <!-- Tipo de Alerta -->
+                    <div>
+                        <label for="tipo_alerta" class="block text-sm font-medium text-gray-700">Tipo de Alerta</label>
+                        <div class="mt-1 relative">
+                            <select id="tipo_alerta" name="tipo_alerta" 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10" 
+                                    required>
+                                <option value="">Seleccione el tipo</option>
+                                {% for tipo in tipos_alerta %}
+                                <option value="{{ tipo }}" class="flex items-center">
+                                    <i class="fas {% if tipo == 'retraso' %}fa-clock text-orange-500
+                                              {% elif tipo == 'presupuesto' %}fa-dollar-sign text-red-500
+                                              {% elif tipo == 'riesgo' %}fa-exclamation-triangle text-yellow-500
+                                              {% else %}fa-ban text-purple-500{% endif %}"></i>
+                                    {{ tipo|title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-flag text-gray-400"></i>
+                            </div>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">Indique el tipo de situación que genera la alerta</p>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha -->
+                <div class="space-y-6">
+                    <!-- Mensaje de la Alerta -->
+                    <div>
+                        <label for="mensaje" class="block text-sm font-medium text-gray-700">Mensaje de la Alerta</label>
+                        <div class="mt-1">
+                            <textarea id="mensaje" name="mensaje" rows="4" 
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                                placeholder="Describa el motivo de la alerta..."
+                                required></textarea>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">Proporcione una descripción clara y concisa de la situación</p>
+                    </div>
+
+                    <!-- Vista Previa -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-eye mr-2"></i>Vista Previa
+                        </h3>
+                        <div id="preview" 
+                            class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm"
+                            hx-get="{% url 'notificaciones:vista_previa_alerta' %}"
+                            hx-trigger="change from:#tarea, change from:#tipo_alerta, keyup from:#mensaje delay:500ms"
+                            hx-target="this"
+                            hx-include="[name='tarea'],[name='tipo_alerta'],[name='mensaje']">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-exclamation-circle text-yellow-500"></i>
+                                    <span class="font-medium text-gray-900">Nueva Alerta</span>
+                                </div>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    Activa
+                                </span>
+                            </div>
+                            <p class="text-gray-600">El mensaje de la alerta aparecerá aquí...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Botones de Acción -->
-            <div class="flex justify-end space-x-4">
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
                 <a href="{% url 'notificaciones:index' %}" 
-                   class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
+                   class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
                     <i class="fas fa-times mr-2"></i>Cancelar
                 </a>
                 <button type="submit" 
-                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
-                    <i class="fas fa-save mr-2"></i>Crear Alerta
+                        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>Crear Alerta
                 </button>
             </div>
         </form>
     </div>
 </div>
-{% endblock %}
-
-{% block script %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tipoAlerta = document.getElementById('tipo_alerta');
-    const mensaje = document.getElementById('mensaje');
-    const previewType = document.getElementById('preview-type');
-    const previewMessage = document.getElementById('preview-message');
-    const previewHeader = document.getElementById('preview-header');
-
-    function updatePreview() {
-        const selectedTipo = tipoAlerta.value;
-        const mensajeText = mensaje.value;
-
-        // Actualizar tipo
-        previewType.textContent = selectedTipo ? selectedTipo.charAt(0).toUpperCase() + selectedTipo.slice(1) : 'Tipo de Alerta';
-        
-        // Actualizar mensaje
-        previewMessage.textContent = mensajeText || 'El mensaje de la alerta aparecerá aquí...';
-
-        // Actualizar icono según tipo
-        let iconColor = 'text-yellow-500';
-        if (selectedTipo === 'retraso') iconColor = 'text-orange-500';
-        else if (selectedTipo === 'presupuesto') iconColor = 'text-red-500';
-        else if (selectedTipo === 'riesgo') iconColor = 'text-yellow-500';
-        else if (selectedTipo === 'bloqueo') iconColor = 'text-purple-500';
-
-        previewHeader.querySelector('i').className = `fas fa-exclamation-circle ${iconColor} mr-2`;
-    }
-
-    tipoAlerta.addEventListener('change', updatePreview);
-    mensaje.addEventListener('input', updatePreview);
-});
-</script>
 {% endblock %}
