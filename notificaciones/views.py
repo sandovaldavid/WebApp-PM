@@ -640,16 +640,17 @@ def detalle_alerta(request, id):
 
 @login_required
 def lista_alertas(request):
-    """
-    Vista para listar todas las alertas
-    """
-    is_admin = request.user.is_staff or request.user.rol == "Admin"
+    """Vista para listar todas las alertas"""
+    is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
+    # Filtrar alertas según permisos
     if is_admin:
         alertas = Alerta.objects.all()
     else:
         alertas = Alerta.objects.filter(
-            idtarea__in=Tarea.objects.filter(idusuario=request.user)
+            idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+            )
         )
 
     # Aplicar filtros si existen
@@ -665,4 +666,4 @@ def lista_alertas(request):
         "tipos_alerta": ["retraso", "presupuesto", "riesgo", "bloqueo"],
     }
 
-    return render(request, "alertas/lista_alertas.html", context)
+    return render(request, "alertas/listar_alertas.html", context)
