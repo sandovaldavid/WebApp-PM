@@ -755,3 +755,73 @@ def filtrar_tareas(request):
             f'<div class="text-red-500 p-4">Error al filtrar tareas: {str(e)}</div>',
             status=500,
         )
+
+
+@login_required
+def lista_tareas_programadas(request):
+    """Vista para listar todas las tareas programadas"""
+    # Verificar si es admin
+    is_admin = (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.rol == "Admin"
+    )
+
+    # Query base según permisos
+    if is_admin:
+        tareas = Tarea.objects.all()
+    else:
+        tareas = Tarea.objects.filter(
+            idrequerimiento__idproyecto__idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+        )
+
+    # Aplicar filtros
+    estado = request.GET.get("estado")
+    frecuencia = request.GET.get("frecuencia")
+    fecha_desde = request.GET.get("fecha_desde")
+    fecha_hasta = request.GET.get("fecha_hasta")
+
+    if estado:
+        tareas = tareas.filter(estado=estado)
+    if frecuencia:
+        tareas = tareas.filter(frecuencia=frecuencia)
+    if fecha_desde:
+        tareas = tareas.filter(fechainicio__gte=fecha_desde)
+    if fecha_hasta:
+        tareas = tareas.filter(fechafin__lte=fecha_hasta)
+
+    # Optimizar consultas
+    tareas = tareas.select_related(
+        "idrequerimiento", "idrequerimiento__idproyecto"
+    ).order_by("-fechamodificacion")
+
+    # Estadísticas
+    estadisticas = {
+        "total": tareas.count(),
+        "completadas": tareas.filter(estado="Completada").count(),
+        "en_progreso": tareas.filter(estado="En Progreso").count(),
+        "fallidas": tareas.filter(estado="Fallida").count(),
+    }
+
+    # Paginación
+    paginator = Paginator(tareas, 9)  # 9 tareas por página
+    page = request.GET.get("page")
+    tareas_paginadas = paginator.get_page(page)
+
+    context = {
+        "tareas": tareas_paginadas,
+        "estadisticas": estadisticas,
+        "estados_tarea": ["Pendiente", "En Progreso", "Completada", "Fallida"],
+        "frecuencias": ["Diaria", "Semanal", "Mensual"],
+        "filtros": {
+            "estado": estado,
+            "frecuencia": frecuencia,
+            "fecha_desde": fecha_desde,
+            "fecha_hasta": fecha_hasta,
+        },
+        "is_admin": is_admin,
+    }
+
+    return render(
+        request, "gestion_tareas_programadas/lista_tareas_programadas.html", context
+    )
