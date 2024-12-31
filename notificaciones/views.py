@@ -992,3 +992,26 @@ def filtrar_alertas(request):
         return render(request, "alertas/lista_filtrada.html", context)
 
     return render(request, "alertas/listar_alertas.html", context)
+
+
+@login_required
+def vista_previa_notificacion(request):
+    """Vista para renderizar la vista previa de la notificación"""
+    usuario_id = request.GET.get("usuario")
+    prioridad = request.GET.get("prioridad", "media")
+    mensaje = request.GET.get("mensaje", "")
+    categoria = request.GET.get("categoria", "")
+
+    try:
+        usuario = Usuario.objects.get(idusuario=usuario_id) if usuario_id else None
+    except Usuario.DoesNotExist:
+        usuario = None
+
+    context = {
+        "mensaje": mensaje,
+        "prioridad": prioridad,
+        "categoria": categoria,
+        "usuario": usuario,
+    }
+
+    return render(request, "components/vista_previa_notificacion.html", context)
