@@ -39,7 +39,6 @@ urlpatterns = [
         views.estadisticas_notificaciones,
         name="estadisticas_notificaciones",
     ),
-    path("notificaciones/", views.listar_notificaciones, name="listar_notificaciones"),
     path("alerta/crear/", views.crear_alerta, name="crear_alerta"),
     path("alerta/<int:id>/", views.detalle_alerta, name="detalle_alerta"),
     path("alerta/resolver/<int:id>/", views.resolver_alerta, name="resolver_alerta"),
