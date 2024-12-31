@@ -271,3 +271,89 @@ def crear_tarea(request):
     except Exception as e:
         messages.error(request, f"Error al cargar el formulario: {str(e)}")
         return redirect("gestion_tareas:index")
+
+
+@login_required
+def editar_tarea(request, id):
+    """Vista para editar una tarea existente"""
+    # Obtener la tarea o devolver 404
+    tarea = get_object_or_404(Tarea, idtarea=id)
+
+    if request.method == "POST":
+        try:
+            # Obtener datos del formulario
+            requerimiento_id = request.POST.get("requerimiento")
+            nombre = request.POST.get("nombre")
+            estado = request.POST.get("estado")
+            prioridad = request.POST.get("prioridad")
+            duracion_estimada = request.POST.get("duracion_estimada")
+            duracion_actual = request.POST.get("duracion_actual")
+            costo_estimado = request.POST.get("costo_estimado")
+            costo_actual = request.POST.get("costo_actual")
+            fecha_inicio = request.POST.get("fecha_inicio")
+            fecha_fin = request.POST.get("fecha_fin")
+
+            # Validaciones
+            if not all(
+                [
+                    requerimiento_id,
+                    nombre,
+                    estado,
+                    prioridad,
+                    duracion_estimada,
+                    fecha_inicio,
+                    fecha_fin,
+                ]
+            ):
+                messages.error(request, "Todos los campos obligatorios son requeridos")
+                return redirect("gestion_tareas:editar_tarea", id=id)
+
+            # Verificar que la fecha de fin sea posterior a la de inicio
+            if fecha_fin < fecha_inicio:
+                messages.error(
+                    request, "La fecha de fin debe ser posterior a la fecha de inicio"
+                )
+                return redirect("gestion_tareas:editar_tarea", id=id)
+
+            # Actualizar la tarea
+            tarea.idrequerimiento_id = requerimiento_id
+            tarea.nombretarea = nombre
+            tarea.estado = estado
+            tarea.prioridad = prioridad
+            tarea.duracionestimada = duracion_estimada
+            tarea.duracionactual = duracion_actual or None
+            tarea.costoestimado = costo_estimado
+            tarea.costoactual = costo_actual or None
+            tarea.fechainicio = fecha_inicio
+            tarea.fechafin = fecha_fin
+            tarea.fechamodificacion = timezone.now()
+            tarea.save()
+
+            # Registrar en el historial
+            Historialtarea.objects.create(
+                idtarea=tarea,
+                fechacambio=timezone.now(),
+                descripcioncambio=f"Tarea actualizada - Estado: {estado}",
+            )
+
+            messages.success(request, "Tarea actualizada exitosamente")
+            return redirect("gestion_tareas:detalle_tarea", id=id)
+
+        except Exception as e:
+            messages.error(request, f"Error al actualizar la tarea: {str(e)}")
+            return redirect("gestion_tareas:editar_tarea", id=id)
+
+    # GET request
+    try:
+        context = {
+            "tarea": tarea,
+            "requerimientos": Requerimiento.objects.all(),
+            "estados_tarea": ["Pendiente", "En Progreso", "Completada"],
+            "prioridades": ["Baja", "Media", "Alta"],
+            "fecha_minima": timezone.now().date(),
+        }
+        return render(request, "gestion_tareas/editar_tarea.html", context)
+
+    except Exception as e:
+        messages.error(request, f"Error al cargar el formulario: {str(e)}")
+        return redirect("gestion_tareas:detalle_tarea", id=id)
