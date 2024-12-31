@@ -1,19 +1,71 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
+from django.utils import timezone
+from dashboard.models import (
+    Tarea,
+    Historialtarea,
+    Tarearecurso,
+    Recurso,
+    Alerta,
+    Requerimiento,
+)
 
 # Create your views here.
 
 
+@login_required
 def index(request):
-    return render(request, "gestion_tareas/index.html")
+    """Vista principal de gestión de tareas"""
+    # Obtener todas las tareas
+    tareas = Tarea.objects.all().select_related("idrequerimiento__idproyecto")
+
+    # Estadísticas generales
+    estadisticas = {
+        "total": tareas.count(),
+        "pendientes": tareas.filter(estado="Pendiente").count(),
+        "en_progreso": tareas.filter(estado="En Progreso").count(),
+        "completadas": tareas.filter(estado="Completada").count(),
+    }
+
+    # Distribución por prioridad
+    prioridades = (
+        tareas.values("prioridad").annotate(total=Count("idtarea")).order_by("-total")
+    )
+
+    # Tareas retrasadas
+    tareas_retrasadas = tareas.filter(
+        fechafin__lt=timezone.now().date(), estado__in=["Pendiente", "En Progreso"]
+    ).count()
+
+    # Desviación promedio de costos
+    tareas_con_costos = tareas.exclude(
+        Q(costoactual__isnull=True) | Q(costoestimado__isnull=True)
+    )
+
+    desviacion_promedio = 0
+    if tareas_con_costos.exists():
+        desviaciones = []
+        for tarea in tareas_con_costos:
+            desviacion = (
+                (tarea.costoactual - tarea.costoestimado) / tarea.costoestimado
+            ) * 100
+            desviaciones.append(desviacion)
+        desviacion_promedio = sum(desviaciones) / len(desviaciones)
+
+    context = {
+        "tareas": tareas,
+        "estadisticas": estadisticas,
+        "prioridades": prioridades,
+        "tareas_retrasadas": tareas_retrasadas,
+        "desviacion_promedio": desviacion_promedio,
+    }
+
+    return render(request, "gestion_tareas/index.html", context)
 
 
 def tareas_programadas(request):
     return render(request, "gestion_tareas_programadas/index.html")
-
-
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from dashboard.models import Tarea, Historialtarea, Tarearecurso, Recurso, Alerta
 
 
 @login_required
@@ -54,3 +106,38 @@ def detalle_tarea(request, id):
     }
 
     return render(request, "gestion_tareas/detalle_tarea.html", context)
+
+
+@login_required
+def crear_tarea(request):
+    """Vista para crear una nueva tarea"""
+    if request.method == "POST":
+        # Obtener datos del formulario
+        requerimiento_id = request.POST.get("requerimiento")
+        nombre = request.POST.get("nombre")
+        estado = request.POST.get("estado")
+        prioridad = request.POST.get("prioridad")
+        duracion_estimada = request.POST.get("duracion_estimada")
+        fecha_inicio = request.POST.get("fecha_inicio")
+        fecha_fin = request.POST.get("fecha_fin")
+
+        # Crear la tarea
+        tarea = Tarea.objects.create(
+            idrequerimiento_id=requerimiento_id,
+            nombretarea=nombre,
+            estado=estado,
+            prioridad=prioridad,
+            duracionestimada=duracion_estimada,
+            fechainicio=fecha_inicio,
+            fechafin=fecha_fin,
+            fechacreacion=timezone.now(),
+            fechamodificacion=timezone.now(),
+        )
+
+        return redirect("gestion_tareas:index")
+
+    # Obtener requerimientos para el formulario
+    requerimientos = Requerimiento.objects.all()
+    return render(
+        request, "gestion_tareas/crear_tarea.html", {"requerimientos": requerimientos}
+    )
