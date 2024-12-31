@@ -121,7 +121,7 @@ def dashboard(request):
     # Alertas activas
     if is_admin:
         alertas = (
-            Alerta.objects.filter(activa=True)
+            Alerta.objects.all()
             .select_related("idtarea")
             .order_by("-fechacreacion")[:5]
         )
