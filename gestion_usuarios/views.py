@@ -92,7 +92,7 @@ def register(request):
     return render(request, "registration/register.html")
 
 @csrf_protect
-def login(request):
+def login_view(request):
     if request.method == "POST":
         nombreusuario = request.POST.get("nombreusuario")
         contrasena = request.POST.get("contrasena")
