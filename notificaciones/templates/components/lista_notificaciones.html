@@ -1,0 +1,10 @@
+{% if notificaciones %}
+    {% for notificacion in notificaciones %}
+        {% include 'components/notificacion.html' with notificacion=notificacion %}
+    {% endfor %}
+{% else %}
+    <div class="text-center py-8 text-gray-500">
+        <i class="fas fa-check-circle text-4xl mb-2"></i>
+        <p>No tienes notificaciones pendientes</p>
+    </div>
+{% endif %}
