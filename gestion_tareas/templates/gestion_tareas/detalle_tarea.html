@@ -173,7 +173,7 @@
                 Editar Tarea
             </a>
             {% if not tarea.estado == 'Completada' %}
-            <form method="POST" action="{% url 'gestion_tareas:notificacion_marcar_completada' tarea.idtarea %}" class="inline">
+            <form method="POST" action="{% url 'gestion_tareas:tarea_marcar_completada' tarea.idtarea %}" class="inline">
                 {% csrf_token %}
                 <button type="submit" 
                         class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center">
