@@ -73,22 +73,6 @@
                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
-            <!-- Vista Previa -->
-            <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h3 class="text-sm font-medium text-gray-700 mb-2">Vista Previa</h3>
-                <div class="p-4 rounded-lg bg-white shadow-sm">
-                    <div class="flex items-center mb-2" id="preview-priority">
-                        <i class="fas fa-circle text-yellow-500 mr-2"></i>
-                        <span class="font-medium">Prioridad Media</span>
-                    </div>
-                    <p class="text-gray-600" id="preview-message">El mensaje aparecerá aquí...</p>
-                    <div class="mt-2 text-sm text-gray-500">
-                        <i class="fas fa-tag mr-1"></i>
-                        <span id="preview-category">Categoría</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Botones de Acción -->
             <div class="flex justify-end space-x-4">
                 <a href="{% url 'notificaciones:index' %}" 
@@ -103,44 +87,4 @@
         </form>
     </div>
 </div>
-{% endblock %}
-
-{% block script %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const mensaje = document.getElementById('mensaje');
-    const prioridad = document.getElementById('prioridad');
-    const categoria = document.getElementById('categoria');
-    const previewMessage = document.getElementById('preview-message');
-    const previewPriority = document.getElementById('preview-priority');
-    const previewCategory = document.getElementById('preview-category');
-
-    function updatePreview() {
-        // Actualizar mensaje
-        previewMessage.textContent = mensaje.value || 'El mensaje aparecerá aquí...';
-        
-        // Actualizar prioridad
-        const prioridadIcon = previewPriority.querySelector('i');
-        const prioridadText = previewPriority.querySelector('span');
-        switch(prioridad.value) {
-            case 'baja':
-                prioridadIcon.className = 'fas fa-circle text-green-500 mr-2';
-                break;
-            case 'alta':
-                prioridadIcon.className = 'fas fa-circle text-red-500 mr-2';
-                break;
-            default:
-                prioridadIcon.className = 'fas fa-circle text-yellow-500 mr-2';
-        }
-        prioridadText.textContent = `Prioridad ${prioridad.value.charAt(0).toUpperCase() + prioridad.value.slice(1)}`;
-        
-        // Actualizar categoría
-        previewCategory.textContent = categoria.value;
-    }
-
-    mensaje.addEventListener('input', updatePreview);
-    prioridad.addEventListener('change', updatePreview);
-    categoria.addEventListener('change', updatePreview);
-});
-</script>
 {% endblock %}
