@@ -23,4 +23,9 @@ urlpatterns = [
         views.lista_tareas_programadas,
         name="lista_tareas_programadas",
     ),
+    path(
+        "crear-tarea-programada/",
+        views.crear_tarea_programada,
+        name="crear_tarea_programada",
+    ),
 ]
