@@ -1,0 +1,37 @@
+{% if alertas %}
+    {% for alerta in alertas %}
+        {% include 'components/alerta.html' with alerta=alerta %}
+    {% endfor %}
+{% else %}
+    <div class="text-center py-8 bg-gray-50 rounded-lg">
+        <i class="fas fa-check-circle text-green-500 text-4xl mb-2"></i>
+        <p class="text-gray-600">No hay alertas activas en este momento</p>
+    </div>
+{% endif %}
+
+<!-- Paginación -->
+{% if alertas.has_other_pages %}
+<div class="mt-6 flex justify-center">
+    <nav class="flex items-center space-x-2">
+        {% if alertas.has_previous %}
+            <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.previous_page_number }}&tipo={{ tipo_actual }}"
+               hx-target="#lista-alertas"
+               class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        {% endif %}
+        
+        <span class="px-3 py-1 bg-red-500 text-white rounded-md">
+            {{ alertas.number }}
+        </span>
+        
+        {% if alertas.has_next %}
+            <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.next_page_number }}&tipo={{ tipo_actual }}"
+               hx-target="#lista-alertas"
+               class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
