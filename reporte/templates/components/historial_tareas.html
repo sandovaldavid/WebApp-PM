@@ -1,0 +1,111 @@
+<div class="space-y-4">
+    <!-- Filtros inline -->
+    <div class="flex gap-4 mb-4">
+        <select id="filtro-tipo" 
+                class="text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                hx-get="{% url 'reportes:filtrar_historial' %}"
+                hx-target="#lista-historial"
+                hx-trigger="change">
+            <option value="todos">Todos los cambios</option>
+            <option value="estado">Cambios de estado</option>
+            <option value="asignacion">Asignaciones</option>
+            <option value="recursos">Cambios de recursos</option>
+        </select>
+    </div>
+
+    <!-- Lista de Historial -->
+    <div id="lista-historial" class="space-y-3">
+        {% for registro in historial %}
+        <div class="bg-gray-50 p-4 rounded-lg hover:shadow-md transition-shadow">
+            <!-- Encabezado con fecha y tarea -->
+            <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center">
+                    <span class="text-sm font-medium text-gray-900">
+                        {{ registro.fechacambio|date:"d/m/Y H:i" }}
+                    </span>
+                    <span class="mx-2 text-gray-500">•</span>
+                    <a href="{% url 'gestion_tareas:detalle_tarea' registro.idtarea.idtarea %}" 
+                       class="text-sm text-blue-600 hover:text-blue-800">
+                        {{ registro.idtarea.nombretarea }}
+                    </a>
+                </div>
+                <!-- Indicador de tipo de cambio -->
+                <span class="px-2 py-1 text-xs rounded-full 
+                    {% if 'estado' in registro.descripcioncambio|lower %}
+                        bg-yellow-100 text-yellow-800
+                    {% elif 'asign' in registro.descripcioncambio|lower %}
+                        bg-blue-100 text-blue-800
+                    {% elif 'recurs' in registro.descripcioncambio|lower %}
+                        bg-green-100 text-green-800
+                    {% else %}
+                        bg-gray-100 text-gray-800
+                    {% endif %}">
+                    {% if 'estado' in registro.descripcioncambio|lower %}
+                        <i class="fas fa-exchange-alt mr-1"></i>Estado
+                    {% elif 'asign' in registro.descripcioncambio|lower %}
+                        <i class="fas fa-user-plus mr-1"></i>Asignación
+                    {% elif 'recurs' in registro.descripcioncambio|lower %}
+                        <i class="fas fa-cubes mr-1"></i>Recursos
+                    {% else %}
+                        <i class="fas fa-info-circle mr-1"></i>General
+                    {% endif %}
+                </span>
+            </div>
+
+            <!-- Descripción del cambio -->
+            <p class="text-sm text-gray-600">
+                {{ registro.descripcioncambio }}
+            </p>
+
+            <!-- Metadatos adicionales -->
+            <div class="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+                <!-- Proyecto -->
+                <div class="flex items-center">
+                    <i class="fas fa-folder mr-1"></i>
+                    <span>{{ registro.idtarea.idrequerimiento.idproyecto.nombreproyecto }}</span>
+                </div>
+                <!-- Estado actual -->
+                <div class="flex items-center">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    <span>Estado actual: {{ registro.idtarea.estado }}</span>
+                </div>
+                <!-- Tiempo transcurrido -->
+                <div class="flex items-center">
+                    <i class="fas fa-clock mr-1"></i>
+                    <span>Hace {{ registro.fechacambio|timesince }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-history text-4xl mb-2"></i>
+            <p>No hay registros de historial disponibles</p>
+        </div>
+        {% endfor %}
+
+        <!-- Paginación -->
+        {% if historial.has_other_pages %}
+        <div class="flex justify-center space-x-2 mt-4">
+            {% if historial.has_previous %}
+                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                        hx-get="{% url 'reportes:filtrar_historial' %}?page={{ historial.previous_page_number }}"
+                        hx-target="#lista-historial">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            {% endif %}
+
+            <span class="px-3 py-1 bg-blue-500 text-white rounded-md">
+                {{ historial.number }}
+            </span>
+
+            {% if historial.has_next %}
+                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                        hx-get="{% url 'reportes:filtrar_historial' %}?page={{ historial.next_page_number }}"
+                        hx-target="#lista-historial">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
