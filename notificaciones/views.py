@@ -437,9 +437,7 @@ def filtrar_notificaciones(request):
     is_admin = request.user.is_staff or request.user.rol == "Admin"
 
     if is_admin:
-        notificaciones = Notificacion.objects.all().order_by(
-            "-fechacreacion"
-        )
+        notificaciones = Notificacion.objects.all().order_by("-fechacreacion")
     else:
         # Query base
         notificaciones = Notificacion.objects.filter(
@@ -542,3 +540,55 @@ def estadisticas_notificaciones(request):
             "por_categoria": por_categoria,
         },
     )
+
+
+@login_required
+def eliminar_notificacion(request, id):
+    """
+    Vista para eliminar una notificación específica.
+    Solo permite eliminar si es el propietario o admin.
+    """
+    if request.method == "POST":
+        try:
+            # Obtener la notificación o devolver 404
+            notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+
+            # Verificar que el usuario sea el propietario o admin
+            if notificacion.idusuario == request.user or request.user.is_staff:
+                # Eliminar la notificación y su historial
+                Historialnotificacion.objects.filter(
+                    idnotificacion=notificacion
+                ).delete()
+                notificacion.delete()
+
+                messages.success(request, "Notificación eliminada correctamente")
+            else:
+                messages.error(
+                    request, "No tienes permiso para eliminar esta notificación"
+                )
+
+        except Notificacion.DoesNotExist:
+            messages.error(request, "La notificación no existe")
+        except Exception as e:
+            messages.error(request, f"Error al eliminar la notificación: {str(e)}")
+
+        # Si es una petición AJAX/HTMX
+        if request.headers.get("HX-Request"):
+            return render(
+                request,
+                "components/lista_notificaciones.html",
+                {
+                    "notificaciones": Notificacion.objects.filter(
+                        idusuario=request.user, archivada=False
+                    ).order_by("-fechacreacion")
+                },
+            )
+
+        # Redirigir según el contexto
+        next_url = request.POST.get("next") or request.GET.get("next")
+        if next_url:
+            return redirect(next_url)
+        return redirect("notificaciones:index")
+
+    # Si no es POST, redirigir al index
+    return redirect("notificaciones:index")
