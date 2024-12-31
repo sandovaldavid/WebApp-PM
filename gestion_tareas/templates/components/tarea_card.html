@@ -82,15 +82,14 @@
             </div>
         {% endif %}
     </div>
-
     <!-- Pie con acciones -->
     <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
         <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}" 
-           class="text-blue-600 hover:text-blue-800" title="Ver detalles">
+        class="text-blue-600 hover:text-blue-800" title="Ver detalles">
             <i class="fas fa-eye"></i>
         </a>
         <a href="{% url 'gestion_tareas:editar_tarea' tarea.idtarea %}" 
-           class="text-yellow-600 hover:text-yellow-800" title="Editar">
+        class="text-yellow-600 hover:text-yellow-800" title="Editar">
             <i class="fas fa-edit"></i>
         </a>
         {% if tarea.estado != 'Completada' %}
@@ -101,5 +100,14 @@
             </button>
         </form>
         {% endif %}
+        <!-- Botón Eliminar -->
+        <form method="POST" action="{% url 'gestion_tareas:eliminar_tarea' tarea.idtarea %}" 
+            class="inline" 
+            onsubmit="return confirm('¿Está seguro de eliminar esta tarea?');">
+            {% csrf_token %}
+            <button type="submit" class="text-red-600 hover:text-red-800" title="Eliminar tarea">
+                <i class="fas fa-trash"></i>
+            </button>
+        </form>
     </div>
 </div>
