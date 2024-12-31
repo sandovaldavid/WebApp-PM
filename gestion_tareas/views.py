@@ -17,8 +17,21 @@ from dashboard.models import (
 @login_required
 def index(request):
     """Vista principal de gestión de tareas"""
-    # Obtener todas las tareas
-    tareas = Tarea.objects.all().select_related("idrequerimiento__idproyecto")
+    # Verificar si es admin
+    is_admin = (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.rol == "Admin"
+    )
+
+    # Filtrar tareas según el tipo de usuario
+    if is_admin:
+        tareas = Tarea.objects.all().select_related("idrequerimiento__idproyecto")
+    else:
+        # Filtrar tareas relacionadas al usuario
+        tareas = Tarea.objects.filter(
+            idrequerimiento__idproyecto__idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+        ).select_related("idrequerimiento__idproyecto")
 
     # Estadísticas generales
     estadisticas = {
@@ -54,6 +67,7 @@ def index(request):
         "estadisticas": estadisticas,
         "datos_estado": datos_estado,
         "datos_prioridad": datos_prioridad,
+        "is_admin": is_admin,  # Pasar el estado de admin al template
     }
 
     return render(request, "gestion_tareas/index.html", context)
