@@ -8,4 +8,9 @@ urlpatterns = [
     path("tareas_programadas/", views.tareas_programadas, name="tareas_programadas"),
     path("detalle-tarea/<int:id>/", views.detalle_tarea, name="detalle_tarea"),
     path("editar-tarea/<int:id>/", views.editar_tarea, name="editar_tarea"),
+    path(
+        "notificacion/marcar-completada/<int:id>/",
+        views.notificacion_marcar_completada,
+        name="notificacion_marcar_completada",
+    ),
 ]
