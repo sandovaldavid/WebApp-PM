@@ -44,6 +44,11 @@ urlpatterns = [
         views.eliminar_notificacion,
         name="eliminar_notificacion",
     ),
+    path(
+        "notificaciones/estadisticas/",
+        views.estadisticas_notificaciones,
+        name="estadisticas_notificaciones",
+    ),
     path("alertas/", views.lista_alertas, name="lista_alertas"),
     path("alerta/crear/", views.crear_alerta, name="crear_alerta"),
     path("detalle-alerta/<int:id>/", views.detalle_alerta, name="detalle_alerta"),
