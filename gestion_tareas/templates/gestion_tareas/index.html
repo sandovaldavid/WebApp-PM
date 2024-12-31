@@ -1,96 +1,202 @@
 {% extends "gestion_tareas/layout.html" %}
+{% load static %}
 
-{% block  title%}Gestión de Tareas{% endblock  %}
+{% block title %}Gestión de Tareas{% endblock %}
 
-{% block title_body %}<i class="fas fa-tasks"></i> Gestión de Tareas{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-tasks text-blue-500 mr-2"></i>
+    <span>Gestión de Tareas</span>
+</div>
+{% endblock %}
 
 {% block body %}
+<div class="p-8">
+    <!-- Resumen y Acciones -->
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Panel de Tareas</h2>
+        <a href="{% url 'gestion_tareas:crear_tarea' %}" 
+           class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center">
+            <i class="fas fa-plus mr-2"></i>
+            Nueva Tarea
+        </a>
+    </div>
 
-    <!-- Contenedor principal -->
-    <main class="mt-5">
-        <div class="flex justify-between items-center mb-4">
-            <h2><i class="fas fa-list"></i> Lista de Tareas</h2>
-            <button class="bg-green-500 text-white px-4 py-2 rounded" onclick="openTaskForm()"><i class="fas fa-plus"></i> Crear Tarea</button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <!-- Tarjeta de Tarea -->
-            <div class="task-card p-6 rounded-lg shadow-lg">
-                <h3>Tarea 1</h3>
-                <div class="mt-2">
-                    <span class="text-sm font-semibold">Estado:</span>
-                    <span class="status">En progreso</span>
+    <!-- Métricas Principales -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Total de Tareas -->
+        <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-blue-600">Total Tareas</p>
+                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total }}</h3>
                 </div>
-                <div class="mt-2">
-                    <span class="text-sm font-semibold">Fecha de Inicio:</span>
-                    <span>01/01/2022</span>
-                </div>
-                <div class="mt-2">
-                    <span class="text-sm font-semibold">Fecha de Fin:</span>
-                    <span>15/01/2022</span>
-                </div>
-                <div class="mt-2">
-                    <span class="text-sm font-semibold">Responsable:</span>
-                    <span class="responsible">Juan Pérez</span>
-                </div>
-                <div class="mt-4 flex justify-between">
-                    <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="openTaskForm()"><i class="fas fa-edit"></i> Editar</button>
-                    <button class="bg-red-500 text-white px-4 py-2 rounded" onclick="confirmDelete()"><i class="fas fa-trash"></i> Eliminar</button>
-                </div>
+                <i class="fas fa-tasks text-blue-500 text-3xl"></i>
             </div>
-              <!-- Más tarjetas de tareas -->
         </div>
 
-      <!-- Estadísticas de Tareas -->
-      <div class="stats-card mt-8 p-6 rounded-lg shadow-lg">
-          <h2 class="text-xl font-semibold mb-4"><i class="fas fa-chart-bar"></i> Estadísticas de Tareas</h2>
-          <div class="flex justify-between">
-              <div class="stat">
-                  <span class="text-sm font-semibold">Tareas Pendientes:</span>
-                  <span>5</span>
-              </div>
-              <div class="stat">
-                  <span class="text-sm font-semibold">Tareas Completadas:</span>
-                  <span>10</span>
-              </div>
-              <div class="stat">
-                  <span class="text-sm font-semibold">Progreso Total:</span>
-                  <span>66%</span>
-              </div>
-          </div>
-      </div>
+        <!-- Tareas Pendientes -->
+        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-yellow-600">Pendientes</p>
+                    <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.pendientes }}</h3>
+                </div>
+                <i class="fas fa-clock text-yellow-500 text-3xl"></i>
+            </div>
+        </div>
 
-      <!-- Formulario para Crear o Editar Tareas -->
-      <div id="taskForm" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
-          <div class="bg-white p-6 rounded-lg shadow-lg">
-              <h2 class="text-xl font-semibold mb-4"><i class="fas fa-tasks"></i> Crear/Editar Tarea</h2>
-              <form>
-                  <div class="mb-4">
-                      <label class="block text-sm font-semibold mb-2">Nombre de la Tarea</label>
-                      <input type="text" class="w-full p-2 border rounded">
-                  </div>
-                  <div class="mb-4">
-                      <label class="block text-sm font-semibold mb-2">Descripción</label>
-                      <textarea class="w-full p-2 border rounded"></textarea>
-                  </div>
-                  <div class="mb-4">
-                      <label class="block text-sm font-semibold mb-2">Fecha de Inicio</label>
-                      <input type="date" class="w-full p-2 border rounded">
-                  </div>
-                  <div class="mb-4">
-                      <label class="block text-sm font-semibold mb-2">Fecha de Fin</label>
-                      <input type="date" class="w-full p-2 border rounded">
-                  </div>
-                  <div class="mb-4">
-                      <label class="block text-sm font-semibold mb-2">Responsable</label>
-                      <input type="text" class="w-full p-2 border rounded">
-                  </div>
-                  <div class="flex justify-end">
-                      <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded mr-2" onclick="closeTaskForm()">Cancelar</button>
-                      <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Guardar</button>
-                  </div>
-              </form>
-          </div>
-      </div>
-  </main>
+        <!-- Tareas en Progreso -->
+        <div class="bg-green-50 p-6 rounded-lg shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-green-600">En Progreso</p>
+                    <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.en_progreso }}</h3>
+                </div>
+                <i class="fas fa-spinner text-green-500 text-3xl"></i>
+            </div>
+        </div>
 
+        <!-- Tareas Completadas -->
+        <div class="bg-purple-50 p-6 rounded-lg shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-purple-600">Completadas</p>
+                    <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.completadas }}</h3>
+                </div>
+                <i class="fas fa-check-circle text-purple-500 text-3xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos y Lista -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Gráfico de Estado de Tareas -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4">Estado de Tareas</h3>
+            <canvas id="estadoTareasChart"></canvas>
+        </div>
+
+        <!-- Gráfico de Prioridades -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4">Distribución por Prioridad</h3>
+            <canvas id="prioridadesChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Lista de Tareas -->
+    <div class="bg-white rounded-lg shadow-lg">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold">Lista de Tareas</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarea</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridad</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Fin</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for tarea in tareas %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ tarea.nombretarea }}</div>
+                            <div class="text-sm text-gray-500">{{ tarea.idrequerimiento.idproyecto.nombreproyecto }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {% if tarea.estado == 'Pendiente' %}bg-yellow-100 text-yellow-800
+                                {% elif tarea.estado == 'En Progreso' %}bg-blue-100 text-blue-800
+                                {% else %}bg-green-100 text-green-800{% endif %}">
+                                {{ tarea.estado }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm 
+                                {% if tarea.prioridad == 'Alta' %}text-red-600
+                                {% elif tarea.prioridad == 'Media' %}text-yellow-600
+                                {% else %}text-green-600{% endif %}">
+                                {{ tarea.prioridad }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ tarea.fechafin|date:"d/m/Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}" 
+                               class="text-blue-600 hover:text-blue-900 mr-3">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="text-yellow-600 hover:text-yellow-900 mr-3">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de Estado de Tareas
+    const estadoCtx = document.getElementById('estadoTareasChart').getContext('2d');
+    new Chart(estadoCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pendientes', 'En Progreso', 'Completadas'],
+            datasets: [{
+                data: [
+                    {{ estadisticas.pendientes }},
+                    {{ estadisticas.en_progreso }},
+                    {{ estadisticas.completadas }}
+                ],
+                backgroundColor: ['#FCD34D', '#60A5FA', '#34D399']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Gráfico de Prioridades
+    const prioridadCtx = document.getElementById('prioridadesChart').getContext('2d');
+    new Chart(prioridadCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for p in prioridades %}'{{ p.prioridad }}',{% endfor %}],
+            datasets: [{
+                label: 'Tareas por Prioridad',
+                data: [{% for p in prioridades %}{{ p.total }},{% endfor %}],
+                backgroundColor: ['#EF4444', '#F59E0B', '#10B981']
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
