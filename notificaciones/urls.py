@@ -57,4 +57,9 @@ urlpatterns = [
         "estadisticas/alertas/", views.estadisticas_alertas, name="estadisticas_alertas"
     ),
     path("filtrar-alertas/", views.filtrar_alertas, name="filtrar_alertas"),
+    path(
+        "vista-previa-notificacion/",
+        views.vista_previa_notificacion,
+        name="vista_previa_notificacion",
+    ),
 ]
