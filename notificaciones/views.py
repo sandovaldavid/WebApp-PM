@@ -641,7 +641,7 @@ def detalle_alerta(request, id):
 @login_required
 def lista_alertas(request):
     """Vista para listar todas las alertas"""
-    is_admin = request.user.is_staff or request.user.rol == "Administrador"
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
 
     # Filtrar alertas según permisos
     if is_admin:
