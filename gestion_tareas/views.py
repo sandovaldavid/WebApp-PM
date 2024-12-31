@@ -1,10 +1,11 @@
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
 from django.utils import timezone
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db.models.functions import TruncMonth
 from dashboard.models import (
     Tarea,
     Historialtarea,
@@ -41,11 +42,11 @@ def index(request):
     estadisticas = {
         "total": tareas.count(),
         "pendientes": tareas.filter(estado="Pendiente").count(),
-        "en_progreso": tareas.filter(estado="En progreso").count(),
+        "en_progreso": tareas.filter(estado="En Progreso").count(),
         "completadas": tareas.filter(estado="Completada").count(),
     }
 
-    # Datos para el gráfico de estado
+    # Datos para el gráfico de estado (Donut)
     datos_estado = {
         "labels": ["Pendientes", "En Progreso", "Completadas"],
         "data": [
@@ -55,15 +56,98 @@ def index(request):
         ],
     }
 
-    # Distribución por prioridad
+    # Datos para el gráfico de prioridades (Barras)
     prioridades = list(
-        tareas.values("prioridad").annotate(total=Count("idtarea")).order_by("-total")
+        tareas.values("prioridad")
+        .annotate(total=Count("idtarea"))
+        .order_by("prioridad")
     )
 
-    # Preparar datos para el gráfico de prioridades
     datos_prioridad = {
-        "labels": [p["prioridad"] for p in prioridades],
-        "data": [p["total"] for p in prioridades],
+        "labels": ["Baja", "Media", "Alta"],
+        "data": [
+            next((p["total"] for p in prioridades if p["prioridad"] == 1), 0),
+            next((p["total"] for p in prioridades if p["prioridad"] == 2), 0),
+            next((p["total"] for p in prioridades if p["prioridad"] == 3), 0),
+        ],
+    }
+
+    # Datos para el gráfico de tendencia (Líneas)
+    # Obtener datos de los últimos 6 meses
+    ahora = timezone.now()
+    seis_meses_atras = ahora - timezone.timedelta(days=180)
+
+    tendencia_completadas = list(
+        tareas.filter(estado="Completada", fechamodificacion__gte=seis_meses_atras)
+        .annotate(mes=TruncMonth("fechamodificacion"))
+        .values("mes")
+        .annotate(total=Count("idtarea"))
+        .order_by("mes")
+    )
+
+    tendencia_creadas = list(
+        tareas.filter(fechacreacion__gte=seis_meses_atras)
+        .annotate(mes=TruncMonth("fechacreacion"))
+        .values("mes")
+        .annotate(total=Count("idtarea"))
+        .order_by("mes")
+    )
+
+    datos_tendencia = {
+        "completadas": [t["total"] for t in tendencia_completadas[-6:]],
+        "creadas": [t["total"] for t in tendencia_creadas[-6:]],
+    }
+
+    # Datos para el gráfico de tiempo promedio (Barras Horizontales)
+    # Calcular promedio de días por estado
+    datos_tiempo = {
+        "promedio": [
+            # Pendientes
+            (
+                tareas.filter(estado="Pendiente")
+                .aggregate(
+                    promedio=Avg(
+                        ExpressionWrapper(
+                            timezone.now() - F("fechacreacion"),
+                            output_field=DurationField(),
+                        )
+                    )
+                )["promedio"]
+                .days
+                if tareas.filter(estado="Pendiente").exists()
+                else 0
+            ),
+            # En Progreso
+            (
+                tareas.filter(estado="En progreso")
+                .aggregate(
+                    promedio=Avg(
+                        ExpressionWrapper(
+                            timezone.now() - F("fechacreacion"),
+                            output_field=DurationField(),
+                        )
+                    )
+                )["promedio"]
+                .days
+                if tareas.filter(estado="En pogreso").exists()
+                else 0
+            ),
+            # Completadas
+            (
+                tareas.filter(estado="Completada")
+                .aggregate(
+                    promedio=Avg(
+                        ExpressionWrapper(
+                            F("fechamodificacion") - F("fechacreacion"),
+                            output_field=DurationField(),
+                        )
+                    )
+                )["promedio"]
+                .days
+                if tareas.filter(estado="Completada").exists()
+                else 0
+            ),
+        ]
     }
 
     context = {
@@ -71,7 +155,9 @@ def index(request):
         "estadisticas": estadisticas,
         "datos_estado": datos_estado,
         "datos_prioridad": datos_prioridad,
-        "is_admin": is_admin,  # Pasar el estado de admin al template
+        "datos_tendencia": datos_tendencia,
+        "datos_tiempo": datos_tiempo,
+        "is_admin": is_admin,
     }
 
     return render(request, "gestion_tareas/index.html", context)
