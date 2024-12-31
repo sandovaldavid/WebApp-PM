@@ -7,8 +7,12 @@
         </h2>
         {% if user.is_authenticated %}
         <div class="flex items-center space-x-2">
-            <form method="GET" action="{% url 'notificaciones:filtrar_notificaciones' %}" class="inline">
-                <select name="prioridad" onchange="this.form.submit()" 
+            <!-- Modificar el form para usar HTMX -->
+            <form hx-get="{% url 'notificaciones:filtrar_notificaciones' %}" 
+                  hx-target="#lista-notificaciones"
+                  hx-trigger="change from:select"
+                  class="inline">
+                <select name="prioridad" 
                         class="text-sm border rounded-md px-2 py-1">
                     <option value="todas" {% if prioridad_actual == 'todas' %}selected{% endif %}>
                         Todas las prioridades
@@ -43,7 +47,7 @@
     </div>
 
     <!-- Lista de Notificaciones -->
-    <div class="space-y-4">
+    <div id="lista-notificaciones" class="space-y-4">
         {% if user.is_authenticated %}
             {% if notificaciones %}
                 {% for notificacion in notificaciones %}
@@ -68,14 +72,16 @@
     <div class="mt-4 flex justify-center">
         <nav class="inline-flex rounded-md shadow">
             {% if notificaciones.has_previous %}
-                <a href="?page={{ notificaciones.previous_page_number }}&prioridad={{ prioridad_actual }}" 
+                <a hx-get="{% url 'notificaciones:filtrar_notificaciones' %}?page={{ notificaciones.previous_page_number }}&prioridad={{ prioridad_actual }}"
+                   hx-target="#lista-notificaciones"
                    class="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
                     <i class="fas fa-chevron-left"></i>
                 </a>
             {% endif %}
             <span class="px-3 py-1 bg-blue-500 text-white">{{ notificaciones.number }}</span>
             {% if notificaciones.has_next %}
-                <a href="?page={{ notificaciones.next_page_number }}&prioridad={{ prioridad_actual }}" 
+                <a hx-get="{% url 'notificaciones:filtrar_notificaciones' %}?page={{ notificaciones.next_page_number }}&prioridad={{ prioridad_actual }}"
+                   hx-target="#lista-notificaciones"
                    class="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
                     <i class="fas fa-chevron-right"></i>
                 </a>
