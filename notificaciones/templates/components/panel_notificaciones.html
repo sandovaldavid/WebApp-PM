@@ -5,46 +5,78 @@
             <i class="fas fa-bell text-blue-500"></i> Notificaciones
             <span class="text-sm text-gray-500">({{ notificaciones|length }})</span>
         </h2>
+        {% if user.is_authenticated %}
         <div class="flex items-center space-x-2">
-            <select id="filtro-prioridad" class="text-sm border rounded-md px-2 py-1">
-                <option value="todas">Todas las prioridades</option>
-                <option value="alta">Alta prioridad</option>
-                <option value="media">Media prioridad</option>
-                <option value="baja">Baja prioridad</option>
-            </select>
-            <button onclick="marcarTodasComoLeidas()" 
-                    class="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-200">
-                <i class="fas fa-check-double mr-1"></i> Marcar todas como leídas
-            </button>
+            <form method="GET" action="{% url 'notificaciones:filtrar_notificaciones' %}" class="inline">
+                <select name="prioridad" onchange="this.form.submit()" 
+                        class="text-sm border rounded-md px-2 py-1">
+                    <option value="todas" {% if prioridad_actual == 'todas' %}selected{% endif %}>
+                        Todas las prioridades
+                    </option>
+                    <option value="alta" {% if prioridad_actual == 'alta' %}selected{% endif %}>
+                        Alta prioridad
+                    </option>
+                    <option value="media" {% if prioridad_actual == 'media' %}selected{% endif %}>
+                        Media prioridad
+                    </option>
+                    <option value="baja" {% if prioridad_actual == 'baja' %}selected{% endif %}>
+                        Baja prioridad
+                    </option>
+                </select>
+            </form>
+            
+            <form method="POST" action="{% url 'notificaciones:marcar_todas_leidas' %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-200">
+                    <i class="fas fa-check-double mr-1"></i> Marcar todas como leídas
+                </button>
+            </form>
         </div>
+        {% else %}
+        <div class="text-sm text-gray-500">
+            <a href="{% url 'login' %}" class="text-blue-500 hover:text-blue-700">
+                Inicia sesión
+            </a> para gestionar notificaciones
+        </div>
+        {% endif %}
     </div>
 
     <!-- Lista de Notificaciones -->
     <div class="space-y-4">
-        {% if notificaciones %}
-            {% for notificacion in notificaciones %}
-                {% include 'components/notificacion.html' with notificacion=notificacion %}
-            {% endfor %}
+        {% if user.is_authenticated %}
+            {% if notificaciones %}
+                {% for notificacion in notificaciones %}
+                    {% include 'components/notificacion.html' with notificacion=notificacion %}
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-check-circle text-4xl mb-2"></i>
+                    <p>No tienes notificaciones pendientes</p>
+                </div>
+            {% endif %}
         {% else %}
             <div class="text-center py-8 text-gray-500">
-                <i class="fas fa-check-circle text-4xl mb-2"></i>
-                <p>No tienes notificaciones pendientes</p>
+                <i class="fas fa-user-lock text-4xl mb-2"></i>
+                <p>Inicia sesión para ver tus notificaciones</p>
             </div>
         {% endif %}
     </div>
 
-    <!-- Paginación si es necesaria -->
-    {% if notificaciones.has_other_pages %}
+    <!-- Paginación -->
+    {% if user.is_authenticated and notificaciones.has_other_pages %}
     <div class="mt-4 flex justify-center">
         <nav class="inline-flex rounded-md shadow">
             {% if notificaciones.has_previous %}
-                <a href="?page={{ notificaciones.previous_page_number }}" class="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
+                <a href="?page={{ notificaciones.previous_page_number }}&prioridad={{ prioridad_actual }}" 
+                   class="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
                     <i class="fas fa-chevron-left"></i>
                 </a>
             {% endif %}
             <span class="px-3 py-1 bg-blue-500 text-white">{{ notificaciones.number }}</span>
             {% if notificaciones.has_next %}
-                <a href="?page={{ notificaciones.next_page_number }}" class="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
+                <a href="?page={{ notificaciones.next_page_number }}&prioridad={{ prioridad_actual }}" 
+                   class="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
                     <i class="fas fa-chevron-right"></i>
                 </a>
             {% endif %}
