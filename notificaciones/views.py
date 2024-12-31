@@ -1015,3 +1015,20 @@ def vista_previa_notificacion(request):
     }
 
     return render(request, "components/vista_previa_notificacion.html", context)
+
+
+@login_required
+def vista_previa_alerta(request):
+    """Vista para renderizar la vista previa de la alerta"""
+    tarea_id = request.GET.get("tarea")
+    tipo_alerta = request.GET.get("tipo_alerta", "")
+    mensaje = request.GET.get("mensaje", "")
+
+    try:
+        tarea = Tarea.objects.get(idtarea=tarea_id) if tarea_id else None
+    except Tarea.DoesNotExist:
+        tarea = None
+
+    context = {"mensaje": mensaje, "tipo_alerta": tipo_alerta, "tarea": tarea}
+
+    return render(request, "components/vista_previa_alerta.html", context)
