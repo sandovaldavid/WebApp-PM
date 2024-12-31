@@ -1,0 +1,40 @@
+<!-- Encabezado de la Notificación -->
+<div class="flex items-center justify-between mb-3">
+    <div class="flex items-center space-x-2">
+        <i class="fas fa-bell text-blue-500"></i>
+        <span class="font-medium text-gray-900">Nueva Notificación</span>
+    </div>
+    <!-- Indicador de Prioridad -->
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+            {% if prioridad == 'alta' %}bg-red-100 text-red-800
+            {% elif prioridad == 'media' %}bg-yellow-100 text-yellow-800
+            {% else %}bg-green-100 text-green-800{% endif %}">
+        <i class="fas fa-flag mr-1"></i>
+        {{ prioridad|title }}
+    </span>
+</div>
+
+<!-- Contenido de la Notificación -->
+<div class="space-y-3">
+    <!-- Mensaje -->
+    <p class="text-gray-800">
+        {{ mensaje|default:"El mensaje aparecerá aquí..." }}
+    </p>
+
+    <!-- Metadata -->
+    <div class="flex items-center justify-between text-sm text-gray-500 pt-3 border-t border-gray-100">
+        <!-- Usuario -->
+        <div class="flex items-center">
+            <i class="fas fa-user mr-2"></i>
+            <span>Para: {{ usuario.nombreusuario|default:"Usuario seleccionado" }}</span>
+        </div>
+
+        <!-- Categoría -->
+        {% if categoria %}
+        <div class="flex items-center">
+            <i class="fas fa-tag mr-2"></i>
+            <span>{{ categoria }}</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
