@@ -10,6 +10,7 @@ from dashboard.models import (
     Recurso,
     Alerta,
     Requerimiento,
+    Historialalerta,
 )
 
 # Create your views here.
@@ -357,3 +358,53 @@ def editar_tarea(request, id):
     except Exception as e:
         messages.error(request, f"Error al cargar el formulario: {str(e)}")
         return redirect("gestion_tareas:detalle_tarea", id=id)
+
+
+@login_required
+def notificacion_marcar_completada(request, id):
+    """Vista para marcar una tarea como completada"""
+    if request.method == "POST":
+        try:
+            # Obtener la tarea
+            tarea = get_object_or_404(Tarea, idtarea=id)
+
+            # Actualizar estado
+            tarea.estado = "Completada"
+            tarea.fechamodificacion = timezone.now()
+
+            # Si no hay duración actual, usar la estimada
+            if not tarea.duracionactual:
+                tarea.duracionactual = tarea.duracionestimada
+
+            # Si no hay costo actual, usar el estimado
+            if not tarea.costoactual:
+                tarea.costoactual = tarea.costoestimado
+
+            tarea.save()
+
+            # Registrar en el historial
+            Historialtarea.objects.create(
+                idtarea=tarea,
+                fechacambio=timezone.now(),
+                descripcioncambio="Tarea marcada como completada",
+            )
+
+            # Verificar si hay alertas activas y resolverlas
+            alertas = Alerta.objects.filter(idtarea=tarea, activa=True)
+            for alerta in alertas:
+                alerta.activa = False
+                alerta.save()
+                Historialalerta.objects.create(
+                    idalerta=alerta, fecharesolucion=timezone.now()
+                )
+
+            messages.success(request, "Tarea marcada como completada exitosamente")
+
+        except Exception as e:
+            messages.error(
+                request, f"Error al marcar la tarea como completada: {str(e)}"
+            )
+
+        return redirect("gestion_tareas:detalle_tarea", id=id)
+
+    return redirect("gestion_tareas:detalle_tarea", id=id)
