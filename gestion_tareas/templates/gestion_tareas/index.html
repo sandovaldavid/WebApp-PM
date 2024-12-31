@@ -1,164 +1,138 @@
 {% extends "gestion_tareas/layout.html" %}
 {% load static %}
 
-{% block title %}Gestión de Tareas{% endblock %}
+{% block title %}Panel de Gestión de Tareas{% endblock %}
 
 {% block style %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block title_body %}
-<div class="flex items-center">
-    <i class="fas fa-tasks text-blue-500 mr-2"></i>
-    <span>Gestión de Tareas</span>
+<div class="flex justify-between items-center">
+    <div class="flex items-center">
+        <i class="fas fa-tasks text-blue-500 mr-2"></i>
+        <span>Panel de Gestión de Tareas</span>
+    </div>
+    <a href="{% url 'gestion_tareas:crear_tarea' %}" 
+       class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center">
+        <i class="fas fa-plus mr-2"></i>
+        Nueva Tarea
+    </a>
 </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8">
-    <!-- Resumen y Acciones -->
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">Panel de Tareas</h2>
-        <a href="{% url 'gestion_tareas:crear_tarea' %}" 
-           class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center">
-            <i class="fas fa-plus mr-2"></i>
-            Nueva Tarea
-        </a>
-    </div>
-
-    <!-- Métricas Principales -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <!-- Total de Tareas -->
-        <div class="bg-blue-50 p-6 rounded-lg shadow-sm">
+<div class="p-8 space-y-8">
+    <!-- Resumen Estadístico -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Total Tareas -->
+        <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-blue-600">Total Tareas</p>
                     <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total }}</h3>
                 </div>
-                <i class="fas fa-tasks text-blue-500 text-3xl"></i>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-tasks text-blue-500 text-2xl"></i>
+                </div>
             </div>
         </div>
 
-        <!-- Tareas Pendientes -->
-        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm">
+        <!-- Pendientes -->
+        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-yellow-600">Pendientes</p>
                     <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.pendientes }}</h3>
                 </div>
-                <i class="fas fa-clock text-yellow-500 text-3xl"></i>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-clock text-yellow-500 text-2xl"></i>
+                </div>
             </div>
         </div>
 
-        <!-- Tareas en Progreso -->
-        <div class="bg-green-50 p-6 rounded-lg shadow-sm">
+        <!-- En Progreso -->
+        <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-green-600">En Progreso</p>
                     <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.en_progreso }}</h3>
                 </div>
-                <i class="fas fa-spinner text-green-500 text-3xl"></i>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-spinner fa-spin text-green-500 text-2xl"></i>
+                </div>
             </div>
         </div>
 
-        <!-- Tareas Completadas -->
-        <div class="bg-purple-50 p-6 rounded-lg shadow-sm">
+        <!-- Completadas -->
+        <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-purple-600">Completadas</p>
                     <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.completadas }}</h3>
                 </div>
-                <i class="fas fa-check-circle text-purple-500 text-3xl"></i>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-check-circle text-purple-500 text-2xl"></i>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Gráficos y Lista -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <!-- Gráfico de Estado de Tareas -->
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Estado de Tareas (Donut) -->
         <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4">Estado de Tareas</h3>
-            <div class="h-64">  <!-- Contenedor con altura fija -->
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+                Estado de Tareas
+            </h3>
+            <div class="h-64">
                 <canvas id="estadoTareasChart"></canvas>
             </div>
         </div>
 
-        <!-- Gráfico de Prioridades -->
+        <!-- Prioridades (Barras) -->
         <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4">Distribución por Prioridad</h3>
-            <div class="h-64">  <!-- Contenedor con altura fija -->
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-bar text-green-500 mr-2"></i>
+                Distribución por Prioridad
+            </h3>
+            <div class="h-64">
                 <canvas id="prioridadesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tendencia de Tareas (Líneas) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-line text-purple-500 mr-2"></i>
+                Tendencia de Completitud
+            </h3>
+            <div class="h-64">
+                <canvas id="tendenciaChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tiempo Promedio (Barras Horizontales) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-clock text-yellow-500 mr-2"></i>
+                Tiempo Promedio por Estado
+            </h3>
+            <div class="h-64">
+                <canvas id="tiempoPromedioChart"></canvas>
             </div>
         </div>
     </div>
 
-<!-- Lista de Tareas -->
-<div class="bg-white rounded-lg shadow-lg">
-    <div class="p-6 border-b border-gray-200">
-        <h3 class="text-lg font-semibold">Lista de Tareas</h3>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarea</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridad</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Fin</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                {% if tareas %}
-                    {% for tarea in tareas %}
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">{{ tarea.nombretarea }}</div>
-                            <div class="text-sm text-gray-500">{{ tarea.idrequerimiento.idproyecto.nombreproyecto }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                {% if tarea.estado == 'Pendiente' %}bg-yellow-100 text-yellow-800
-                                {% elif tarea.estado == 'En Progreso' %}bg-blue-100 text-blue-800
-                                {% else %}bg-green-100 text-green-800{% endif %}">
-                                {{ tarea.estado }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="text-sm {% if tarea.prioridad == 'Alta' %}text-red-600
-                                {% elif tarea.prioridad == 'Media' %}text-yellow-600
-                                {% else %}text-green-600{% endif %}">
-                                {{ tarea.prioridad }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ tarea.fechafin|date:"d/m/Y" }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}" 
-                               class="text-blue-600 hover:text-blue-900 mr-3">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{% url "gestion_tareas:editar_tarea" tarea.idtarea %}" class="text-yellow-600 hover:text-yellow-900 mr-3">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                            No hay tareas disponibles
-                        </td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
-    </div>
+    <!-- Panel de Tareas -->
+    {% include "components/panel_tareas.html" %}
 </div>
 
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Gráfico de Estado de Tareas
+    // Gráfico de Estado de Tareas (Donut)
     const estadoCtx = document.getElementById('estadoTareasChart').getContext('2d');
     new Chart(estadoCtx, {
         type: 'doughnut',
@@ -166,24 +140,22 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: {{ datos_estado.labels|safe }},
             datasets: [{
                 data: {{ datos_estado.data|safe }},
-                backgroundColor: ['#FCD34D', '#60A5FA', '#34D399']
+                backgroundColor: ['#FCD34D', '#60A5FA', '#34D399'],
+                borderWidth: 1
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20
-                    }
+                    position: 'bottom'
                 }
             }
         }
     });
 
-    // Gráfico de Prioridades
+    // Gráfico de Prioridades (Barras)
     const prioridadCtx = document.getElementById('prioridadesChart').getContext('2d');
     new Chart(prioridadCtx, {
         type: 'bar',
@@ -192,12 +164,13 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Tareas por Prioridad',
                 data: {{ datos_prioridad.data|safe }},
-                backgroundColor: ['#EF4444', '#F59E0B', '#10B981']
+                backgroundColor: ['#EF4444', '#F59E0B', '#10B981'],
+                borderWidth: 1
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             scales: {
                 y: {
                     beginAtZero: true,
@@ -205,17 +178,67 @@ document.addEventListener('DOMContentLoaded', function() {
                         stepSize: 1
                     }
                 }
+            }
+        }
+    });
+
+    // Gráfico de Tendencia (Líneas)
+    const tendenciaCtx = document.getElementById('tendenciaChart').getContext('2d');
+    new Chart(tendenciaCtx, {
+        type: 'line',
+        data: {
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Tareas Completadas',
+                data: {{ datos_tendencia.completadas|default:'[10, 15, 8, 12, 20, 15]'|safe }},
+                borderColor: '#34D399',
+                tension: 0.4,
+                fill: false
             },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20
-                    }
+            {
+                label: 'Tareas Creadas',
+                data: {{ datos_tendencia.creadas|default:'[8, 12, 15, 10, 18, 20]'|safe }},
+                borderColor: '#60A5FA',
+                tension: 0.4,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Gráfico de Tiempo Promedio (Barras Horizontales)
+    const tiempoCtx = document.getElementById('tiempoPromedioChart').getContext('2d');
+    new Chart(tiempoCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Pendiente', 'En Progreso', 'Completada'],
+            datasets: [{
+                label: 'Días Promedio',
+                data: {{ datos_tiempo.promedio|default:'[5, 8, 3]'|safe }},
+                backgroundColor: ['#FCD34D', '#60A5FA', '#34D399'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    beginAtZero: true
                 }
             }
         }
     });
 });
 </script>
+{% endblock %}
 {% endblock %}
