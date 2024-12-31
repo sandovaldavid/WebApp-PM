@@ -232,26 +232,47 @@ def lista_notificaciones(request):
 # @login_required
 def crear_notificacion(request):
     if request.method == "POST":
-        mensaje = request.POST.get("mensaje")
         usuario_id = request.POST.get("usuario")
+        mensaje = request.POST.get("mensaje")
         prioridad = request.POST.get("prioridad", "media")
         categoria = request.POST.get("categoria")
+        fecha_recordatorio = request.POST.get("fecha_recordatorio")
 
-        notificacion = Notificacion.objects.create(
-            mensaje=mensaje,
-            idusuario_id=usuario_id,
-            leido=False,
-            fechacreacion=timezone.now(),
-            prioridad=prioridad,
-            categoria=categoria,
-        )
+        try:
+            notificacion = Notificacion.objects.create(
+                idusuario_id=usuario_id,
+                mensaje=mensaje,
+                leido=False,
+                fechacreacion=timezone.now(),
+                prioridad=prioridad,
+                categoria=categoria,
+                fecha_recordatorio=fecha_recordatorio if fecha_recordatorio else None,
+                archivada=False,
+            )
 
-        messages.success(request, "Notificación creada exitosamente")
-        return redirect("notificaciones:lista_notificaciones")
+            messages.success(request, "Notificación creada exitosamente")
+            return redirect(
+                "notificaciones:ver_notificacion", id=notificacion.idnotificacion
+            )
 
-    usuarios = Usuario.objects.all()
+        except Exception as e:
+            messages.error(request, f"Error al crear la notificación: {str(e)}")
+            return redirect("notificaciones:crear_notificacion")
+
+    usuarios = Usuario.objects.all().order_by("nombreusuario")
     return render(
         request, "notificaciones/crear_notificacion.html", {"usuarios": usuarios}
+    )
+
+
+# @login_required
+def ver_notificacion(request, id):
+    """
+    Vista para mostrar los detalles de una notificación recién creada
+    """
+    notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+    return render(
+        request, "notificaciones/ver_notificacion.html", {"notificacion": notificacion}
     )
 
 
