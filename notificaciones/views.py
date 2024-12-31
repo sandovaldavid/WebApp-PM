@@ -80,7 +80,7 @@ def dashboard(request):
     o todas si es admin
     """
     # Determinar si el usuario es admin
-    is_admin = request.user.is_staff or request.user.rol == "Administrador"
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
 
     # Estadísticas generales
     if is_admin:
@@ -109,11 +109,7 @@ def dashboard(request):
 
     # Notificaciones recientes sin leer
     if is_admin:
-        notificaciones = (
-            Notificacion.objects.filter(leido=False)
-            .select_related("idusuario")
-            .order_by("-fechacreacion")[:5]
-        )
+        notificaciones = Notificacion.objects.all()
     else:
         notificaciones = (
             Notificacion.objects.filter(idusuario=request.user, leido=False)
@@ -167,40 +163,6 @@ def dashboard(request):
         "fecha_actual": timezone.now(),
         "is_admin": is_admin,
     }
-
-    # Paginación
-    page_number = request.GET.get("page", 1)
-
-    if is_admin:
-        notificaciones_list = Notificacion.objects.filter(leido=False).order_by(
-            "-fechacreacion"
-        )
-        alertas_list = Alerta.objects.filter(activa=True).order_by("-fechacreacion")
-    else:
-        notificaciones_list = Notificacion.objects.filter(
-            idusuario=request.user, leido=False
-        ).order_by("-fechacreacion")
-        alertas_list = Alerta.objects.filter(
-            idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
-                idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
-            ),
-            activa=True,
-        ).order_by("-fechacreacion")
-
-    # Paginadores
-    notificaciones_paginator = Paginator(notificaciones_list, 5)
-    alertas_paginator = Paginator(alertas_list, 5)
-
-    notificaciones = notificaciones_paginator.get_page(page_number)
-    alertas = alertas_paginator.get_page(page_number)
-
-    context.update(
-        {
-            "notificaciones": notificaciones,
-            "alertas": alertas,
-            "tipos_alertas": tipos_alertas,
-        }
-    )
 
     return render(request, "notificaciones/dashboard.html", context)
 
@@ -472,25 +434,23 @@ def filtrar_notificaciones(request):
     """Vista para filtrar notificaciones"""
     prioridad = request.GET.get("prioridad", "todas")
 
-    # Query base
-    notificaciones = Notificacion.objects.filter(
-        idusuario=request.user, archivada=False
-    ).order_by("-fechacreacion")
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+    if is_admin:
+        notificaciones = Notificacion.objects.all().order_by(
+            "-fechacreacion"
+        )
+    else:
+        # Query base
+        notificaciones = Notificacion.objects.filter(
+            idusuario=request.user, archivada=False
+        ).order_by("-fechacreacion")
 
     # Aplicar filtro de prioridad
     if prioridad != "todas":
         notificaciones = notificaciones.filter(prioridad=prioridad)
 
-    # Paginación
-    paginator = Paginator(notificaciones, 5)
-    page = request.GET.get("page", 1)
-
-    try:
-        notificaciones_pag = paginator.page(page)
-    except:
-        notificaciones_pag = paginator.page(1)
-
-    context = {"notificaciones": notificaciones_pag, "prioridad_actual": prioridad}
+    context = {"notificaciones": notificaciones, "prioridad_actual": prioridad}
 
     # Solo renderizar la lista de notificaciones para peticiones HTMX
     return render(request, "components/lista_notificaciones.html", context)
