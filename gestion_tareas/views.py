@@ -408,3 +408,54 @@ def notificacion_marcar_completada(request, id):
         return redirect("gestion_tareas:detalle_tarea", id=id)
 
     return redirect("gestion_tareas:detalle_tarea", id=id)
+
+
+@login_required
+def tareas_programadas(request):
+    """Vista para gestionar tareas programadas"""
+    # Obtener todas las tareas programadas
+    tareas = Tarea.objects.all().select_related("idrequerimiento__idproyecto")
+
+    # Estadísticas
+    estadisticas = {
+        "total": tareas.count(),
+        "completadas": tareas.filter(estado="Completada").count(),
+        "en_progreso": tareas.filter(estado="En progreso").count(),
+        "fallidas": tareas.filter(estado="Fallida").count(),
+    }
+
+    # Historial de ejecuciones
+    historial = (
+        Historialtarea.objects.all()
+        .select_related("idtarea")
+        .order_by("-fechacambio")[:10]
+    )
+
+    context = {
+        "tareas_programadas": tareas,
+        "estadisticas": estadisticas,
+        "historial_ejecuciones": historial,
+        "estados_tarea": ["Pendiente", "En Progreso", "Completada", "Fallida"],
+        "frecuencias": ["Diaria", "Semanal", "Mensual"],
+    }
+
+    return render(request, "gestion_tareas_programadas/index.html", context)
+
+
+def ejecutar_tarea(request, id):
+    tarea = get_object_or_404(Tarea, idtarea=id)
+    tarea.estado = "En Progreso"
+    tarea.save()
+    Historialtarea.objects.create(
+        idtarea=tarea,
+        fechacambio=timezone.now(),
+        descripcioncambio="Tarea en progreso",
+    )
+    messages.success(request, "Tarea en progreso")
+    return redirect("gestion_tareas:detalle_tarea", id=id)
+
+def eliminar_tarea(request, id):
+    tarea = get_object_or_404(Tarea, idtarea=id)
+    tarea.delete()
+    messages.success(request, "Tarea eliminada")
+    return redirect("gestion_tareas:index")
