@@ -13,4 +13,6 @@ urlpatterns = [
         views.notificacion_marcar_completada,
         name="notificacion_marcar_completada",
     ),
+    path("ejecutar-tarea/<int:id>/", views.ejecutar_tarea, name="ejecutar_tarea"),
+    path("eliminar-tarea/<int:id>/", views.eliminar_tarea, name="eliminar_tarea"),
 ]
