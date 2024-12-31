@@ -1,116 +1,171 @@
 {% extends 'layout_reportes.html' %}
 
-{% block title %}
-    Reportes
-{% endblock %}
+{% block title %}Gestión de Reportes{% endblock %}
 
 {% block title_body %}
-	<i class="fas fa-chart-pie icon mr-2"></i>Generar Reportes
+<div class="flex items-center justify-between">
+    <div class="flex items-center">
+        <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+        <span>Gestión de Reportes</span>
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
-    <!-- Contenido principal -->
-    <main class="p-8">
-        <!-- Filtros para los reportes -->
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6 card">
-            <h2 class="text-xl font-semibold mb-4"><i class="fas fa-filter icon mr-2"></i>Filtros para Generar Reporte</h2>
-            <form id="filters-form">
-                <div class="mb-4">
-                    <label for="period" class="block text-gray-700">Periodo</label>
-                    <input type="date" id="start-date" class="w-full p-2 border rounded mb-2" placeholder="Fecha de inicio">
-                    <input type="date" id="end-date" class="w-full p-2 border rounded" placeholder="Fecha de fin">
-                </div>
-                <div class="mb-4">
-                    <label for="project-type" class="block text-gray-700">Tipo de Proyecto</label>
-                    <select id="project-type" class="w-full p-2 border rounded mb-4">
-                        <option>Proyecto Ágil</option>
-                        <option>Proyecto Tradicional</option>
-                        <option>Proyecto Con Presupuesto Ajustado</option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label for="user" class="block text-gray-700">Seleccionar Usuario</label>
-                    <select id="user" class="w-full p-2 border rounded mb-4">
-                        <option>Juan Pérez</option>
-                        <option>María López</option>
-                    </select>
-                </div>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded btn"><i class="fas fa-chart-line mr-2"></i>Generar Reporte</button>
-            </form>
-        </div>
-
-        <!-- Gráficos de Resultados -->
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6 grid grid-cols-2 gap-4 card">
+<div class="p-8 space-y-8">
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fas fa-filter text-gray-600 mr-2"></i>
+            Filtros del Reporte
+        </h3>
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Período -->
             <div>
-                <h2 class="text-xl font-semibold mb-4"><i class="fas fa-chart-bar icon mr-2"></i>Gráfico de Comparación</h2>
-                <canvas id="comparison-chart" class="w-full h-32 mb-4"></canvas>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Período</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <input type="date" name="fecha_inicio" value="{{ filtros.fecha_inicio }}"
+                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <input type="date" name="fecha_fin" value="{{ filtros.fecha_fin }}"
+                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
             </div>
+
+            <!-- Proyecto -->
             <div>
-                <h2 class="text-xl font-semibold mb-4"><i class="fas fa-chart-line icon mr-2"></i>Gráfico de Desempeño</h2>
-                <canvas id="resource-performance" class="w-full h-32"></canvas>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Proyecto</label>
+                <select name="proyecto" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Todos los proyectos</option>
+                    {% for proyecto in proyectos %}
+                        <option value="{{ proyecto.idproyecto }}" {% if filtros.proyecto == proyecto.idproyecto %}selected{% endif %}>
+                            {{ proyecto.nombreproyecto }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Tipo de Reporte -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Reporte</label>
+                <select name="tipo_reporte" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="general" {% if filtros.tipo_reporte == 'general' %}selected{% endif %}>General</option>
+                    <option value="tareas" {% if filtros.tipo_reporte == 'tareas' %}selected{% endif %}>Tareas</option>
+                    <option value="recursos" {% if filtros.tipo_reporte == 'recursos' %}selected{% endif %}>Recursos</option>
+                    <option value="costos" {% if filtros.tipo_reporte == 'costos' %}selected{% endif %}>Costos</option>
+                </select>
+            </div>
+
+            <!-- Botones -->
+            <div class="col-span-full flex justify-end space-x-4">
+                <a href="{% url 'reportes:index' %}" 
+                   class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                    <i class="fas fa-undo mr-2"></i>
+                    Limpiar Filtros
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                    <i class="fas fa-sync mr-2"></i>
+                    Actualizar Reporte
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resumen Estadístico -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-blue-600">Total Tareas</p>
+                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total_tareas }}</h3>
+                </div>
+                <i class="fas fa-tasks text-blue-500 text-3xl"></i>
             </div>
         </div>
 
-        <!-- Botones de Exportación -->
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6 flex justify-end card">
-            <button class="bg-green-500 text-white px-4 py-2 rounded btn mr-4" onclick="exportPDF()"><i class="fas fa-file-pdf mr-2"></i>Exportar PDF</button>
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded btn" onclick="exportCSV()"><i class="fas fa-file-csv mr-2"></i>Exportar CSV</button>
+        <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-green-600">Completadas</p>
+                    <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.tareas_completadas }}</h3>
+                </div>
+                <i class="fas fa-check-circle text-green-500 text-3xl"></i>
+            </div>
         </div>
-    </main>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Gráfico de Comparación
-            var ctx = document.getElementById('comparison-chart').getContext('2d');
-            var comparisonChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Tarea 1', 'Tarea 2', 'Tarea 3'],
-                    datasets: [{
-                        label: 'Estimación de Tiempo (RNN)',
-                        data: [20, 15, 30], // Estimaciones de tiempo por RNN
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }, {
-                        label: 'Tiempo Real',
-                        data: [22, 17, 29], // Tiempos reales
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
 
-            // Gráfico de Desempeño de Recursos
-            var ctx2 = document.getElementById('resource-performance').getContext('2d');
-            var resourcePerformanceChart = new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
-                    datasets: [{
-                        label: 'Horas Asignadas',
-                        data: [30, 40, 50, 60], // Horas asignadas
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        fill: false
-                    }]
-                }
-            });
-        });
+        <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-purple-600">Horas Registradas</p>
+                    <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.total_horas }}</h3>
+                </div>
+                <i class="fas fa-clock text-purple-500 text-3xl"></i>
+            </div>
+        </div>
 
-        // Funciones de Exportación
-        function exportPDF() {
-            alert('Exportando a PDF');
-        }
+        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-yellow-600">Costo Total</p>
+                    <h3 class="text-2xl font-bold text-yellow-900">${{ estadisticas.costo_total }}</h3>
+                </div>
+                <i class="fas fa-dollar-sign text-yellow-500 text-3xl"></i>
+            </div>
+        </div>
+    </div>
 
-        function exportCSV() {
-            alert('Exportando a CSV');
-        }
-    </script>
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Progreso por Proyecto -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4">Progreso por Proyecto</h3>
+            {% include "reportes/components/grafico_progreso.html" %}
+        </div>
+
+        <!-- Distribución de Recursos -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4">Distribución de Recursos</h3>
+            {% include "reportes/components/grafico_recursos.html" %}
+        </div>
+
+        <!-- Historial de Tareas -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4">Historial de Tareas</h3>
+            {% include "reportes/components/historial_tareas.html" %}
+        </div>
+
+        <!-- Costos y Presupuestos -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4">Costos y Presupuestos</h3>
+            {% include "reportes/components/grafico_costos.html" %}
+        </div>
+    </div>
+
+    <!-- Acciones de Exportación -->
+    <div class="flex justify-end space-x-4">
+        <form method="POST" action="{% url 'reportes:exportar_csv' %}">
+            {% csrf_token %}
+            <input type="hidden" name="filtros" value="{{ filtros|json }}">
+            <button type="submit" 
+                    class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center">
+                <i class="fas fa-file-csv mr-2"></i>
+                Exportar CSV
+            </button>
+        </form>
+
+        <form method="POST" action="{% url 'reportes:exportar_pdf' %}">
+            {% csrf_token %}
+            <input type="hidden" name="filtros" value="{{ filtros|json }}">
+            <button type="submit" 
+                    class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center">
+                <i class="fas fa-file-pdf mr-2"></i>
+                Exportar PDF
+            </button>
+        </form>
+    </div>
+</div>
 {% endblock %}
