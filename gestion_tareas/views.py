@@ -1,8 +1,10 @@
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.utils import timezone
 from django.contrib import messages
+from django.core.paginator import Paginator
 from dashboard.models import (
     Tarea,
     Historialtarea,
@@ -569,3 +571,100 @@ def lista_tareas(request):
     }
 
     return render(request, "gestion_tareas/lista_tareas.html", context)
+
+
+@login_required
+def panel_tareas(request):
+    # Verificar si es admin
+    is_admin = (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.rol == "Admin"
+    )
+
+    # Obtener tareas según el rol
+    if is_admin:
+        tareas = Tarea.objects.all()
+    else:
+        tareas = Tarea.objects.filter(
+            idrequerimiento__idproyecto__idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+        )
+
+    # Aplicar filtros
+    filtro = request.GET.get("filtro", "todas")
+    if filtro == "pendientes":
+        tareas = tareas.filter(estado="Pendiente")
+    elif filtro == "en_progreso":
+        tareas = tareas.filter(estado="En Progreso")
+    elif filtro == "completadas":
+        tareas = tareas.filter(estado="Completada")
+
+    # Ordenar tareas
+    tareas = tareas.order_by("-fechamodificacion")
+
+    # Paginación
+    paginator = Paginator(tareas, 9)  # 9 tareas por página
+    page = request.GET.get("page")
+    tareas_paginadas = paginator.get_page(page)
+
+    context = {
+        "tareas": tareas_paginadas,
+        "filtro_activo": filtro,
+        "is_admin": is_admin,
+    }
+
+    return render(request, "components/panel_tareas.html", context)
+
+
+@login_required
+def filtrar_tareas(request):
+    """Vista para filtrar tareas via HTMX"""
+    try:
+        # Verificar si es admin
+        is_admin = (
+            request.user.is_staff
+            or request.user.is_superuser
+            or request.user.rol == "Admin"
+        )
+
+        # Obtener tareas según el rol
+        if is_admin:
+            tareas = Tarea.objects.all()
+        else:
+            tareas = Tarea.objects.filter(
+                idrequerimiento__idproyecto__idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+            )
+
+        # Obtener filtro
+        filtro = request.GET.get("filtro", "todas")
+
+        # Aplicar filtros
+        if filtro == "pendientes":
+            tareas = tareas.filter(estado="Pendiente")
+        elif filtro == "en_progreso":
+            tareas = tareas.filter(estado="En Progreso")
+        elif filtro == "completadas":
+            tareas = tareas.filter(estado="Completada")
+
+        # Ordenar por fecha de modificación
+        tareas = tareas.order_by("-fechamodificacion")
+
+        # Paginación
+        paginator = Paginator(tareas, 9)  # 9 tareas por página
+        page = request.GET.get("page", 1)
+        tareas_paginadas = paginator.get_page(page)
+
+        context = {
+            "tareas": tareas_paginadas,
+            "filtro_activo": filtro,
+            "is_admin": is_admin,
+        }
+
+        # Retornar solo la sección de tareas
+        return render(request, "components/lista_tareas.html", context)
+
+    except Exception as e:
+        return HttpResponse(
+            f'<div class="text-red-500 p-4">Error al filtrar tareas: {str(e)}</div>',
+            status=500,
+        )
