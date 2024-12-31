@@ -18,4 +18,9 @@ urlpatterns = [
     path("lista-tareas/", views.lista_tareas, name="lista_tareas"),
     path("panel-tareas/", views.panel_tareas, name="panel_tareas"),
     path("filtrar-tareas/", views.filtrar_tareas, name="filtrar_tareas"),
+    path(
+        "lista-tareas-programadas/",
+        views.lista_tareas_programadas,
+        name="lista_tareas_programadas",
+    ),
 ]
