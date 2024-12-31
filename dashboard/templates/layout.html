@@ -252,16 +252,34 @@
                 <!-- Contenido Principal -->
                 <div class="mt-16">
                     {% if messages %}
-                    <div class="fixed top-20 right-4 z-50">
-                        {% for message in messages %}
-                        <div
-                            class="notification bg-{{ message.tags }} text-white p-4 rounded-lg shadow-lg mb-2"
-                        >
-                            {{ message }}
+                        <div class="fixed top-4 right-4 z-50 space-y-4">
+                            {% for message in messages %}
+                            <div class="notification-message {% if message.tags %}{{ message.tags }}{% endif %} 
+                                        px-4 py-3 rounded-lg shadow-lg 
+                                        {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500
+                                        {% elif message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500
+                                        {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500
+                                        {% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}
+                                        flex items-center justify-between"
+                                role="alert">
+                                <div class="flex items-center">
+                                    <div class="py-1">
+                                        <i class="fas {% if message.tags == 'success' %}fa-check-circle text-green-500
+                                                {% elif message.tags == 'error' %}fa-times-circle text-red-500
+                                                {% elif message.tags == 'warning' %}fa-exclamation-circle text-yellow-500
+                                                {% else %}fa-info-circle text-blue-500{% endif %} mr-2"></i>
+                                        <span class="font-medium">{{ message }}</span>
+                                    </div>
+                                </div>
+                                <button onclick="this.parentElement.style.display='none'" class="ml-4">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %} {% block body %}{% endblock %}
+                    {% endif %}
+                    {% block body %}
+                    {% endblock %}
                 </div>
             </div>
         </div>
@@ -274,6 +292,26 @@
             toggleButton.addEventListener("click", () => {
                 sidebar.classList.toggle("hidden");
                 content.classList.toggle("expanded");
+            });
+
+            // Agregar al final del archivo o en un archivo JS separado
+            document.addEventListener('DOMContentLoaded', function() {
+                // Obtener todas las notificaciones
+                const notifications = document.querySelectorAll('.notification-message');
+                
+                // Para cada notificación
+                notifications.forEach(notification => {
+                    // Agregar clase para fade out después de 5 segundos
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        notification.style.transform = 'translateX(100%)';
+                        
+                        // Remover el elemento después de la animación
+                        setTimeout(() => {
+                            notification.remove();
+                        }, 300);
+                    }, 5000);
+                });
             });
         </script>
         {% block script %}{% endblock %}
