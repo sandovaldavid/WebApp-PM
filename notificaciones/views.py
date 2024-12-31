@@ -14,6 +14,7 @@ from dashboard.models import (
     Usuario,
     Historialalerta,
     Historialnotificacion,
+    Proyecto,
 )
 
 
@@ -72,41 +73,91 @@ def crear_alerta(request):
     return render(request, "alertas/crear_alerta.html", context)
 
 
-# @login_required
+@login_required
 def dashboard(request):
     """
-    Vista del dashboard para fase de desarrollo
+    Vista del dashboard que muestra notificaciones filtradas por usuario
+    o todas si es admin
     """
-    # TEST: Usar ID de usuario por defecto para desarrollo
-    user_id = 1  # ID del usuario de prueba
+    # Determinar si el usuario es admin
+    is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
     # Estadísticas generales
-    estadisticas = {
-        "total_notificaciones": Notificacion.objects.all().count(),
-        "no_leidas": Notificacion.objects.filter(leido=False).count(),
-        "alertas_activas": Alerta.objects.filter(activa=True).count(),
-    }
+    if is_admin:
+        # Para administradores: mostrar todas las estadísticas
+        estadisticas = {
+            "total_notificaciones": Notificacion.objects.all().count(),
+            "no_leidas": Notificacion.objects.filter(leido=False).count(),
+            "alertas_activas": Alerta.objects.filter(activa=True).count(),
+        }
+    else:
+        # Para usuarios normales: mostrar solo sus estadísticas
+        estadisticas = {
+            "total_notificaciones": Notificacion.objects.filter(
+                idusuario=request.user
+            ).count(),
+            "no_leidas": Notificacion.objects.filter(
+                idusuario=request.user, leido=False
+            ).count(),
+            "alertas_activas": Alerta.objects.filter(
+                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+                ),
+                activa=True,
+            ).count(),
+        }
 
     # Notificaciones recientes sin leer
-    notificaciones = (
-        Notificacion.objects.filter(leido=False)
-        .select_related("idusuario")
-        .order_by("-fechacreacion")[:5]
-    )
+    if is_admin:
+        notificaciones = (
+            Notificacion.objects.filter(leido=False)
+            .select_related("idusuario")
+            .order_by("-fechacreacion")[:5]
+        )
+    else:
+        notificaciones = (
+            Notificacion.objects.filter(idusuario=request.user, leido=False)
+            .select_related("idusuario")
+            .order_by("-fechacreacion")[:5]
+        )
 
     # Alertas activas
-    alertas = (
-        Alerta.objects.filter(activa=True)
-        .select_related("idtarea")
-        .order_by("-fechacreacion")[:5]
-    )
+    if is_admin:
+        alertas = (
+            Alerta.objects.filter(activa=True)
+            .select_related("idtarea")
+            .order_by("-fechacreacion")[:5]
+        )
+    else:
+        alertas = (
+            Alerta.objects.filter(
+                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+                ),
+                activa=True,
+            )
+            .select_related("idtarea")
+            .order_by("-fechacreacion")[:5]
+        )
 
     # Análisis de tipos de alertas
-    tipos_alertas = (
-        Alerta.objects.values("tipoalerta")
-        .annotate(total=Count("idalerta"))
-        .order_by("-total")
-    )
+    if is_admin:
+        tipos_alertas = (
+            Alerta.objects.values("tipoalerta")
+            .annotate(total=Count("idalerta"))
+            .order_by("-total")
+        )
+    else:
+        tipos_alertas = (
+            Alerta.objects.filter(
+                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+                )
+            )
+            .values("tipoalerta")
+            .annotate(total=Count("idalerta"))
+            .order_by("-total")
+        )
 
     context = {
         "estadisticas": estadisticas,
@@ -114,13 +165,27 @@ def dashboard(request):
         "alertas": alertas,
         "tipos_alertas": tipos_alertas,
         "fecha_actual": timezone.now(),
+        "is_admin": is_admin,
     }
 
+    # Paginación
     page_number = request.GET.get("page", 1)
-    notificaciones_list = Notificacion.objects.filter(leido=False).order_by(
-        "-fechacreacion"
-    )
-    alertas_list = Alerta.objects.filter(activa=True).order_by("-fechacreacion")
+
+    if is_admin:
+        notificaciones_list = Notificacion.objects.filter(leido=False).order_by(
+            "-fechacreacion"
+        )
+        alertas_list = Alerta.objects.filter(activa=True).order_by("-fechacreacion")
+    else:
+        notificaciones_list = Notificacion.objects.filter(
+            idusuario=request.user, leido=False
+        ).order_by("-fechacreacion")
+        alertas_list = Alerta.objects.filter(
+            idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+            ),
+            activa=True,
+        ).order_by("-fechacreacion")
 
     # Paginadores
     notificaciones_paginator = Paginator(notificaciones_list, 5)
@@ -129,13 +194,13 @@ def dashboard(request):
     notificaciones = notificaciones_paginator.get_page(page_number)
     alertas = alertas_paginator.get_page(page_number)
 
-    context = {
-        "notificaciones": notificaciones,
-        "alertas": alertas,
-        "tipos_alertas": Alerta.objects.values("tipoalerta").annotate(
-            total=Count("idalerta")
-        ),
-    }
+    context.update(
+        {
+            "notificaciones": notificaciones,
+            "alertas": alertas,
+            "tipos_alertas": tipos_alertas,
+        }
+    )
 
     return render(request, "notificaciones/dashboard.html", context)
 
@@ -430,19 +495,32 @@ def filtrar_notificaciones(request):
     # Solo renderizar la lista de notificaciones para peticiones HTMX
     return render(request, "components/lista_notificaciones.html", context)
 
-# @login_required
+
+@login_required  # Asegura que el usuario esté autenticado
 def archivar_notificacion(request, id):
     """
     Vista para archivar una notificación
     """
     if request.method == "POST":
-        notificacion = get_object_or_404(
-            Notificacion, idnotificacion=id, idusuario=request.user
-        )
-        notificacion.archivada = True
-        notificacion.save()
+        try:
+            # Primero intentamos obtener la notificación solo por ID
+            notificacion = get_object_or_404(Notificacion, idnotificacion=id)
 
-        messages.success(request, "Notificación archivada correctamente")
+            # Verificar si el usuario tiene permiso para archivar esta notificación
+            if notificacion.idusuario == request.user or request.user.is_staff:
+                notificacion.archivada = True
+                notificacion.save()
+                messages.success(request, "Notificación archivada correctamente")
+            else:
+                messages.error(
+                    request, "No tienes permiso para archivar esta notificación"
+                )
+
+        except Notificacion.DoesNotExist:
+            messages.error(request, "La notificación no existe")
+        except Exception as e:
+            messages.error(request, f"Error al archivar la notificación: {str(e)}")
+
     return redirect("notificaciones:index")
 
 
