@@ -5,6 +5,7 @@ app_name = "notificaciones"
 urlpatterns = [
     path("", views.dashboard, name="index"),
     path("notificacion/crear/", views.crear_notificacion, name="crear_notificacion"),
+    path("notificacion/ver/<int:id>/", views.ver_notificacion, name="ver_notificacion"),
     path(
         "notificacion/<int:id>/",
         views.detalle_notificacion,
