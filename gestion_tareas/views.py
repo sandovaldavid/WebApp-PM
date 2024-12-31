@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.utils import timezone
+from django.contrib import messages
 from dashboard.models import (
     Tarea,
     Historialtarea,
@@ -185,3 +186,88 @@ def crear_tarea(request):
     return render(
         request, "gestion_tareas/crear_tarea.html", {"requerimientos": requerimientos}
     )
+
+
+@login_required
+def crear_tarea(request):
+    """Vista para crear una nueva tarea"""
+    # Verificar si es admin
+    is_admin = (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.rol == "Admin"
+    )
+
+    if request.method == "POST":
+        try:
+            # Obtener datos del formulario
+            requerimiento_id = request.POST.get("requerimiento")
+            nombre = request.POST.get("nombre")
+            estado = request.POST.get("estado")
+            prioridad = request.POST.get("prioridad")
+            duracion_estimada = request.POST.get("duracion_estimada")
+            fecha_inicio = request.POST.get("fecha_inicio")
+            fecha_fin = request.POST.get("fecha_fin")
+
+            # Validaciones
+            if not all(
+                [
+                    requerimiento_id,
+                    nombre,
+                    estado,
+                    prioridad,
+                    duracion_estimada,
+                    fecha_inicio,
+                    fecha_fin,
+                ]
+            ):
+                messages.error(request, "Todos los campos son requeridos")
+                return redirect("gestion_tareas:crear_tarea")
+
+            # Verificar que la fecha de fin sea posterior a la de inicio
+            if fecha_fin < fecha_inicio:
+                messages.error(
+                    request, "La fecha de fin debe ser posterior a la fecha de inicio"
+                )
+                return redirect("gestion_tareas:crear_tarea")
+
+            # Crear la tarea
+            tarea = Tarea.objects.create(
+                idrequerimiento_id=requerimiento_id,
+                nombretarea=nombre,
+                estado=estado,
+                prioridad=prioridad,
+                duracionestimada=duracion_estimada,
+                fechainicio=fecha_inicio,
+                fechafin=fecha_fin,
+                fechacreacion=timezone.now(),
+                fechamodificacion=timezone.now(),
+            )
+
+            # Registrar en el historial usando los nombres correctos de campos
+            Historialtarea.objects.create(
+                idtarea=tarea,
+                fechacambio=timezone.now(),
+                descripcioncambio=f"Tarea creada con estado: {estado}",  # Cambio aquí
+            )
+
+            messages.success(request, "Tarea creada exitosamente")
+            return redirect("gestion_tareas:index")
+
+        except Exception as e:
+            messages.error(request, f"Error al crear la tarea: {str(e)}")
+            return redirect("gestion_tareas:crear_tarea")
+
+    # GET request: mostrar formulario
+    try:
+        context = {
+            "requerimientos": Requerimiento.objects.all(),
+            "estados_tarea": ["Pendiente", "En Progreso", "Completada"],
+            "prioridades": ["Baja", "Media", "Alta"],
+            "fecha_minima": timezone.now().date(),
+        }
+        return render(request, "gestion_tareas/crear_tarea.html", context)
+
+    except Exception as e:
+        messages.error(request, f"Error al cargar el formulario: {str(e)}")
+        return redirect("gestion_tareas:index")
