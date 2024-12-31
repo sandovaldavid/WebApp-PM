@@ -53,4 +53,7 @@ urlpatterns = [
     path("alerta/crear/", views.crear_alerta, name="crear_alerta"),
     path("detalle-alerta/<int:id>/", views.detalle_alerta, name="detalle_alerta"),
     path("alerta/resolver/<int:id>/", views.resolver_alerta, name="resolver_alerta"),
+    path(
+        "estadisticas/alertas/", views.estadisticas_alertas, name="estadisticas_alertas"
+    ),
 ]
