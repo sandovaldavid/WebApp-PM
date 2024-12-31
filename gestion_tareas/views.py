@@ -28,40 +28,70 @@ def index(request):
         "completadas": tareas.filter(estado="Completada").count(),
     }
 
+    # Datos para el gráfico de estado
+    datos_estado = {
+        "labels": ["Pendientes", "En Progreso", "Completadas"],
+        "data": [
+            estadisticas["pendientes"],
+            estadisticas["en_progreso"],
+            estadisticas["completadas"],
+        ],
+    }
+
     # Distribución por prioridad
-    prioridades = (
+    prioridades = list(
         tareas.values("prioridad").annotate(total=Count("idtarea")).order_by("-total")
     )
 
-    # Tareas retrasadas
-    tareas_retrasadas = tareas.filter(
-        fechafin__lt=timezone.now().date(), estado__in=["Pendiente", "En Progreso"]
-    ).count()
-
-    # Desviación promedio de costos
-    tareas_con_costos = tareas.exclude(
-        Q(costoactual__isnull=True) | Q(costoestimado__isnull=True)
-    )
-
-    desviacion_promedio = 0
-    if tareas_con_costos.exists():
-        desviaciones = []
-        for tarea in tareas_con_costos:
-            desviacion = (
-                (tarea.costoactual - tarea.costoestimado) / tarea.costoestimado
-            ) * 100
-            desviaciones.append(desviacion)
-        desviacion_promedio = sum(desviaciones) / len(desviaciones)
+    # Preparar datos para el gráfico de prioridades
+    datos_prioridad = {
+        "labels": [p["prioridad"] for p in prioridades],
+        "data": [p["total"] for p in prioridades],
+    }
 
     context = {
         "tareas": tareas,
         "estadisticas": estadisticas,
-        "prioridades": prioridades,
-        "tareas_retrasadas": tareas_retrasadas,
-        "desviacion_promedio": desviacion_promedio,
+        "datos_estado": datos_estado,
+        "datos_prioridad": datos_prioridad,
     }
 
     return render(request, "gestion_tareas/index.html", context)
+
+
+@login_required
+def crear_tarea(request):
+    """Vista para crear una nueva tarea"""
+    if request.method == "POST":
+        # Obtener datos del formulario
+        requerimiento_id = request.POST.get("requerimiento")
+        nombre = request.POST.get("nombre")
+        estado = request.POST.get("estado")
+        prioridad = request.POST.get("prioridad")
+        duracion_estimada = request.POST.get("duracion_estimada")
+        fecha_inicio = request.POST.get("fecha_inicio")
+        fecha_fin = request.POST.get("fecha_fin")
+
+        # Crear la tarea
+        tarea = Tarea.objects.create(
+            idrequerimiento_id=requerimiento_id,
+            nombretarea=nombre,
+            estado=estado,
+            prioridad=prioridad,
+            duracionestimada=duracion_estimada,
+            fechainicio=fecha_inicio,
+            fechafin=fecha_fin,
+            fechacreacion=timezone.now(),
+            fechamodificacion=timezone.now(),
+        )
+
+        return redirect("gestion_tareas:index")
+
+    # Obtener requerimientos para el formulario
+    requerimientos = Requerimiento.objects.all()
+    return render(
+        request, "gestion_tareas/crear_tarea.html", {"requerimientos": requerimientos}
+    )
 
 
 def tareas_programadas(request):
