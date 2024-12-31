@@ -345,7 +345,7 @@ def marcar_leida(request, id):
         )
 
         messages.success(request, "Notificación marcada como leída")
-    return redirect("notificaciones:lista_notificaciones")
+    return redirect("notificaciones:index")
 
 
 # @login_required
@@ -463,9 +463,13 @@ def archivar_notificacion(request, id):
         try:
             # Primero intentamos obtener la notificación solo por ID
             notificacion = get_object_or_404(Notificacion, idnotificacion=id)
-
+            is_admin = request.user.is_staff or request.user.rol == "Admin"
             # Verificar si el usuario tiene permiso para archivar esta notificación
-            if notificacion.idusuario == request.user or request.user.is_staff:
+            if (
+                notificacion.idusuario == request.user
+                or request.user.is_staff
+                or is_admin
+            ):
                 notificacion.archivada = True
                 notificacion.save()
                 messages.success(request, "Notificación archivada correctamente")
