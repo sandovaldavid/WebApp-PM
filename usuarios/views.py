@@ -134,19 +134,14 @@ def confirmar_cuenta(request, token):
         )
 
 
-
 def login(request):
-    # Verificar si el usuario ya está autenticado
     if request.user.is_authenticated:
-        return redirect(
-            "dashboard:index"
-        )  # Redirigir a la página principal si ya está logueado
+        return redirect("dashboard:index")
 
     if request.method == "POST":
         email = request.POST.get("email")
         contrasena = request.POST.get("contrasena")
 
-        # Verificar que el email y la contraseña no estén vacíos
         if not email or not contrasena:
             return render(
                 request,
@@ -155,10 +150,8 @@ def login(request):
             )
 
         try:
-            # Intentar obtener el usuario por el email
             usuario = Usuario.objects.get(email=email)
 
-            # Verificar si el usuario ha confirmado su cuenta
             if not usuario.confirmado:
                 return render(
                     request,
@@ -169,14 +162,18 @@ def login(request):
                     },
                 )
 
-            # Verificar la contraseña
+            # Usar authenticate y login de Django
             if check_password(contrasena, usuario.contrasena):
-                # Guardar información del usuario en la sesión
+                # Autenticar el usuario
+                from django.contrib.auth import login as auth_login
+
+                auth_login(request, usuario)
+
+                # Guardar información adicional en la sesión
                 request.session["usuario_id"] = usuario.idusuario
                 request.session["usuario_nombre"] = usuario.nombreusuario
-                request.session["usuario_rol"] = usuario.rol  # Almacenar el rol también
+                request.session["usuario_rol"] = usuario.rol
 
-                # Redirigir al dashboard o página principal
                 return redirect("dashboard:index")
             else:
                 return render(
@@ -191,7 +188,6 @@ def login(request):
                 {"error": "Usuario no encontrado.", "email": email},
             )
 
-    # Mostrar el formulario de login vacío al inicio
     return render(request, "usuarios/login.html")
 
 
