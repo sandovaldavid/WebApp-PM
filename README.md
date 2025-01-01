@@ -53,6 +53,26 @@ Este proyecto es una aplicación web desarrollada en Django para la gestión de 
 
 ## Uso
 
+### Scripts
+
+#### Limpiar Base de Datos
+
+``` sh
+python manage.py shell < script/clean_db.py     
+```
+
+#### Limpiar tablas y reiniciar contador de Id's
+
+``` sh
+python manage.py shell < script/clean_tables.py   
+```
+
+#### Poblar Base de Datos con datos de prueba
+
+``` sh
+python manage.py shell < script/data.py  
+```
+
 ### Archivo `.env`
 
 ```sh
