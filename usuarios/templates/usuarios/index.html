@@ -1,0 +1,18 @@
+{% extends "usuarios/base.html" %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block body %}
+<h2>Bienvenido a la Aplicación Web</h2>
+{% if mensaje %}
+    <div class="alert alert-success">{{ mensaje }}</div>
+{% endif %}
+
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<p>Por favor, <a href="{% url 'usuarios:login' %}">inicia sesión</a> o <a href="{% url 'usuarios:register' %}">regístrate</a> para continuar.</p>
+{% endblock %}
+
+
