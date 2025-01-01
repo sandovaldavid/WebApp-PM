@@ -1,0 +1,29 @@
+{% extends "usuarios/base.html" %}
+
+{% block title %}Recuperar Contraseña{% endblock %}
+
+{% block body %}
+<h2>Recuperar Contraseña</h2>
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+{% if mensaje %}
+    <div class="alert alert-success">{{ mensaje }}</div>
+{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="contrasena">Nueva Contraseña</label>
+        <input type="password" class="form-control" id="contrasena" name="contrasena" required>
+    </div>
+    <div class="form-group">
+        <label for="repetirContrasena">Repetir Nueva Contraseña</label>
+        <input type="password" class="form-control" id="repetirContrasena" name="repetirContrasena" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Recuperar</button>
+</form>
+<div class="links">
+    <a href="{% url 'usuarios:login' %}">Iniciar sesión</a>
+    <a href="{% url 'usuarios:register' %}">Crear cuenta</a>
+</div>
+{% endblock %}

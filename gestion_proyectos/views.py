@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from dashboard.models import Proyecto, Requerimiento, Tarea, Equipo
-# from gestion_tareas.models import Tarea
 from django.utils import timezone
+from django.utils.timezone import is_naive, make_aware
+from django.http import JsonResponse
 
 def lista_proyectos(request):
     proyectos = Proyecto.objects.all()
@@ -12,11 +13,14 @@ def detalle_proyecto(request, idproyecto):
     requerimientos = proyecto.requerimiento_set.all()
     tareas = Tarea.objects.filter(idrequerimiento__in=requerimientos)
     recursos = proyecto.idequipo.miembro_set.all()
+    presupuestoutilizado = proyecto.presupuestoutilizado or 0
+    presupuesto_restante = proyecto.presupuesto - presupuestoutilizado
     return render(request, 'gestion_proyectos/detalle_proyecto.html', {
         'proyecto': proyecto,
         'requerimientos': requerimientos,
         'tareas': tareas,
-        'recursos': recursos
+        'recursos': recursos,
+        'presupuesto_restante': presupuesto_restante
     })
 
 def crear_proyecto(request):
@@ -28,9 +32,13 @@ def crear_proyecto(request):
         fechainicio = request.POST.get('fechainicio')
         fechafin = request.POST.get('fechafin')
         presupuesto = request.POST.get('presupuesto')
+        presupuestoutilizado = request.POST.get('presupuestoutilizado')
         idequipo = request.POST.get('idequipo')
 
         # Crear el proyecto
+        now = timezone.now()
+        if is_naive(now):
+            now = make_aware(now)
         proyecto = Proyecto(
             nombreproyecto=nombreproyecto,
             descripcion=descripcion,
@@ -38,53 +46,25 @@ def crear_proyecto(request):
             fechainicio=fechainicio,
             fechafin=fechafin,
             presupuesto=presupuesto,
+            presupuestoutilizado=presupuestoutilizado,
             idequipo_id=idequipo,
-            fechacreacion=timezone.now(),
-            fechamodificacion=timezone.now()
+            fechacreacion=now,
+            fechamodificacion=now
         )
         proyecto.save()
 
         # Guardar requerimientos asociados
         for key, value in request.POST.items():
             if key.startswith('requerimiento_'):
-                print(f"Guardando req {key}: {value}")
                 descripcion_requerimiento = value
                 if descripcion_requerimiento.strip():  # Validar descripción no vacía
                     requerimiento = Requerimiento(
                         descripcion=descripcion_requerimiento,
                         idproyecto=proyecto,
-                        fechacreacion=timezone.now(),
-                        fechamodificacion=timezone.now()
+                        fechacreacion=now,
+                        fechamodificacion=now
                     )
                     requerimiento.save()
-
-                    # Guardar tareas asociadas al requerimiento
-                    for tarea_key, tarea_value in request.POST.items():
-                        print(f"Guardando tarea {tarea_key}: {tarea_value}")
-                        if tarea_key.startswith(f'tarea_{key}_'):
-                            print(f"Guardando corectamente {tarea_key}: {tarea_value}")
-                            # Obtener el índice desde la clave
-                            index = tarea_key.split('_')[3]
-                            if tarea_key.startswith(f'tarea_{key}_{index}_nombre'):
-                                nombretarea = request.POST.get(f'tarea_{key}_{index}_nombre')
-                                estado_tarea = request.POST.get(f'tarea_{key}_{index}_estado')
-                                prioridad = request.POST.get(f'tarea_{key}_{index}_prioridad')
-                                duracionestimada = request.POST.get(f'tarea_{key}_{index}_duracionestimada')
-                                if nombretarea and estado_tarea and prioridad and duracionestimada:
-                                    tarea = Tarea(
-                                        idrequerimiento=requerimiento,
-                                        nombretarea=nombretarea,
-                                        estado=estado_tarea,
-                                        prioridad=prioridad,
-                                        duracionestimada=duracionestimada,
-                                        fechacreacion=timezone.now(),
-                                        fechamodificacion=timezone.now()
-                                    )
-                                    tarea.save()
-
-        # Eliminar requerimientos
-        for key in request.POST.getlist('eliminar_requerimiento'):
-            Requerimiento.objects.filter(idrequerimiento=key).delete()
 
         return redirect('gestion_proyectos:lista_proyectos')
 
@@ -94,7 +74,6 @@ def crear_proyecto(request):
 def editar_proyecto(request, idproyecto):
     proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
     requerimientos = proyecto.requerimiento_set.all()
-    tareas = Tarea.objects.filter(idrequerimiento__in=requerimientos)
 
     if request.method == 'POST':
         proyecto.nombreproyecto = request.POST.get('nombreproyecto', proyecto.nombreproyecto)
@@ -102,8 +81,10 @@ def editar_proyecto(request, idproyecto):
         proyecto.estado = request.POST.get('estado', proyecto.estado)
         proyecto.fechainicio = request.POST.get('fechainicio', proyecto.fechainicio)
         proyecto.fechafin = request.POST.get('fechafin', proyecto.fechafin)
-        proyecto.presupuesto = request.POST.get('presupuesto', proyecto.presupuesto)
-        proyecto.fechamodificacion = timezone.now()
+        now = timezone.now()
+        if is_naive(now):
+            now = make_aware(now)
+        proyecto.fechamodificacion = now
         proyecto.save()
 
         # Actualizar requerimientos existentes y agregar nuevos
@@ -113,57 +94,58 @@ def editar_proyecto(request, idproyecto):
                 req_id = key.split('_')[1]
                 if descripcion_requerimiento.strip():  # Validar descripción no vacía
                     if req_id.isdigit():
-                        requerimiento = Requerimiento.objects.get(idrequerimiento=req_id)
-                        requerimiento.descripcion = descripcion_requerimiento
-                        requerimiento.fechamodificacion = timezone.now()
-                        requerimiento.save()
+                        try:
+                            requerimiento = Requerimiento.objects.get(idrequerimiento=req_id)
+                            requerimiento.descripcion = descripcion_requerimiento
+                            requerimiento.fechamodificacion = now
+                            requerimiento.save()
+                        except Requerimiento.DoesNotExist:
+                            pass
                     else:
                         requerimiento = Requerimiento(
                             descripcion=descripcion_requerimiento,
                             idproyecto=proyecto,
-                            fechacreacion=timezone.now(),
-                            fechamodificacion=timezone.now()
+                            fechacreacion=now,
+                            fechamodificacion=now
                         )
                         requerimiento.save()
 
-                    # Actualizar tareas existentes y agregar nuevas
-                    for tarea_key, tarea_value in request.POST.items():
-                        if tarea_key.startswith(f'tarea_{key}_'):
-                            index = tarea_key.split('_')[3]
-                            if tarea_key.startswith(f'tarea_{key}_{index}_nombre'):
-                                nombretarea = request.POST.get(f'tarea_{key}_{index}_nombre')
-                                estado_tarea = request.POST.get(f'tarea_{key}_{index}_estado')
-                                prioridad = request.POST.get(f'tarea_{key}_{index}_prioridad')
-                                duracionestimada = request.POST.get(f'tarea_{key}_{index}_duracionestimada')
-                                if nombretarea and estado_tarea and prioridad and duracionestimada:
-                                    tarea_id = tarea_key.split('_')[2]
-                                    if tarea_id.isdigit():
-                                        tarea = Tarea.objects.get(idtarea=tarea_id)
-                                        tarea.nombretarea = nombretarea
-                                        tarea.estado = estado_tarea
-                                        tarea.prioridad = prioridad
-                                        tarea.duracionestimada = duracionestimada
-                                        tarea.fechamodificacion = timezone.now()
-                                        tarea.save()
-                                    else:
-                                        tarea = Tarea(
-                                            idrequerimiento=requerimiento,
-                                            nombretarea=nombretarea,
-                                            estado=estado_tarea,
-                                            prioridad=prioridad,
-                                            duracionestimada=duracionestimada,
-                                            fechacreacion=timezone.now(),
-                                            fechamodificacion=timezone.now()
-                                        )
-                                        tarea.save()
+        # Guardar nuevos requerimientos
+        for key, value in request.POST.items():
+            if key.startswith('nuevo_requerimiento_'):
+                descripcion_requerimiento = value
+                if descripcion_requerimiento.strip():  # Validar descripción no vacía
+                    requerimiento = Requerimiento(
+                        descripcion=descripcion_requerimiento,
+                        idproyecto=proyecto,
+                        fechacreacion=now,
+                        fechamodificacion=now
+                    )
+                    requerimiento.save()
+
+        # Eliminar requerimientos y sus tareas asociadas
+        for key in request.POST.getlist('eliminar_requerimiento'):
+            requerimiento = Requerimiento.objects.get(idrequerimiento=key)
+            Tarea.objects.filter(idrequerimiento=requerimiento).delete()
+            requerimiento.delete()
 
         return redirect('gestion_proyectos:detalle_proyecto', idproyecto=idproyecto)
 
     return render(request, 'gestion_proyectos/editar_proyecto.html', {
         'proyecto': proyecto,
-        'requerimientos': requerimientos,
-        'tareas': tareas
+        'requerimientos': requerimientos
     })
+
+def eliminar_requerimiento(request, idrequerimiento):
+    if request.method == 'POST':
+        try:
+            requerimiento = Requerimiento.objects.get(idrequerimiento=idrequerimiento)
+            Tarea.objects.filter(idrequerimiento=requerimiento).delete()
+            requerimiento.delete()
+            return JsonResponse({'success': True})
+        except Requerimiento.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Requerimiento no encontrado.'})
+    return JsonResponse({'success': False, 'error': 'Método no permitido.'})
 
 
 
