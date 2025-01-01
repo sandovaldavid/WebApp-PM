@@ -1,34 +1,44 @@
+import uuid
+from django.utils import timezone
+from django.contrib.auth.hashers import make_password
+from dashboard.models import Usuario
 from faker import Faker
-from dashboard.models import Usuario  # Reemplaza 'myapp' con el nombre de tu aplicación
-from django.apps import apps
-import pytz
 
 
-def generate_test_users(num_users=10):
+def generar_usuarios(num_usuarios=10):
     fake = Faker()
-    timezone = pytz.timezone("UTC")  # Cambia 'UTC' por tu zona horaria si es necesario
+    for _ in range(num_usuarios):
+        # Crear datos de usuario ficticios
+        nombre_usuario = fake.user_name()
+        username = fake.user_name()
+        email = fake.email()
+        contrasena = fake.password(length=12)
+        rol = fake.random_element(elements=["Administrador", "user"])
+        token = str(uuid.uuid4())  # Generar un token único
+        confirmado = fake.boolean(
+            chance_of_getting_true=75
+        )  # Generar confirmación aleatoria
 
-    for _ in range(num_users):
-        unique_username = fake.unique.user_name()
-        unique_email = fake.unique.email()
+        # Crear el usuario
+        try:
+            usuario = Usuario.objects.create(
+                username=username,
+                nombreusuario=nombre_usuario,
+                email=email,
+                contrasena=make_password(
+                    contrasena
+                ),  # Asegurarse de encriptar la contraseña
+                rol=rol,
+                token=token,
+                confirmado=confirmado,
+                fechacreacion=timezone.now(),
+                fechamodificacion=timezone.now(),
+            )
 
-        Usuario.objects.create(
-            username = unique_username,
-            nombreusuario=unique_username,
-            email=unique_email,
-            contrasena=fake.password(length=12),
-            rol=fake.random_element(elements=["admin", "user", "manager"]),
-            fechacreacion=fake.date_time_this_year(
-                tzinfo=timezone
-            ),  # Uso correcto de tzinfo
-            fechamodificacion=fake.date_time_this_month(
-                tzinfo=timezone
-            ),  # Uso correcto de tzinfo
-            token=fake.uuid4(),
-            confirmado=fake.boolean(chance_of_getting_true=75),
-        )
-
-    print(f"{num_users} usuarios de prueba creados exitosamente.")
+            print(f"Usuario {nombre_usuario} - {email} - {contrasena} - {rol}")
+        except Exception as e:
+            print(f"Error al crear usuario {nombre_usuario}: {str(e)}")
 
 
-generate_test_users(10)  # Cambia 20 por el número de usuarios que deseas crear
+# Llamar a la función para generar 10 usuarios de prueba
+generar_usuarios(10)
