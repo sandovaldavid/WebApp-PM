@@ -1,9 +1,10 @@
 from django.urls import path
 from . import views
+from dashboard.views import verificar_rol_administrador
 
 app_name = "notificaciones"
 urlpatterns = [
-    path("", views.dashboard, name="index"),
+    path("", verificar_rol_administrador(views.dashboard), name="index"),
     path("notificacion/crear/", views.crear_notificacion, name="crear_notificacion"),
     path("notificacion/ver/<int:id>/", views.ver_notificacion, name="ver_notificacion"),
     path(

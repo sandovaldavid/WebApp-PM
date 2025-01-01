@@ -1,9 +1,10 @@
 from django.urls import path
 from . import views
+from dashboard.views import verificar_rol_administrador
 
 app_name = "gestion_tareas"
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", verificar_rol_administrador(views.index), name="index"),
     path("crear-tarea/", views.crear_tarea, name="crear_tarea"),
     path(
         "tareas_programadas/", views.tareas_programadas, name="lista_tareas_programadas"
