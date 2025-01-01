@@ -20,28 +20,33 @@ Este proyecto es una aplicación web desarrollada en Django para la gestión de 
 ## Instalación
 
 1. Clona el repositorio:
+
     ```sh
     git clone <URL_DEL_REPOSITORIO>
     cd <NOMBRE_DEL_PROYECTO>
     ```
 
 2. Crea y activa un entorno virtual:
+
     ```sh
     python -m venv env
     source env/bin/activate  # En Windows usa `env\Scripts\activate`
     ```
 
 3. Instala las dependencias:
+
     ```sh
     pip install -r requirements.txt
     ```
 
 4. Realiza las migraciones:
+
     ```sh
     python manage.py migrate
     ```
 
 5. Ejecuta el servidor de desarrollo:
+
     ```sh
     python manage.py runserver
     ```
@@ -57,7 +62,6 @@ DB_PASSWORD=123456
 DB_HOST=db-web-app
 DB_PORT=5432
 ```
-
 
 Accede a `http://127.0.0.1:8000/` en tu navegador para ver la aplicación en funcionamiento.
 
