@@ -33,14 +33,19 @@ def crear_cuenta(request):
                 repetir_contrasena = request.POST["repetirContrasena"]
                 rol = request.POST["rol"]
 
-                # Verificar si las contraseñas coinciden
-                if contrasena != repetir_contrasena:
+                # Validar campos vacíos
+                if not all(
+                    [nombre_usuario, email, contrasena, repetir_contrasena, rol]
+                ):
+                    raise ValueError("Todos los campos son requeridos")
+
+                # Verificar si el nombre de usuario ya existe
+                if Usuario.objects.filter(nombreusuario=nombre_usuario).exists():
                     return render(
                         request,
                         "usuarios/register.html",
                         {
-                            "error": "Las contraseñas no coinciden.",
-                            "nombreUsuario": nombre_usuario,
+                            "error": "El nombre de usuario ya está en uso",
                             "email": email,
                         },
                     )
@@ -51,7 +56,18 @@ def crear_cuenta(request):
                         request,
                         "usuarios/register.html",
                         {
-                            "error": "El correo electrónico ya está registrado.",
+                            "error": "El correo electrónico ya está registrado",
+                            "nombreUsuario": nombre_usuario,
+                        },
+                    )
+
+                # Verificar si las contraseñas coinciden
+                if contrasena != repetir_contrasena:
+                    return render(
+                        request,
+                        "usuarios/register.html",
+                        {
+                            "error": "Las contraseñas no coinciden",
                             "nombreUsuario": nombre_usuario,
                             "email": email,
                         },
@@ -60,22 +76,21 @@ def crear_cuenta(request):
                 # Generar token para confirmación
                 token = str(uuid.uuid4())
 
-                # Encriptar contraseña
-                contrasena_hash = make_password(contrasena)
-
                 # Crear usuario
                 usuario = Usuario.objects.create(
                     nombreusuario=nombre_usuario,
                     email=email,
-                    contrasena=contrasena_hash,
+                    contrasena=make_password(contrasena),
                     rol=rol,
                     token=token,
                     confirmado=False,
-                    fechacreacion=timezone.now(),  # Agregar fecha de creación
+                    fechacreacion=timezone.now(),
+                    fechamodificacion=timezone.now(),
                 )
 
                 # Enviar correo de confirmación
-                enviar_correo_confirmacion(usuario.email, token)
+                enviar_correo_confirmacion(email, token)
+
                 return render(
                     request,
                     "usuarios/index.html",
@@ -83,12 +98,19 @@ def crear_cuenta(request):
                         "mensaje": "Cuenta creada. Por favor revisa tu correo para confirmar tu cuenta."
                     },
                 )
+
         except Exception as e:
             return render(
                 request,
                 "usuarios/register.html",
-                {"error": str(e), "nombreUsuario": nombre_usuario, "email": email},
+                {
+                    "error": f"Error al crear la cuenta: {str(e)}",
+                    "nombreUsuario": nombre_usuario,
+                    "email": email,
+                },
             )
+
+    # Si es GET, mostrar el formulario vacío
     return render(request, "usuarios/register.html")
 
 
@@ -112,19 +134,31 @@ def confirmar_cuenta(request, token):
         )
 
 
-# Vista para iniciar sesión
+
 def login(request):
+    # Verificar si el usuario ya está autenticado
+    if request.user.is_authenticated:
+        return redirect(
+            "dashboard:index"
+        )  # Redirigir a la página principal si ya está logueado
+
     if request.method == "POST":
         email = request.POST.get("email")
         contrasena = request.POST.get("contrasena")
+
+        # Verificar que el email y la contraseña no estén vacíos
         if not email or not contrasena:
             return render(
                 request,
                 "usuarios/login.html",
                 {"error": "Email y contraseña son requeridos.", "email": email},
             )
+
         try:
+            # Intentar obtener el usuario por el email
             usuario = Usuario.objects.get(email=email)
+
+            # Verificar si el usuario ha confirmado su cuenta
             if not usuario.confirmado:
                 return render(
                     request,
@@ -134,17 +168,16 @@ def login(request):
                         "email": email,
                     },
                 )
+
+            # Verificar la contraseña
             if check_password(contrasena, usuario.contrasena):
+                # Guardar información del usuario en la sesión
                 request.session["usuario_id"] = usuario.idusuario
-                request.session["usuario_nombre"] = (
-                    usuario.nombreusuario
-                )  # Guardar nombre del usuario en la sesión
-                request.session["usuario_rol"] = (
-                    usuario.rol
-                )  # Guardar rol del usuario en la sesión
-                return redirect(
-                    "dashboard:index"
-                )  # Redirigir a la página principal después del inicio de sesión exitoso
+                request.session["usuario_nombre"] = usuario.nombreusuario
+                request.session["usuario_rol"] = usuario.rol  # Almacenar el rol también
+
+                # Redirigir al dashboard o página principal
+                return redirect("dashboard:index")
             else:
                 return render(
                     request,
@@ -157,6 +190,8 @@ def login(request):
                 "usuarios/login.html",
                 {"error": "Usuario no encontrado.", "email": email},
             )
+
+    # Mostrar el formulario de login vacío al inicio
     return render(request, "usuarios/login.html")
 
 
