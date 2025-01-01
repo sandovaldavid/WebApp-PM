@@ -1,6 +1,1034 @@
-from django.shortcuts import render
+# notificaciones/views.py
+from urllib import request
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Count
+from django.core.paginator import Paginator
+from dashboard.models import (
+    Notificacion,
+    Alerta,
+    Tarea,
+    Usuario,
+    Historialalerta,
+    Historialnotificacion,
+    Proyecto,
+)
 
-# Create your views here.
 
-def index(request):
-  return render(request, 'notificaciones/index.html')
+# @login_required
+def crear_notificacion(request):
+    if request.method == "POST":
+        usuario_id = request.POST.get("usuario")
+        mensaje = request.POST.get("mensaje")
+        prioridad = request.POST.get("prioridad", "media")
+        categoria = request.POST.get("categoria")
+        fecha_recordatorio = request.POST.get("fecha_recordatorio")
+
+        notificacion = Notificacion.objects.create(
+            idusuario_id=usuario_id,
+            mensaje=mensaje,
+            leido=False,
+            fechacreacion=timezone.now(),
+            prioridad=prioridad,
+            categoria=categoria,
+            fecha_recordatorio=fecha_recordatorio if fecha_recordatorio else None,
+        )
+
+        messages.success(request, "Notificación creada exitosamente")
+        return redirect("notificaciones:index")
+
+    usuarios = Usuario.objects.all()
+    return render(
+        request, "notificaciones/crear_notificacion.html", {"usuarios": usuarios}
+    )
+
+
+# @login_required
+def crear_alerta(request):
+    if request.method == "POST":
+        tarea_id = request.POST.get("tarea")
+        tipo_alerta = request.POST.get("tipo_alerta")
+        mensaje = request.POST.get("mensaje")
+
+        # Crear nueva alerta
+        alerta = Alerta.objects.create(
+            idtarea_id=tarea_id,
+            tipoalerta=tipo_alerta,
+            mensaje=mensaje,
+            activa=True,
+            fechacreacion=timezone.now(),
+        )
+
+        messages.success(request, "Alerta creada exitosamente")
+        return redirect("notificaciones:index")
+
+    context = {
+        "tareas": Tarea.objects.all().order_by("-fechacreacion"),
+        "tipos_alerta": ["retraso", "presupuesto", "riesgo", "bloqueo"],
+    }
+
+    return render(request, "alertas/crear_alerta.html", context)
+
+
+@login_required
+def dashboard(request):
+    """
+    Vista del dashboard que muestra notificaciones filtradas por usuario
+    o todas si es admin
+    """
+    # Determinar si el usuario es admin
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+    # Estadísticas generales
+    if is_admin:
+        # Para administradores: mostrar todas las estadísticas
+        estadisticas = {
+            "total_notificaciones": Notificacion.objects.all().count(),
+            "no_leidas": Notificacion.objects.filter(leido=False).count(),
+            "alertas_activas": Alerta.objects.filter(activa=True).count(),
+        }
+    else:
+        # Para usuarios normales: mostrar solo sus estadísticas
+        estadisticas = {
+            "total_notificaciones": Notificacion.objects.filter(
+                idusuario=request.user
+            ).count(),
+            "no_leidas": Notificacion.objects.filter(
+                idusuario=request.user, leido=False
+            ).count(),
+            "alertas_activas": Alerta.objects.filter(
+                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+                ),
+                activa=True,
+            ).count(),
+        }
+
+    # Notificaciones recientes sin leer
+    if is_admin:
+        notificaciones = Notificacion.objects.all()
+    else:
+        notificaciones = (
+            Notificacion.objects.filter(idusuario=request.user, leido=False)
+            .select_related("idusuario")
+            .order_by("-fechacreacion")[:5]
+        )
+
+    # Alertas activas
+    if is_admin:
+        alertas = (
+            Alerta.objects.all()
+            .select_related("idtarea")
+            .order_by("-fechacreacion")[:5]
+        )
+    else:
+        alertas = (
+            Alerta.objects.filter(
+                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+                ),
+                activa=True,
+            )
+            .select_related("idtarea")
+            .order_by("-fechacreacion")[:5]
+        )
+
+    # Análisis de tipos de alertas
+    if is_admin:
+        tipos_alertas = (
+            Alerta.objects.values("tipoalerta")
+            .annotate(total=Count("idalerta"))
+            .order_by("-total")
+        )
+    else:
+        tipos_alertas = (
+            Alerta.objects.filter(
+                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+                )
+            )
+            .values("tipoalerta")
+            .annotate(total=Count("idalerta"))
+            .order_by("-total")
+        )
+
+    context = {
+        "estadisticas": estadisticas,
+        "notificaciones": notificaciones,
+        "alertas": alertas,
+        "tipos_alertas": tipos_alertas,
+        "fecha_actual": timezone.now(),
+        "is_admin": is_admin,
+    }
+
+    return render(request, "notificaciones/dashboard.html", context)
+
+
+# @login_required
+def detalle_alerta(request, id):
+    alerta = get_object_or_404(Alerta, idalerta=id)
+    historial = Historialalerta.objects.filter(idalerta=alerta).order_by(
+        "-fecharesolucion"
+    )
+
+    if request.method == "POST" and "resolver_alerta" in request.POST:
+        alerta.activa = False
+        alerta.save()
+
+        # Crear registro en historial
+        Historialalerta.objects.create(
+            idalerta=alerta, fecharesolucion=timezone.now(), estado="Resuelta"
+        )
+
+        messages.success(request, "Alerta marcada como resuelta")
+        return redirect("notificaciones:lista_alertas")
+
+    context = {
+        "alerta": alerta,
+        "historial": historial,
+        "tarea": alerta.idtarea,
+    }
+
+    return render(request, "alertas/detalle_alerta.html", context)
+
+
+# @login_required
+def marcar_notificacion(request, id):
+    if request.method == "POST":
+        notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+        notificacion.leido = True
+        notificacion.save()
+
+        # Crear registro en historial
+        Historialnotificacion.objects.create(
+            idnotificacion=notificacion, fechalectura=timezone.now()
+        )
+
+        messages.success(request, "Notificación marcada como leída")
+        return redirect("notificaciones:lista_notificaciones")
+
+    return redirect("notificaciones:lista_notificaciones")
+
+
+# @login_required
+def detalle_notificacion(request, id):
+    # Obtener la notificación o devolver 404 si no existe
+    notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+
+    # Obtener el historial de la notificación
+    historial = Historialnotificacion.objects.filter(
+        idnotificacion=notificacion
+    ).order_by("-fechalectura")
+
+    # Si la notificación no está leída, marcarla como leída
+    if not notificacion.leido:
+        notificacion.leido = True
+        notificacion.save()
+
+        # Crear registro en historial
+        Historialnotificacion.objects.create(
+            idnotificacion=notificacion, fechalectura=timezone.now()
+        )
+
+    context = {
+        "notificacion": notificacion,
+        "historial": historial,
+        "usuario": notificacion.idusuario,
+        "fecha_actual": timezone.now(),
+    }
+
+    return render(request, "notificaciones/detalle_notificacion.html", context)
+
+
+# @login_required
+def lista_notificaciones(request):
+    notificaciones = Notificacion.objects.filter(idusuario=request.user).order_by(
+        "-fechacreacion"
+    )
+
+    return render(
+        request,
+        "notificaciones/lista_notificaciones.html",
+        {"notificaciones": notificaciones},
+    )
+
+
+# @login_required
+def crear_notificacion(request):
+    if request.method == "POST":
+        usuario_id = request.POST.get("usuario")
+        mensaje = request.POST.get("mensaje")
+        prioridad = request.POST.get("prioridad", "media")
+        categoria = request.POST.get("categoria")
+        fecha_recordatorio = request.POST.get("fecha_recordatorio")
+
+        try:
+            notificacion = Notificacion.objects.create(
+                idusuario_id=usuario_id,
+                mensaje=mensaje,
+                leido=False,
+                fechacreacion=timezone.now(),
+                prioridad=prioridad,
+                categoria=categoria,
+                fecha_recordatorio=fecha_recordatorio if fecha_recordatorio else None,
+                archivada=False,
+            )
+
+            messages.success(request, "Notificación creada exitosamente")
+            return redirect(
+                "notificaciones:ver_notificacion", id=notificacion.idnotificacion
+            )
+
+        except Exception as e:
+            messages.error(request, f"Error al crear la notificación: {str(e)}")
+            return redirect("notificaciones:crear_notificacion")
+
+    usuarios = Usuario.objects.all().order_by("nombreusuario")
+    return render(
+        request, "notificaciones/crear_notificacion.html", {"usuarios": usuarios}
+    )
+
+
+# @login_required
+def ver_notificacion(request, id):
+    """
+    Vista para mostrar los detalles de una notificación recién creada
+    """
+    notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+    return render(
+        request, "notificaciones/ver_notificacion.html", {"notificacion": notificacion}
+    )
+
+
+# @login_required
+def editar_notificacion(request, id):
+    notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+
+    if request.method == "POST":
+        notificacion.mensaje = request.POST.get("mensaje")
+        notificacion.prioridad = request.POST.get("prioridad")
+        notificacion.categoria = request.POST.get("categoria")
+        notificacion.save()
+
+        messages.success(request, "Notificación actualizada exitosamente")
+        return redirect("notificaciones:lista_notificaciones")
+
+    return render(
+        request,
+        "notificaciones/editar_notificacion.html",
+        {"notificacion": notificacion},
+    )
+
+
+# @login_required
+def eliminar_notificacion(request, id):
+    if request.method == "POST":
+        notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+        notificacion.delete()
+        messages.success(request, "Notificación eliminada exitosamente")
+    return redirect("notificaciones:lista_notificaciones")
+
+
+# @login_required
+def marcar_leida(request, id):
+    if request.method == "POST":
+        notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+        notificacion.leido = True
+        notificacion.save()
+
+        # Crear registro en historial
+        Historialnotificacion.objects.create(
+            idnotificacion=notificacion, fechalectura=timezone.now()
+        )
+
+        messages.success(request, "Notificación marcada como leída")
+    return redirect("notificaciones:index")
+
+
+# @login_required
+def detalle_notificacion(request, id):
+    notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+    historial = Historialnotificacion.objects.filter(
+        idnotificacion=notificacion
+    ).order_by("-fechalectura")
+
+    return render(
+        request,
+        "notificaciones/detalle_notificacion.html",
+        {"notificacion": notificacion, "historial": historial},
+    )
+
+
+# @login_required
+def resolver_alerta(request, id):
+    """
+    Vista para resolver una alerta y registrar su resolución en el historial
+    """
+    if request.method == "POST":
+        # Obtener la alerta o devolver 404 si no existe
+        alerta = get_object_or_404(Alerta, idalerta=id)
+
+        try:
+            # Marcar la alerta como inactiva
+            alerta.activa = False
+            alerta.save()
+
+            # Crear registro en el historial
+            Historialalerta.objects.create(
+                idalerta=alerta, fecharesolucion=timezone.now()
+            )
+
+            messages.success(request, "Alerta resuelta exitosamente")
+
+            # Retornar respuesta exitosa
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"status": "success"})
+            return redirect("notificaciones:index")
+
+        except Exception as e:
+            messages.error(request, f"Error al resolver la alerta: {str(e)}")
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"status": "error", "message": str(e)}, status=500)
+            return redirect("notificaciones:index")
+
+    # Si el método no es POST, redirigir al index
+    return redirect("notificaciones:index")
+
+
+# @login_required
+def marcar_todas_leidas(request):
+    """Vista para marcar todas las notificaciones como leídas"""
+    if request.method == "POST":
+        try:
+            # Obtener notificaciones no leídas del usuario
+            notificaciones = Notificacion.objects.filter(
+                idusuario=request.user, leido=False
+            )
+
+            # Marcar como leídas
+            for notif in notificaciones:
+                notif.leido = True
+                notif.save()
+
+                # Registrar en historial
+                Historialnotificacion.objects.create(
+                    idnotificacion=notif, fechalectura=timezone.now()
+                )
+
+            messages.success(
+                request, f"{notificaciones.count()} notificaciones marcadas como leídas"
+            )
+            return redirect("notificaciones:listar_notificaciones")
+
+        except Exception as e:
+            messages.error(request, f"Error al marcar notificaciones: {str(e)}")
+
+    return redirect("notificaciones:listar_notificaciones")
+
+
+# @login_required
+def filtrar_notificaciones(request):
+    """Vista para filtrar notificaciones"""
+    prioridad = request.GET.get("prioridad", "todas")
+
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+    if is_admin:
+        notificaciones = Notificacion.objects.all().order_by("-fechacreacion")
+    else:
+        # Query base
+        notificaciones = Notificacion.objects.filter(
+            idusuario=request.user, archivada=False
+        ).order_by("-fechacreacion")
+
+    # Aplicar filtro de prioridad
+    if prioridad != "todas":
+        notificaciones = notificaciones.filter(prioridad=prioridad)
+
+    context = {"notificaciones": notificaciones, "prioridad_actual": prioridad}
+
+    # Solo renderizar la lista de notificaciones para peticiones HTMX
+    return render(request, "components/lista_notificaciones.html", context)
+
+
+@login_required  # Asegura que el usuario esté autenticado
+def archivar_notificacion(request, id):
+    """
+    Vista para archivar una notificación
+    """
+    if request.method == "POST":
+        try:
+            # Primero intentamos obtener la notificación solo por ID
+            notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+            is_admin = request.user.is_staff or request.user.rol == "Admin"
+            # Verificar si el usuario tiene permiso para archivar esta notificación
+            if (
+                notificacion.idusuario == request.user
+                or request.user.is_staff
+                or is_admin
+            ):
+                notificacion.archivada = True
+                notificacion.save()
+                messages.success(request, "Notificación archivada correctamente")
+            else:
+                messages.error(
+                    request, "No tienes permiso para archivar esta notificación"
+                )
+
+        except Notificacion.DoesNotExist:
+            messages.error(request, "La notificación no existe")
+        except Exception as e:
+            messages.error(request, f"Error al archivar la notificación: {str(e)}")
+
+    return redirect("notificaciones:index")
+
+
+# @login_required
+def notificaciones_archivadas(request):
+    """
+    Vista para mostrar notificaciones archivadas
+    """
+    notificaciones = Notificacion.objects.filter(
+        idusuario=request.user, archivada=True
+    ).order_by("-fechacreacion")
+
+    paginator = Paginator(notificaciones, 10)
+    page = request.GET.get("page")
+
+    try:
+        notificaciones = paginator.page(page)
+    except:
+        notificaciones = paginator.page(1)
+
+    return render(
+        request, "notificaciones/archivadas.html", {"notificaciones": notificaciones}
+    )
+
+
+# @login_required
+def estadisticas_notificaciones(request):
+    """
+    Vista para mostrar estadísticas de notificaciones
+    """
+    total_notificaciones = Notificacion.objects.filter(idusuario=request.user).count()
+    no_leidas = Notificacion.objects.filter(idusuario=request.user, leido=False).count()
+    archivadas = Notificacion.objects.filter(
+        idusuario=request.user, archivada=True
+    ).count()
+
+    # Estadísticas por prioridad
+    por_prioridad = (
+        Notificacion.objects.filter(idusuario=request.user)
+        .values("prioridad")
+        .annotate(total=Count("idnotificacion"))
+    )
+
+    # Estadísticas por categoría
+    por_categoria = (
+        Notificacion.objects.filter(idusuario=request.user)
+        .values("categoria")
+        .annotate(total=Count("idnotificacion"))
+    )
+
+    return render(
+        request,
+        "notificaciones/estadisticas.html",
+        {
+            "total": total_notificaciones,
+            "no_leidas": no_leidas,
+            "archivadas": archivadas,
+            "por_prioridad": por_prioridad,
+            "por_categoria": por_categoria,
+        },
+    )
+
+
+@login_required
+def eliminar_notificacion(request, id):
+    """
+    Vista para eliminar una notificación específica.
+    Solo permite eliminar si es el propietario o admin.
+    """
+    if request.method == "POST":
+        try:
+            # Obtener la notificación o devolver 404
+            notificacion = get_object_or_404(Notificacion, idnotificacion=id)
+            is_admin = request.user.is_staff or request.user.rol == "Admin"
+            # Verificar que el usuario sea el propietario o admin
+            if (
+                notificacion.idusuario == request.user
+                or request.user.is_staff
+                or is_admin
+            ):
+                # Eliminar la notificación y su historial
+                Historialnotificacion.objects.filter(
+                    idnotificacion=notificacion
+                ).delete()
+                notificacion.delete()
+
+                messages.success(request, "Notificación eliminada correctamente")
+            else:
+                messages.error(
+                    request, "No tienes permiso para eliminar esta notificación"
+                )
+
+        except Notificacion.DoesNotExist:
+            messages.error(request, "La notificación no existe")
+        except Exception as e:
+            messages.error(request, f"Error al eliminar la notificación: {str(e)}")
+
+        # Si es una petición AJAX/HTMX
+        if request.headers.get("HX-Request"):
+            return render(
+                request,
+                "components/lista_notificaciones.html",
+                {
+                    "notificaciones": Notificacion.objects.filter(
+                        idusuario=request.user, archivada=False
+                    ).order_by("-fechacreacion")
+                },
+            )
+
+        # Redirigir según el contexto
+        next_url = request.POST.get("next") or request.GET.get("next")
+        if next_url:
+            return redirect(next_url)
+        return redirect("notificaciones:index")
+
+    # Si no es POST, redirigir al index
+    return redirect("notificaciones:index")
+
+
+@login_required
+def detalle_alerta(request, id):
+    """
+    Vista para mostrar los detalles de una alerta específica
+    """
+    # Obtener la alerta o devolver 404
+    alerta = get_object_or_404(Alerta, idalerta=id)
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+    # La tarea está relacionada con un requerimiento que pertenece a un proyecto
+    tarea = alerta.idtarea
+
+    # Verificar permisos - El usuario debe ser admin o estar relacionado con el proyecto
+    tiene_permiso = (
+        is_admin
+        or request.user.is_staff
+        or Proyecto.objects.filter(
+            idequipo__miembro__idrecurso__recursohumano__idusuario=request.user,
+            requerimiento__tarea=tarea,
+        ).exists()
+    )
+
+    if not tiene_permiso:
+        messages.error(request, "No tienes permiso para ver esta alerta")
+        return redirect("notificaciones:index")
+
+    # Obtener historial ordenado por fecha
+    historial = Historialalerta.objects.filter(idalerta=alerta).order_by(
+        "-fecharesolucion"
+    )
+
+    context = {"alerta": alerta, "historial": historial, "tarea": tarea}
+
+    return render(request, "alertas/detalle_alerta.html", context)
+
+
+@login_required
+def lista_alertas(request):
+    """Vista para listar todas las alertas"""
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+    # Filtrar alertas según permisos
+    if is_admin:
+        alertas = Alerta.objects.all()
+    else:
+        alertas = Alerta.objects.filter(
+            idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+            )
+        )
+
+    # Aplicar filtros si existen
+    tipo = request.GET.get("tipo")
+    if tipo:
+        alertas = alertas.filter(tipoalerta=tipo)
+
+    # Ordenar por fecha
+    alertas = alertas.order_by("-fechacreacion")
+
+    context = {
+        "alertas": alertas,
+        "tipos_alerta": ["retraso", "presupuesto", "riesgo", "bloqueo"],
+    }
+
+    return render(request, "alertas/listar_alertas.html", context)
+
+
+@login_required
+def estadisticas_notificaciones(request):
+    """Vista para mostrar estadísticas de notificaciones según el rol del usuario"""
+    try:
+        # Determinar si el usuario es admin
+        is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+        fecha_fin = request.GET.get("fecha_fin")
+        fecha_inicio = request.GET.get("fecha_inicio")
+
+        if fecha_fin:
+            fecha_fin = timezone.datetime.strptime(fecha_fin, "%Y-%m-%d")
+            fecha_fin = timezone.make_aware(fecha_fin)
+        else:
+            fecha_fin = timezone.now()
+
+        if fecha_inicio:
+            fecha_inicio = timezone.datetime.strptime(fecha_inicio, "%Y-%m-%d")
+            fecha_inicio = timezone.make_aware(fecha_inicio)
+        else:
+            fecha_inicio = fecha_fin - timedelta(days=30)
+
+        # Calcular período anterior
+        periodo_anterior_inicio = fecha_inicio - timedelta(days=30)
+        periodo_anterior_fin = fecha_fin - timedelta(days=30)
+
+        # Query base según el rol
+        if is_admin:
+            base_query = Notificacion.objects.filter(
+                fechacreacion__range=[fecha_inicio, fecha_fin]
+            )
+            query_anterior = Notificacion.objects.filter(
+                fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin]
+            )
+        else:
+            base_query = Notificacion.objects.filter(
+                idusuario=request.user, fechacreacion__range=[fecha_inicio, fecha_fin]
+            )
+            query_anterior = Notificacion.objects.filter(
+                idusuario=request.user,
+                fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin],
+            )
+
+        # Calcular totales
+        total = base_query.count()
+        no_leidas = base_query.filter(leido=False).count()
+        leidas = base_query.filter(leido=True).count()
+        archivadas = base_query.filter(archivada=True).count()
+        no_archivadas = base_query.filter(archivada=False).count()
+
+        # Totales período anterior
+        total_anterior = query_anterior.count()
+        no_leidas_anterior = query_anterior.filter(leido=False).count()
+        leidas_anterior = query_anterior.filter(leido=True).count()
+        archivadas_anterior = query_anterior.filter(archivada=True).count()
+        no_archivadas_anterior = query_anterior.filter(archivada=False).count()
+
+        def calcular_porcentaje_cambio(actual, anterior):
+            if anterior == 0:
+                return 100 if actual > 0 else 0
+            return ((actual - anterior) / anterior) * 100
+
+        porcentaje_cambio = {
+            "total": calcular_porcentaje_cambio(total, total_anterior),
+            "no_leidas": calcular_porcentaje_cambio(no_leidas, no_leidas_anterior),
+            "leidas": calcular_porcentaje_cambio(leidas, leidas_anterior),
+            "archivadas": calcular_porcentaje_cambio(archivadas, archivadas_anterior),
+            "no_archivadas": calcular_porcentaje_cambio(
+                no_archivadas, no_archivadas_anterior
+            ),
+        }
+
+        # Estadísticas por prioridad
+        por_prioridad = list(
+            base_query.values("prioridad")
+            .annotate(total=Count("idnotificacion"))
+            .order_by("-total")
+        )
+
+        # Calcular porcentajes para prioridad
+        total_prioridad = sum(item["total"] for item in por_prioridad)
+        for item in por_prioridad:
+            item["porcentaje"] = (
+                (item["total"] / total_prioridad * 100) if total_prioridad > 0 else 0
+            )
+
+        # Estadísticas por categoría
+        por_categoria = list(
+            base_query.values("categoria")
+            .annotate(total=Count("idnotificacion"))
+            .order_by("-total")
+        )
+
+        # Calcular porcentajes para categoría
+        total_categoria = sum(item["total"] for item in por_categoria)
+        for item in por_categoria:
+            item["porcentaje"] = (
+                (item["total"] / total_categoria * 100) if total_categoria > 0 else 0
+            )
+
+        # Estadísticas por usuario (solo para admin)
+        por_usuario = []
+        if is_admin:
+            por_usuario = list(
+                base_query.values("idusuario__nombreusuario")
+                .annotate(total=Count("idnotificacion"))
+                .order_by("-total")
+            )
+            total_usuario = sum(item["total"] for item in por_usuario)
+            for item in por_usuario:
+                item["porcentaje"] = (
+                    (item["total"] / total_usuario * 100) if total_usuario > 0 else 0
+                )
+
+        context = {
+            "total": total,
+            "no_leidas": no_leidas,
+            "leidas": leidas,
+            "archivadas": archivadas,
+            "no_archivadas": no_archivadas,
+            "porcentaje_cambio": porcentaje_cambio,
+            "por_prioridad": por_prioridad,
+            "por_categoria": por_categoria,
+            "por_usuario": por_usuario if is_admin else [],
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+            "is_admin": is_admin,
+        }
+
+        return render(request, "notificaciones/estadisticas.html", context)
+
+    except Exception as e:
+        messages.error(request, f"Error al procesar las estadísticas: {str(e)}")
+        return redirect("notificaciones:index")
+
+
+@login_required
+def estadisticas_alertas(request):
+    """Vista para mostrar estadísticas de alertas según el rol del usuario"""
+    try:
+        # Determinar si el usuario es admin
+        is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+        # Obtener fechas del filtro
+        fecha_fin = request.GET.get("fecha_fin")
+        fecha_inicio = request.GET.get("fecha_inicio")
+
+        if fecha_fin:
+            fecha_fin = timezone.datetime.strptime(fecha_fin, "%Y-%m-%d")
+            fecha_fin = timezone.make_aware(fecha_fin)
+        else:
+            fecha_fin = timezone.now()
+
+        if fecha_inicio:
+            fecha_inicio = timezone.datetime.strptime(fecha_inicio, "%Y-%m-%d")
+            fecha_inicio = timezone.make_aware(fecha_inicio)
+        else:
+            fecha_inicio = fecha_fin - timedelta(days=30)
+
+        # Calcular período anterior
+        periodo_anterior_inicio = fecha_inicio - timedelta(days=30)
+        periodo_anterior_fin = fecha_fin - timedelta(days=30)
+
+        # Query base según el rol
+        if is_admin:
+            base_query = Alerta.objects.filter(
+                fechacreacion__range=[fecha_inicio, fecha_fin]
+            )
+            query_anterior = Alerta.objects.filter(
+                fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin]
+            )
+        else:
+            base_query = Alerta.objects.filter(
+                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+                ),
+                fechacreacion__range=[fecha_inicio, fecha_fin],
+            )
+            query_anterior = Alerta.objects.filter(
+                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+                ),
+                fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin],
+            )
+
+        # Calcular totales
+        total = base_query.count()
+        activas = base_query.filter(activa=True).count()
+        resueltas = base_query.filter(activa=False).count()
+
+        # Totales período anterior
+        total_anterior = query_anterior.count()
+        activas_anterior = query_anterior.filter(activa=True).count()
+        resueltas_anterior = query_anterior.filter(activa=False).count()
+
+        def calcular_porcentaje_cambio(actual, anterior):
+            if anterior == 0:
+                return 100 if actual > 0 else 0
+            return ((actual - anterior) / anterior) * 100
+
+        porcentaje_cambio = {
+            "total": calcular_porcentaje_cambio(total, total_anterior),
+            "activas": calcular_porcentaje_cambio(activas, activas_anterior),
+            "resueltas": calcular_porcentaje_cambio(resueltas, resueltas_anterior),
+        }
+
+        # Estadísticas por tipo de alerta
+        por_tipo = list(
+            base_query.values("tipoalerta")
+            .annotate(total=Count("idalerta"))
+            .order_by("-total")
+        )
+
+        # Calcular porcentajes por tipo
+        total_tipo = sum(item["total"] for item in por_tipo)
+        for item in por_tipo:
+            item["porcentaje"] = (
+                (item["total"] / total_tipo * 100) if total_tipo > 0 else 0
+            )
+
+        # Estadísticas por tarea
+        por_tarea = list(
+            base_query.values("idtarea__nombretarea", "idtarea__estado")
+            .annotate(total=Count("idalerta"))
+            .order_by("-total")
+        )
+
+        # Estadísticas por proyecto (solo admin)
+        por_proyecto = []
+        if is_admin:
+            por_proyecto = list(
+                base_query.values(
+                    "idtarea__idrequerimiento__idproyecto__nombreproyecto"
+                )
+                .annotate(total=Count("idalerta"))
+                .order_by("-total")
+            )
+            total_proyecto = sum(item["total"] for item in por_proyecto)
+            for item in por_proyecto:
+                item["porcentaje"] = (
+                    (item["total"] / total_proyecto * 100) if total_proyecto > 0 else 0
+                )
+
+        context = {
+            "total": total,
+            "activas": activas,
+            "resueltas": resueltas,
+            "porcentaje_cambio": porcentaje_cambio,
+            "por_tipo": por_tipo,
+            "por_tarea": por_tarea,
+            "por_proyecto": por_proyecto if is_admin else [],
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+            "is_admin": is_admin,
+        }
+
+        return render(request, "alertas/estadisticas.html", context)
+
+    except Exception as e:
+        messages.error(request, f"Error al procesar las estadísticas: {str(e)}")
+        return redirect("notificaciones:index")
+
+
+@login_required
+def filtrar_alertas(request):
+    """Vista para filtrar alertas por tipo"""
+    tipo = request.GET.get("tipo", "todas")
+    page = request.GET.get("page", 1)
+
+    # Determinar si el usuario es admin
+    is_admin = request.user.is_staff or request.user.rol == "Admin"
+
+    # Query base según permisos
+    if is_admin:
+        alertas = Alerta.objects.all()
+    else:
+        alertas = Alerta.objects.filter(
+            idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+            )
+        )
+
+    # Aplicar filtro por tipo
+    if tipo != "todas":
+        alertas = alertas.filter(tipoalerta=tipo)
+
+    # Ordenar por fecha
+    alertas = alertas.order_by("-fechacreacion")
+
+    # Paginación
+    paginator = Paginator(alertas, 10)
+    try:
+        alertas_page = paginator.page(page)
+    except:
+        alertas_page = paginator.page(1)
+
+    # Calcular estadísticas por tipo
+    tipos_alertas = (
+        alertas.values("tipoalerta")
+        .annotate(
+            total=Count("idalerta"),
+            porcentaje=(
+                100.0 * Count("idalerta") / alertas.count()
+                if alertas.count() > 0
+                else 0
+            ),
+        )
+        .order_by("-total")
+    )
+
+    context = {
+        "alertas": alertas_page,
+        "tipos_alertas": tipos_alertas,
+        "tipo_actual": tipo,
+        "is_admin": is_admin,
+    }
+
+    # Si es una petición HTMX
+    if request.headers.get("HX-Request"):
+        return render(request, "alertas/lista_filtrada.html", context)
+
+    return render(request, "alertas/listar_alertas.html", context)
+
+
+@login_required
+def vista_previa_notificacion(request):
+    """Vista para renderizar la vista previa de la notificación"""
+    usuario_id = request.GET.get("usuario")
+    prioridad = request.GET.get("prioridad", "media")
+    mensaje = request.GET.get("mensaje", "")
+    categoria = request.GET.get("categoria", "")
+
+    try:
+        usuario = Usuario.objects.get(idusuario=usuario_id) if usuario_id else None
+    except Usuario.DoesNotExist:
+        usuario = None
+
+    context = {
+        "mensaje": mensaje,
+        "prioridad": prioridad,
+        "categoria": categoria,
+        "usuario": usuario,
+    }
+
+    return render(request, "components/vista_previa_notificacion.html", context)
+
+
+@login_required
+def vista_previa_alerta(request):
+    """Vista para renderizar la vista previa de la alerta"""
+    tarea_id = request.GET.get("tarea")
+    tipo_alerta = request.GET.get("tipo_alerta", "")
+    mensaje = request.GET.get("mensaje", "")
+
+    try:
+        tarea = Tarea.objects.get(idtarea=tarea_id) if tarea_id else None
+    except Tarea.DoesNotExist:
+        tarea = None
+
+    context = {"mensaje": mensaje, "tipo_alerta": tipo_alerta, "tarea": tarea}
+
+    return render(request, "components/vista_previa_alerta.html", context)

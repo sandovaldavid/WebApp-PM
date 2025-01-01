@@ -1,96 +1,244 @@
 {% extends "gestion_tareas/layout.html" %}
+{% load static %}
 
-{% block  title%}Gestión de Tareas{% endblock  %}
+{% block title %}Panel de Gestión de Tareas{% endblock %}
 
-{% block title_body %}<i class="fas fa-tasks"></i> Gestión de Tareas{% endblock %}
+{% block style %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block title_body %}
+<div class="flex justify-between items-center">
+    <div class="flex items-center">
+        <i class="fas fa-tasks text-blue-500 mr-2"></i>
+        <span>Panel de Gestión de Tareas</span>
+    </div>
+    <a href="{% url 'gestion_tareas:crear_tarea' %}" 
+       class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center">
+        <i class="fas fa-plus mr-2"></i>
+        Nueva Tarea
+    </a>
+</div>
+{% endblock %}
 
 {% block body %}
-
-    <!-- Contenedor principal -->
-    <main class="mt-5">
-        <div class="flex justify-between items-center mb-4">
-            <h2><i class="fas fa-list"></i> Lista de Tareas</h2>
-            <button class="bg-green-500 text-white px-4 py-2 rounded" onclick="openTaskForm()"><i class="fas fa-plus"></i> Crear Tarea</button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <!-- Tarjeta de Tarea -->
-            <div class="task-card p-6 rounded-lg shadow-lg">
-                <h3>Tarea 1</h3>
-                <div class="mt-2">
-                    <span class="text-sm font-semibold">Estado:</span>
-                    <span class="status">En progreso</span>
+<div class="p-8 space-y-8">
+    <!-- Resumen Estadístico -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Total Tareas -->
+        <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-blue-600">Total Tareas</p>
+                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total }}</h3>
                 </div>
-                <div class="mt-2">
-                    <span class="text-sm font-semibold">Fecha de Inicio:</span>
-                    <span>01/01/2022</span>
-                </div>
-                <div class="mt-2">
-                    <span class="text-sm font-semibold">Fecha de Fin:</span>
-                    <span>15/01/2022</span>
-                </div>
-                <div class="mt-2">
-                    <span class="text-sm font-semibold">Responsable:</span>
-                    <span class="responsible">Juan Pérez</span>
-                </div>
-                <div class="mt-4 flex justify-between">
-                    <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="openTaskForm()"><i class="fas fa-edit"></i> Editar</button>
-                    <button class="bg-red-500 text-white px-4 py-2 rounded" onclick="confirmDelete()"><i class="fas fa-trash"></i> Eliminar</button>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-tasks text-blue-500 text-2xl"></i>
                 </div>
             </div>
-              <!-- Más tarjetas de tareas -->
         </div>
 
-      <!-- Estadísticas de Tareas -->
-      <div class="stats-card mt-8 p-6 rounded-lg shadow-lg">
-          <h2 class="text-xl font-semibold mb-4"><i class="fas fa-chart-bar"></i> Estadísticas de Tareas</h2>
-          <div class="flex justify-between">
-              <div class="stat">
-                  <span class="text-sm font-semibold">Tareas Pendientes:</span>
-                  <span>5</span>
-              </div>
-              <div class="stat">
-                  <span class="text-sm font-semibold">Tareas Completadas:</span>
-                  <span>10</span>
-              </div>
-              <div class="stat">
-                  <span class="text-sm font-semibold">Progreso Total:</span>
-                  <span>66%</span>
-              </div>
-          </div>
-      </div>
+        <!-- Pendientes -->
+        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-yellow-600">Pendientes</p>
+                    <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.pendientes }}</h3>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-clock text-yellow-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
 
-      <!-- Formulario para Crear o Editar Tareas -->
-      <div id="taskForm" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
-          <div class="bg-white p-6 rounded-lg shadow-lg">
-              <h2 class="text-xl font-semibold mb-4"><i class="fas fa-tasks"></i> Crear/Editar Tarea</h2>
-              <form>
-                  <div class="mb-4">
-                      <label class="block text-sm font-semibold mb-2">Nombre de la Tarea</label>
-                      <input type="text" class="w-full p-2 border rounded">
-                  </div>
-                  <div class="mb-4">
-                      <label class="block text-sm font-semibold mb-2">Descripción</label>
-                      <textarea class="w-full p-2 border rounded"></textarea>
-                  </div>
-                  <div class="mb-4">
-                      <label class="block text-sm font-semibold mb-2">Fecha de Inicio</label>
-                      <input type="date" class="w-full p-2 border rounded">
-                  </div>
-                  <div class="mb-4">
-                      <label class="block text-sm font-semibold mb-2">Fecha de Fin</label>
-                      <input type="date" class="w-full p-2 border rounded">
-                  </div>
-                  <div class="mb-4">
-                      <label class="block text-sm font-semibold mb-2">Responsable</label>
-                      <input type="text" class="w-full p-2 border rounded">
-                  </div>
-                  <div class="flex justify-end">
-                      <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded mr-2" onclick="closeTaskForm()">Cancelar</button>
-                      <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Guardar</button>
-                  </div>
-              </form>
-          </div>
-      </div>
-  </main>
+        <!-- En Progreso -->
+        <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-green-600">En Progreso</p>
+                    <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.en_progreso }}</h3>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-spinner fa-spin text-green-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
 
+        <!-- Completadas -->
+        <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-purple-600">Completadas</p>
+                    <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.completadas }}</h3>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-check-circle text-purple-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Estado de Tareas (Donut) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+                Estado de Tareas
+            </h3>
+            <div class="h-64">
+                <canvas id="estadoTareasChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Prioridades (Barras) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-bar text-green-500 mr-2"></i>
+                Distribución por Prioridad
+            </h3>
+            <div class="h-64">
+                <canvas id="prioridadesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tendencia de Tareas (Líneas) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-line text-purple-500 mr-2"></i>
+                Tendencia de Completitud
+            </h3>
+            <div class="h-64">
+                <canvas id="tendenciaChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tiempo Promedio (Barras Horizontales) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-clock text-yellow-500 mr-2"></i>
+                Tiempo Promedio por Estado
+            </h3>
+            <div class="h-64">
+                <canvas id="tiempoPromedioChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Tareas -->
+    {% include "components/panel_tareas.html" %}
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de Estado de Tareas (Donut)
+    const estadoCtx = document.getElementById('estadoTareasChart').getContext('2d');
+    new Chart(estadoCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ datos_estado.labels|safe }},
+            datasets: [{
+                data: {{ datos_estado.data|safe }},
+                backgroundColor: ['#FCD34D', '#60A5FA', '#34D399'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Gráfico de Prioridades (Barras)
+    const prioridadCtx = document.getElementById('prioridadesChart').getContext('2d');
+    new Chart(prioridadCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ datos_prioridad.labels|safe }},
+            datasets: [{
+                label: 'Tareas por Prioridad',
+                data: {{ datos_prioridad.data|safe }},
+                backgroundColor: ['#EF4444', '#F59E0B', '#10B981'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico de Tendencia (Líneas)
+    const tendenciaCtx = document.getElementById('tendenciaChart').getContext('2d');
+    new Chart(tendenciaCtx, {
+        type: 'line',
+        data: {
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Tareas Completadas',
+                data: {{ datos_tendencia.completadas|default:'[10, 15, 8, 12, 20, 15]'|safe }},
+                borderColor: '#34D399',
+                tension: 0.4,
+                fill: false
+            },
+            {
+                label: 'Tareas Creadas',
+                data: {{ datos_tendencia.creadas|default:'[8, 12, 15, 10, 18, 20]'|safe }},
+                borderColor: '#60A5FA',
+                tension: 0.4,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Gráfico de Tiempo Promedio (Barras Horizontales)
+    const tiempoCtx = document.getElementById('tiempoPromedioChart').getContext('2d');
+    new Chart(tiempoCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Pendiente', 'En Progreso', 'Completada'],
+            datasets: [{
+                label: 'Días Promedio',
+                data: {{ datos_tiempo.promedio|default:'[5, 8, 3]'|safe }},
+                backgroundColor: ['#FCD34D', '#60A5FA', '#34D399'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}

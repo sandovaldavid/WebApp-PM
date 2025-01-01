@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'integracion',
     'notificaciones',
     'redes_neuronales',
-    'usuarios',
     'dashboard',
     'gestion_tareas',
     'gestion_usuarios',
@@ -121,7 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'usuarios.Usuario' # Se indica el modelo personalizado de usuario
+AUTH_USER_MODEL = 'dashboard.Usuario' # Se indica el modelo personalizado de usuario
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

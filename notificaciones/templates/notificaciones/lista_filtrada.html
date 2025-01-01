@@ -1,0 +1,31 @@
+{% if notificaciones %}
+    {% for notificacion in notificaciones %}
+        {% include 'components/notificacion.html' with notificacion=notificacion %}
+    {% endfor %}
+    
+    <!-- Paginación -->
+    {% if notificaciones.has_other_pages %}
+    <div class="mt-4 flex justify-center">
+        <nav class="inline-flex rounded-md shadow">
+            {% if notificaciones.has_previous %}
+                <a href="?page={{ notificaciones.previous_page_number }}&prioridad={{ prioridad_actual }}" 
+                   class="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% endif %}
+            <span class="px-3 py-1 bg-blue-500 text-white">{{ notificaciones.number }}</span>
+            {% if notificaciones.has_next %}
+                <a href="?page={{ notificaciones.next_page_number }}&prioridad={{ prioridad_actual }}" 
+                   class="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+{% else %}
+    <div class="text-center py-8 text-gray-500">
+        <i class="fas fa-check-circle text-4xl mb-2"></i>
+        <p>No hay notificaciones que mostrar</p>
+    </div>
+{% endif %}

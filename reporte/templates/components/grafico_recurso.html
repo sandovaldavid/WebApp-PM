@@ -1,0 +1,90 @@
+<div class="relative">
+    <!-- Canvas para el gráfico -->
+    <canvas id="graficoRecursos" class="w-full h-64"></canvas>
+</div>
+
+<!-- Script para inicializar el gráfico -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('graficoRecursos').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ datos_recursos.labels|safe }},
+            datasets: [
+                {
+                    label: 'Horas Asignadas',
+                    data: {{ datos_recursos.horas_asignadas|safe }},
+                    backgroundColor: '#60A5FA',
+                    borderColor: '#3B82F6',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Horas Utilizadas',
+                    data: {{ datos_recursos.horas_utilizadas|safe }},
+                    backgroundColor: '#34D399',
+                    borderColor: '#10B981',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Uso de Recursos',
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y + ' horas';
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Recursos'
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Horas'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value + ' h';
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>

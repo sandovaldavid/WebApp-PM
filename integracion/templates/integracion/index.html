@@ -1,115 +1,172 @@
 {% extends 'layout_integracion.html' %}
 
-{% block title %}
-	Integracion
-{% endblock %}
+{% block title %}Integración con Herramientas Externas{% endblock %}
 
 {% block title_body %}
-	<i class="fas fa-cogs icon"></i>         Configuración de Integración
+<div class="flex items-center">
+    <i class="fas fa-puzzle-piece text-blue-500 mr-2"></i>
+    <span>Integración de Herramientas</span>
+</div>
 {% endblock %}
 
 {% block body %}
-
-    <!-- Contenido principal -->
-    <main class="p-8">
-        <!-- Configuración de API -->
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <h2 class="text-xl font-semibold mb-4"><i class="fas fa-plug icon"></i>Conectar con Herramientas Externas</h2>
-            <form id="api-config-form">
-                <div class="mb-4">
-                    <label for="tool" class="block text-gray-700">Seleccionar Herramienta</label>
-                    <select id="tool" class="w-full p-2 border rounded custom-input">
-                        <option>Jira</option>
-                        <option>Trello</option>
-                        <option>Google Sheets</option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label for="api-key" class="block text-gray-700">Clave API</label>
-                    <input type="text" id="api-key" class="w-full p-2 border rounded custom-input" placeholder="Ingresar clave API" required>
-                </div>
-                <div class="mb-4">
-                    <label for="sync-options" class="block text-gray-700">Opciones de Sincronización</label>
-                    <select id="sync-options" class="w-full p-2 border rounded custom-input">
-                        <option>Sincronización Manual</option>
-                        <option>Sincronización Automática (Diaria)</option>
-                        <option>Sincronización Automática (Semanal)</option>
-                    </select>
-                </div>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded custom-button"><i class="fas fa-link icon"></i>Conectar</button>
-            </form>
-        </div>
-
-        <!-- Importación/Exportación de Datos -->
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <h2 class="text-xl font-semibold mb-4"><i class="fas fa-file-import icon"></i>Importar/Exportar Datos</h2>
-            <div class="mb-4">
-                <label class="block text-gray-700">Importar desde Archivo</label>
-                <input type="file" class="w-full p-2 border rounded custom-input mb-4">
-                <button class="bg-green-500 text-white px-4 py-2 rounded custom-button"><i class="fas fa-file-upload icon"></i>Importar</button>
+<div class="p-8 space-y-8">
+    <!-- Herramientas Disponibles -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Jira -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+                <img src="https://cdn.worldvectorlogo.com/logos/jira-1.svg" alt="Jira Logo" class="h-12 mb-4">
+                <h3 class="text-xl font-bold text-white">Jira Software</h3>
+                <p class="text-blue-100 mt-2">Sincroniza tus proyectos y tareas con Jira</p>
             </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Exportar a Formato</label>
-                <select class="w-full p-2 border rounded custom-input mb-4">
-                    <option>CSV</option>
-                    <option>Excel</option>
-                    <option>Google Sheets</option>
-                </select>
-                <button class="bg-yellow-500 text-white px-4 py-2 rounded custom-button"><i class="fas fa-file-export icon"></i>Exportar</button>
+            <div class="p-6 space-y-4">
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span>Sincronización bidireccional</span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span>Seguimiento de issues</span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span>Actualización en tiempo real</span>
+                </div>
+                <button onclick="configureIntegration('jira')" 
+                        class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                    <i class="fas fa-plug mr-2"></i>
+                    Configurar Jira
+                </button>
             </div>
         </div>
 
-        <!-- Vista de Datos Importados -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-4"><i class="fas fa-table icon"></i>Vista de Datos Importados</h2>
-            <table class="w-full bg-white shadow-lg rounded-lg">
-                <thead class="bg-gray-200">
-                    <tr>
-                        <th class="p-4 text-left">Nombre del Proyecto</th>
-                        <th class="p-4 text-left">Tareas</th>
-                        <th class="p-4 text-left">Responsables</th>
-                        <th class="p-4 text-left">Fecha de Creación</th>
-                        <th class="p-4 text-left">Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="hover:bg-gray-100">
-                        <td class="p-4">Proyecto A</td>
-                        <td class="p-4">10</td>
-                        <td class="p-4">Juan Pérez</td>
-                        <td class="p-4">01/01/2024</td>
-                        <td class="p-4 text-green-500"><i class="fas fa-check-circle icon"></i>Importado Correctamente</td>
-                    </tr>
-                    <tr class="hover:bg-gray-100">
-                        <td class="p-4">Proyecto B</td>
-                        <td class="p-4">5</td>
-                        <td class="p-4">María López</td>
-                        <td class="p-4">10/12/2023</td>
-                        <td class="p-4 text-red-500"><i class="fas fa-times-circle icon"></i>Error en Importación</td>
-                    </tr>
-                    <tr class="hover:bg-gray-100">
-                        <td class="p-4">Proyecto C</td>
-                        <td class="p-4">8</td>
-                        <td class="p-4">Carlos García</td>
-                        <td class="p-4">15/11/2023</td>
-                        <td class="p-4 text-green-500"><i class="fas fa-check-circle icon"></i>Importado Correctamente</td>
-                    </tr>
-                    <tr class="hover:bg-gray-100">
-                        <td class="p-4">Proyecto D</td>
-                        <td class="p-4">12</td>
-                        <td class="p-4">Ana Martínez</td>
-                        <td class="p-4">20/10/2023</td>
-                        <td class="p-4 text-red-500"><i class="fas fa-times-circle icon"></i>Error en Importación</td>
-                    </tr>
-                    <tr class="hover:bg-gray-100">
-                        <td class="p-4">Proyecto E</td>
-                        <td class="p-4">7</td>
-                        <td class="p-4">Luis Fernández</td>
-                        <td class="p-4">05/09/2023</td>
-                        <td class="p-4 text-green-500"><i class="fas fa-check-circle icon"></i>Importado Correctamente</td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Trello -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-6 bg-gradient-to-r from-blue-400 to-blue-500">
+                <img src="https://cdn.worldvectorlogo.com/logos/trello.svg" alt="Trello Logo" class="h-12 mb-4">
+                <h3 class="text-xl font-bold text-white">Trello</h3>
+                <p class="text-blue-100 mt-2">Integra tus tableros Kanban con Trello</p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span>Sincronización de tableros</span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span>Gestión de tarjetas</span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span>Automatización de flujos</span>
+                </div>
+                <button onclick="configureIntegration('trello')" 
+                        class="w-full bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                    <i class="fas fa-plug mr-2"></i>
+                    Configurar Trello
+                </button>
+            </div>
         </div>
-    </main>
+
+        <!-- Google Sheets -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-6 bg-gradient-to-r from-green-500 to-green-600">
+                <img src="https://cdn.worldvectorlogo.com/logos/google-sheets.svg" alt="Google Sheets Logo" class="h-12 mb-4">
+                <h3 class="text-xl font-bold text-white">Google Sheets</h3>
+                <p class="text-green-100 mt-2">Sincroniza datos con hojas de cálculo</p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span>Importación/Exportación</span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span>Actualización automática</span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span>Reportes personalizados</span>
+                </div>
+                <button onclick="configureIntegration('sheets')" 
+                        class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                    <i class="fas fa-plug mr-2"></i>
+                    Configurar Sheets
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Configuración -->
+    <div id="configurationModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900" id="modalTitle">Configurar Integración</h3>
+                <form class="mt-4 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">URL del Servidor</label>
+                        <input type="url" id="serverUrl" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">API Key</label>
+                        <input type="password" id="apiKey" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Frecuencia de Sincronización</label>
+                        <select id="syncFrequency" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="manual">Manual</option>
+                            <option value="hourly">Cada hora</option>
+                            <option value="daily">Diaria</option>
+                            <option value="weekly">Semanal</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" onclick="closeModal()" 
+                                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                            Guardar Configuración
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function configureIntegration(tool) {
+    const modal = document.getElementById('configurationModal');
+    const modalTitle = document.getElementById('modalTitle');
+    modal.classList.remove('hidden');
+    
+    switch(tool) {
+        case 'jira':
+            modalTitle.textContent = 'Configurar Integración con Jira';
+            break;
+        case 'trello':
+            modalTitle.textContent = 'Configurar Integración con Trello';
+            break;
+        case 'sheets':
+            modalTitle.textContent = 'Configurar Integración con Google Sheets';
+            break;
+    }
+}
+
+function closeModal() {
+    document.getElementById('configurationModal').classList.add('hidden');
+}
+
+// Cerrar modal con Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}
 {% endblock %}

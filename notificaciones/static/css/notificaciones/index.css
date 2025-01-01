@@ -69,3 +69,100 @@ button {
 button:hover {
   opacity: 0.8;
 }
+
+/* Estilos para las notificaciones y alertas */
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #fff;
+  border-left: 4px solid #3182ce;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: none;
+  z-index: 50;
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification.show {
+  display: block;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Estilos para los items de notificación/alerta */
+.hover\:bg-gray-50:hover {
+  background-color: rgba(249, 250, 251, 0.8);
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Estilos para los iconos */
+.text-blue-500 {
+  color: #3182ce;
+}
+
+.text-red-500 {
+  color: #e53e3e;
+}
+
+.text-orange-500 {
+  color: #dd6b20;
+}
+
+.text-yellow-500 {
+  color: #d69e2e;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .w-full {
+    width: 100%;
+  }
+}
+
+.fade-out {
+  opacity: 0;
+  transform: translateX(100px);
+  transition: all 0.3s ease-out;
+}
+
+.notification-item,
+.alert-item {
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.3s ease-in;
+}
+
+.header-icon {
+  font-size: 1.5rem;
+}
+
+/* Animaciones para los items */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.notification-item,
+.alert-item {
+  animation: slideIn 0.3s ease-out;
+}

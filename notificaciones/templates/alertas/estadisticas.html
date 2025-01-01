@@ -1,0 +1,176 @@
+{% extends 'layout_notificaciones.html' %}
+{% load static %}
+
+{% block title %}Estadísticas de Alertas{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-chart-pie text-red-500 mr-2"></i> Estadísticas de Alertas
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <!-- Filtros de Tiempo -->
+    <div class="mb-8">
+        <form class="flex gap-4" method="GET">
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Desde</label>
+                <input type="date" name="fecha_inicio" value="{{ fecha_inicio|date:'Y-m-d' }}"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Hasta</label>
+                <input type="date" name="fecha_fin" value="{{ fecha_fin|date:'Y-m-d' }}"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                    <i class="fas fa-filter mr-2"></i>Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tarjetas de Resumen -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Total Alertas -->
+        <div class="bg-red-100 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-red-800 text-sm">Total Alertas</p>
+                    <h3 class="text-2xl font-bold text-red-900">{{ total }}</h3>
+                    <p class="text-sm text-red-600 mt-1">
+                        {% if porcentaje_cambio.total > 0 %}
+                            <i class="fas fa-arrow-up text-red-500"></i>
+                        {% elif porcentaje_cambio.total < 0 %}
+                            <i class="fas fa-arrow-down text-green-500"></i>
+                        {% endif %}
+                        {{ porcentaje_cambio.total|floatformat:1 }}% vs periodo anterior
+                    </p>
+                </div>
+                <i class="fas fa-exclamation-triangle text-4xl text-red-500"></i>
+            </div>
+        </div>
+
+        <!-- Alertas Activas -->
+        <div class="bg-yellow-100 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-yellow-800 text-sm">Alertas Activas</p>
+                    <h3 class="text-2xl font-bold text-yellow-900">{{ activas }}</h3>
+                    <p class="text-sm text-yellow-600 mt-1">
+                        {% if porcentaje_cambio.activas > 0 %}
+                            <i class="fas fa-arrow-up text-red-500"></i>
+                        {% elif porcentaje_cambio.activas < 0 %}
+                            <i class="fas fa-arrow-down text-green-500"></i>
+                        {% endif %}
+                        {{ porcentaje_cambio.activas|floatformat:1 }}% vs periodo anterior
+                    </p>
+                </div>
+                <i class="fas fa-bell text-4xl text-yellow-500"></i>
+            </div>
+        </div>
+
+        <!-- Alertas Resueltas -->
+        <div class="bg-green-100 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-green-800 text-sm">Alertas Resueltas</p>
+                    <h3 class="text-2xl font-bold text-green-900">{{ resueltas }}</h3>
+                    <p class="text-sm text-green-600 mt-1">
+                        {% if porcentaje_cambio.resueltas > 0 %}
+                            <i class="fas fa-arrow-up text-green-500"></i>
+                        {% elif porcentaje_cambio.resueltas < 0 %}
+                            <i class="fas fa-arrow-down text-red-500"></i>
+                        {% endif %}
+                        {{ porcentaje_cambio.resueltas|floatformat:1 }}% vs periodo anterior
+                    </p>
+                </div>
+                <i class="fas fa-check-circle text-4xl text-green-500"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos Detallados -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Por Tipo de Alerta -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-tags text-red-500 mr-2"></i>
+                Distribución por Tipo
+            </h3>
+            <div class="space-y-4">
+                {% for item in por_tipo %}
+                <div class="flex items-center justify-between">
+                    <span class="font-medium">{{ item.tipoalerta|title }}</span>
+                    <div class="flex items-center flex-grow mx-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="h-2.5 rounded-full bg-red-500"
+                                style="width: {{ item.porcentaje|floatformat:1 }}%">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">{{ item.total }}</span>
+                        <span class="text-xs text-gray-500">({{ item.porcentaje|floatformat:1 }}%)</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Por Tarea -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-tasks text-red-500 mr-2"></i>
+                Alertas por Tarea
+            </h3>
+            <div class="space-y-4">
+                {% for item in por_tarea %}
+                <div class="flex items-center justify-between">
+                    <span class="font-medium">{{ item.idtarea__nombretarea }}</span>
+                    <span class="text-sm px-2 py-1 rounded-full 
+                        {% if item.idtarea__estado == 'Completada' %}bg-green-100 text-green-800
+                        {% elif item.idtarea__estado == 'En Progreso' %}bg-blue-100 text-blue-800
+                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                        {{ item.idtarea__estado }}
+                    </span>
+                    <span class="text-sm text-gray-600">{{ item.total }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% if is_admin %}
+    <!-- Estadísticas por Proyecto (Solo Admin) -->
+    <div class="mt-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-project-diagram text-red-500 mr-2"></i>
+                Alertas por Proyecto
+            </h3>
+            <div class="space-y-4">
+                {% for item in por_proyecto %}
+                <div class="flex items-center justify-between">
+                    <span class="font-medium">{{ item.idtarea__idrequerimiento__idproyecto__nombreproyecto }}</span>
+                    <div class="flex items-center flex-grow mx-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="h-2.5 rounded-full bg-red-500"
+                                style="width: {{ item.porcentaje|floatformat:1 }}%">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600">{{ item.total }}</span>
+                        <span class="text-xs text-gray-500">({{ item.porcentaje|floatformat:1 }}%)</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

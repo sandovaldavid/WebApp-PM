@@ -53,3 +53,36 @@ header span {
   margin-left: 10px;
   font-weight: 600;
 }
+
+/* Agregar en tu archivo CSS */
+.notification-message {
+  transition: all 0.3s ease-in-out;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.notification-message button {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.notification-message button:hover {
+  opacity: 1;
+}
+
+/* Animación de entrada */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.notification-message {
+  animation: slideIn 0.3s ease-out;
+}
