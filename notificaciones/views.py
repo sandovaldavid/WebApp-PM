@@ -81,7 +81,7 @@ def dashboard(request):
     o todas si es admin
     """
     # Determinar si el usuario es admin
-    is_admin = request.user.is_staff or request.user.rol == "Admin"
+    is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
     # Estadísticas generales
     if is_admin:
