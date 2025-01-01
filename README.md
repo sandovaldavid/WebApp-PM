@@ -48,6 +48,17 @@ Este proyecto es una aplicación web desarrollada en Django para la gestión de 
 
 ## Uso
 
+### Archivo `.env`
+
+```sh
+DB_NAME=Db-Web-App-PM
+DB_USER=development
+DB_PASSWORD=123456
+DB_HOST=db-web-app
+DB_PORT=5432
+```
+
+
 Accede a `http://127.0.0.1:8000/` en tu navegador para ver la aplicación en funcionamiento.
 
 ## Evaluación del Proyecto
