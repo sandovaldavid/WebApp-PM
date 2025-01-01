@@ -222,7 +222,7 @@
                                 <!-- Cerrar Sesión -->
                                 <form
                                     method="POST"
-                                    action="{% url 'gestionUsuarios:logout' %}"
+                                    action="{% url 'usuarios:logout' %}"
                                     class="block"
                                 >
                                     {% csrf_token %}
@@ -240,7 +240,7 @@
                     {% else %}
                     <div class="flex items-center space-x-4">
                         <a
-                            href="{% url 'gestionUsuarios:login' %}"
+                            href="{% url 'usuarios:login' %}"
                             class="text-white hover:text-gray-200 transition-colors"
                         >
                             <i class="fas fa-sign-in-alt mr-2"></i> Iniciar
