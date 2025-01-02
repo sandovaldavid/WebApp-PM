@@ -1,10 +1,9 @@
 from django.urls import path
 from . import views
-from dashboard.views import verificar_rol_administrador
 
 app_name = 'gestion_proyectos'
 urlpatterns = [
-    path('', verificar_rol_administrador(views.lista_proyectos), name='lista_proyectos'),
+    path('', views.lista_proyectos, name='lista_proyectos'),
     path('proyecto/<int:idproyecto>/', views.detalle_proyecto, name='detalle_proyecto'),
     path('crear-proyecto/', views.crear_proyecto, name='crear_proyecto'),
     path('editar-proyecto/<int:idproyecto>/', views.editar_proyecto, name='editar_proyecto'),

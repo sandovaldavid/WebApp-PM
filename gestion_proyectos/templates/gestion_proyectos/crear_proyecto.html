@@ -73,6 +73,23 @@
         text-decoration: none;
         cursor: pointer;
     }
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .form-input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .form-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
 </style>
 {% endblock %}
 
@@ -81,50 +98,53 @@
 {% block title_body %}<i class="fas fa-plus header-icon"></i> Crear Proyecto{% endblock %}
 
 {% block body %}
-<main class="px-8">
-    <div class="bg-white p-6 rounded-lg shadow-lg">
-        <h2 class="text-xl font-semibold mb-4">Crear Proyecto</h2>
+<main class="p-8">
+    <div class="bg-white p-6 rounded-lg shadow-lg form-container">
+        <h2 class="text-xl font-semibold mb-4 text-center">Crear Proyecto</h2>
+        {% if error %}
+        <div class="bg-red-500 text-white p-4 rounded mb-4">
+            {{ error }}
+        </div>
+        {% endif %}
         <form method="post">
             {% csrf_token %}
-            <div class="mb-4">
-                <label for="nombreproyecto" class="block text-sm font-medium text-gray-700">Nombre del Proyecto</label>
-                <input type="text" name="nombreproyecto" id="nombreproyecto" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label for="nombreproyecto" class="form-label">Nombre del Proyecto</label>
+                    <input type="text" name="nombreproyecto" id="nombreproyecto" class="form-input" value="{{ nombreproyecto }}" placeholder="Ingrese el nombre del proyecto" required>
+                </div>
+                <div class="mb-4">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select name="estado" id="estado" class="form-input" required>
+                        <option value="En progreso" {% if estado == "En progreso" %}selected{% endif %}>En progreso</option>
+                        <option value="Completado" {% if estado == "Completado" %}selected{% endif %}>Completado</option>
+                        <option value="Pendiente" {% if estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="fechainicio" class="form-label">Fecha de Inicio</label>
+                    <input type="date" name="fechainicio" id="fechainicio" class="form-input" value="{{ fechainicio }}" required>
+                </div>
+                <div class="mb-4">
+                    <label for="fechafin" class="form-label">Fecha de Finalización</label>
+                    <input type="date" name="fechafin" id="fechafin" class="form-input" value="{{ fechafin }}" required>
+                </div>
+                <div class="mb-4">
+                    <label for="presupuesto" class="form-label">Presupuesto</label>
+                    <input type="number" name="presupuesto" id="presupuesto" class="form-input" value="{{ presupuesto }}" placeholder="Ingrese el presupuesto" required>
+                </div>
+                <div class="mb-4">
+                    <label for="idequipo" class="form-label">Equipo</label>
+                    <select name="idequipo" id="idequipo" class="form-input" required>
+                        {% for equipo in equipos %}
+                            <option value="{{ equipo.idequipo }}" {% if idequipo == equipo.idequipo %}selected{% endif %}>{{ equipo.nombreequipo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
             <div class="mb-4">
-                <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-                <textarea name="descripcion" id="descripcion" rows="3" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required></textarea>
-            </div>
-            <div class="mb-4">
-                <label for="estado" class="block text-sm font-medium text-gray-700">Estado</label>
-                <select name="estado" id="estado" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                    <option value="En progreso">En progreso</option>
-                    <option value="Completado">Completado</option>
-                    <option value="Pendiente">Pendiente</option>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label for="fechainicio" class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
-                <input type="date" name="fechainicio" id="fechainicio" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-            </div>
-            <div class="mb-4">
-                <label for="fechafin" class="block text-sm font-medium text-gray-700">Fecha de Finalización</label>
-                <input type="date" name="fechafin" id="fechafin" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-            </div>
-            <div class="mb-4">
-                <label for="presupuesto" class="block text-sm font-medium text-gray-700">Presupuesto</label>
-                <input type="number" name="presupuesto" id="presupuesto" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-            </div>
-            <div class="mb-4">
-                <label for="presupuestoutilizado" class="block text-sm font-medium text-gray-700">Presupuesto Actual</label>
-                <input type="number" name="presupuestoutilizado" id="presupuestoutilizado" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-            </div>
-            <div class="mb-4">
-                <label for="idequipo" class="block text-sm font-medium text-gray-700">Equipo</label>
-                <select name="idequipo" id="idequipo" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                    {% for equipo in equipos %}
-                        <option value="{{ equipo.idequipo }}">{{ equipo.nombreequipo }}</option>
-                    {% endfor %}
-                </select>
+                <label for="descripcion" class="form-label">Descripción</label>
+                <textarea name="descripcion" id="descripcion" rows="3" class="form-input" placeholder="Ingrese la descripción del proyecto" required>{{ descripcion }}</textarea>
             </div>
             <div class="mb-4">
                 <h3 class="text-lg font-semibold mb-2">Requerimientos</h3>

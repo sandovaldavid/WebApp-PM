@@ -126,10 +126,18 @@
             </table>
         </div>
         <div class="flex justify-between mt-4">
-            <button class="bg-green-500 text-white px-4 py-2 rounded btn"><i class="fas fa-tasks mr-2"></i>Añadir Tarea</button>
-            <button class="bg-blue-500 text-white px-4 py-2 rounded btn"><i class="fas fa-user-plus mr-2"></i>Asignar Recursos</button>
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded btn"><i class="fas fa-calendar-alt mr-2"></i>Ajustar Fechas</button>
-            <button class="bg-purple-500 text-white px-4 py-2 rounded btn"><i class="fas fa-dollar-sign mr-2"></i>Ajustar Presupuesto</button>
+            <a href="{% url 'gestion_tareas:crear_tarea' %}" class="bg-green-500 text-white px-4 py-2 rounded btn">
+                <i class="fas fa-tasks mr-2"></i>Añadir Tarea
+            </a>
+            <a href="{% url 'gestionRecursos:lista_recursos'%}" class="bg-blue-500 text-white px-4 py-2 rounded btn">
+                <i class="fas fa-user-plus mr-2"></i>Asignar Recursos
+            </a>
+            <a href="{% url 'gestionRecursos:lista_recursos'%}" class="bg-yellow-500 text-white px-4 py-2 rounded btn">
+                <i class="fas fa-calendar-alt mr-2"></i>Ajustar Fechas
+            </a>
+            <a href="{% url 'gestionRecursos:lista_recursos'%}" class="bg-purple-500 text-white px-4 py-2 rounded btn">
+                <i class="fas fa-dollar-sign mr-2"></i>Ajustar Presupuesto
+            </a>
         </div>
     </div>
 </main>

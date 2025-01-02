@@ -3,11 +3,14 @@ from dashboard.models import Proyecto, Requerimiento, Tarea, Equipo
 from django.utils import timezone
 from django.utils.timezone import is_naive, make_aware
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def lista_proyectos(request):
     proyectos = Proyecto.objects.all()
     return render(request, 'gestion_proyectos/lista_proyectos.html', {'proyectos': proyectos})
 
+@login_required
 def detalle_proyecto(request, idproyecto):
     proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
     requerimientos = proyecto.requerimiento_set.all()
@@ -23,6 +26,7 @@ def detalle_proyecto(request, idproyecto):
         'presupuesto_restante': presupuesto_restante
     })
 
+@login_required
 def crear_proyecto(request):
     if request.method == 'POST':
         # Datos principales del proyecto
@@ -32,21 +36,40 @@ def crear_proyecto(request):
         fechainicio = request.POST.get('fechainicio')
         fechafin = request.POST.get('fechafin')
         presupuesto = request.POST.get('presupuesto')
-        presupuestoutilizado = request.POST.get('presupuestoutilizado')
         idequipo = request.POST.get('idequipo')
+
+        # Validar que la fecha de inicio sea anterior a la fecha de fin
+        if fechainicio >= fechafin:
+            equipos = Equipo.objects.all()
+            return render(request, 'gestion_proyectos/crear_proyecto.html', {
+                'equipos': equipos,
+                'error': 'La fecha de inicio debe ser anterior a la fecha de finalización.',
+                'nombreproyecto': nombreproyecto,
+                'descripcion': descripcion,
+                'estado': estado,
+                'fechainicio': fechainicio,
+                'fechafin': fechafin,
+                'presupuesto': presupuesto,
+                'idequipo': idequipo
+            })
+
+        # Obtener el último ID de proyecto y asignar el siguiente ID disponible
+        ultimo_proyecto = Proyecto.objects.order_by('-idproyecto').first()
+        nuevo_id_proyecto = (ultimo_proyecto.idproyecto + 1) if ultimo_proyecto else 1
 
         # Crear el proyecto
         now = timezone.now()
         if is_naive(now):
             now = make_aware(now)
         proyecto = Proyecto(
+            idproyecto=nuevo_id_proyecto,
             nombreproyecto=nombreproyecto,
             descripcion=descripcion,
             estado=estado,
             fechainicio=fechainicio,
             fechafin=fechafin,
             presupuesto=presupuesto,
-            presupuestoutilizado=presupuestoutilizado,
+            presupuestoutilizado=0,  # Establecer presupuesto utilizado en 0
             idequipo_id=idequipo,
             fechacreacion=now,
             fechamodificacion=now
@@ -58,7 +81,12 @@ def crear_proyecto(request):
             if key.startswith('requerimiento_'):
                 descripcion_requerimiento = value
                 if descripcion_requerimiento.strip():  # Validar descripción no vacía
+                    # Obtener el último ID de requerimiento y asignar el siguiente ID disponible
+                    ultimo_requerimiento = Requerimiento.objects.order_by('-idrequerimiento').first()
+                    nuevo_id_requerimiento = (ultimo_requerimiento.idrequerimiento + 1) if ultimo_requerimiento else 1
+
                     requerimiento = Requerimiento(
+                        idrequerimiento=nuevo_id_requerimiento,
                         descripcion=descripcion_requerimiento,
                         idproyecto=proyecto,
                         fechacreacion=now,
@@ -71,6 +99,7 @@ def crear_proyecto(request):
     equipos = Equipo.objects.all()
     return render(request, 'gestion_proyectos/crear_proyecto.html', {'equipos': equipos})
 
+@login_required
 def editar_proyecto(request, idproyecto):
     proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
     requerimientos = proyecto.requerimiento_set.all()
@@ -136,6 +165,7 @@ def editar_proyecto(request, idproyecto):
         'requerimientos': requerimientos
     })
 
+@login_required
 def eliminar_requerimiento(request, idrequerimiento):
     if request.method == 'POST':
         try:
