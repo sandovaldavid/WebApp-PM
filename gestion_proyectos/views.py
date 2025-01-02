@@ -5,10 +5,14 @@ from django.utils.timezone import is_naive, make_aware
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
+
 @login_required
 def lista_proyectos(request):
     proyectos = Proyecto.objects.all()
-    return render(request, 'gestion_proyectos/lista_proyectos.html', {'proyectos': proyectos})
+    return render(
+        request, 'gestion_proyectos/lista_proyectos.html', {'proyectos': proyectos}
+    )
+
 
 @login_required
 def detalle_proyecto(request, idproyecto):
@@ -18,13 +22,18 @@ def detalle_proyecto(request, idproyecto):
     recursos = proyecto.idequipo.miembro_set.all()
     presupuestoutilizado = proyecto.presupuestoutilizado or 0
     presupuesto_restante = proyecto.presupuesto - presupuestoutilizado
-    return render(request, 'gestion_proyectos/detalle_proyecto.html', {
-        'proyecto': proyecto,
-        'requerimientos': requerimientos,
-        'tareas': tareas,
-        'recursos': recursos,
-        'presupuesto_restante': presupuesto_restante
-    })
+    return render(
+        request,
+        'gestion_proyectos/detalle_proyecto.html',
+        {
+            'proyecto': proyecto,
+            'requerimientos': requerimientos,
+            'tareas': tareas,
+            'recursos': recursos,
+            'presupuesto_restante': presupuesto_restante,
+        },
+    )
+
 
 @login_required
 def crear_proyecto(request):
@@ -41,17 +50,21 @@ def crear_proyecto(request):
         # Validar que la fecha de inicio sea anterior a la fecha de fin
         if fechainicio >= fechafin:
             equipos = Equipo.objects.all()
-            return render(request, 'gestion_proyectos/crear_proyecto.html', {
-                'equipos': equipos,
-                'error': 'La fecha de inicio debe ser anterior a la fecha de finalización.',
-                'nombreproyecto': nombreproyecto,
-                'descripcion': descripcion,
-                'estado': estado,
-                'fechainicio': fechainicio,
-                'fechafin': fechafin,
-                'presupuesto': presupuesto,
-                'idequipo': idequipo
-            })
+            return render(
+                request,
+                'gestion_proyectos/crear_proyecto.html',
+                {
+                    'equipos': equipos,
+                    'error': 'La fecha de inicio debe ser anterior a la fecha de finalización.',
+                    'nombreproyecto': nombreproyecto,
+                    'descripcion': descripcion,
+                    'estado': estado,
+                    'fechainicio': fechainicio,
+                    'fechafin': fechafin,
+                    'presupuesto': presupuesto,
+                    'idequipo': idequipo,
+                },
+            )
 
         # Obtener el último ID de proyecto y asignar el siguiente ID disponible
         ultimo_proyecto = Proyecto.objects.order_by('-idproyecto').first()
@@ -72,7 +85,7 @@ def crear_proyecto(request):
             presupuestoutilizado=0,  # Establecer presupuesto utilizado en 0
             idequipo_id=idequipo,
             fechacreacion=now,
-            fechamodificacion=now
+            fechamodificacion=now,
         )
         proyecto.save()
 
@@ -82,22 +95,31 @@ def crear_proyecto(request):
                 descripcion_requerimiento = value
                 if descripcion_requerimiento.strip():  # Validar descripción no vacía
                     # Obtener el último ID de requerimiento y asignar el siguiente ID disponible
-                    ultimo_requerimiento = Requerimiento.objects.order_by('-idrequerimiento').first()
-                    nuevo_id_requerimiento = (ultimo_requerimiento.idrequerimiento + 1) if ultimo_requerimiento else 1
+                    ultimo_requerimiento = Requerimiento.objects.order_by(
+                        '-idrequerimiento'
+                    ).first()
+                    nuevo_id_requerimiento = (
+                        (ultimo_requerimiento.idrequerimiento + 1)
+                        if ultimo_requerimiento
+                        else 1
+                    )
 
                     requerimiento = Requerimiento(
                         idrequerimiento=nuevo_id_requerimiento,
                         descripcion=descripcion_requerimiento,
                         idproyecto=proyecto,
                         fechacreacion=now,
-                        fechamodificacion=now
+                        fechamodificacion=now,
                     )
                     requerimiento.save()
 
         return redirect('gestion_proyectos:lista_proyectos')
 
     equipos = Equipo.objects.all()
-    return render(request, 'gestion_proyectos/crear_proyecto.html', {'equipos': equipos})
+    return render(
+        request, 'gestion_proyectos/crear_proyecto.html', {'equipos': equipos}
+    )
+
 
 @login_required
 def editar_proyecto(request, idproyecto):
@@ -105,7 +127,9 @@ def editar_proyecto(request, idproyecto):
     requerimientos = proyecto.requerimiento_set.all()
 
     if request.method == 'POST':
-        proyecto.nombreproyecto = request.POST.get('nombreproyecto', proyecto.nombreproyecto)
+        proyecto.nombreproyecto = request.POST.get(
+            'nombreproyecto', proyecto.nombreproyecto
+        )
         proyecto.descripcion = request.POST.get('descripcion', proyecto.descripcion)
         proyecto.estado = request.POST.get('estado', proyecto.estado)
         proyecto.fechainicio = request.POST.get('fechainicio', proyecto.fechainicio)
@@ -124,7 +148,9 @@ def editar_proyecto(request, idproyecto):
                 if descripcion_requerimiento.strip():  # Validar descripción no vacía
                     if req_id.isdigit():
                         try:
-                            requerimiento = Requerimiento.objects.get(idrequerimiento=req_id)
+                            requerimiento = Requerimiento.objects.get(
+                                idrequerimiento=req_id
+                            )
                             requerimiento.descripcion = descripcion_requerimiento
                             requerimiento.fechamodificacion = now
                             requerimiento.save()
@@ -135,7 +161,7 @@ def editar_proyecto(request, idproyecto):
                             descripcion=descripcion_requerimiento,
                             idproyecto=proyecto,
                             fechacreacion=now,
-                            fechamodificacion=now
+                            fechamodificacion=now,
                         )
                         requerimiento.save()
 
@@ -148,7 +174,7 @@ def editar_proyecto(request, idproyecto):
                         descripcion=descripcion_requerimiento,
                         idproyecto=proyecto,
                         fechacreacion=now,
-                        fechamodificacion=now
+                        fechamodificacion=now,
                     )
                     requerimiento.save()
 
@@ -160,10 +186,12 @@ def editar_proyecto(request, idproyecto):
 
         return redirect('gestion_proyectos:detalle_proyecto', idproyecto=idproyecto)
 
-    return render(request, 'gestion_proyectos/editar_proyecto.html', {
-        'proyecto': proyecto,
-        'requerimientos': requerimientos
-    })
+    return render(
+        request,
+        'gestion_proyectos/editar_proyecto.html',
+        {'proyecto': proyecto, 'requerimientos': requerimientos},
+    )
+
 
 @login_required
 def eliminar_requerimiento(request, idrequerimiento):
@@ -174,9 +202,7 @@ def eliminar_requerimiento(request, idrequerimiento):
             requerimiento.delete()
             return JsonResponse({'success': True})
         except Requerimiento.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Requerimiento no encontrado.'})
+            return JsonResponse(
+                {'success': False, 'error': 'Requerimiento no encontrado.'}
+            )
     return JsonResponse({'success': False, 'error': 'Método no permitido.'})
-
-
-
-

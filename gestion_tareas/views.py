@@ -925,5 +925,6 @@ def crear_tarea_programada(request):
         messages.error(request, f"Error al cargar el formulario: {str(e)}")
         return redirect("gestion_tareas:lista_tareas_programadas")
 
+
 def eliminar_tarea_programada(request):
     return None

@@ -4,7 +4,14 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.http import JsonResponse
 from django.db import transaction
-from dashboard.models import Usuario, Administrador, Jefeproyecto, Cliente, Tester, Desarrollador
+from dashboard.models import (
+    Usuario,
+    Administrador,
+    Jefeproyecto,
+    Cliente,
+    Tester,
+    Desarrollador,
+)
 import uuid
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_protect
@@ -90,11 +97,11 @@ def crear_cuenta(request):
                     fechacreacion=timezone.now(),
                     fechamodificacion=timezone.now(),
                     username=nombre_usuario,  # Llenar campo username
-                    password=make_password(contrasena)  # Llenar campo password
+                    password=make_password(contrasena),  # Llenar campo password
                 )
 
                 # Insertar en la tabla correspondiente según el rol
-                
+
                 if rol == "Administrador":
                     Administrador.objects.create(idusuario=usuario)
                 elif rol == "Jefe de Proyecto":
@@ -267,7 +274,7 @@ def recuperar(request, token):
         try:
             usuario = Usuario.objects.get(token=token)
             usuario.contrasena = make_password(contrasena)
-            usuario.password=make_password(contrasena)
+            usuario.password = make_password(contrasena)
             usuario.token = None  # Limpiar token después de la recuperación
             usuario.save()
             return render(

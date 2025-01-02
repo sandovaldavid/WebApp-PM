@@ -239,11 +239,17 @@ class Proyecto(models.Model):
     idproyecto = models.AutoField(primary_key=True)
     nombreproyecto = models.CharField(max_length=255)
     descripcion = models.TextField(blank=True, null=True)
-    idequipo = models.ForeignKey(Equipo, models.DO_NOTHING, db_column='idequipo', blank=True, null=True)
+    idequipo = models.ForeignKey(
+        Equipo, models.DO_NOTHING, db_column="idequipo", blank=True, null=True
+    )
     fechainicio = models.DateField(blank=True, null=True)
     fechafin = models.DateField(blank=True, null=True)
-    presupuesto = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    presupuestoutilizado = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    presupuesto = models.DecimalField(
+        max_digits=15, decimal_places=2, blank=True, null=True
+    )
+    presupuestoutilizado = models.DecimalField(
+        max_digits=15, decimal_places=2, blank=True, null=True
+    )
     estado = models.CharField(max_length=50, blank=True, null=True)
     fechacreacion = models.DateTimeField(blank=True, null=True)
     fechamodificacion = models.DateTimeField(blank=True, null=True)
