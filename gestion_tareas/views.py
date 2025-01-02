@@ -26,7 +26,7 @@ def index(request):
     is_admin = (
         request.user.is_staff
         or request.user.is_superuser
-        or request.user.rol == "Admin"
+        or request.user.rol == "Administrador"
     )
 
     # Filtrar tareas según el tipo de usuario
@@ -335,7 +335,7 @@ def crear_tarea(request):
     is_admin = (
         request.user.is_staff
         or request.user.is_superuser
-        or request.user.rol == "Admin"
+        or request.user.rol == "Administrador"
     )
 
     if request.method == "POST":
@@ -622,7 +622,7 @@ def lista_tareas(request):
     is_admin = (
         request.user.is_staff
         or request.user.is_superuser
-        or request.user.rol == "Admin"
+        or request.user.rol == "Administrador"
     )
 
     # Query base
@@ -679,7 +679,7 @@ def panel_tareas(request):
     is_admin = (
         request.user.is_staff
         or request.user.is_superuser
-        or request.user.rol == "Admin"
+        or request.user.rol == "Administrador"
     )
 
     # Obtener tareas según el rol
@@ -724,7 +724,7 @@ def filtrar_tareas(request):
         is_admin = (
             request.user.is_staff
             or request.user.is_superuser
-            or request.user.rol == "Admin"
+            or request.user.rol == "Administrador"
         )
 
         # Obtener tareas según el rol
@@ -778,7 +778,7 @@ def lista_tareas_programadas(request):
     is_admin = (
         request.user.is_staff
         or request.user.is_superuser
-        or request.user.rol == "Admin"
+        or request.user.rol == "Administrador"
     )
 
     # Query base según permisos
