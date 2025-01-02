@@ -119,7 +119,7 @@ def index(request):
             ),
             # En Progreso
             (
-                tareas.filter(estado="En progreso")
+                tareas.filter(estado="En Progreso")
                 .aggregate(
                     promedio=Avg(
                         ExpressionWrapper(
@@ -224,7 +224,7 @@ def tareas_programadas(request):
     estadisticas = {
         "total": tareas.count(),
         "completadas": tareas.filter(estado="Completada").count(),
-        "en_progreso": tareas.filter(estado="En progreso").count(),
+        "en_progreso": tareas.filter(estado="En Progreso").count(),
         "pendientes": tareas.filter(estado="Pendiente").count(),
     }
 
@@ -559,7 +559,7 @@ def tareas_programadas(request):
     estadisticas = {
         "total": tareas.count(),
         "completadas": tareas.filter(estado="Completada").count(),
-        "en_progreso": tareas.filter(estado="En progreso").count(),
+        "en_progreso": tareas.filter(estado="En Progreso").count(),
         "fallidas": tareas.filter(estado="Fallida").count(),
     }
 
