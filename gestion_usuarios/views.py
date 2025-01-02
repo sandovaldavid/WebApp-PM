@@ -10,8 +10,12 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
+@login_required
 def lista_usuarios(request):
     usuarios = Usuario.objects.all()
+    for usuario in usuarios:
+        if usuario.last_login is None:
+            usuario.last_login = "No ha iniciado sesión"
     return render(
         request, "gestion_usuarios/lista_usuarios.html", {"usuarios": usuarios}
     )

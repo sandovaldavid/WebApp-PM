@@ -4,7 +4,7 @@ from .views import verificar_rol_administrador
 
 app_name = 'dashboard'
 urlpatterns = [
-    path('', verificar_rol_administrador(views.dashboard), name='index'),
+    path('', views.dashboard, name='index'),
     path('api/requerimientos/<int:proyecto_id>/', views.api_requerimientos, name='api_requerimientos'),
     path('api/tareas/<int:requerimiento_id>/', views.api_tareas, name='api_tareas'),
 ]

@@ -49,6 +49,14 @@
                     <label for="tarifahora" class="block text-gray-700">Tarifa por Hora</label>
                     <input type="number" id="tarifahora" name="tarifahora" class="w-full p-2 border rounded" required>
                 </div>
+                <div class="mb-4">
+                    <label for="usuario" class="block text-gray-700">Usuario</label>
+                    <select id="usuario" name="usuario" class="w-full p-2 border rounded">
+                        {% for usuario in usuarios_no_asignados %}
+                        <option value="{{ usuario.idusuario }}">{{ usuario.nombreusuario }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             `;
         } else if (tipoRecursoId == 2) { // Recurso Material
             camposAdicionales.innerHTML = `

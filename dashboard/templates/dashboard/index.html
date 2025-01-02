@@ -38,9 +38,8 @@ Proyect Management
                             ></div>
                         </div>
                         <span class="text-sm text-gray-600"
-                            >{{ proyecto.porcentaje_progreso|floatformat:2
-                            }}%</span
-                        >
+                            >{{ proyecto.porcentaje_progreso}}%
+                        </span>
                     </div>
                 </li>
                 {% endfor %}
@@ -55,25 +54,41 @@ Proyect Management
             <canvas id="taskChart" width="400" height="200"></canvas>
         </div>
 
+        <!-- Distribución de Recursos -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-chart-pie"></i> Distribución de Recursos
+            </h2>
+            <canvas id="resourceChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Resumen Financiero -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">
+                <i class="fas fa-dollar-sign"></i> Resumen Financiero
+            </h2>
+            <div>
+                <p>Presupuesto Total: {{ resumen_financiero.presupuesto_total }}</p>
+                <p>Presupuesto Utilizado: {{ resumen_financiero.presupuesto_utilizado }}</p>
+                <p>Presupuesto Restante: {{ resumen_financiero.presupuesto_restante }}</p>
+            </div>
+        </div>
+
         <!-- Accesos Directos -->
         <div class="bg-white p-6 rounded-lg shadow-lg">
             <h2 class="text-xl font-semibold mb-4">
                 <i class="fas fa-link"></i> Accesos Directos
             </h2>
             <div class="space-y-2">
-                <button class="w-full py-2 px-4 bg-blue-500 text-white rounded">
+                <a href="{% url 'gestion_proyectos:crear_proyecto' %}" class="w-full py-2 px-4 bg-blue-500 text-white rounded block text-center">
                     <i class="fas fa-plus"></i> Crear Proyecto
-                </button>
-                <button
-                    class="w-full py-2 px-4 bg-green-500 text-white rounded"
-                >
+                </a>
+                <a href="{% url 'gestion_tareas:crear_tarea' %}" class="w-full py-2 px-4 bg-green-500 text-white rounded block text-center">
                     <i class="fas fa-tasks"></i> Crear Tarea
-                </button>
-                <button
-                    class="w-full py-2 px-4 bg-yellow-500 text-white rounded"
-                >
+                </a>
+                <a href="{% url 'gestionRecursos:lista_recursos' %}" class="w-full py-2 px-4 bg-yellow-500 text-white rounded block text-center">
                     <i class="fas fa-users"></i> Gestionar Recursos
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -81,6 +96,9 @@ Proyect Management
 {% endblock %} {% block script %}
 <script type="application/json" id="task-data">
     {{ tareas_estadisticas|safe }}
+</script>
+<script type="application/json" id="resource-data">
+    {{ recursos_estadisticas|safe }}
 </script>
 
 <script type="text/javascript">
@@ -114,6 +132,34 @@ Proyect Management
                         beginAtZero: true,
                     },
                 },
+            },
+        });
+
+        // Obtener los datos del script JSON para recursos
+        const resourceDataElement = document.getElementById("resource-data");
+        const resourceData = JSON.parse(resourceDataElement.textContent);
+
+        // Gráfico de recursos
+        const ctxResource = document.getElementById("resourceChart").getContext("2d");
+        const resourceChart = new Chart(ctxResource, {
+            type: "pie",
+            data: {
+                labels: ["Desarrolladores", "Testers", "Administradores", "Clientes"],
+                datasets: [
+                    {
+                        label: "Recursos",
+                        data: [
+                            resourceData.desarrolladores,
+                            resourceData.testers,
+                            resourceData.administradores,
+                            resourceData.clientes,
+                        ],
+                        backgroundColor: ["#3498db", "#2ecc71", "#e74c3c", "#f1c40f"],
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
             },
         });
     });

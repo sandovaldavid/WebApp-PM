@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from dashboard.models import Recurso, Tiporecurso, Recursohumano, Recursomaterial, Proyecto, Requerimiento, Tarea, Tarearecurso
+from dashboard.models import Recurso, Tiporecurso, Recursohumano, Recursomaterial, Proyecto, Requerimiento, Tarea, Tarearecurso, Usuario
 from django.db import transaction
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def lista_recursos(request):
     recursos = Recurso.objects.all()
     recursos_con_costos = []
@@ -24,6 +26,7 @@ def lista_recursos(request):
     proyectos = Proyecto.objects.all()
     return render(request, 'gestion_recursos/lista_recursos.html', {'recursos_con_costos': recursos_con_costos, 'proyectos': proyectos})
 
+@login_required
 def crear_recurso(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
@@ -31,7 +34,12 @@ def crear_recurso(request):
         tipo = Tiporecurso.objects.get(pk=id_tipo)
         
         with transaction.atomic():
+            # Obtener el último idrecurso y asignar el siguiente valor disponible
+            ultimo_recurso = Recurso.objects.order_by('-idrecurso').first()
+            nuevo_idrecurso = (ultimo_recurso.idrecurso + 1) if ultimo_recurso else 1
+            
             recurso = Recurso.objects.create(
+                idrecurso=nuevo_idrecurso,
                 nombrerecurso=nombre,
                 idtiporecurso=tipo.idtiporecurso,
                 disponibilidad=True,
@@ -42,12 +50,14 @@ def crear_recurso(request):
                 cargo = request.POST.get('cargo')
                 habilidades = request.POST.get('habilidades')
                 tarifahora = request.POST.get('tarifahora')
+                id_usuario = request.POST.get('usuario')
+                usuario = Usuario.objects.get(pk=id_usuario)
                 Recursohumano.objects.create(
                     idrecurso=recurso,
                     cargo=cargo,
                     habilidades=habilidades,
                     tarifahora=tarifahora,
-                    idusuario=request.user.idusuario if request.user.is_authenticated else None  # Asignar el usuario actual si está autenticado
+                    idusuario=usuario
                 )
             elif (tipo.idtiporecurso == 2):  # Recurso Material
                 costounidad = request.POST.get('costounidad')
@@ -59,9 +69,12 @@ def crear_recurso(request):
                 )
         
         return redirect('gestionRecursos:lista_recursos')
+    
     tipos = Tiporecurso.objects.all()
-    return render(request, 'gestion_recursos/crear_recurso.html', {'tipos': tipos})
+    usuarios_no_asignados = Usuario.objects.filter(recursohumano__isnull=True)
+    return render(request, 'gestion_recursos/crear_recurso.html', {'tipos': tipos, 'usuarios_no_asignados': usuarios_no_asignados})
 
+@login_required
 def editar_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
     if request.method == 'POST':
@@ -86,11 +99,13 @@ def editar_recurso(request, id):
     tipos = Tiporecurso.objects.all()
     return render(request, 'gestion_recursos/editar_recurso.html', {'recurso': recurso, 'tipos': tipos})
 
+@login_required
 def eliminar_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
     recurso.delete()
     return redirect('gestionRecursos:lista_recursos')
 
+@login_required
 def asignar_recurso(request):
     if request.method == 'POST':
         recurso_id = request.POST.get('recurso')
