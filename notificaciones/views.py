@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Count
+from django.db.models import Count, FloatField, Case, When, F
 from django.core.paginator import Paginator
 from dashboard.models import (
     Notificacion,
@@ -826,61 +826,66 @@ def estadisticas_notificaciones(request):
 def estadisticas_alertas(request):
     """Vista para mostrar estadísticas de alertas según el rol del usuario"""
     try:
-        # Determinar si el usuario es admin
-        is_admin = request.user.is_staff or request.user.rol == "Administrador"
+        # Determinar si el usuario es admin o superuser
+        is_admin = (
+            request.user.is_staff
+            or request.user.is_superuser
+            or request.user.rol == "Administrador"
+        )
 
         # Obtener fechas del filtro
         fecha_fin = request.GET.get("fecha_fin")
         fecha_inicio = request.GET.get("fecha_inicio")
 
-        if fecha_fin:
+        # Si no hay fechas, usar últimos 30 días por defecto
+        if not fecha_fin:
+            fecha_fin = timezone.now()
+        else:
             fecha_fin = timezone.datetime.strptime(fecha_fin, "%Y-%m-%d")
             fecha_fin = timezone.make_aware(fecha_fin)
-        else:
-            fecha_fin = timezone.now()
 
-        if fecha_inicio:
+        if not fecha_inicio:
+            fecha_inicio = fecha_fin - timedelta(days=30)
+        else:
             fecha_inicio = timezone.datetime.strptime(fecha_inicio, "%Y-%m-%d")
             fecha_inicio = timezone.make_aware(fecha_inicio)
-        else:
-            fecha_inicio = fecha_fin - timedelta(days=30)
 
-        # Calcular período anterior
-        periodo_anterior_inicio = fecha_inicio - timedelta(days=30)
-        periodo_anterior_fin = fecha_fin - timedelta(days=30)
-
-        # Query base según el rol
+        # Query base según el rol del usuario
         if is_admin:
+            base_query = Alerta.objects.all()
+        else:
             base_query = Alerta.objects.filter(
+                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
+                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+                )
+            )
+
+        # Aplicar filtros de fecha si existen
+        if fecha_inicio and fecha_fin:
+            filtered_query = base_query.filter(
                 fechacreacion__range=[fecha_inicio, fecha_fin]
             )
-            query_anterior = Alerta.objects.filter(
+            # Período anterior para comparación
+            periodo_anterior_inicio = fecha_inicio - timedelta(days=30)
+            periodo_anterior_fin = fecha_fin - timedelta(days=30)
+            query_anterior = base_query.filter(
                 fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin]
             )
         else:
-            base_query = Alerta.objects.filter(
-                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
-                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
-                ),
-                fechacreacion__range=[fecha_inicio, fecha_fin],
-            )
-            query_anterior = Alerta.objects.filter(
-                idtarea__idrequerimiento__idproyecto__in=Proyecto.objects.filter(
-                    idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
-                ),
-                fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin],
-            )
+            filtered_query = base_query
+            query_anterior = base_query.filter(fechacreacion__lt=fecha_inicio)
 
-        # Calcular totales
-        total = base_query.count()
-        activas = base_query.filter(activa=True).count()
-        resueltas = base_query.filter(activa=False).count()
+        # Calcular estadísticas generales
+        total = filtered_query.count()
+        activas = filtered_query.filter(activa=True).count()
+        resueltas = filtered_query.filter(activa=False).count()
 
-        # Totales período anterior
+        # Estadísticas del período anterior
         total_anterior = query_anterior.count()
         activas_anterior = query_anterior.filter(activa=True).count()
         resueltas_anterior = query_anterior.filter(activa=False).count()
 
+        # Calcular porcentajes de cambio
         def calcular_porcentaje_cambio(actual, anterior):
             if anterior == 0:
                 return 100 if actual > 0 else 0
@@ -894,40 +899,45 @@ def estadisticas_alertas(request):
 
         # Estadísticas por tipo de alerta
         por_tipo = list(
-            base_query.values("tipoalerta")
-            .annotate(total=Count("idalerta"))
+            filtered_query.values("tipoalerta")
+            .annotate(
+                total=Count("idalerta"),
+                porcentaje=Case(
+                    When(total__gt=0, then=100.0 * F("total") / filtered_query.count()),
+                    default=0.0,
+                    output_field=FloatField(),
+                ),
+            )
             .order_by("-total")
         )
-
-        # Calcular porcentajes por tipo
-        total_tipo = sum(item["total"] for item in por_tipo)
-        for item in por_tipo:
-            item["porcentaje"] = (
-                (item["total"] / total_tipo * 100) if total_tipo > 0 else 0
-            )
 
         # Estadísticas por tarea
         por_tarea = list(
-            base_query.values("idtarea__nombretarea", "idtarea__estado")
+            filtered_query.values("idtarea__nombretarea", "idtarea__estado")
             .annotate(total=Count("idalerta"))
             .order_by("-total")
         )
 
-        # Estadísticas por proyecto (solo admin)
+        # Estadísticas por proyecto (solo para admin)
         por_proyecto = []
         if is_admin:
             por_proyecto = list(
-                base_query.values(
+                filtered_query.values(
                     "idtarea__idrequerimiento__idproyecto__nombreproyecto"
                 )
-                .annotate(total=Count("idalerta"))
+                .annotate(
+                    total=Count("idalerta"),
+                    porcentaje=Case(
+                        When(
+                            total__gt=0,
+                            then=100.0 * F("total") / filtered_query.count(),
+                        ),
+                        default=0.0,
+                        output_field=FloatField(),
+                    ),
+                )
                 .order_by("-total")
             )
-            total_proyecto = sum(item["total"] for item in por_proyecto)
-            for item in por_proyecto:
-                item["porcentaje"] = (
-                    (item["total"] / total_proyecto * 100) if total_proyecto > 0 else 0
-                )
 
         context = {
             "total": total,
@@ -936,7 +946,7 @@ def estadisticas_alertas(request):
             "porcentaje_cambio": porcentaje_cambio,
             "por_tipo": por_tipo,
             "por_tarea": por_tarea,
-            "por_proyecto": por_proyecto if is_admin else [],
+            "por_proyecto": por_proyecto,
             "fecha_inicio": fecha_inicio,
             "fecha_fin": fecha_fin,
             "is_admin": is_admin,
