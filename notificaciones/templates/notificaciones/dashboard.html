@@ -43,24 +43,23 @@
             </div>
         </div>
     </div>
-
     <!-- Botones de Acción -->
     <div class="flex gap-4 mb-8">
         <a href="{% url 'notificaciones:crear_notificacion' %}" 
-           class="bg-blue-500 text-white px-6 py-2 rounded-lg flex items-center hover:bg-blue-600 transition">
-            <i class="fas fa-plus mr-2"></i> Nueva Notificación
+        class="bg-blue-500 text-white px-6 py-2 rounded-lg flex items-center hover:bg-blue-600 transition">
+            <i class="fas fa-bell-plus mr-2"></i> Nueva Notificación
         </a>
         <a href="{% url 'notificaciones:crear_alerta' %}" 
-           class="bg-red-500 text-white px-6 py-2 rounded-lg flex items-center hover:bg-red-600 transition">
-            <i class="fas fa-exclamation-circle mr-2"></i> Nueva Alerta
+        class="bg-red-500 text-white px-6 py-2 rounded-lg flex items-center hover:bg-red-600 transition">
+            <i class="fas fa-shield-exclamation mr-2"></i> Nueva Alerta
         </a>
         <a href="{% url 'notificaciones:estadisticas_notificaciones' %}" 
-           class="bg-red-500 text-white px-6 py-2 rounded-lg flex items-center hover:bg-red-600 transition">
-            <i class="fas fa-exclamation-circle mr-2"></i> Estadisticas Notificaciones
+        class="bg-green-500 text-white px-6 py-2 rounded-lg flex items-center hover:bg-green-600 transition">
+            <i class="fas fa-chart-line mr-2"></i> Estadísticas Notificaciones
         </a>
         <a href="{% url 'notificaciones:estadisticas_alertas' %}" 
-           class="bg-red-500 text-white px-6 py-2 rounded-lg flex items-center hover:bg-red-600 transition">
-            <i class="fas fa-exclamation-circle mr-2"></i> Estadisticas Alertas
+        class="bg-purple-500 text-white px-6 py-2 rounded-lg flex items-center hover:bg-purple-600 transition">
+            <i class="fas fa-chart-bar mr-2"></i> Estadísticas Alertas
         </a>
     </div>
 
