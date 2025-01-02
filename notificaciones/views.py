@@ -677,71 +677,86 @@ def estadisticas_notificaciones(request):
         # Determinar si el usuario es admin
         is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
+        # Obtener fechas del filtro
         fecha_fin = request.GET.get("fecha_fin")
         fecha_inicio = request.GET.get("fecha_inicio")
 
-        if fecha_fin:
+        # Query base según el rol del usuario
+        if is_admin:
+            base_query = Notificacion.objects.all()
+            query_anterior = None
+        else:
+            base_query = Notificacion.objects.filter(idusuario=request.user)
+            query_anterior = None
+
+        # Si hay filtros de fecha, aplicarlos
+        if fecha_fin and fecha_inicio:
             fecha_fin = timezone.datetime.strptime(fecha_fin, "%Y-%m-%d")
             fecha_fin = timezone.make_aware(fecha_fin)
-        else:
-            fecha_fin = timezone.now()
-
-        if fecha_inicio:
             fecha_inicio = timezone.datetime.strptime(fecha_inicio, "%Y-%m-%d")
             fecha_inicio = timezone.make_aware(fecha_inicio)
-        else:
-            fecha_inicio = fecha_fin - timedelta(days=30)
 
-        # Calcular período anterior
-        periodo_anterior_inicio = fecha_inicio - timedelta(days=30)
-        periodo_anterior_fin = fecha_fin - timedelta(days=30)
+            # Calcular período anterior para comparación
+            periodo_anterior_inicio = fecha_inicio - timedelta(days=30)
+            periodo_anterior_fin = fecha_fin - timedelta(days=30)
 
-        # Query base según el rol
-        if is_admin:
-            print("Es admin")
-            base_query = Notificacion.objects.filter(
+            # Aplicar filtro de fechas
+            if is_admin:
+                query_anterior = Notificacion.objects.filter(
+                    fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin]
+                )
+            else:
+                query_anterior = Notificacion.objects.filter(
+                    idusuario=request.user,
+                    fechacreacion__range=[
+                        periodo_anterior_inicio,
+                        periodo_anterior_fin,
+                    ],
+                )
+
+            base_query = base_query.filter(
                 fechacreacion__range=[fecha_inicio, fecha_fin]
             )
-            query_anterior = Notificacion.objects.filter(
-                fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin]
-            )
-        else:
-            base_query = Notificacion.objects.filter(
-                idusuario=request.user, fechacreacion__range=[fecha_inicio, fecha_fin]
-            )
-            query_anterior = Notificacion.objects.filter(
-                idusuario=request.user,
-                fechacreacion__range=[periodo_anterior_inicio, periodo_anterior_fin],
-            )
 
-        # Calcular totales
+        # Calcular estadísticas
         total = base_query.count()
         no_leidas = base_query.filter(leido=False).count()
         leidas = base_query.filter(leido=True).count()
         archivadas = base_query.filter(archivada=True).count()
         no_archivadas = base_query.filter(archivada=False).count()
 
-        # Totales período anterior
-        total_anterior = query_anterior.count()
-        no_leidas_anterior = query_anterior.filter(leido=False).count()
-        leidas_anterior = query_anterior.filter(leido=True).count()
-        archivadas_anterior = query_anterior.filter(archivada=True).count()
-        no_archivadas_anterior = query_anterior.filter(archivada=False).count()
+        # Calcular porcentajes de cambio si hay período anterior
+        if query_anterior:
+            total_anterior = query_anterior.count()
+            no_leidas_anterior = query_anterior.filter(leido=False).count()
+            leidas_anterior = query_anterior.filter(leido=True).count()
+            archivadas_anterior = query_anterior.filter(archivada=True).count()
+            no_archivadas_anterior = query_anterior.filter(archivada=False).count()
 
-        def calcular_porcentaje_cambio(actual, anterior):
-            if anterior == 0:
-                return 100 if actual > 0 else 0
-            return ((actual - anterior) / anterior) * 100
+            def calcular_porcentaje_cambio(actual, anterior):
+                if anterior == 0:
+                    return 100 if actual > 0 else 0
+                return ((actual - anterior) / anterior) * 100
 
-        porcentaje_cambio = {
-            "total": calcular_porcentaje_cambio(total, total_anterior),
-            "no_leidas": calcular_porcentaje_cambio(no_leidas, no_leidas_anterior),
-            "leidas": calcular_porcentaje_cambio(leidas, leidas_anterior),
-            "archivadas": calcular_porcentaje_cambio(archivadas, archivadas_anterior),
-            "no_archivadas": calcular_porcentaje_cambio(
-                no_archivadas, no_archivadas_anterior
-            ),
-        }
+            porcentaje_cambio = {
+                "total": calcular_porcentaje_cambio(total, total_anterior),
+                "no_leidas": calcular_porcentaje_cambio(no_leidas, no_leidas_anterior),
+                "leidas": calcular_porcentaje_cambio(leidas, leidas_anterior),
+                "archivadas": calcular_porcentaje_cambio(
+                    archivadas, archivadas_anterior
+                ),
+                "no_archivadas": calcular_porcentaje_cambio(
+                    no_archivadas, no_archivadas_anterior
+                ),
+            }
+        else:
+            porcentaje_cambio = {
+                "total": 0,
+                "no_leidas": 0,
+                "leidas": 0,
+                "archivadas": 0,
+                "no_archivadas": 0,
+            }
 
         # Estadísticas por prioridad
         por_prioridad = list(
@@ -795,8 +810,8 @@ def estadisticas_notificaciones(request):
             "por_prioridad": por_prioridad,
             "por_categoria": por_categoria,
             "por_usuario": por_usuario if is_admin else [],
-            "fecha_inicio": fecha_inicio,
-            "fecha_fin": fecha_fin,
+            "fecha_inicio": fecha_inicio if fecha_inicio else None,
+            "fecha_fin": fecha_fin if fecha_fin else None,
             "is_admin": is_admin,
         }
 
