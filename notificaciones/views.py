@@ -435,7 +435,7 @@ def filtrar_notificaciones(request):
     """Vista para filtrar notificaciones"""
     prioridad = request.GET.get("prioridad", "todas")
 
-    is_admin = request.user.is_staff or request.user.rol == "Admin"
+    is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
     if is_admin:
         notificaciones = Notificacion.objects.all().order_by("-fechacreacion")
@@ -464,7 +464,7 @@ def archivar_notificacion(request, id):
         try:
             # Primero intentamos obtener la notificación solo por ID
             notificacion = get_object_or_404(Notificacion, idnotificacion=id)
-            is_admin = request.user.is_staff or request.user.rol == "Admin"
+            is_admin = request.user.is_staff or request.user.rol == "Administrador"
             # Verificar si el usuario tiene permiso para archivar esta notificación
             if (
                 notificacion.idusuario == request.user
@@ -510,41 +510,41 @@ def notificaciones_archivadas(request):
 
 
 # @login_required
-def estadisticas_notificaciones(request):
-    """
-    Vista para mostrar estadísticas de notificaciones
-    """
-    total_notificaciones = Notificacion.objects.filter(idusuario=request.user).count()
-    no_leidas = Notificacion.objects.filter(idusuario=request.user, leido=False).count()
-    archivadas = Notificacion.objects.filter(
-        idusuario=request.user, archivada=True
-    ).count()
+# def estadisticas_notificaciones(request):
+#     """
+#     Vista para mostrar estadísticas de notificaciones
+#     """
+#     total_notificaciones = Notificacion.objects.filter(idusuario=request.user).count()
+#     no_leidas = Notificacion.objects.filter(idusuario=request.user, leido=False).count()
+#     archivadas = Notificacion.objects.filter(
+#         idusuario=request.user, archivada=True
+#     ).count()
 
-    # Estadísticas por prioridad
-    por_prioridad = (
-        Notificacion.objects.filter(idusuario=request.user)
-        .values("prioridad")
-        .annotate(total=Count("idnotificacion"))
-    )
+#     # Estadísticas por prioridad
+#     por_prioridad = (
+#         Notificacion.objects.filter(idusuario=request.user)
+#         .values("prioridad")
+#         .annotate(total=Count("idnotificacion"))
+#     )
 
-    # Estadísticas por categoría
-    por_categoria = (
-        Notificacion.objects.filter(idusuario=request.user)
-        .values("categoria")
-        .annotate(total=Count("idnotificacion"))
-    )
+#     # Estadísticas por categoría
+#     por_categoria = (
+#         Notificacion.objects.filter(idusuario=request.user)
+#         .values("categoria")
+#         .annotate(total=Count("idnotificacion"))
+#     )
 
-    return render(
-        request,
-        "notificaciones/estadisticas.html",
-        {
-            "total": total_notificaciones,
-            "no_leidas": no_leidas,
-            "archivadas": archivadas,
-            "por_prioridad": por_prioridad,
-            "por_categoria": por_categoria,
-        },
-    )
+#     return render(
+#         request,
+#         "notificaciones/estadisticas.html",
+#         {
+#             "total": total_notificaciones,
+#             "no_leidas": no_leidas,
+#             "archivadas": archivadas,
+#             "por_prioridad": por_prioridad,
+#             "por_categoria": por_categoria,
+#         },
+#     )
 
 
 @login_required
@@ -557,7 +557,7 @@ def eliminar_notificacion(request, id):
         try:
             # Obtener la notificación o devolver 404
             notificacion = get_object_or_404(Notificacion, idnotificacion=id)
-            is_admin = request.user.is_staff or request.user.rol == "Admin"
+            is_admin = request.user.is_staff or request.user.rol == "Administrador"
             # Verificar que el usuario sea el propietario o admin
             if (
                 notificacion.idusuario == request.user
@@ -610,7 +610,7 @@ def detalle_alerta(request, id):
     """
     # Obtener la alerta o devolver 404
     alerta = get_object_or_404(Alerta, idalerta=id)
-    is_admin = request.user.is_staff or request.user.rol == "Admin"
+    is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
     # La tarea está relacionada con un requerimiento que pertenece a un proyecto
     tarea = alerta.idtarea
@@ -642,7 +642,7 @@ def detalle_alerta(request, id):
 @login_required
 def lista_alertas(request):
     """Vista para listar todas las alertas"""
-    is_admin = request.user.is_staff or request.user.rol == "Admin"
+    is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
     # Filtrar alertas según permisos
     if is_admin:
@@ -675,7 +675,7 @@ def estadisticas_notificaciones(request):
     """Vista para mostrar estadísticas de notificaciones según el rol del usuario"""
     try:
         # Determinar si el usuario es admin
-        is_admin = request.user.is_staff or request.user.rol == "Admin"
+        is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
         fecha_fin = request.GET.get("fecha_fin")
         fecha_inicio = request.GET.get("fecha_inicio")
@@ -698,6 +698,7 @@ def estadisticas_notificaciones(request):
 
         # Query base según el rol
         if is_admin:
+            print("Es admin")
             base_query = Notificacion.objects.filter(
                 fechacreacion__range=[fecha_inicio, fecha_fin]
             )
@@ -811,7 +812,7 @@ def estadisticas_alertas(request):
     """Vista para mostrar estadísticas de alertas según el rol del usuario"""
     try:
         # Determinar si el usuario es admin
-        is_admin = request.user.is_staff or request.user.rol == "Admin"
+        is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
         # Obtener fechas del filtro
         fecha_fin = request.GET.get("fecha_fin")
@@ -940,7 +941,7 @@ def filtrar_alertas(request):
     page = request.GET.get("page", 1)
 
     # Determinar si el usuario es admin
-    is_admin = request.user.is_staff or request.user.rol == "Admin"
+    is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
     # Query base según permisos
     if is_admin:
