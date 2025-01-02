@@ -3,27 +3,46 @@
 {% block title %}Recuperar Contraseña{% endblock %}
 
 {% block body %}
-<h2>Recuperar Contraseña</h2>
-{% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-{% endif %}
-{% if mensaje %}
-    <div class="alert alert-success">{{ mensaje }}</div>
-{% endif %}
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label for="contrasena">Nueva Contraseña</label>
-        <input type="password" class="form-control" id="contrasena" name="contrasena" required>
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Recuperar Contraseña</h2>
+        </div>
+        {% if error %}
+            <div class="rounded-md p-4 bg-red-50 text-red-700">{{ error }}</div>
+        {% endif %}
+        {% if mensaje %}
+            <div class="rounded-md p-4 bg-green-50 text-green-700">{{ mensaje }}</div>
+        {% endif %}
+        <form class="mt-8 space-y-6" method="post">
+            {% csrf_token %}
+            <div>
+                <label for="contrasena" class="block text-sm font-medium text-gray-700">Nueva Contraseña</label>
+                <div class="mt-1">
+                    <input id="contrasena" name="contrasena" type="password" required
+                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Ingrese su nueva contraseña">
+                </div>
+            </div>
+            <div>
+                <label for="repetirContrasena" class="block text-sm font-medium text-gray-700">Repetir Nueva Contraseña</label>
+                <div class="mt-1">
+                    <input id="repetirContrasena" name="repetirContrasena" type="password" required
+                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Repita su nueva contraseña">
+                </div>
+            </div>
+            <div>
+                <button type="submit"
+                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Recuperar
+                </button>
+            </div>
+        </form>
+        <div class="text-center mt-4">
+            <a href="{% url 'usuarios:login' %}" class="font-medium text-blue-600 hover:text-blue-500">Iniciar sesión</a>
+            <a href="{% url 'usuarios:register' %}" class="font-medium text-blue-600 hover:text-blue-500">Crear cuenta</a>
+        </div>
     </div>
-    <div class="form-group">
-        <label for="repetirContrasena">Repetir Nueva Contraseña</label>
-        <input type="password" class="form-control" id="repetirContrasena" name="repetirContrasena" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Recuperar</button>
-</form>
-<div class="links">
-    <a href="{% url 'usuarios:login' %}">Iniciar sesión</a>
-    <a href="{% url 'usuarios:register' %}">Crear cuenta</a>
 </div>
 {% endblock %}

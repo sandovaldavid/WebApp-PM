@@ -1,16 +1,19 @@
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Cuenta Creada</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-5">
-        <div class="alert alert-success">
-            Cuenta creada. Por favor revisa tu correo para confirmar tu cuenta.
+{% extends "usuarios/base.html" %}
+
+{% block title %}Cuenta Creada{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Cuenta Creada</h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Tu cuenta ha sido creada exitosamente.
+            </p>
         </div>
-        <a href="{% url 'login' %}" class="btn btn-primary">Iniciar Sesión</a>
+        <div class="text-center mt-4">
+            <a href="{% url 'usuarios:login' %}" class="font-medium text-blue-600 hover:text-blue-500">Iniciar sesión</a>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

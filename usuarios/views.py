@@ -4,9 +4,12 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.http import JsonResponse
 from django.db import transaction
-from dashboard.models import Usuario
+from dashboard.models import Usuario, Administrador, Jefeproyecto, Cliente, Tester, Desarrollador
 import uuid
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_protect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 # Configuración de Mailtrap en settings.py
 settings.EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -86,7 +89,22 @@ def crear_cuenta(request):
                     confirmado=False,
                     fechacreacion=timezone.now(),
                     fechamodificacion=timezone.now(),
+                    username=nombre_usuario,  # Llenar campo username
+                    password=make_password(contrasena)  # Llenar campo password
                 )
+
+                # Insertar en la tabla correspondiente según el rol
+                
+                if rol == "Administrador":
+                    Administrador.objects.create(idusuario=usuario)
+                elif rol == "Jefe de Proyecto":
+                    Jefeproyecto.objects.create(idusuario=usuario)
+                elif rol == "Cliente":
+                    Cliente.objects.create(idusuario=usuario)
+                elif rol == "Tester":
+                    Tester.objects.create(idusuario=usuario)
+                elif rol == "Desarrollador":
+                    Desarrollador.objects.create(idusuario=usuario)
 
                 # Enviar correo de confirmación
                 enviar_correo_confirmacion(email, token)
@@ -134,6 +152,8 @@ def confirmar_cuenta(request, token):
         )
 
 
+# Vista para iniciar sesión
+@csrf_protect
 def login(request):
     if request.user.is_authenticated:
         return redirect("dashboard:index")
@@ -169,10 +189,17 @@ def login(request):
 
                 auth_login(request, usuario)
 
+                # Actualizar el campo last_login
+                usuario.last_login = timezone.now()
+                usuario.save()
+
                 # Guardar información adicional en la sesión
                 request.session["usuario_id"] = usuario.idusuario
                 request.session["usuario_nombre"] = usuario.nombreusuario
                 request.session["usuario_rol"] = usuario.rol
+
+                # Redireccionar al dashboard después del login exitoso
+                messages.success(request, f"¡Bienvenido {usuario.nombreusuario}!")
 
                 return redirect("dashboard:index")
             else:
@@ -192,8 +219,10 @@ def login(request):
 
 
 # Vista para cerrar sesión
+@login_required
 def logout(request):
     request.session.flush()  # Eliminar todas las variables de sesión
+    messages.success(request, "Has cerrado sesión correctamente")
     return redirect("usuarios:login")
 
 
@@ -238,6 +267,7 @@ def recuperar(request, token):
         try:
             usuario = Usuario.objects.get(token=token)
             usuario.contrasena = make_password(contrasena)
+            usuario.password=make_password(contrasena)
             usuario.token = None  # Limpiar token después de la recuperación
             usuario.save()
             return render(
