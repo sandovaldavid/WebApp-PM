@@ -31,15 +31,15 @@
 
             <!-- Menú de Acciones -->
             <div class="flex space-x-2">
-                <button title="Ver Detalles" 
-                        onclick="verDetallesMiembro({{ miembro.idmiembro }})"
-                        class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors">
+                <a href="{% url 'gestion_equipos:detalle_miembro' miembro.idmiembro %}"
+                class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors"
+                title="Ver Detalles">
                     <i class="fas fa-eye"></i>
-                </button>
+                </a>
                 <form method="POST" 
-                      action="{% url 'gestion_equipos:eliminar_miembro' miembro.idmiembro %}"
-                      class="inline"
-                      onsubmit="return confirm('¿Está seguro de eliminar este miembro del equipo?');">
+                    action="{% url 'gestion_equipos:eliminar_miembro' miembro.idmiembro %}"
+                    class="inline"
+                    onsubmit="return confirm('¿Está seguro de eliminar este miembro del equipo?');">
                     {% csrf_token %}
                     <button type="submit" 
                             class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
