@@ -24,19 +24,21 @@ from weasyprint import HTML
 def index(request):
     """Vista principal de reportes"""
     try:
-        # Convierte las fechas a datetime
-        fecha_inicio = datetime.strptime(
-            request.GET.get(
-                "fecha_inicio",
-                (timezone.now() - timedelta(days=30)).strftime("%Y-%m-%d"),
-            ),
-            "%Y-%m-%d",
-        )
-        fecha_fin = datetime.strptime(
-            request.GET.get("fecha_fin", timezone.now().strftime("%Y-%m-%d")),
-            "%Y-%m-%d",
-        )
-        
+        # Establecer fechas por defecto (últimos 30 días)
+        fecha_fin = timezone.now()
+        fecha_inicio = fecha_fin - timedelta(days=30)
+
+        # Si hay fechas en la request, usarlas
+        if request.GET.get("fecha_inicio") or request.GET.get("fecha_fin"):
+            fecha_inicio = datetime.strptime(
+                request.GET.get("fecha_inicio", fecha_inicio.strftime("%Y-%m-%d")),
+                "%Y-%m-%d",
+            )
+            fecha_fin = datetime.strptime(
+                request.GET.get("fecha_fin", fecha_fin.strftime("%Y-%m-%d")),
+                "%Y-%m-%d",
+            )
+
         # Ajusta las fechas para incluir todo el día
         fecha_inicio = timezone.make_aware(
             datetime.combine(fecha_inicio, datetime.min.time())
@@ -49,6 +51,10 @@ def index(request):
         tipo_reporte = request.GET.get("tipo_reporte", "general")
 
         tareas = Tarea.objects.all()
+
+        # Aplicar filtros siempre (para tener por defecto los últimos 30 días)
+        tareas = tareas.filter(fechacreacion__gte=fecha_inicio)
+        tareas = tareas.filter(fechacreacion__lte=fecha_fin)
 
         # Aplicar filtros de manera eficiente
         if fecha_inicio:
