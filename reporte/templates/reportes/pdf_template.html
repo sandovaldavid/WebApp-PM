@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Reporte de Tareas</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .statistics {
+        margin-bottom: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 8px;
+        border: 1px solid #ddd;
+      }
+      th {
+        background-color: #f5f5f5;
+      }
+      .footer {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Reporte de Tareas</h1>
+      <p>Fecha de generación: {{ fecha_generacion|date:'d/m/Y H:i' }}</p>
+    </div>
+
+    <div class="statistics">
+      <h2>Resumen Estadístico</h2>
+      <p>Total de Tareas: {{ estadisticas.total_tareas }}</p>
+      <p>Tareas Completadas: {{ estadisticas.tareas_completadas }}</p>
+      <p>Total de Horas: {{ estadisticas.total_horas }}</p>
+      <p>Costo Total: ${{ estadisticas.costo_total }}</p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tarea</th>
+          <th>Proyecto</th>
+          <th>Estado</th>
+          <th>Duración</th>
+          <th>Costo</th>
+          <th>Fecha Inicio</th>
+          <th>Fecha Fin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tarea in tareas %}
+          <tr>
+            <td>{{ tarea.nombretarea }}</td>
+            <td>{{ tarea.idrequerimiento.idproyecto.nombreproyecto }}</td>
+            <td>{{ tarea.estado }}</td>
+            <td>{{ tarea.duracionactual|default:'0' }}</td>
+            <td>${{ tarea.costoactual|default:'0' }}</td>
+            <td>{{ tarea.fechainicio|date:'d/m/Y'|default:'-' }}</td>
+            <td>{{ tarea.fechafin|date:'d/m/Y'|default:'-' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="footer">
+      <p>Filtros aplicados:</p>
+      {% if filtros.proyecto %}
+        <p>Proyecto: {{ filtros.proyecto }}</p>
+      {% endif %}
+      {% if filtros.fecha_inicio %}
+        <p>Desde: {{ filtros.fecha_inicio }}</p>
+      {% endif %}
+      {% if filtros.fecha_fin %}
+        <p>Hasta: {{ filtros.fecha_fin }}</p>
+      {% endif %}
+    </div>
+  </body>
+</html>
