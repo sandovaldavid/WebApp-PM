@@ -24,11 +24,11 @@
                 aria-expanded="false"
                 aria-haspopup="true">
             <!-- Avatar -->
-            <img class="h-8 w-8 rounded-full object-cover" 
+            <img class="h-8 w-8 rounded-full object-cover bg-white" 
                     src="{% if user.imagen_perfil %}{{ user.imagen_perfil.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
                     alt="{{ user.nombreusuario }}">
             <!-- Nombre de usuario -->
-            <span class="hidden md:block text-sm font-medium text-gray-700">
+            <span class="hidden md:block text-sm font-medium text-white">
                 {{ user.nombreusuario }}
             </span>
             <!-- Icono de flecha -->
