@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from dashboard.models import Equipo, Miembro, Recurso, Tiporecurso
+from dashboard.models import Equipo, Miembro, Recurso, Tiporecurso, Proyecto
 from django.db.models import Prefetch, Count, Q
 from django.utils import timezone
 
@@ -48,7 +48,7 @@ def index(request):
     except EmptyPage:
         equipos_paginados = paginator.page(paginator.num_pages)
 
-    # Estadísticas
+    # Estadísticas optimizadas con anotaciones y agregaciones
     estadisticas = {
         "total_equipos": Equipo.objects.count(),
         "miembros_activos": Miembro.objects.filter(
@@ -56,11 +56,16 @@ def index(request):
         )
         .distinct()
         .count(),
-        "equipos_con_proyectos": Equipo.objects.filter(proyecto__isnull=False)
-        .distinct()
+        "equipos_con_proyectos": Equipo.objects.annotate(
+            num_proyectos=Count("proyecto", distinct=True)
+        )
+        .filter(num_proyectos__gt=0)
         .count(),
+        "total_recursos_asignados": Miembro.objects.select_related("idrecurso").count(),
+        "proyectos_activos": Proyecto.objects.filter(estado="En Progreso").count(),
     }
 
+    # Añade los datos al contexto
     context = {
         "equipos": equipos_paginados,
         "vista": vista,
@@ -162,9 +167,6 @@ def gestionar_miembros(request, equipo_id):
     """Vista para gestionar los miembros de un equipo"""
     equipo = get_object_or_404(Equipo, idequipo=equipo_id)
 
-    # Obtener los tipos de recursos
-    tipos_recurso = Tiporecurso.objects.all()
-
     # Query base con relaciones necesarias
     miembros = equipo.miembro_set.select_related(
         "idrecurso",
@@ -172,6 +174,21 @@ def gestionar_miembros(request, equipo_id):
         "idrecurso__recursohumano",
         "idrecurso__recursomaterial",
     )
+
+    # Obtener todos los tipos de recursos
+    tipos_recurso = Tiporecurso.objects.all()
+
+    # Calcular estadísticas dinámicamente por cada tipo de recurso
+    estadisticas = {
+        "total_miembros": miembros.count(),
+    }
+
+    # Agregar conteo para cada tipo de recurso
+    for tipo in tipos_recurso:
+        key = f"recursos_{tipo.nametiporecurso.lower().replace(' ', '_')}"
+        estadisticas[key] = miembros.filter(
+            idrecurso__idtiporecurso=tipo.idtiporecurso
+        ).count()
 
     # Aplicar filtros
     tipo = request.GET.get("tipo", "todos")
@@ -186,9 +203,10 @@ def gestionar_miembros(request, equipo_id):
     context = {
         "equipo": equipo,
         "miembros": miembros,
-        "tipos_recurso": tipos_recurso,  # Agregar tipos de recurso al contexto
+        "tipos_recurso": tipos_recurso,
         "vista": request.GET.get("vista", "grid"),
         "filtros": {"tipo": tipo, "busqueda": busqueda},
+        "estadisticas": estadisticas,
     }
 
     return render(request, "gestion_equipos/gestionar_miembros.html", context)
@@ -349,6 +367,8 @@ def crear_miembro(request, equipo_id):
         "equipo": equipo,
         "tipos_recurso": Tiporecurso.objects.all(),
         "recursos_disponibles": Recurso.objects.filter(miembro__isnull=True),
+        "total_miembros": equipo.miembro_set.count(),
+        "proyectos_activos": equipo.proyecto_set.filter(estado="En Progreso").count(),
     }
 
     return render(request, "gestion_equipos/crear_miembro.html", context)
