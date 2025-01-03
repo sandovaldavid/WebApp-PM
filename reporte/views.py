@@ -392,7 +392,7 @@ def exportar_pdf(request):
         filtros = json.loads(request.POST.get("filtros", "{}"))
 
         # Aplicar filtros a la consulta
-        tareas = Tarea.objects.select_related("idrequerimiento__idproyecto")
+        tareas = Tarea.objects.select_related("idrequerimiento__idproyecto").all()
 
         if filtros.get("proyecto"):
             tareas = tareas.filter(idrequerimiento__idproyecto_id=filtros["proyecto"])
@@ -401,12 +401,27 @@ def exportar_pdf(request):
         if filtros.get("fecha_fin"):
             tareas = tareas.filter(fechacreacion__lte=filtros["fecha_fin"])
 
-        # Calcular estadísticas
+        # Definir campo decimal con parámetros específicos
+        decimal_field = models.DecimalField(max_digits=10, decimal_places=2)
+
+        # Calcular estadísticas con manejo de valores nulos y tipo de campo consistente
         estadisticas = {
             "total_tareas": tareas.count(),
             "tareas_completadas": tareas.filter(estado="Completada").count(),
-            "total_horas": sum(t.duracionactual or 0 for t in tareas),
-            "costo_total": sum(t.costoactual or 0 for t in tareas),
+            "total_horas": tareas.aggregate(
+                total=Coalesce(
+                    Sum("duracionactual", output_field=decimal_field),
+                    0.0,
+                    output_field=decimal_field,
+                )
+            )["total"],
+            "costo_total": tareas.aggregate(
+                total=Coalesce(
+                    Sum("costoactual", output_field=decimal_field),
+                    0.0,
+                    output_field=decimal_field,
+                )
+            )["total"],
         }
 
         # Renderizar template HTML
@@ -421,7 +436,7 @@ def exportar_pdf(request):
         )
 
         # Crear PDF
-        pdf = HTML(string=html).write_pdf()
+        pdf = HTML(string=html, base_url=request.build_absolute_uri()).write_pdf()
 
         # Crear response
         response = HttpResponse(pdf, content_type="application/pdf")
@@ -430,6 +445,7 @@ def exportar_pdf(request):
         return response
 
     except Exception as e:
+        print(f"Error al exportar PDF: {str(e)}")  # Para debugging
         return JsonResponse({"error": f"Error al exportar PDF: {str(e)}"}, status=500)
 
 
