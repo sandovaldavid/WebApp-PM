@@ -1,4 +1,5 @@
 {% extends 'layout.html' %}
+{% load custom_filters %}
 
 {% block title %}Gestionar Miembros - {{ equipo.nombreequipo }}{% endblock %}
 
@@ -38,13 +39,13 @@
         </div>
 
         <!-- Estadísticas Rápidas -->
-        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-gray-200">
+        <div class="p-6 grid grid-cols-1 md:grid-cols-{{ tipos_recurso.count|add:1 }} gap-6 border-b border-gray-200">
             <!-- Total Miembros -->
             <div class="bg-blue-50 p-4 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-blue-600">Total Miembros</p>
-                        <h4 class="text-xl font-bold text-blue-900">{{ equipo.miembro_set.count }}</h4>
+                        <h4 class="text-xl font-bold text-blue-900">{{ estadisticas.total_miembros }}</h4>
                     </div>
                     <div class="bg-blue-100 p-3 rounded-full">
                         <i class="fas fa-users text-blue-500"></i>
@@ -52,37 +53,27 @@
                 </div>
             </div>
 
-            <!-- Recursos Humanos -->
-            <div class="bg-green-50 p-4 rounded-lg">
+            <!-- Estadísticas por tipo de recurso -->
+            {% for tipo in tipos_recurso %}
+            <div class="bg-{{ forloop.counter|divisibleby:2|yesno:'green,yellow' }}-50 p-4 rounded-lg">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-green-600">Recursos Humanos</p>
-                        <h4 class="text-xl font-bold text-green-900">
-                            {{ miembros.recursos_humanos }}
+                        <p class="text-sm text-{{ forloop.counter|divisibleby:2|yesno:'green,yellow' }}-600">
+                            {{ tipo.nametiporecurso }}
+                        </p>
+                        <h4 class="text-xl font-bold text-{{ forloop.counter|divisibleby:2|yesno:'green,yellow' }}-900">
+                            {% with recurso_key="recursos_"|add:tipo.nametiporecurso|lower|replace:" "|replace:"_" %}
+                                {{ estadisticas|get_item:recurso_key }}
+                            {% endwith %}
                         </h4>
                     </div>
-                    <div class="bg-green-100 p-3 rounded-full">
-                        <i class="fas fa-user text-green-500"></i>
+                    <div class="bg-{{ forloop.counter|divisibleby:2|yesno:'green,yellow' }}-100 p-3 rounded-full">
+                        <i class="fas fa-{% if tipo.nametiporecurso == 'Humano' %}user{% else %}cube{% endif %} text-{{ forloop.counter|divisibleby:2|yesno:'green,yellow' }}-500"></i>
                     </div>
                 </div>
             </div>
-
-            <!-- Recursos Materiales -->
-            <div class="bg-yellow-50 p-4 rounded-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-yellow-600">Recursos Materiales</p>
-                        <h4 class="text-xl font-bold text-yellow-900">
-                            {{ miembros.recursos_materiales }}
-                        </h4>
-                    </div>
-                    <div class="bg-yellow-100 p-3 rounded-full">
-                        <i class="fas fa-cube text-yellow-500"></i>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
-    </div>
 
     <!-- Mensajes del Sistema -->
     {% if messages %}
