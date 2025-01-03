@@ -16,11 +16,11 @@
         <div class="flex flex-col sm:flex-row gap-4">
             <!-- Selector de Vista -->
             <div class="flex bg-gray-100 rounded-lg p-1">
-                <a href="{% url 'gestion_equipos:lista_miembros' equipo.idequipo %}?vista=grid{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+                <a href="{% url 'gestion_equipos:gestionar_miembros' equipo.idequipo %}?vista=grid{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
                    class="px-3 py-1 rounded-md {% if vista == 'grid' %}bg-blue-500 text-white{% else %}text-gray-600 hover:bg-gray-200{% endif %} transition-colors">
                     <i class="fas fa-grid-2 mr-1"></i> Tarjetas
                 </a>
-                <a href="{% url 'gestion_equipos:lista_miembros' equipo.idequipo %}?vista=list{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+                <a href="{% url 'gestion_equipos:gestionar_miembros' equipo.idequipo %}?vista=list{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
                    class="px-3 py-1 rounded-md {% if vista == 'list' %}bg-blue-500 text-white{% else %}text-gray-600 hover:bg-gray-200{% endif %} transition-colors">
                     <i class="fas fa-list mr-1"></i> Lista
                 </a>
