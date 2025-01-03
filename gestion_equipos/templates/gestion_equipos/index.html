@@ -1,5 +1,108 @@
-{%extends 'layout.html'%}
+{% extends 'layout.html' %}
+
+{% block title %}Gestión de Equipos{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center justify-between">
+    <div class="flex items-center">
+        <i class="fas fa-users-gear text-blue-500 mr-2"></i>
+        <span>Gestión de Equipos</span>
+    </div>
+    <a href="{% url 'gestion_equipos:crear_equipo' %}" 
+       class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+        <i class="fas fa-plus mr-2"></i>
+        Nuevo Equipo
+    </a>
+</div>
+{% endblock %}
 
 {% block body %}
-<h1>Gestión de Equipos</h1>
+<div class="p-8 space-y-8">
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Total Equipos -->
+        <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-blue-600">Total Equipos</p>
+                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total_equipos }}</h3>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-users text-blue-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Miembros Activos -->
+        <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-green-600">Miembros Activos</p>
+                    <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.miembros_activos }}</h3>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-user-check text-green-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Equipos con Proyectos -->
+        <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-purple-600">Equipos con Proyectos</p>
+                    <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.equipos_con_proyectos }}</h3>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-project-diagram text-purple-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="flex flex-wrap gap-4">
+        <a href="{% url 'gestion_equipos:crear_equipo' %}" 
+           class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+            <i class="fas fa-plus mr-2"></i>
+            Crear Equipo
+        </a>
+        <a href="#" 
+           class="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+            <i class="fas fa-file-import mr-2"></i>
+            Importar Equipos
+        </a>
+        <a href="#" 
+           class="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
+            <i class="fas fa-file-export mr-2"></i>
+            Exportar Equipos
+        </a>
+    </div>
+
+    <!-- Lista de Equipos -->
+    {% include 'components/lista_equipos.html' %}
+
+    <!-- Paginación -->
+    {% if equipos.has_other_pages %}
+    <div class="flex justify-center space-x-2 mt-6">
+        {% if equipos.has_previous %}
+        <a href="?page={{ equipos.previous_page_number }}{% if vista %}&vista={{ vista }}{% endif %}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}" 
+           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+        {% endif %}
+
+        <span class="px-4 py-2 bg-blue-500 text-white rounded-lg">
+            {{ equipos.number }}
+        </span>
+
+        {% if equipos.has_next %}
+        <a href="?page={{ equipos.next_page_number }}{% if vista %}&vista={{ vista }}{% endif %}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}" 
+           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+            <i class="fas fa-chevron-right"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
