@@ -1,0 +1,120 @@
+{% load static %}
+
+<div
+    class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+>
+    <!-- Cabecera del Card -->
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex justify-between items-start">
+            <!-- Información del Equipo -->
+            <div>
+                <h3 class="text-xl font-semibold text-gray-900">
+                    {{ equipo.nombreequipo }}
+                </h3>
+                <p class="text-sm text-gray-500">
+                    Creado: {{ equipo.fechacreacion|date:"d/m/Y" }}
+                </p>
+            </div>
+
+            <!-- Menú de Acciones -->
+            <div class="flex space-x-2">
+                <a
+                    href="{% url 'gestion_equipos:gestionar_miembros' equipo.idequipo %}"
+                    class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors"
+                    title="Gestionar Miembros"
+                >
+                    <i class="fas fa-users"></i>
+                </a>
+                <a
+                    href="{% url 'gestion_equipos:editar_equipo' equipo.idequipo %}"
+                    class="text-yellow-600 hover:text-yellow-800 p-2 rounded-full hover:bg-yellow-50 transition-colors"
+                    title="Editar Equipo"
+                >
+                    <i class="fas fa-edit"></i>
+                </a>
+                <form
+                    method="POST"
+                    action="{% url 'gestion_equipos:eliminar_equipo' equipo.idequipo %}"
+                    class="inline"
+                    onsubmit="return confirm('¿Está seguro de eliminar este equipo?');"
+                >
+                    {% csrf_token %}
+                    <button
+                        type="submit"
+                        class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
+                        title="Eliminar Equipo"
+                    >
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cuerpo del Card -->
+    <div class="p-6 space-y-4">
+        <!-- Descripción -->
+        <div>
+            <p class="text-gray-600">
+                {{ equipo.descripcion|default:"Sin
+                descripción"|truncatechars:150 }}
+            </p>
+        </div>
+
+        <!-- Miembros del Equipo -->
+        <div>
+            <h4 class="text-sm font-medium text-gray-700 mb-2">
+                Miembros del Equipo
+            </h4>
+            <div class="flex flex-wrap gap-2">
+                {% for miembro in equipo.miembro_set.all|slice:":5" %}
+                <div
+                    class="flex items-center bg-gray-100 rounded-full px-3 py-1 text-sm"
+                >
+                    <i
+                        class="fas {% if miembro.idrecurso.idtiporecurso == 1 %}fa-user{% else %}fa-cube{% endif %} text-gray-500 mr-2"
+                    ></i>
+                    <span>{{ miembro.idrecurso.nombrerecurso }}</span>
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-500">No hay miembros asignados</p>
+                {% endfor %} {% if equipo.miembro_set.count > 5 %}
+                <div
+                    class="flex items-center bg-gray-100 rounded-full px-3 py-1 text-sm"
+                >
+                    <span>+{{ equipo.miembro_set.count|add:"-5" }} más</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+            <!-- Proyectos Asignados -->
+            <div class="text-center">
+                <p class="text-sm text-gray-600">Proyectos</p>
+                <p class="text-xl font-semibold text-blue-600">
+                    {{ equipo.proyecto_set.count }}
+                </p>
+            </div>
+            <!-- Total Miembros -->
+            <div class="text-center">
+                <p class="text-sm text-gray-600">Miembros</p>
+                <p class="text-xl font-semibold text-green-600">
+                    {{ equipo.miembro_set.count }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        <a
+            href="{% url 'gestion_equipos:detalle_equipo' equipo.idequipo %}"
+            class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center justify-center"
+        >
+            <span>Ver Detalles</span>
+            <i class="fas fa-chevron-right ml-2"></i>
+        </a>
+    </div>
+</div>
