@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from dashboard.models import Equipo, Miembro, Recurso
+from dashboard.models import Equipo, Miembro, Recurso, Tiporecurso
 from django.db.models import Prefetch, Count, Q
 from django.utils import timezone
 
@@ -159,20 +159,48 @@ def editar_equipo(request, equipo_id):
 
 @login_required
 def gestionar_miembros(request, equipo_id):
+    """Vista para gestionar los miembros de un equipo"""
     equipo = get_object_or_404(Equipo, idequipo=equipo_id)
-    recursos_disponibles = Recurso.objects.filter(miembro__isnull=True)
 
-    if request.method == "POST":
-        recurso_id = request.POST.get("recurso")
-        Miembro.objects.create(idrecurso_id=recurso_id, idequipo=equipo)
-        messages.success(request, "Miembro agregado al equipo")
-        return redirect("gestion_equipos:gestionar_miembros", equipo_id=equipo_id)
+    # Optimizar queries con select_related
+    miembros_queryset = equipo.miembro_set.select_related(
+        "idrecurso", "idrecurso__recursohumano", "idrecurso__recursomaterial"
+    ).all()
+
+    # Procesar las habilidades para cada miembro
+    for miembro in miembros_queryset:
+        if (
+            hasattr(miembro.idrecurso, "recursohumano")
+            and miembro.idrecurso.recursohumano
+        ):
+            habilidades = getattr(miembro.idrecurso.recursohumano, "habilidades", "")
+            miembro.idrecurso.habilidades_lista = (
+                [h.strip() for h in habilidades.split(",")] if habilidades else []
+            )
+        else:
+            miembro.idrecurso.habilidades_lista = []
+
+    # Calcular estadísticas
+    estadisticas = {
+        "recursos_humanos": sum(
+            1 for m in miembros_queryset if m.idrecurso.idtiporecurso_id == 1
+        ),
+        "recursos_materiales": sum(
+            1 for m in miembros_queryset if m.idrecurso.idtiporecurso_id == 2
+        ),
+    }
 
     context = {
         "equipo": equipo,
-        "recursos_disponibles": recursos_disponibles,
-        "miembros_actuales": equipo.miembro_set.all(),
+        "miembros": miembros_queryset,
+        "estadisticas": estadisticas,
+        "vista": request.GET.get("vista", "grid"),
+        "filtros": {
+            "tipo": request.GET.get("tipo", "todos"),
+            "busqueda": request.GET.get("busqueda", ""),
+        },
     }
+
     return render(request, "gestion_equipos/gestionar_miembros.html", context)
 
 
@@ -294,3 +322,140 @@ def detalle_equipo(request, equipo_id):
     }
 
     return render(request, "gestion_equipos/detalle_equipo.html", context)
+
+
+@login_required
+def crear_miembro(request, equipo_id):
+    """Vista para agregar un nuevo miembro al equipo"""
+    equipo = get_object_or_404(Equipo, idequipo=equipo_id)
+
+    if request.method == "POST":
+        try:
+            tipo_recurso = request.POST.get("tipo_recurso")
+            recurso_id = request.POST.get("recurso")
+
+            # Validaciones
+            if not recurso_id:
+                messages.error(request, "Debe seleccionar un recurso")
+                return redirect("gestion_equipos:crear_miembro", equipo_id=equipo_id)
+
+            # Verificar que el recurso no esté ya asignado
+            if Miembro.objects.filter(idrecurso_id=recurso_id).exists():
+                messages.error(request, "Este recurso ya está asignado a un equipo")
+                return redirect("gestion_equipos:crear_miembro", equipo_id=equipo_id)
+
+            # Crear miembro
+            miembro = Miembro.objects.create(idequipo=equipo, idrecurso_id=recurso_id)
+
+            messages.success(request, "Miembro agregado exitosamente")
+            return redirect("gestion_equipos:gestionar_miembros", equipo_id=equipo_id)
+
+        except Exception as e:
+            messages.error(request, f"Error al agregar miembro: {str(e)}")
+            return redirect("gestion_equipos:crear_miembro", equipo_id=equipo_id)
+
+    # GET: Mostrar formulario
+    context = {
+        "equipo": equipo,
+        "tipos_recurso": Tiporecurso.objects.all(),
+        "recursos_disponibles": Recurso.objects.filter(miembro__isnull=True),
+    }
+
+    return render(request, "gestion_equipos/crear_miembro.html", context)
+
+
+@login_required
+def agregar_miembro(request, equipo_id):
+    """Vista para agregar un nuevo miembro al equipo"""
+    equipo = get_object_or_404(Equipo, idequipo=equipo_id)
+
+    if request.method == "POST":
+        try:
+            tipo_recurso = request.POST.get("tipo_recurso")
+            recurso_id = request.POST.get("recurso")
+
+            # Validaciones
+            if not recurso_id:
+                messages.error(request, "Debe seleccionar un recurso")
+                return redirect("gestion_equipos:agregar_miembro", equipo_id=equipo_id)
+
+            # Verificar que el recurso no esté ya asignado
+            if Miembro.objects.filter(idrecurso_id=recurso_id).exists():
+                messages.error(request, "Este recurso ya está asignado a un equipo")
+                return redirect("gestion_equipos:agregar_miembro", equipo_id=equipo_id)
+
+            # Obtener el recurso
+            recurso = get_object_or_404(Recurso, idrecurso=recurso_id)
+
+            # Verificar que el tipo de recurso coincida
+            if (
+                tipo_recurso
+                and str(recurso.idtiporecurso.idtiporecurso) != tipo_recurso
+            ):
+                messages.error(request, "El tipo de recurso seleccionado no coincide")
+                return redirect("gestion_equipos:agregar_miembro", equipo_id=equipo_id)
+
+            # Crear miembro
+            miembro = Miembro.objects.create(idequipo=equipo, idrecurso=recurso)
+
+            # Actualizar disponibilidad del recurso
+            recurso.disponibilidad = False
+            recurso.fechamodificacion = timezone.now()
+            recurso.save()
+
+            messages.success(
+                request, f"Se agregó '{recurso.nombrerecurso}' al equipo exitosamente"
+            )
+            return redirect("gestion_equipos:gestionar_miembros", equipo_id=equipo_id)
+
+        except Recurso.DoesNotExist:
+            messages.error(request, "El recurso seleccionado no existe")
+            return redirect("gestion_equipos:agregar_miembro", equipo_id=equipo_id)
+        except Exception as e:
+            messages.error(request, f"Error al agregar miembro: {str(e)}")
+            return redirect("gestion_equipos:agregar_miembro", equipo_id=equipo_id)
+
+    # GET: Mostrar formulario
+    tipos_recurso = Tiporecurso.objects.all()
+    recursos_disponibles = (
+        Recurso.objects.filter(disponibilidad=True)
+        .select_related("idtiporecurso", "recursohumano", "recursomaterial")
+        .exclude(miembro__isnull=False)
+    )
+
+    context = {
+        "equipo": equipo,
+        "tipos_recurso": tipos_recurso,
+        "recursos_disponibles": recursos_disponibles,
+        "total_miembros": equipo.miembro_set.count(),
+        "proyectos_activos": equipo.proyecto_set.filter(estado="En Progreso").count(),
+    }
+
+    return render(request, "gestion_equipos/agregar_miembro.html", context)
+
+
+@login_required
+def eliminar_miembro(request, miembro_id):
+    """Vista para eliminar un miembro del equipo"""
+    if request.method == "POST":
+        try:
+            miembro = get_object_or_404(Miembro, idmiembro=miembro_id)
+            equipo_id = miembro.idequipo.idequipo
+
+            # Actualizar disponibilidad del recurso
+            recurso = miembro.idrecurso
+            recurso.disponibilidad = True
+            recurso.fechamodificacion = timezone.now()
+            recurso.save()
+
+            # Eliminar miembro
+            miembro.delete()
+
+            messages.success(request, "Miembro eliminado exitosamente")
+            return redirect("gestion_equipos:gestionar_miembros", equipo_id=equipo_id)
+
+        except Exception as e:
+            messages.error(request, f"Error al eliminar miembro: {str(e)}")
+            return redirect("gestion_equipos:index")
+
+    return redirect("gestion_equipos:index")
