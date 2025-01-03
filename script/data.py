@@ -116,9 +116,26 @@ Proyecto.objects.create(
     fechamodificacion="2023-12-01T08:30:00Z",
 )
 
+# Primero crear los tipos de recurso
+tipo_humano = Tiporecurso.objects.create(
+    nametiporecurso="Recurso Humano",
+    descripcion="Recursos humanos asignados a proyectos y tareas.",
+)
+
+tipo_software = Tiporecurso.objects.create(
+    nametiporecurso="Software",
+    descripcion="Licencias y herramientas de software utilizadas en proyectos.",
+)
+
+tipo_hardware = Tiporecurso.objects.create(
+    nametiporecurso="Hardware",
+    descripcion="Equipos y dispositivos físicos utilizados en proyectos.",
+)
+
+# Luego crear los recursos usando las instancias de Tiporecurso
 Recurso.objects.create(
-    nombrerecurso=" Programador Web",
-    idtiporecurso=1,
+    nombrerecurso="Programador Web",
+    idtiporecurso=tipo_humano,  # Usar la instancia en lugar del ID
     disponibilidad=True,
     fechacreacion="2023-02-15T11:00:00Z",
     fechamodificacion="2023-02-15T11:00:00Z",
@@ -126,7 +143,7 @@ Recurso.objects.create(
 
 Recurso.objects.create(
     nombrerecurso="Laptop de Desarrollo",
-    idtiporecurso=2,
+    idtiporecurso=tipo_hardware,  # Usar la instancia en lugar del ID
     disponibilidad=True,
     fechacreacion="2023-05-10T09:30:00Z",
     fechamodificacion="2023-05-10T09:30:00Z",
@@ -134,7 +151,7 @@ Recurso.objects.create(
 
 Recurso.objects.create(
     nombrerecurso="Licencia de Software",
-    idtiporecurso=3,
+    idtiporecurso=tipo_software,  # Usar la instancia en lugar del ID
     disponibilidad=False,
     fechacreacion="2023-07-20T15:45:00Z",
     fechamodificacion="2023-07-20T15:45:00Z",

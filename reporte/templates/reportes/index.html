@@ -1,4 +1,5 @@
 {% extends 'layout_reportes.html' %}
+{% load reporte_filters %} 
 
 {% block title %}Gestión de Reportes{% endblock %}
 
@@ -118,38 +119,40 @@
         </div>
     </div>
 
-    <!-- Gráficos -->
+    <!-- Contenido según tipo de reporte -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Progreso por Proyecto -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4">Progreso por Proyecto</h3>
-            {% include "reportes/components/grafico_progreso.html" %}
-        </div>
+        {% if filtros.tipo_reporte == 'general' or not filtros.tipo_reporte %}
+            <!-- Progreso por Proyecto -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-semibold mb-4">Progreso por Proyecto</h3>
+                {% include "components/grafico_progreso.html" with datos=datos_generales %}
+            </div>
 
-        <!-- Distribución de Recursos -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4">Distribución de Recursos</h3>
-            {% include "reportes/components/grafico_recursos.html" %}
-        </div>
-
-        <!-- Historial de Tareas -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4">Historial de Tareas</h3>
-            {% include "reportes/components/historial_tareas.html" %}
-        </div>
-
-        <!-- Costos y Presupuestos -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4">Costos y Presupuestos</h3>
-            {% include "reportes/components/grafico_costos.html" %}
-        </div>
+            <!-- Historial de Tareas -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-semibold mb-4">Historial de Tareas</h3>
+                {% include "components/historial_tareas.html" with historial=historial %}
+            </div>
+        {% elif filtros.tipo_reporte == 'recursos' %}
+            <!-- Distribución de Recursos -->
+            <div class="bg-white p-6 rounded-lg shadow-lg col-span-2">
+                <h3 class="text-lg font-semibold mb-4">Distribución de Recursos</h3>
+                {% include "components/grafico_recurso.html" with datos=datos_recursos %}
+            </div>
+        {% elif filtros.tipo_reporte == 'costos' %}
+            <!-- Costos y Presupuestos -->
+            <div class="bg-white p-6 rounded-lg shadow-lg col-span-2">
+                <h3 class="text-lg font-semibold mb-4">Costos y Presupuestos</h3>
+                {% include "components/grafico_costos.html" with datos=datos_costos %}
+            </div>
+        {% endif %}
     </div>
 
     <!-- Acciones de Exportación -->
     <div class="flex justify-end space-x-4">
         <form method="POST" action="{% url 'reportes:exportar_csv' %}">
             {% csrf_token %}
-            <input type="hidden" name="filtros" value="{{ filtros|json }}">
+            <input type="hidden" name="filtros" value="{{ filtros|to_json }}">
             <button type="submit" 
                     class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center">
                 <i class="fas fa-file-csv mr-2"></i>
@@ -159,7 +162,7 @@
 
         <form method="POST" action="{% url 'reportes:exportar_pdf' %}">
             {% csrf_token %}
-            <input type="hidden" name="filtros" value="{{ filtros|json }}">
+            <input type="hidden" name="filtros" value="{{ filtros|to_json }}">
             <button type="submit" 
                     class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center">
                 <i class="fas fa-file-pdf mr-2"></i>

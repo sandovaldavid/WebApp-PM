@@ -1,97 +1,97 @@
-<div class="relative">
-    <!-- Canvas para el gráfico -->
-    <canvas id="graficoCostos" class="w-full h-64"></canvas>
-</div>
+{% load static %}
 
-<!-- Script para inicializar el gráfico -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('graficoCostos').getContext('2d');
-    
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: {{ datos_costos.labels|safe }},
-            datasets: [
-                {
-                    label: 'Costo Estimado',
-                    data: {{ datos_costos.estimado|safe }},
-                    borderColor: '#F59E0B',
-                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true
-                },
-                {
-                    label: 'Costo Real',
-                    data: {{ datos_costos.actual|safe }},
-                    borderColor: '#10B981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Costos vs Presupuesto',
-                    font: {
-                        size: 16
-                    }
-                },
-                legend: {
-                    position: 'bottom'
-                },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': $';
-                            }
-                            if (context.parsed.y !== null) {
-                                label += context.parsed.y.toFixed(2);
-                            }
-                            return label;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Período'
-                    },
-                    grid: {
-                        display: false
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Monto ($)'
-                    },
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value.toFixed(2);
-                        }
-                    }
-                }
-            },
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            }
-        }
-    });
-});
-</script>
+<div class="bg-white p-6 rounded-lg shadow-lg">
+    <!-- Encabezado -->
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold">Análisis de Costos</h3>
+        <div class="text-sm text-gray-500">
+            Período: {{ datos_costos.periodo }}
+        </div>
+    </div>
+
+    <!-- Resumen de Costos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-yellow-50 p-4 rounded-lg">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-yellow-600">Costo Estimado Total</p>
+                    <p class="text-2xl font-bold text-yellow-900">${{ datos_costos.total_estimado|floatformat:2 }}</p>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-calculator text-yellow-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-green-50 p-4 rounded-lg">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm text-green-600">Costo Real Total</p>
+                    <p class="text-2xl font-bold text-green-900">${{ datos_costos.total_actual|floatformat:2 }}</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-dollar-sign text-green-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Costos por Período -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Período</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estimado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Real</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variación</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for periodo in datos_costos.periodos %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ periodo.fecha }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${{ periodo.estimado|floatformat:2 }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${{ periodo.actual|floatformat:2 }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full
+                            {% if periodo.variacion > 0 %}
+                                bg-red-100 text-red-800
+                            {% elif periodo.variacion < 0 %}
+                                bg-green-100 text-green-800
+                            {% else %}
+                                bg-gray-100 text-gray-800
+                            {% endif %}">
+                            {{ periodo.variacion|floatformat:1 }}%
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Indicadores de Rendimiento -->
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 border rounded-lg">
+            <p class="text-sm text-gray-500">Variación Total</p>
+            <p class="text-lg font-semibold {% if datos_costos.variacion_total > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+                {{ datos_costos.variacion_total|floatformat:1 }}%
+            </p>
+        </div>
+        <div class="p-4 border rounded-lg">
+            <p class="text-sm text-gray-500">Presupuesto Utilizado</p>
+            <p class="text-lg font-semibold">{{ datos_costos.porcentaje_utilizado|floatformat:1 }}%</p>
+        </div>
+        <div class="p-4 border rounded-lg">
+            <p class="text-sm text-gray-500">Eficiencia de Costos</p>
+            <p class="text-lg font-semibold">{{ datos_costos.indice_eficiencia|floatformat:2 }}</p>
+        </div>
+    </div>
+</div>
