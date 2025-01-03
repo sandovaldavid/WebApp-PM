@@ -63,7 +63,7 @@
             <div class="border-t border-gray-100 my-1"></div>
 
             <!-- Cerrar Sesión -->
-            <form method="POST" action="{% url 'gestionUsuarios:logout' %}">
+            <form method="POST" action="{% url 'usuarios:logout' %}">
                 {% csrf_token %}
                 <button type="submit" 
                         class="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
