@@ -449,3 +449,24 @@ def eliminar_miembro(request, miembro_id):
             return redirect("gestion_equipos:index")
 
     return redirect("gestion_equipos:index")
+
+
+@login_required
+def detalle_miembro(request, miembro_id):
+    """Vista para mostrar el detalle de un miembro"""
+    miembro = get_object_or_404(
+        Miembro.objects.select_related(
+            "idrecurso",
+            "idrecurso__idtiporecurso",
+            "idrecurso__recursohumano",
+            "idrecurso__recursomaterial",
+            "idequipo",
+        ).prefetch_related(
+            "idrecurso__tarearecurso_set__idtarea__idrequerimiento__idproyecto"
+        ),
+        idmiembro=miembro_id,
+    )
+
+    context = {"miembro": miembro}
+
+    return render(request, "gestion_equipos/detalle_miembro.html", context)
