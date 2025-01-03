@@ -24,17 +24,56 @@
         <span>Gestión de Proyectos</span>
     </a>
 
-    <!-- Gestión de Tareas -->
-    <a href="{% url 'gestion_tareas:index' %}"
-       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
-              {% if request.resolver_match.app_name == 'gestion_tareas' %}
-              bg-gray-900 text-white
-              {% else %}
-              text-gray-300 hover:bg-gray-700 hover:text-white
-              {% endif %}">
-        <i class="fas fa-tasks mr-3 text-lg"></i>
-        <span>Gestión de Tareas</span>
-    </a>
+    <!-- Gestión de Tareas Dropdown -->
+    <div x-data="{ open: false }" class="relative">
+        <!-- Dropdown Button -->
+        <button @click="open = !open"
+                class="w-full group flex items-center justify-between px-3 py-3.5 rounded-lg transition-colors duration-200
+                       {% if 'gestion_tareas' in request.resolver_match.app_name %}
+                       bg-gray-900 text-white
+                       {% else %}
+                       text-white hover:bg-blue-500
+                       {% endif %}">
+            <div class="flex items-center text-lg">
+                <i class="fas fa-tasks mr-3 text-lg"></i>
+                <span>Gestión de Tareas</span>
+            </div>
+            <i class="fas fa-chevron-down transition-transform duration-200"
+               :class="{ 'transform rotate-180': open }"></i>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div x-show="open"
+             x-transition:enter="transition ease-out duration-100"
+             x-transition:enter-start="transform opacity-0 scale-95"
+             x-transition:enter-end="transform opacity-100 scale-100"
+             class="pl-6 mt-1 space-y-1">
+            
+            <!-- Tareas -->
+            <a href="{% url 'gestion_tareas:index' %}"
+               class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200
+                      {% if request.resolver_match.url_name == 'tareas' %}
+                      bg-gray-900 text-white
+                      {% else %}
+                      text-gray-300 hover:bg-gray-700 hover:text-white
+                      {% endif %}">
+                <i class="fas fa-list-check mr-3 text-lg"></i>
+                <span>Tareas</span>
+            </a>
+
+            <!-- Tareas Programadas -->
+            <a href="{% url 'gestion_tareas:tareas_programadas' %}"
+               class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200
+                      {% if request.resolver_match.url_name == 'tareas_programadas' %}
+                      bg-gray-900 text-white
+                      {% else %}
+                      text-gray-300 hover:bg-gray-700 hover:text-white
+                      {% endif %}">
+                <i class="fas fa-calendar-check mr-3 text-lg"></i>
+                <span>Tareas Programadas</span>
+            </a>
+        </div>
+    </div>
 
     <!-- Gestión de Equipos -->
     <a href="{% url 'gestion_equipos:index' %}"
