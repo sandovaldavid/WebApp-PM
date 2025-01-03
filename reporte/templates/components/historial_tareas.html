@@ -1,45 +1,85 @@
-<div class="space-y-4">
-    <!-- Filtros inline -->
-    <div class="flex gap-4 mb-4">
-        <select id="filtro-tipo" 
-                class="text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                hx-get="{% url 'reportes:filtrar_historial' %}"
-                hx-target="#lista-historial"
-                hx-trigger="change">
-            <option value="todos">Todos los cambios</option>
-            <option value="estado">Cambios de estado</option>
-            <option value="asignacion">Asignaciones</option>
-            <option value="recursos">Cambios de recursos</option>
-        </select>
+{% load static %}
+<div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <!-- Encabezado -->
+    <div class="p-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold flex items-center">
+            <i class="fas fa-history text-blue-500 mr-2"></i>
+            Historial de Cambios
+        </h3>
+    </div>
+
+    <!-- Filtros -->
+    <div class="p-4 bg-gray-50 border-b border-gray-200">
+        <form method="GET" class="flex flex-wrap gap-4">
+            <div>
+                <select name="tipo_filtro" 
+                        class="text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        onchange="this.form.submit()">
+                    <option value="todos" {% if filtro_actual == 'todos' %}selected{% endif %}>Todos los cambios</option>
+                    <option value="estado" {% if filtro_actual == 'estado' %}selected{% endif %}>Cambios de estado</option>
+                    <option value="asignacion" {% if filtro_actual == 'asignacion' %}selected{% endif %}>Asignaciones</option>
+                    <option value="recursos" {% if filtro_actual == 'recursos' %}selected{% endif %}>Cambios de recursos</option>
+                </select>
+            </div>
+            {% if proyectos %}
+            <div>
+                <select name="proyecto" 
+                        class="text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        onchange="this.form.submit()">
+                    <option value="">Todos los proyectos</option>
+                    {% for proyecto in proyectos %}
+                        <option value="{{ proyecto.idproyecto }}" {% if proyecto_actual == proyecto.idproyecto %}selected{% endif %}>
+                            {{ proyecto.nombreproyecto }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </form>
     </div>
 
     <!-- Lista de Historial -->
-    <div id="lista-historial" class="space-y-3">
+    <div class="divide-y divide-gray-200">
         {% for registro in historial %}
-        <div class="bg-gray-50 p-4 rounded-lg hover:shadow-md transition-shadow">
-            <!-- Encabezado con fecha y tarea -->
-            <div class="flex justify-between items-start mb-2">
-                <div class="flex items-center">
-                    <span class="text-sm font-medium text-gray-900">
-                        {{ registro.fechacambio|date:"d/m/Y H:i" }}
-                    </span>
-                    <span class="mx-2 text-gray-500">•</span>
-                    <a href="{% url 'gestion_tareas:detalle_tarea' registro.idtarea.idtarea %}" 
-                       class="text-sm text-blue-600 hover:text-blue-800">
-                        {{ registro.idtarea.nombretarea }}
-                    </a>
+        <div class="p-4 hover:bg-gray-50 transition-colors">
+            <div class="flex justify-between items-start">
+                <div class="space-y-1">
+                    <!-- Fecha y Nombre de Tarea -->
+                    <div class="flex items-center">
+                        <span class="text-sm font-medium text-gray-900">
+                            {{ registro.fechacambio|date:"d/m/Y H:i" }}
+                        </span>
+                        <span class="mx-2 text-gray-500">•</span>
+                        <a href="{% url 'gestion_tareas:detalle_tarea' registro.idtarea.idtarea %}" 
+                           class="text-sm text-blue-600 hover:text-blue-800">
+                            {{ registro.idtarea.nombretarea }}
+                        </a>
+                    </div>
+                    
+                    <!-- Descripción del Cambio -->
+                    <p class="text-sm text-gray-600">
+                        {{ registro.descripcioncambio }}
+                    </p>
+
+                    <!-- Metadatos -->
+                    <div class="flex items-center space-x-4 text-xs text-gray-500">
+                        <div class="flex items-center">
+                            <i class="fas fa-folder mr-1"></i>
+                            {{ registro.idtarea.idrequerimiento.idproyecto.nombreproyecto }}
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Estado actual: {{ registro.idtarea.estado }}
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-clock mr-1"></i>
+                            Hace {{ registro.fechacambio|timesince }}
+                        </div>
+                    </div>
                 </div>
-                <!-- Indicador de tipo de cambio -->
-                <span class="px-2 py-1 text-xs rounded-full 
-                    {% if 'estado' in registro.descripcioncambio|lower %}
-                        bg-yellow-100 text-yellow-800
-                    {% elif 'asign' in registro.descripcioncambio|lower %}
-                        bg-blue-100 text-blue-800
-                    {% elif 'recurs' in registro.descripcioncambio|lower %}
-                        bg-green-100 text-green-800
-                    {% else %}
-                        bg-gray-100 text-gray-800
-                    {% endif %}">
+
+                <!-- Indicador de Tipo -->
+                <span class="px-2 py-1 text-xs rounded-full {% if 'estado' in registro.descripcioncambio|lower %}bg-yellow-100 text-yellow-800{% elif 'asign' in registro.descripcioncambio|lower %}bg-blue-100 text-blue-800{% elif 'recurs' in registro.descripcioncambio|lower %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
                     {% if 'estado' in registro.descripcioncambio|lower %}
                         <i class="fas fa-exchange-alt mr-1"></i>Estado
                     {% elif 'asign' in registro.descripcioncambio|lower %}
@@ -51,47 +91,24 @@
                     {% endif %}
                 </span>
             </div>
-
-            <!-- Descripción del cambio -->
-            <p class="text-sm text-gray-600">
-                {{ registro.descripcioncambio }}
-            </p>
-
-            <!-- Metadatos adicionales -->
-            <div class="mt-2 flex items-center space-x-4 text-xs text-gray-500">
-                <!-- Proyecto -->
-                <div class="flex items-center">
-                    <i class="fas fa-folder mr-1"></i>
-                    <span>{{ registro.idtarea.idrequerimiento.idproyecto.nombreproyecto }}</span>
-                </div>
-                <!-- Estado actual -->
-                <div class="flex items-center">
-                    <i class="fas fa-info-circle mr-1"></i>
-                    <span>Estado actual: {{ registro.idtarea.estado }}</span>
-                </div>
-                <!-- Tiempo transcurrido -->
-                <div class="flex items-center">
-                    <i class="fas fa-clock mr-1"></i>
-                    <span>Hace {{ registro.fechacambio|timesince }}</span>
-                </div>
-            </div>
         </div>
         {% empty %}
-        <div class="text-center py-8 text-gray-500">
+        <div class="p-8 text-center text-gray-500">
             <i class="fas fa-history text-4xl mb-2"></i>
             <p>No hay registros de historial disponibles</p>
         </div>
         {% endfor %}
+    </div>
 
-        <!-- Paginación -->
-        {% if historial.has_other_pages %}
-        <div class="flex justify-center space-x-2 mt-4">
+    <!-- Paginación -->
+    {% if historial.has_other_pages %}
+    <div class="p-4 border-t border-gray-200">
+        <div class="flex justify-center space-x-2">
             {% if historial.has_previous %}
-                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                        hx-get="{% url 'reportes:filtrar_historial' %}?page={{ historial.previous_page_number }}"
-                        hx-target="#lista-historial">
+                <a href="?page={{ historial.previous_page_number }}{% if filtro_actual %}&tipo_filtro={{ filtro_actual }}{% endif %}{% if proyecto_actual %}&proyecto={{ proyecto_actual }}{% endif %}" 
+                   class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
                     <i class="fas fa-chevron-left"></i>
-                </button>
+                </a>
             {% endif %}
 
             <span class="px-3 py-1 bg-blue-500 text-white rounded-md">
@@ -99,13 +116,12 @@
             </span>
 
             {% if historial.has_next %}
-                <button class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                        hx-get="{% url 'reportes:filtrar_historial' %}?page={{ historial.next_page_number }}"
-                        hx-target="#lista-historial">
+                <a href="?page={{ historial.next_page_number }}{% if filtro_actual %}&tipo_filtro={{ filtro_actual }}{% endif %}{% if proyecto_actual %}&proyecto={{ proyecto_actual }}{% endif %}" 
+                   class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
                     <i class="fas fa-chevron-right"></i>
-                </button>
+                </a>
             {% endif %}
         </div>
-        {% endif %}
     </div>
+    {% endif %}
 </div>
