@@ -36,4 +36,5 @@ urlpatterns = [
         views.eliminar_miembro,
         name="eliminar_miembro",
     ),
+    path("miembro/<int:miembro_id>/", views.detalle_miembro, name="detalle_miembro"),
 ]
