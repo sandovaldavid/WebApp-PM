@@ -16,7 +16,7 @@ from dashboard.models import (
 import csv
 import json
 from django.template.loader import render_to_string
-from datetime import timedelta
+from datetime import datetime, timedelta
 from weasyprint import HTML
 
 
@@ -24,25 +24,31 @@ from weasyprint import HTML
 def index(request):
     """Vista principal de reportes"""
     try:
-        # Cache los resultados para evitar múltiples consultas
-        cache_key = f"reporte_data_{request.user.idusuario}"
-        cached_data = cache.get(cache_key)
-
-        if cached_data:
-            return render(request, "reportes/index.html", cached_data)
-
-        # Obtener parámetros de filtro con valores por defecto
-        fecha_inicio = request.GET.get(
-            "fecha_inicio", (timezone.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        # Convierte las fechas a datetime
+        fecha_inicio = datetime.strptime(
+            request.GET.get(
+                "fecha_inicio",
+                (timezone.now() - timedelta(days=30)).strftime("%Y-%m-%d"),
+            ),
+            "%Y-%m-%d",
         )
-        fecha_fin = request.GET.get("fecha_fin", timezone.now().strftime("%Y-%m-%d"))
+        fecha_fin = datetime.strptime(
+            request.GET.get("fecha_fin", timezone.now().strftime("%Y-%m-%d")),
+            "%Y-%m-%d",
+        )
+        
+        # Ajusta las fechas para incluir todo el día
+        fecha_inicio = timezone.make_aware(
+            datetime.combine(fecha_inicio, datetime.min.time())
+        )
+        fecha_fin = timezone.make_aware(
+            datetime.combine(fecha_fin, datetime.max.time())
+        )
+
         proyecto_id = request.GET.get("proyecto")
         tipo_reporte = request.GET.get("tipo_reporte", "general")
 
-        # Query base optimizada con select_related
-        tareas = Tarea.objects.select_related(
-            "idrequerimiento", "idrequerimiento__idproyecto"
-        ).prefetch_related("tarearecurso_set", "tarearecurso_set__idrecurso")
+        tareas = Tarea.objects.all()
 
         # Aplicar filtros de manera eficiente
         if fecha_inicio:
@@ -87,7 +93,7 @@ def index(request):
             ).order_by("-fechacambio")[:10]
 
         # Cachear los resultados por 5 minutos
-        cache.set(cache_key, context, 300)
+        # cache.set(cache_key, context, 300)
 
         return render(request, "reportes/index.html", context)
 
