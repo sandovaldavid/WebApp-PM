@@ -94,18 +94,18 @@
 
                 <!-- Información del Equipo -->
                 <div class="bg-gray-50 p-4 rounded-lg">
-                    <h4 class="text-sm font-medium text-gray-700 flex items-center mb-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-4">
                         <i class="fas fa-info-circle text-blue-500 mr-2"></i>
                         Información del Equipo
                     </h4>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-white p-3 rounded-lg border border-gray-200">
                             <p class="text-sm text-gray-600">Miembros Actuales</p>
-                            <p class="text-lg font-semibold">{{ equipo.miembro_set.count }}</p>
+                            <p class="text-lg font-semibold">{{ total_miembros }}</p>
                         </div>
                         <div class="bg-white p-3 rounded-lg border border-gray-200">
                             <p class="text-sm text-gray-600">Proyectos Activos</p>
-                            <p class="text-lg font-semibold">{{ equipo.proyecto_set.filter.estado='En Progreso'|length }}</p>
+                            <p class="text-lg font-semibold">{{ proyectos_activos }}</p>
                         </div>
                     </div>
                 </div>
