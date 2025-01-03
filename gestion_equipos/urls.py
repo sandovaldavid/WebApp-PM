@@ -21,4 +21,19 @@ urlpatterns = [
     path(
         "detalle-equipo/<int:equipo_id>/", views.detalle_equipo, name="detalle_equipo"
     ),
+    path(
+        "equipo/<int:equipo_id>/agregar-miembro/",
+        views.agregar_miembro,
+        name="agregar_miembro",
+    ),
+    path(
+        "equipo/<int:equipo_id>/crear-miembro/",
+        views.crear_miembro,
+        name="crear_miembro",
+    ),
+    path(
+        "equipo/miembro/<int:miembro_id>/eliminar/",
+        views.eliminar_miembro,
+        name="eliminar_miembro",
+    ),
 ]
