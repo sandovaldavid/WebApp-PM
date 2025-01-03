@@ -1,0 +1,44 @@
+<!-- Dashboard -->
+<a
+    href="{% url 'dashboard:index' %}"
+    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'dashboard' %} bg-gray-900 text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}"
+>
+    <i class="fas fa-tachometer-alt mr-3 text-lg"></i>
+    <span>Dashboard</span>
+</a>
+
+<!-- Projects -->
+<a
+    {% comment %} href="{% url 'projects:list' %}" {% endcomment %}
+    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.resolver_match.app_name == 'projects' %} bg-gray-900 text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}"
+>
+    <i class="fas fa-project-diagram mr-3 text-lg"></i>
+    <span>Proyectos</span>
+</a>
+
+<!-- Tasks -->
+<a
+    {% comment %} href="{% url 'tasks:list' %}" {% endcomment %}
+    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.resolver_match.app_name == 'tasks' %} bg-gray-900 text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}"
+>
+    <i class="fas fa-tasks mr-3 text-lg"></i>
+    <span>Tareas</span>
+</a>
+
+<!-- Reports -->
+<a
+    {% comment %} href="{% url 'reports:index' %}" {% endcomment %}
+    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.resolver_match.app_name == 'reports' %} bg-gray-900 text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}"
+>
+    <i class="fas fa-chart-bar mr-3 text-lg"></i>
+    <span>Reportes</span>
+</a>
+
+<!-- Settings -->
+<a
+    {% comment %} href="{% url 'settings:index' %}" {% endcomment %}
+    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.resolver_match.app_name == 'settings' %} bg-gray-900 text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}"
+>
+    <i class="fas fa-cog mr-3 text-lg"></i>
+    <span>Configuración</span>
+</a>
