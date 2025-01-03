@@ -162,10 +162,8 @@ def gestionar_miembros(request, equipo_id):
     """Vista para gestionar los miembros de un equipo"""
     equipo = get_object_or_404(Equipo, idequipo=equipo_id)
 
-    # Obtener parámetros
-    vista = request.GET.get("vista", "grid")  # default: vista de tarjetas
-    tipo = request.GET.get("tipo", "todos")
-    busqueda = request.GET.get("busqueda", "")
+    # Obtener los tipos de recursos
+    tipos_recurso = Tiporecurso.objects.all()
 
     # Query base con relaciones necesarias
     miembros = equipo.miembro_set.select_related(
@@ -176,19 +174,20 @@ def gestionar_miembros(request, equipo_id):
     )
 
     # Aplicar filtros
+    tipo = request.GET.get("tipo", "todos")
+    busqueda = request.GET.get("busqueda", "")
+
     if busqueda:
         miembros = miembros.filter(idrecurso__nombrerecurso__icontains=busqueda)
 
     if tipo != "todos":
-        if tipo == "humano":
-            miembros = miembros.filter(idrecurso__idtiporecurso=1)
-        elif tipo == "material":
-            miembros = miembros.filter(idrecurso__idtiporecurso=2)
+        miembros = miembros.filter(idrecurso__idtiporecurso=tipo)
 
     context = {
         "equipo": equipo,
         "miembros": miembros,
-        "vista": vista,
+        "tipos_recurso": tipos_recurso,  # Agregar tipos de recurso al contexto
+        "vista": request.GET.get("vista", "grid"),
         "filtros": {"tipo": tipo, "busqueda": busqueda},
     }
 
