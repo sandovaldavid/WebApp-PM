@@ -49,7 +49,7 @@ body {
 /* Estilo para el botón de alternar */
 #toggleSidebar {
     position: fixed;
-    top: 1.5rem;
+    top: 1rem;
     left: 1rem;
     z-index: 50;
     background-color: #1a202c;
