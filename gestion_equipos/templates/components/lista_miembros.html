@@ -52,9 +52,13 @@
             <!-- Filtro por Tipo -->
             <select name="tipo" 
                     class="px-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                <option value="todos" {% if filtros.tipo == 'todos' %}selected{% endif %}>Todos los tipos</option>
-                <option value="humano" {% if filtros.tipo == 'humano' %}selected{% endif %}>Recursos Humanos</option>
-                <option value="material" {% if filtros.tipo == 'material' %}selected{% endif %}>Recursos Materiales</option>
+                <option value="todos">Todos los tipos</option>
+                {% for tipo in tipos_recurso %}
+                    <option value="{{ tipo.idtiporecurso }}" 
+                            {% if filtros.tipo|stringformat:"s" == tipo.idtiporecurso|stringformat:"s" %}selected{% endif %}>
+                        {{ tipo.nametiporecurso }}
+                    </option>
+                {% endfor %}
             </select>
 
             <!-- Botones de Acción -->
