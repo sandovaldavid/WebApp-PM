@@ -162,43 +162,34 @@ def gestionar_miembros(request, equipo_id):
     """Vista para gestionar los miembros de un equipo"""
     equipo = get_object_or_404(Equipo, idequipo=equipo_id)
 
-    # Optimizar queries con select_related
-    miembros_queryset = equipo.miembro_set.select_related(
-        "idrecurso", "idrecurso__recursohumano", "idrecurso__recursomaterial"
-    ).all()
+    # Obtener parámetros
+    vista = request.GET.get("vista", "grid")  # default: vista de tarjetas
+    tipo = request.GET.get("tipo", "todos")
+    busqueda = request.GET.get("busqueda", "")
 
-    # Procesar las habilidades para cada miembro
-    for miembro in miembros_queryset:
-        if (
-            hasattr(miembro.idrecurso, "recursohumano")
-            and miembro.idrecurso.recursohumano
-        ):
-            habilidades = getattr(miembro.idrecurso.recursohumano, "habilidades", "")
-            miembro.idrecurso.habilidades_lista = (
-                [h.strip() for h in habilidades.split(",")] if habilidades else []
-            )
-        else:
-            miembro.idrecurso.habilidades_lista = []
+    # Query base con relaciones necesarias
+    miembros = equipo.miembro_set.select_related(
+        "idrecurso",
+        "idrecurso__idtiporecurso",
+        "idrecurso__recursohumano",
+        "idrecurso__recursomaterial",
+    )
 
-    # Calcular estadísticas
-    estadisticas = {
-        "recursos_humanos": sum(
-            1 for m in miembros_queryset if m.idrecurso.idtiporecurso_id == 1
-        ),
-        "recursos_materiales": sum(
-            1 for m in miembros_queryset if m.idrecurso.idtiporecurso_id == 2
-        ),
-    }
+    # Aplicar filtros
+    if busqueda:
+        miembros = miembros.filter(idrecurso__nombrerecurso__icontains=busqueda)
+
+    if tipo != "todos":
+        if tipo == "humano":
+            miembros = miembros.filter(idrecurso__idtiporecurso=1)
+        elif tipo == "material":
+            miembros = miembros.filter(idrecurso__idtiporecurso=2)
 
     context = {
         "equipo": equipo,
-        "miembros": miembros_queryset,
-        "estadisticas": estadisticas,
-        "vista": request.GET.get("vista", "grid"),
-        "filtros": {
-            "tipo": request.GET.get("tipo", "todos"),
-            "busqueda": request.GET.get("busqueda", ""),
-        },
+        "miembros": miembros,
+        "vista": vista,
+        "filtros": {"tipo": tipo, "busqueda": busqueda},
     }
 
     return render(request, "gestion_equipos/gestionar_miembros.html", context)
@@ -236,7 +227,7 @@ def lista_miembros(request, equipo_id):
         "filtros": {"tipo": tipo, "busqueda": busqueda},
     }
 
-    return render(request, "gestion_equipos/lista_miembros.html", context)
+    return render(request, "components/lista_miembros.html", context)
 
 
 @login_required
