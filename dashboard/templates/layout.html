@@ -4,52 +4,31 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Sistema de Gestión de Proyectos - Herramienta integral para la gestión y seguimiento de proyectos">
+        <meta name="description" content="Sistema de Gestión de Proyectos - Panel de administración">
         <meta name="theme-color" content="#1a56db">
-        <meta name="robots" content="index, follow">
         
         <!-- Favicon y PWA -->
-        <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+        <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
         <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
         <link rel="manifest" href="{% static 'manifest.json' %}">
         
         <title>{% block title %}Sistema de Gestión{% endblock %} | ProjectManager</title>
 
-        <!-- Precargar recursos críticos -->
+        <!-- Preload de recursos críticos -->
         <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
         <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-
-        <!-- Estilos principales con async loading -->
+        
+        <!-- Estilos con carga optimizada -->
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" 
-            rel="stylesheet"
-            media="print" 
-            onload="this.media='all'">
+            rel="stylesheet" media="print" onload="this.media='all'">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
-            rel="stylesheet"
-            media="print" 
-            onload="this.media='all'">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-            rel="stylesheet" 
-            media="print"
-            onload="this.media='all'">
-        <link href="{% static 'css/layout.css' %}" 
-            rel="stylesheet"
-            media="print" 
-            onload="this.media='all'">
+            rel="stylesheet" media="print" onload="this.media='all'">
+        <link href="{% static 'css/layout.css' %}" rel="stylesheet">
 
-        <!-- Fallback para navegadores sin JS -->
-        <noscript>
-            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-            <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-            <link href="{% static 'css/layout.css' %}" rel="stylesheet">
-        </noscript>
-
-        <!-- Scripts principales con defer -->
+        <!-- Scripts -->
         <script src="https://unpkg.com/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
         <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
-
+        
         {% block style %}{% endblock %}
     </head>
     <body>
@@ -57,222 +36,123 @@
         <button id="toggleSidebar" class="focus:outline-none">
             <i class="fas fa-bars"></i>
         </button>
+        <!-- Sidebar -->
+        <aside class="flex">
+            <div class="sidebar bg-gray-800 text-white h-screen hidden lg:block">
+                <!-- Logo -->
+                <div class="flex items-center justify-center h-16 px-4">
+                    <img src="{% static 'img/logo.png' %}" alt="Logo" class="h-8">
+                </div>
 
-        <div class="flex">
-            <!-- Barra lateral -->
-            <div
-                class="sidebar bg-gray-800 text-white h-screen hidden lg:block"
+                <!-- Navegación -->
+                <nav class="mt-5 flex-1 space-y-1 px-2">
+                    {% include 'components/navigation.html' %}
+                </nav>
+            </div>
+        </aside>
+        <div class="content flex-1 expanded">
+            <!-- Cabecera -->
+            <header
+                class="fixed top-0 left-0 w-full flex justify-between items-center p-5 px-14 bg-blue-600 text-white"
             >
-                <div class="mt-20">
-                    <a
-                        href="{% url 'notificaciones:index' %}"
-                        class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'notificaciones' %}active{% endif %}"
-                    >
-                        <i class="fas fa-bell"></i> Alertas
-                    </a>
-                    <a
-                        href="{% url 'dashboard:index' %}"
-                        class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'dashboard' %}active{% endif %}"
-                    >
-                        <i class="fas fa-fa-tachometer-alt"></i> Dashboard
-                    </a>
-                    <a href="../EstimacionesRNN/index.html"
-                        ><i class="fas fa-chart-line"></i> Estimaciones RNN</a
-                    >
-                    <a
-                        href="{% url 'gestion_tareas:index' %}"
-                        class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'gestion_tareas' %}active{% endif %}"
-                    >
-                        <i class="fas fa-tasks"></i> Gestión de Tareas
-                    </a>
-                    <a
-                        href="{% url 'gestionRecursos:lista_recursos' %}"
-                        class="{% if request.resolver_match.url_name == 'lista_recursos' and request.resolver_match.app_name == 'gestionRecursos' %}active{% endif %}"
-                    >
-                        <i class="fas fa-cogs"></i> Gestión de Recursos
-                    </a>
-                    <a
-                        href="{% url 'gestion_tareas:tareas_programadas' %}"
-                        class="{% if request.resolver_match.url_name == 'tareas_programadas' %}active{% endif %}"
-                    >
-                        <i class="fas fa-calendar-alt"></i> Tareas Programadas
-                    </a>
-                    <a
-                        href="{% url 'gestion_equipos:index' %}"
-                        class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'gestion_equipos' %}active{% endif %}"
-                    >
-                        <i class="fas fa-users"></i> Gestion de Equipos
-                    </a>
-                    <a
-                        href="{% url 'gestionUsuarios:lista_usuarios' %}"
-                        class="{% if request.resolver_match.url_name == 'lista_usuarios' and request.resolver_match.app_name == 'gestionUsuarios' %}active{% endif %}"
-                    >
-                        <i class="fas fa-users"></i> Gestión de Usuarios
-                    </a>
-                    <a href="{% url 'integracion:index' %}"
-                        ><i class="fas fa-plug"></i> Integración</a
-                    >
-                    <a
-                        href="{% url 'gestion_proyectos:lista_proyectos' %}"
-                        class="{% if request.resolver_match.url_name == 'lista_proyectos' and request.resolver_match.app_name == 'gestionProyectos' %}active{% endif %}"
-                    >
-                        <i class="fas fa-project-diagram"></i> Proyectos
-                    </a>
-                    <a href="{% url 'reportes:index' %}"
-                        ><i class="fas fa-chart-pie"></i> Reportes</a
-                    >
-                    <a
-                        href="{% url 'auditoria:registro_actividades' %}"
-                        class="{% if request.resolver_match.url_name == 'registro_actividades' and request.resolver_match.app_name == 'auditoria' %}active{% endif %}"
-                    >
-                        <i class="fas fa-plus fa-shield-alt"></i> Seguridad
-                    </a>
+                <div class="text-2xl font-bold">
+                    {% block title_body %}{% endblock %}
                 </div>
-            </div>
 
-            <div class="content flex-1 expanded">
-                <!-- Cabecera -->
-                <header
-                    class="fixed top-0 left-0 w-full flex justify-between items-center p-4 px-14 bg-blue-600 text-white"
-                >
-                    <div class="text-2xl font-bold">
-                        {% block title_body %}{% endblock %}
-                    </div>
+                <!-- Menú de Usuario -->
+                <div x-data="{ open: false }" class="relative">
+                    <!-- Botón del perfil -->
+                    <button @click="open = !open" 
+                            class="flex items-center space-x-3 focus:outline-none"
+                            id="user-menu-button"
+                            aria-expanded="false"
+                            aria-haspopup="true">
+                        <!-- Avatar -->
+                        <img class="h-8 w-8 rounded-full object-cover" 
+                                src="{% if user.imagen_perfil %}{{ user.imagen_perfil.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                                alt="{{ user.nombreusuario }}">
+                        <!-- Nombre de usuario -->
+                        <span class="hidden md:block text-sm font-medium text-gray-700">
+                            {{ user.nombreusuario }}
+                        </span>
+                        <!-- Icono de flecha -->
+                        <i class="fas fa-chevron-down text-gray-400 text-sm"></i>
+                    </button>
 
-                    <!-- Perfil y Menú Usuario -->
-                    {% if user.is_authenticated %}
-                    <div class="flex items-center space-x-4">
-                        <!-- Notificaciones -->
-                        <a
-                            href="{% url 'notificaciones:index' %}"
-                            class="relative"
-                        >
-                            <i
-                                class="fas fa-bell text-xl hover:text-gray-200 transition-colors"
-                            ></i>
-                            {% if notificaciones_no_leidas %}
-                            <span
-                                class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                            >
-                                {{ notificaciones_no_leidas }}
-                            </span>
-                            {% endif %}
-                        </a>
-
+                    <!-- Menú desplegable -->
+                    <div x-show="open" 
+                        @click.away="open = false"
+                        class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
+                        role="menu"
+                        aria-orientation="vertical"
+                        aria-labelledby="user-menu-button">
+                            
                         <!-- Perfil -->
-                        <div class="relative" x-data="{ open: false }">
-                            <button
-                                @click="open = !open"
-                                class="flex items-center space-x-3 hover:bg-blue-700 rounded-lg p-2 transition-colors"
-                            >
-                                <img
-                                    src="{% if user.imagen_perfil %}{{ user.imagen_perfil.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}"
-                                    alt="{{ user.nombreusuario }}"
-                                    class="w-10 h-10 rounded-full object-cover border-2 border-white"
-                                />
-                                <div class="text-left">
-                                    <div class="font-semibold">
-                                        {{ user.nombreusuario }}
-                                    </div>
-                                    <div class="text-sm text-gray-300">
-                                        {{ user.rol }}
-                                    </div>
-                                </div>
-                                <i class="fas fa-chevron-down text-sm"></i>
-                            </button>
-
-                            <!-- Menú desplegable -->
-                            <div
-                                x-show="open"
-                                @click.away="open = false"
-                                class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50"
-                            >
-                                <!-- Perfil -->
-                                <a
-                                    href="{% url 'gestionUsuarios:perfil' %}"
-                                    class="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                                >
-                                    <i class="fas fa-user mr-2"></i> Mi Perfil
-                                </a>
-
-                                <!-- Configuración -->
-                                <a
-                                    href="{% url 'gestionUsuarios:configuracion' %}"
-                                    class="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                                >
-                                    <i class="fas fa-cog mr-2"></i>
-                                    Configuración
-                                </a>
-
-                                <!-- Separador -->
-                                <div
-                                    class="border-t border-gray-200 my-1"
-                                ></div>
-
-                                <!-- Cerrar Sesión -->
-                                <form
-                                    method="POST"
-                                    action="{% url 'usuarios:logout' %}"
-                                    class="block"
-                                >
-                                    {% csrf_token %}
-                                    <button
-                                        type="submit"
-                                        class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
-                                    >
-                                        <i class="fas fa-sign-out-alt mr-2"></i>
-                                        Cerrar Sesión
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="flex items-center space-x-4">
-                        <a
-                            href="{% url 'usuarios:login' %}"
-                            class="text-white hover:text-gray-200 transition-colors"
-                        >
-                            <i class="fas fa-sign-in-alt mr-2"></i> Iniciar
-                            Sesión
+                        <a href="{% url 'gestionUsuarios:perfil' %}" 
+                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            role="menuitem">
+                            <i class="fas fa-user mr-3"></i>
+                                Mi Perfil
                         </a>
-                    </div>
-                    {% endif %}
-                </header>
 
-                <!-- Contenido Principal -->
-                <div class="mt-16">
-                    {% if messages %}
-                        <div class="fixed top-4 right-4 z-50 space-y-4">
-                            {% for message in messages %}
-                            <div class="notification-message {% if message.tags %}{{ message.tags }}{% endif %} 
-                                        px-4 py-3 rounded-lg shadow-lg 
-                                        {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500
-                                        {% elif message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500
-                                        {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500
-                                        {% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}
-                                        flex items-center justify-between"
-                                role="alert">
-                                <div class="flex items-center">
-                                    <div class="py-1">
-                                        <i class="fas {% if message.tags == 'success' %}fa-check-circle text-green-500
-                                                {% elif message.tags == 'error' %}fa-times-circle text-red-500
-                                                {% elif message.tags == 'warning' %}fa-exclamation-circle text-yellow-500
-                                                {% else %}fa-info-circle text-blue-500{% endif %} mr-2"></i>
-                                        <span class="font-medium">{{ message }}</span>
-                                    </div>
-                                </div>
-                                <button onclick="this.parentElement.style.display='none'" class="ml-4">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    {% block body %}
-                    {% endblock %}
+                            <!-- Configuración -->
+                        <a href="{% url 'gestionUsuarios:configuracion' %}" 
+                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            role="menuitem">
+                            <i class="fas fa-cog mr-3"></i>
+                                Configuración
+                        </a>
+
+                        <!-- Separador -->
+                        <div class="border-t border-gray-100 my-1"></div>
+
+                        <!-- Cerrar Sesión -->
+                        <form method="POST" action="{% url 'gestionUsuarios:logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                        class="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
+                                        role="menuitem">
+                                <i class="fas fa-sign-out-alt mr-3"></i>
+                                    Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
                 </div>
+            </header>
+
+            <!-- Contenido Principal -->
+            <div class="mt-16">
+                {% if messages %}
+                    <div class="fixed top-4 right-4 z-50 space-y-4">
+                        {% for message in messages %}
+                        <div class="notification-message {% if message.tags %}{{ message.tags }}{% endif %} 
+                                    px-4 py-3 rounded-lg shadow-lg 
+                                    {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500
+                                    {% elif message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500
+                                    {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500
+                                    {% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}
+                                    flex items-center justify-between"
+                            role="alert">
+                            <div class="flex items-center">
+                                <div class="py-1">
+                                    <i class="fas {% if message.tags == 'success' %}fa-check-circle text-green-500
+                                            {% elif message.tags == 'error' %}fa-times-circle text-red-500
+                                            {% elif message.tags == 'warning' %}fa-exclamation-circle text-yellow-500
+                                            {% else %}fa-info-circle text-blue-500{% endif %} mr-2"></i>
+                                    <span class="font-medium">{{ message }}</span>
+                                </div>
+                            </div>
+                            <button onclick="this.parentElement.style.display='none'" class="ml-4">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% block body %}
+                {% endblock %}
             </div>
+        </div>
         </div>
         <script src="{% static "js/layout.js"%}"></script>
         {% block script %}{% endblock %}
