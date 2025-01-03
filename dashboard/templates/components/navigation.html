@@ -1,44 +1,147 @@
-<!-- Dashboard -->
-<a
-    href="{% url 'dashboard:index' %}"
-    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'dashboard' %} bg-gray-900 text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}"
->
-    <i class="fas fa-tachometer-alt mr-3 text-lg"></i>
-    <span>Dashboard</span>
-</a>
+<!-- Navigation Sidebar -->
+<nav class="space-y-1">
+    <!-- Dashboard -->
+    <a href="{% url 'dashboard:index' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'dashboard' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fas fa-gauge-high mr-3 text-lg"></i>
+        <span>Dashboard</span>
+    </a>
 
-<!-- Projects -->
-<a
-    {% comment %} href="{% url 'projects:list' %}" {% endcomment %}
-    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.resolver_match.app_name == 'projects' %} bg-gray-900 text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}"
->
-    <i class="fas fa-project-diagram mr-3 text-lg"></i>
-    <span>Proyectos</span>
-</a>
+    <!-- Gestión de Proyectos -->
+    <a href="{% url 'gestion_proyectos:lista_proyectos' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'gestion_proyectos' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fas fa-briefcase mr-3 text-lg"></i>
+        <span>Gestión de Proyectos</span>
+    </a>
 
-<!-- Tasks -->
-<a
-    {% comment %} href="{% url 'tasks:list' %}" {% endcomment %}
-    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.resolver_match.app_name == 'tasks' %} bg-gray-900 text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}"
->
-    <i class="fas fa-tasks mr-3 text-lg"></i>
-    <span>Tareas</span>
-</a>
+    <!-- Gestión de Tareas -->
+    <a href="{% url 'gestion_tareas:index' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'gestion_tareas' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fas fa-tasks mr-3 text-lg"></i>
+        <span>Gestión de Tareas</span>
+    </a>
 
-<!-- Reports -->
-<a
-    {% comment %} href="{% url 'reports:index' %}" {% endcomment %}
-    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.resolver_match.app_name == 'reports' %} bg-gray-900 text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}"
->
-    <i class="fas fa-chart-bar mr-3 text-lg"></i>
-    <span>Reportes</span>
-</a>
+    <!-- Gestión de Equipos -->
+    <a href="{% url 'gestion_equipos:index' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'gestion_equipos' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fas fa-users-gear mr-3 text-lg"></i>
+        <span>Gestión de Equipos</span>
+    </a>
 
-<!-- Settings -->
-<a
-    {% comment %} href="{% url 'settings:index' %}" {% endcomment %}
-    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.resolver_match.app_name == 'settings' %} bg-gray-900 text-white {% else %} text-gray-300 hover:bg-gray-700 hover:text-white {% endif %}"
->
-    <i class="fas fa-cog mr-3 text-lg"></i>
-    <span>Configuración</span>
-</a>
+    <!-- Gestión de Recursos -->
+    <a href="{% url 'gestionRecursos:lista_recursos' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'gestionRecursos' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fas fa-cube mr-3 text-lg"></i>
+        <span>Gestión de Recursos</span>
+    </a>
+
+    <!-- Alertas y Notificaciones -->
+    <a href="{% url 'notificaciones:index' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'notificaciones' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fas fa-bell mr-3 text-lg"></i>
+        <span>Notificaciones</span>
+    </a>
+
+    <!-- Reportes -->
+    <a href="{% url 'reportes:index' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'reportes' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fas fa-chart-line mr-3 text-lg"></i>
+        <span>Reportes</span>
+    </a>
+
+    <!-- Usuarios -->
+    <a href="{% url 'gestionUsuarios:lista_usuarios' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'gestionUsuarios' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fas fa-users mr-3 text-lg"></i>
+        <span>Usuarios</span>
+    </a>
+
+    <!-- Integración -->
+    <a href="{% url 'integracion:index' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'integracion' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fas fa-puzzle-piece mr-3 text-lg"></i>
+        <span>Integración</span>
+    </a>
+
+    <!-- Auditoría -->
+    <a href="{% url 'auditoria:registro_actividades' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'auditoria' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fa-solid fa-shield mr-3"></i>
+        <span>Auditoría</span>
+    </a>
+
+    <!-- Redes Neuronales -->
+    <a href="{% url 'auditoria:registro_actividades' %}"
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'auditoria' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fa-solid fa-brain mr-3"></i>
+        <span>Redes Neuronales</span>
+    </a>
+
+
+    <!-- Configuración -->
+    <a href="#" 
+       class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
+              {% if request.resolver_match.app_name == 'settings' %}
+              bg-gray-900 text-white
+              {% else %}
+              text-gray-300 hover:bg-gray-700 hover:text-white
+              {% endif %}">
+        <i class="fas fa-gear mr-3 text-lg"></i>
+        <span>Configuración</span>
+    </a>
+</nav>
