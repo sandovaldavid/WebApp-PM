@@ -262,7 +262,9 @@ class Proyecto(models.Model):
 class Recurso(models.Model):
     idrecurso = models.AutoField(primary_key=True)
     nombrerecurso = models.CharField(max_length=255)
-    idtiporecurso = models.IntegerField()
+    idtiporecurso = models.ForeignKey(
+        "Tiporecurso", models.DO_NOTHING, db_column="idtiporecurso"
+    )
     disponibilidad = models.BooleanField(blank=True, null=True)
     fechacreacion = models.DateTimeField(blank=True, null=True)
     fechamodificacion = models.DateTimeField(blank=True, null=True)
