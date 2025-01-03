@@ -1,0 +1,78 @@
+{% load static %}
+{% if user.is_authenticated %}
+<div class="flex items-center">
+    <!-- Notificaciones -->
+    <div class="relative mr-4">
+        <a href="{% url 'notificaciones:index' %}" 
+           class="p-2 hover:bg-gray-100 rounded-full transition-colors relative"
+           aria-label="Notificaciones">
+            <i class="fas fa-bell text-gray-600"></i>
+            {% if notificaciones_no_leidas %}
+            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                {{ notificaciones_no_leidas }}
+            </span>
+            {% endif %}
+        </a>
+    </div>
+
+    <!-- Menú de Usuario -->
+    <div x-data="{ open: false }" class="relative">
+        <!-- Botón del perfil -->
+        <button @click="open = !open" 
+                class="flex items-center space-x-3 focus:outline-none"
+                id="user-menu-button"
+                aria-expanded="false"
+                aria-haspopup="true">
+            <!-- Avatar -->
+            <img class="h-8 w-8 rounded-full object-cover" 
+                    src="{% if user.imagen_perfil %}{{ user.imagen_perfil.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                    alt="{{ user.nombreusuario }}">
+            <!-- Nombre de usuario -->
+            <span class="hidden md:block text-sm font-medium text-gray-700">
+                {{ user.nombreusuario }}
+            </span>
+            <!-- Icono de flecha -->
+            <i class="fas fa-chevron-down text-gray-400 text-sm"></i>
+        </button>
+
+        <!-- Menú desplegable -->
+        <div x-show="open" 
+             @click.away="open = false"
+             class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
+             role="menu"
+             aria-orientation="vertical"
+             aria-labelledby="user-menu-button">
+            
+            <!-- Perfil -->
+            <a href="{% url 'gestionUsuarios:perfil' %}" 
+               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+               role="menuitem">
+                <i class="fas fa-user mr-3"></i>
+                Mi Perfil
+            </a>
+
+            <!-- Configuración -->
+            <a href="{% url 'gestionUsuarios:configuracion' %}" 
+               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+               role="menuitem">
+                <i class="fas fa-cog mr-3"></i>
+                Configuración
+            </a>
+
+            <!-- Separador -->
+            <div class="border-t border-gray-100 my-1"></div>
+
+            <!-- Cerrar Sesión -->
+            <form method="POST" action="{% url 'gestionUsuarios:logout' %}">
+                {% csrf_token %}
+                <button type="submit" 
+                        class="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
+                        role="menuitem">
+                    <i class="fas fa-sign-out-alt mr-3"></i>
+                    Cerrar Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
