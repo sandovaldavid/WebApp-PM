@@ -48,7 +48,7 @@ body {
 
 .content {
     transition: margin-left 0.3s ease-in-out;
-    margin-left: 16rem;
+    margin-left: var(--sidebar-width);
     padding: 20px;
 }
 
