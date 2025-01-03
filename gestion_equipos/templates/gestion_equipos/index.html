@@ -18,8 +18,8 @@
 
 {% block body %}
 <div class="p-8 space-y-8">
-    <!-- Estadísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Componente de Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
         <!-- Total Equipos -->
         <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
             <div class="flex items-center justify-between">
@@ -55,6 +55,32 @@
                 </div>
                 <div class="bg-purple-100 p-3 rounded-full">
                     <i class="fas fa-project-diagram text-purple-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recursos Asignados -->
+        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-yellow-600">Recursos Asignados</p>
+                    <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.total_recursos_asignados }}</h3>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-cube text-yellow-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proyectos Activos -->
+        <div class="bg-indigo-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-indigo-600">Proyectos Activos</p>
+                    <h3 class="text-2xl font-bold text-indigo-900">{{ estadisticas.proyectos_activos }}</h3>
+                </div>
+                <div class="bg-indigo-100 p-3 rounded-full">
+                    <i class="fas fa-tasks text-indigo-500 text-2xl"></i>
                 </div>
             </div>
         </div>
