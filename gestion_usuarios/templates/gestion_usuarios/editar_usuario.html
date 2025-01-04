@@ -1,11 +1,11 @@
 {% extends 'layout.html' %}
 
-{% block title %}Crear Usuario{% endblock %}
+{% block title %}Editar Usuario{% endblock %}
 
 {% block title_body %}
 <div class="flex items-center">
-    <i class="fas fa-user-plus text-blue-500 mr-2"></i>
-    <span>Crear Nuevo Usuario</span>
+    <i class="fas fa-user-edit text-blue-500 mr-2"></i>
+    <span>Editar Usuario</span>
 </div>
 {% endblock %}
 
@@ -16,11 +16,11 @@
             <!-- Encabezado -->
             <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
                 <h2 class="text-xl font-semibold text-white flex items-center">
-                    <i class="fas fa-user-plus mr-2"></i>
-                    Nuevo Usuario
+                    <i class="fas fa-user-edit mr-2"></i>
+                    Editar Usuario
                 </h2>
                 <p class="mt-2 text-blue-100">
-                    Completa los detalles para crear un nuevo usuario
+                    Modifica los detalles del usuario
                 </p>
             </div>
 
@@ -48,6 +48,7 @@
                         <input type="text" 
                                name="nombreUsuario" 
                                id="nombreUsuario"
+                               value="{{ usuario.nombreusuario }}"
                                required
                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                placeholder="Ingrese el nombre completo">
@@ -66,45 +67,10 @@
                         <input type="email" 
                                name="email" 
                                id="email"
+                               value="{{ usuario.email }}"
                                required
                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                placeholder="Ingrese el correo electrónico">
-                    </div>
-                </div>
-
-                <!-- Contraseña -->
-                <div>
-                    <label for="contrasena" class="block text-sm font-medium text-gray-700">
-                        Contraseña <span class="text-red-500">*</span>
-                    </label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-lock text-gray-400"></i>
-                        </div>
-                        <input type="password" 
-                               name="contrasena" 
-                               id="contrasena"
-                               required
-                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="Ingrese la contraseña">
-                    </div>
-                </div>
-
-                <!-- Repetir Contraseña -->
-                <div>
-                    <label for="confirmar_contrasena" class="block text-sm font-medium text-gray-700">
-                        Repetir Contraseña <span class="text-red-500">*</span>
-                    </label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-lock text-gray-400"></i>
-                        </div>
-                        <input type="password" 
-                               name="confirmar_contrasena" 
-                               id="confirmar_contrasena"
-                               required
-                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="Repita la contraseña">
                     </div>
                 </div>
 
@@ -119,11 +85,11 @@
                         </div>
                         <select name="rol" id="rol" 
                                 class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                            <option>Administrador</option>
-                            <option>Desarrollador</option>
-                            <option>JefeProyecto</option>
-                            <option>Cliente</option>
-                            <option>Tester</option>
+                            <option {% if usuario.rol == "Administrador" %}selected{% endif %}>Administrador</option>
+                            <option {% if usuario.rol == "Desarrollador" %}selected{% endif %}>Desarrollador</option>
+                            <option {% if usuario.rol == "JefeProyecto" %}selected{% endif %}>Jefe de Proyecto</option>
+                            <option {% if usuario.rol == "Cliente" %}selected{% endif %}>Cliente</option>
+                            <option {% if usuario.rol == "Tester" %}selected{% endif %}>Tester</option>
                         </select>
                     </div>
                 </div>
@@ -138,7 +104,7 @@
                     <button type="submit"
                             class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
                         <i class="fas fa-save mr-2"></i>
-                        Crear Usuario
+                        Guardar Cambios
                     </button>
                 </div>
             </form>

@@ -1,46 +1,105 @@
-{%extends 'layout.html'%}
+{% extends 'layout.html' %}
 
-{%block style%}
-{%endblock%}
+{% block title %}Gestión de Usuarios{% endblock %}
 
-{% block title %}Gestion-Usuarios{% endblock %}
-
-{% block title_body %}<i class="fas fa-users header-icon"></i>   Gestion de Usuarios{% endblock %}
+{% block title_body %}
+<div class="flex items-center justify-between">
+    <div class="flex items-center">
+        <i class="fas fa-users text-blue-500 mr-2"></i>
+        <span>Gestión de Usuarios</span>
+    </div>
+    <a href="{% url 'gestionUsuarios:crear_usuario' %}" 
+       class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
+        <i class="fas fa-plus mr-2"></i>
+        Nuevo Usuario
+    </a>
+</div>
+{% endblock %}
 
 {% block body %}
-<main class="p-8">
-    <div class="flex justify-end">
-        <a href="{% url 'gestionUsuarios:crear_usuario' %}" class="btn-secondary px-4 py-2 rounded bg-green-500 text-white inline-block">
-            <i class="fas fa-plus"></i> Registrar Recurso
-        </a>
+<div class="p-8 space-y-8">
+    <!-- Componente de Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+        <!-- Total Usuarios -->
+        <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-blue-600">Total Usuarios</p>
+                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total_usuarios }}</h3>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-users text-blue-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desarrolladores -->
+        <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-green-600">Desarrolladores</p>
+                    <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.desarrolladores }}</h3>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-code text-green-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clientes -->
+        <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-purple-600">Clientes</p>
+                    <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.clientes }}</h3>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-user-tie text-purple-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testers -->
+        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-yellow-600">Testers</p>
+                    <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.testers }}</h3>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-vial text-yellow-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jefes de Proyecto -->
+        <div class="bg-indigo-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-indigo-600">Jefes de Proyecto</p>
+                    <h3 class="text-2xl font-bold text-indigo-900">{{ estadisticas.jefes_proyecto }}</h3>
+                </div>
+                <div class="bg-indigo-100 p-3 rounded-full">
+                    <i class="fas fa-project-diagram text-indigo-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Administradores -->
+        <div class="bg-red-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-red-600">Administradores</p>
+                    <h3 class="text-2xl font-bold text-red-900">{{ estadisticas.administradores }}</h3>
+                </div>
+                <div class="bg-red-100 p-3 rounded-full">
+                    <i class="fas fa-user-shield text-red-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
     </div>
-    <h2 class="text-xl font-semibold mb-4"><i class="fas fa-list"></i> Lista de Usuarios</h2>
-    <table class="w-full bg-white shadow-lg rounded-lg">
-        <thead class="bg-gray-200">
-            <tr>
-                <th class="p-4 text-left">Nombre</th>
-                <th class="p-4 text-left">Correo Electrónico</th>
-                <th class="p-4 text-left">Rol</th>
-                <th class="p-4 text-left">Fecha de Registro</th>
-                <th class="p-4 text-left">Último Inicio de Sesión</th>
-                <th class="p-4 text-left">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for usuario in usuarios %}
-            <tr class="table-row">
-                <td class="p-4">{{ usuario.nombreusuario }}</td>
-                <td class="p-4">{{ usuario.email }}</td>
-                <td class="p-4">{{ usuario.rol }}</td>
-                <td class="p-4">{{ usuario.fechacreacion }}</td>
-                <td class="p-4">{{ usuario.last_login }}</td>
-                <td class="p-4">
-                    <a href="#" class="text-blue-500"><i class="fas fa-edit"></i> Editar</a>
-                    <a href="#" class="text-red-500"><i class="fas fa-trash-alt"></i> Eliminar</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</main>
+
+    <!-- Lista de Usuarios -->
+    {% include 'components/lista_usuarios.html' %}
+</div>
 {% endblock %}

@@ -1,0 +1,68 @@
+{% load static %}
+
+<div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+    <!-- Cabecera del Card -->
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex justify-between items-start">
+            <!-- Información del Usuario -->
+            <div>
+                <h3 class="text-xl font-semibold text-gray-900">
+                    {{ usuario.nombreusuario }}
+                </h3>
+                <p class="text-sm text-gray-500">
+                    Registrado: {{ usuario.fechacreacion|date:"d/m/Y" }}
+                </p>
+            </div>
+
+            <!-- Menú de Acciones -->
+            <div class="flex space-x-2">
+                <a href="{% url 'gestionUsuarios:editar_usuario' usuario.idusuario %}" class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors" title="Editar Usuario">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="#" class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors" title="Eliminar Usuario">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cuerpo del Card -->
+    <div class="p-6 space-y-4">
+        <!-- Correo Electrónico -->
+        <div>
+            <p class="text-gray-600">
+                <i class="fas fa-envelope mr-2"></i>{{ usuario.email }}
+            </p>
+        </div>
+
+        <!-- Rol del Usuario -->
+        <div>
+            <h4 class="text-sm font-medium text-gray-700 mb-2">
+                Rol
+            </h4>
+            <div class="flex items-center rounded-full px-3 py-1 text-sm
+                {% if usuario.rol == 'Desarrollador' %}bg-green-100{% elif usuario.rol == 'Cliente' %}bg-purple-100{% elif usuario.rol == 'Tester' %}bg-yellow-100{% elif usuario.rol == 'Jefe de Proyecto' %}bg-indigo-100{% elif usuario.rol == 'Administrador' %}bg-red-100{% else %}bg-gray-100{% endif %}">
+                <i class="fas fa-user-tag text-gray-500 mr-2"></i>
+                <span>{{ usuario.rol }}</span>
+            </div>
+        </div>
+
+        <!-- Último Inicio de Sesión -->
+        <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+            <div class="text-center">
+                <p class="text-sm text-gray-600">Último Inicio de Sesión</p>
+                <p class="text-xl font-semibold text-blue-600">
+                    {{ usuario.last_login|default:"No ha iniciado sesión" }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center justify-center">
+            <span>Ver Detalles</span>
+            <i class="fas fa-chevron-right ml-2"></i>
+        </a>
+    </div>
+</div>

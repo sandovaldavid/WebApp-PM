@@ -18,14 +18,6 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
-# Configuración de Mailtrap en settings.py
-settings.EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-settings.EMAIL_HOST = "smtp.mailtrap.io"
-settings.EMAIL_PORT = 2525
-settings.EMAIL_HOST_USER = "c80a4723a23860"
-settings.EMAIL_HOST_PASSWORD = "58bc6052674eba"
-settings.EMAIL_USE_TLS = True
-
 
 # Vista para la página de inicio
 def index(request):
