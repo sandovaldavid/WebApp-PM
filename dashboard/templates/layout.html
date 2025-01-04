@@ -123,8 +123,8 @@
                         ><i class="fas fa-plug"></i> Integración</a
                     >
                     <a
-                        href="{% url 'gestion_proyectos:lista_proyectos' %}"
-                        class="{% if request.resolver_match.url_name == 'lista_proyectos' and request.resolver_match.app_name == 'gestionProyectos' %}active{% endif %}"
+                        href="{% url 'gestion_proyectos:index' %}"
+                        class="{% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'gestion_proyectos' %}active{% endif %}"
                     >
                         <i class="fas fa-project-diagram"></i> Proyectos
                     </a>
