@@ -1,0 +1,48 @@
+<div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+    <!-- Cabecera del Card -->
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex justify-between items-start">
+            <!-- Información del Recurso -->
+            <div>
+                <h3 class="text-xl font-semibold text-gray-900">{{ recurso.recurso.nombrerecurso }}</h3>
+                <p class="text-sm text-gray-500">Tipo: {{ recurso.tipo }}</p>
+            </div>
+
+            <!-- Menú de Acciones -->
+            <div class="flex space-x-2">
+                <a href="{% url 'gestionRecursos:editar_recurso' recurso.recurso.idrecurso %}" 
+                   class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors"
+                   title="Editar Recurso">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'gestionRecursos:eliminar_recurso' recurso.recurso.idrecurso %}" 
+                   class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
+                   title="Eliminar Recurso">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cuerpo del Card -->
+    <div class="p-6 space-y-4">
+        <!-- Disponibilidad -->
+        <div>
+            <p class="text-gray-600">Disponibilidad: {{ recurso.recurso.disponibilidad|yesno:"Disponible,No disponible" }}</p>
+        </div>
+
+        <!-- Costo -->
+        <div>
+            <p class="text-gray-600">Costo: {{ recurso.costo }}</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        <a href="{% url 'gestionRecursos:detalle_recurso' recurso.recurso.idrecurso %}" 
+           class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center justify-center">
+            <span>Ver Detalles</span>
+            <i class="fas fa-chevron-right ml-2"></i>
+        </a>
+    </div>
+</div>

@@ -8,6 +8,9 @@ from .models import (
     Tester,
     Administrador,
     Cliente,
+    Notificacion,
+    Alerta,
+    Equipo,
 )
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Case, When, Count, Q, FloatField, F, Sum, DecimalField
@@ -27,7 +30,7 @@ def verificar_rol_administrador(view_func):
 
 @login_required
 def dashboard(request):
-    # Obtiene los primeros 3 proyectos
+    # Obtiene los últimos 3 proyectos agregados
     proyectos = Proyecto.objects.annotate(
         total_tareas=Count("requerimiento__tarea"),
         tareas_completadas=Count(
@@ -42,9 +45,7 @@ def dashboard(request):
             ),
             0.0,  # Si no hay tareas, el progreso es 0.0
         ),
-    )[
-        :3
-    ]  # Obtén los primeros 3 proyectos
+    ).order_by('-fechacreacion')[:3]  # Ordenar por fecha de creación descendente y obtener los primeros 3 proyectos
 
     tareas_estadisticas = {
         "pendientes": Tarea.objects.filter(estado="Pendiente").count(),
@@ -88,14 +89,40 @@ def dashboard(request):
         "clientes": Cliente.objects.count(),
     }
 
+    # Obtener notificaciones recientes
+    notificaciones = Notificacion.objects.filter(leido=False).order_by('-fechacreacion')[:5]
+
+    # Obtener alertas activas
+    alertas = Alerta.objects.filter(activa=True).order_by('-fechacreacion')[:5]
+
+    # Calcular estadísticas de usuarios
+    usuarios_estadisticas = {
+        "administradores": Administrador.objects.count(),
+        "desarrolladores": Desarrollador.objects.count(),
+        "testers": Tester.objects.count(),
+        "clientes": Cliente.objects.count(),
+    }
+
+    # Calcular proyectos por equipo
+    equipos_proyectos = Equipo.objects.annotate(
+        total_proyectos=Count("proyecto")
+    ).values("nombreequipo", "total_proyectos")
+
+    equipos_proyectos_estadisticas = {
+        "labels": [equipo["nombreequipo"] for equipo in equipos_proyectos],
+        "data": [equipo["total_proyectos"] for equipo in equipos_proyectos],
+    }
+
     context = {
         "usuario": request.user,
         "proyectos": proyectos,
         "tareas_estadisticas": json.dumps(tareas_estadisticas, cls=DjangoJSONEncoder),
         "resumen_financiero": resumen_financiero,
-        "recursos_estadisticas": json.dumps(
-            distribucion_recursos, cls=DjangoJSONEncoder
-        ),
+        "recursos_estadisticas": json.dumps(distribucion_recursos, cls=DjangoJSONEncoder),
+        "notificaciones": notificaciones,
+        "alertas": alertas,
+        "usuarios_estadisticas": json.dumps(usuarios_estadisticas, cls=DjangoJSONEncoder),
+        "equipos_proyectos_estadisticas": json.dumps(equipos_proyectos_estadisticas, cls=DjangoJSONEncoder),
     }
     return render(request, "dashboard/index.html", context)
 

@@ -13,11 +13,20 @@ from dashboard.models import (
 from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 
 @login_required
 def lista_recursos(request):
+    busqueda = request.GET.get("busqueda", "")
+    vista = request.GET.get("vista", "grid")
+    page = request.GET.get("page", 1)
+
     recursos = Recurso.objects.all()
+
+    if busqueda:
+        recursos = recursos.filter(nombrerecurso__icontains=busqueda)
+
     recursos_con_costos = []
     for recurso in recursos:
         if hasattr(recurso, "recursohumano"):
@@ -30,12 +39,36 @@ def lista_recursos(request):
             costo = None
             tipo = "Desconocido"
         recursos_con_costos.append({"recurso": recurso, "costo": costo, "tipo": tipo})
+
+    paginator = Paginator(recursos_con_costos, 9)
+    try:
+        recursos_paginados = paginator.page(page)
+    except PageNotAnInteger:
+        recursos_paginados = paginator.page(1)
+    except EmptyPage:
+        recursos_paginados = paginator.page(paginator.num_pages)
+
     proyectos = Proyecto.objects.all()
+    context = {
+        "recursos": recursos_paginados,
+        "vista": vista,
+        "filtros": {"busqueda": busqueda},
+        "proyectos": proyectos,
+    }
     return render(
         request,
         "gestion_recursos/lista_recursos.html",
-        {"recursos_con_costos": recursos_con_costos, "proyectos": proyectos},
+        context,
     )
+
+
+@login_required
+def detalle_recurso(request, id):
+    recurso = get_object_or_404(Recurso, pk=id)
+    context = {
+        "recurso": recurso,
+    }
+    return render(request, "gestion_recursos/detalle_recurso.html", context)
 
 
 @login_required

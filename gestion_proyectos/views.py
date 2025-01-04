@@ -3,13 +3,14 @@ from dashboard.models import Proyecto, Requerimiento, Tarea, Equipo
 from django.utils import timezone
 from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
 from django.utils.timezone import is_naive, make_aware
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Case, When, FloatField, Sum, F
 
 @login_required
 def index(request):
-    proyectos = Proyecto.objects.all()
+    proyectos = Proyecto.objects.all().order_by('idproyecto')  # Ordenar por idproyecto para evitar resultados inconsistentes
     estadisticas = {
         'total': proyectos.count(),
         'inicio': proyectos.filter(estado='Inicio').count(),
@@ -105,12 +106,21 @@ def index(request):
             ),
         ]
     }
+
+    # Paginación
+    paginator = Paginator(proyectos, 9)
+    page = request.GET.get("page", 1)
+    proyectos_paginados = paginator.get_page(page)
+
+
     return render(request, 'gestion_proyectos/index.html', {
         'estadisticas': estadisticas,
         'datos_estado': datos_estado,
         'datos_tendencia': datos_tendencia,
         'datos_tiempo': datos_tiempo,
-        'proyectos': proyectos
+        'proyectos': proyectos_paginados,
+        'vista': request.GET.get('vista', 'grid'),
+        'filtro_activo': request.GET.get('filtro', 'todos'),
     })
 
 @login_required
@@ -408,7 +418,14 @@ def filtrar_proyectos(request):
     elif filtro == 'cierre':
         proyectos = proyectos.filter(estado='Cierre')
 
-    return render(request, 'components/lista_proyectos.html', {'proyectos': proyectos, 'filtro_activo': filtro})
+
+      # Paginación
+    paginator = Paginator(proyectos, 9)
+    page = request.GET.get("page", 1)
+    proyectos_paginados = paginator.get_page(page)
+   
+    return render(request, 'components/lista_proyectos.html', {'proyectos': proyectos_paginados, 'filtro_activo': filtro})
+
 
 
 

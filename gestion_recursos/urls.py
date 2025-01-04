@@ -23,4 +23,9 @@ urlpatterns = [
         verificar_rol_administrador(views.asignar_recurso),
         name="asignar_recurso",
     ),
+    path(
+        "detalle/<int:id>/",
+        verificar_rol_administrador(views.detalle_recurso),
+        name="detalle_recurso",
+    ),
 ]

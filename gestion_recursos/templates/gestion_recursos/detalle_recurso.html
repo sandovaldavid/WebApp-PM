@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+
+{% block title %}Detalle del Recurso{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center justify-between">
+    <div class="flex items-center">
+        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+        <span>Detalle del Recurso</span>
+    </div>
+    <a href="{% url 'gestionRecursos:lista_recursos' %}" 
+       class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Volver a la Lista
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8 space-y-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-semibold mb-4">{{ recurso.nombrerecurso }}</h2>
+        <p class="text-gray-600 mb-2"><strong>Tipo:</strong> {{ recurso.idtiporecurso.nametiporecurso }}</p>
+        <p class="text-gray-600 mb-2"><strong>Disponibilidad:</strong> {{ recurso.disponibilidad|yesno:"Disponible,No disponible" }}</p>
+        <p class="text-gray-600 mb-2"><strong>Fecha de Creación:</strong> {{ recurso.fechacreacion|date:"d/m/Y" }}</p>
+        {% if recurso.idtiporecurso.idtiporecurso == 1 %}
+        <p class="text-gray-600 mb-2"><strong>Cargo:</strong> {{ recurso.recursohumano.cargo }}</p>
+        <p class="text-gray-600 mb-2"><strong>Habilidades:</strong> {{ recurso.recursohumano.habilidades }}</p>
+        <p class="text-gray-600 mb-2"><strong>Tarifa por Hora:</strong> {{ recurso.recursohumano.tarifahora }}</p>
+        {% elif recurso.idtiporecurso.idtiporecurso == 2 %}
+        <p class="text-gray-600 mb-2"><strong>Costo por Unidad:</strong> {{ recurso.recursomaterial.costounidad }}</p>
+        <p class="text-gray-600 mb-2"><strong>Fecha de Compra:</strong> {{ recurso.recursomaterial.fechacompra|date:"d/m/Y" }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
