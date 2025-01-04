@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="es">
     <head>
-        <meta charset="UTF-8">
+ <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="Sistema de Gestión de Proyectos - Panel de administración">
         <meta name="theme-color" content="#1a56db">
@@ -14,24 +14,38 @@
         
         <title>{% block title %}Sistema de Gestión{% endblock %} | ProjectManager</title>
 
+        <!-- Estilos críticos inline para evitar FOUC -->
+        <style>
+            body { visibility: hidden; }
+            .preload * { transition: none !important; }
+        </style>
+
         <!-- Preload de recursos críticos -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+        <link rel="preload" href="https://fonts.googleapis.com" as="font" crossorigin>
+        <link rel="preload" href="https://cdnjs.cloudflare.com" as="style" crossorigin>
+        <link rel="preload" href="{% static 'css/layout.css' %}" as="style">
         
-        <!-- Estilos con carga optimizada -->
+        <!-- Estilos principales -->
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" 
-            rel="stylesheet" media="print" onload="this.media='all'">
+              rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
-            rel="stylesheet" media="print" onload="this.media='all'">
+              rel="stylesheet">
         <link href="{% static 'css/layout.css' %}" rel="stylesheet">
 
         <!-- Scripts -->
+        <script>
+            // Remover clase preload después de cargar
+            window.addEventListener('load', () => {
+                document.body.classList.remove('preload');
+                document.body.style.visibility = 'visible';
+            });
+        </script>
         <script src="https://unpkg.com/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
         <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
         
         {% block style %}{% endblock %}
     </head>
-    <body>
+    <body class="preload">
         <!-- Botón para alternar la barra lateral -->
         <button id="toggleSidebar" class="focus:outline-none">
             <i class="fas fa-bars"></i>
