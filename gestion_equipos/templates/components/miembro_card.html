@@ -1,0 +1,133 @@
+{% load static %}
+
+<div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+    <!-- Cabecera con Avatar y Nombre -->
+    <div class="p-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <!-- Avatar/Icono basado en tipo de recurso -->
+                <div class="flex-shrink-0">
+                    {% if miembro.idrecurso.idtiporecurso.idtiporecurso == 1 %}
+                        <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-user text-blue-600 text-xl"></i>
+                        </div>
+                    {% else %}
+                        <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                            <i class="fas fa-cube text-green-600 text-xl"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Información del Miembro -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        {{ miembro.idrecurso.nombrerecurso }}
+                    </h3>
+                    <p class="text-sm text-gray-500">
+                        {{ miembro.idrecurso.idtiporecurso.nametiporecurso }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Menú de Acciones -->
+            <div class="flex space-x-2">
+                <a href="{% url 'gestion_equipos:detalle_miembro' miembro.idmiembro %}"
+                class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors"
+                title="Ver Detalles">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <form method="POST" 
+                    action="{% url 'gestion_equipos:eliminar_miembro' miembro.idmiembro %}"
+                    class="inline"
+                    onsubmit="return confirm('¿Está seguro de eliminar este miembro del equipo?');">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
+                            title="Eliminar del Equipo">
+                        <i class="fas fa-user-minus"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cuerpo del Card -->
+    <div class="p-4 space-y-3">
+        <!-- Información del Recurso -->
+        {% if miembro.idrecurso.idtiporecurso.idtiporecurso == 1 %}
+            <!-- Recurso Humano -->
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="text-gray-600">Cargo:</p>
+                    <p class="font-medium">{{ miembro.idrecurso.cargo }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Tarifa/Hora:</p>
+                    <p class="font-medium">${{ miembro.idrecurso.tarifahora|default:"0.00" }}</p>
+                </div>
+            </div>
+            {% if miembro.idrecurso.habilidades %}
+            <div>
+                <p class="text-gray-600 mb-1">Habilidades:</p>
+                <div class="flex flex-wrap gap-2">
+                    {% for habilidad in miembro.idrecurso.habilidades_lista %}
+                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        {{ habilidad }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+            <!-- Recurso Material -->
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="text-gray-600">Costo Unidad:</p>
+                    <p class="font-medium">${{ miembro.idrecurso.costounidad|default:"0.00" }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Fecha Compra:</p>
+                    <p class="font-medium">{{ miembro.idrecurso.fechacompra|date:"d/m/Y"|default:"No especificada" }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Proyectos Asignados -->
+        {% if miembro.idrecurso.tarearecurso_set.all %}
+        <div>
+            <p class="text-gray-600 mb-2">Proyectos Actuales:</p>
+            <div class="space-y-2">
+                {% for tarea_recurso in miembro.idrecurso.tarearecurso_set.all|slice:":3" %}
+                <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg text-sm">
+                    <span class="text-gray-700">{{ tarea_recurso.idtarea.idrequerimiento.idproyecto.nombreproyecto }}</span>
+                    <span class="text-gray-500 text-xs">{{ tarea_recurso.idtarea.estado }}</span>
+                </div>
+                {% endfor %}
+                {% if miembro.idrecurso.tarearecurso_set.count > 3 %}
+                <p class="text-sm text-gray-500 text-center">
+                    +{{ miembro.idrecurso.tarearecurso_set.count|add:"-3" }} proyectos más
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pie del Card con Estadísticas -->
+    <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">
+        <div class="grid grid-cols-2 gap-4 text-center text-sm">
+            <div>
+                <p class="text-gray-600">Tareas Asignadas</p>
+                <p class="text-xl font-semibold text-blue-600">
+                    {{ miembro.idrecurso.tarearecurso_set.count }}
+                </p>
+            </div>
+            <div>
+                <p class="text-gray-600">Tiempo en Equipo</p>
+                <p class="text-xl font-semibold text-green-600">
+                    {{ miembro.fechacreacion|timesince }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

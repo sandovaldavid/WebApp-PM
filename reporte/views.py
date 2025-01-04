@@ -3,153 +3,326 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.contrib import messages
-from django.db.models import Sum
-from django.db.models.functions import TruncMonth
+from django.db import models
+from django.db.models import Sum, Q, F, Count
+from django.db.models.functions import TruncMonth, Coalesce
 from django.core.paginator import Paginator
+from django.core.cache import cache
 from dashboard.models import (
     Proyecto,
     Tarea,
-    Historialreporte,
-    Reporte,
-    Tarearecurso,
     Recurso,
-    Requerimiento,
     Historialtarea,
 )
 import csv
 import json
 from django.template.loader import render_to_string
-from datetime import timedelta
+from datetime import datetime, timedelta
 from weasyprint import HTML
 
 
 @login_required
 def index(request):
-    """Vista principal de reportes"""
+    """Vista principal de reportes que muestra estadísticas en un rango de fechas"""
     try:
-        # Obtener parámetros de filtro
-        fecha_inicio = request.GET.get("fecha_inicio")
-        fecha_fin = request.GET.get("fecha_fin")
+        # Obtener fechas del request o usar valores por defecto
+        fecha_fin = parse_date(request.GET.get("fecha_fin"), default=timezone.now())
+        fecha_inicio = parse_date(
+            request.GET.get("fecha_inicio"), default=fecha_fin - timedelta(days=30)
+        )
+
+        # Obtener otros filtros
         proyecto_id = request.GET.get("proyecto")
         tipo_reporte = request.GET.get("tipo_reporte", "general")
 
-        # Si no hay fechas, usar último mes
-        if not fecha_fin:
-            fecha_fin = timezone.now()
-        if not fecha_inicio:
-            fecha_inicio = fecha_fin - timedelta(days=30)
+        # Query base optimizada
+        tareas = Tarea.objects.all()
+        # Aplicar filtros de fecha
+        tareas = tareas.filter(fechacreacion__range=(fecha_inicio, fecha_fin))
 
-        # Query base
-        tareas = Tarea.objects.select_related("idrequerimiento__idproyecto")
-
-        # Aplicar filtros
+        # Aplicar filtro de proyecto si existe
         if proyecto_id:
             tareas = tareas.filter(idrequerimiento__idproyecto_id=proyecto_id)
-        if fecha_inicio:
-            tareas = tareas.filter(fechacreacion__gte=fecha_inicio)
-        if fecha_fin:
-            tareas = tareas.filter(fechacreacion__lte=fecha_fin)
 
-        # Estadísticas generales
+        # Calcular estadísticas básicas con tipos de datos consistentes
+        decimal_field = models.DecimalField(max_digits=10, decimal_places=2)
+
         estadisticas = {
             "total_tareas": tareas.count(),
             "tareas_completadas": tareas.filter(estado="Completada").count(),
-            "total_horas": sum(t.duracionactual or 0 for t in tareas),
-            "costo_total": sum(t.costoactual or 0 for t in tareas),
+            "total_horas": tareas.aggregate(
+                total=Coalesce(
+                    Sum("duracionactual", output_field=decimal_field),
+                    0.0,
+                    output_field=decimal_field,
+                )
+            )["total"],
+            "costo_total": tareas.aggregate(
+                total=Coalesce(
+                    Sum("costoactual", output_field=decimal_field),
+                    0.0,
+                    output_field=decimal_field,
+                )
+            )["total"],
         }
 
-        # Datos para el gráfico de progreso
-        proyectos = Proyecto.objects.all()
-        datos_progreso = {
-            "labels": [],
-            "completadas": [],
-            "en_progreso": [],
-            "pendientes": [],
-        }
-
-        for proyecto in proyectos:
-            tareas_proyecto = tareas.filter(idrequerimiento__idproyecto=proyecto)
-
-            datos_progreso["labels"].append(proyecto.nombreproyecto)
-            datos_progreso["completadas"].append(
-                tareas_proyecto.filter(estado="Completada").count()
-            )
-            datos_progreso["en_progreso"].append(
-                tareas_proyecto.filter(estado="En Progreso").count()
-            )
-            datos_progreso["pendientes"].append(
-                tareas_proyecto.filter(estado="Pendiente").count()
-            )
-
-        # Datos para el gráfico de recursos
-        recursos = (
-            Tarearecurso.objects.filter(idtarea__in=tareas)
-            .values("idrecurso__nombrerecurso")
-            .annotate(
-                horas_asignadas=Sum("idtarea__duracionestimada"),
-                horas_utilizadas=Sum("idtarea__duracionactual"),
-            )
-            .order_by("-horas_asignadas")
-        )
-
-        datos_recursos = {
-            "labels": [r["idrecurso__nombrerecurso"] for r in recursos],
-            "horas_asignadas": [float(r["horas_asignadas"] or 0) for r in recursos],
-            "horas_utilizadas": [float(r["horas_utilizadas"] or 0) for r in recursos],
-        }
-
-        # Datos para el historial
-        historial = (
-            Historialtarea.objects.filter(idtarea__in=tareas)
-            .select_related("idtarea__idrequerimiento__idproyecto")
-            .order_by("-fechacambio")[:10]
-        )
-
-        # Datos para el gráfico de costos
-        costos_mensuales = (
-            tareas.annotate(mes=TruncMonth("fechacreacion"))
-            .values("mes")
-            .annotate(
-                costo_estimado=Sum("costoestimado"), costo_actual=Sum("costoactual")
-            )
-            .order_by("mes")
-        )
-
-        datos_costos = {"labels": [], "estimado": [], "actual": []}
-
-        for costo in costos_mensuales:
-            datos_costos["labels"].append(costo["mes"].strftime("%B %Y"))
-            datos_costos["estimado"].append(float(costo["costo_estimado"] or 0))
-            datos_costos["actual"].append(float(costo["costo_actual"] or 0))
-
-        # Preparar contexto
-        context = {
-            "proyectos": proyectos,
-            "estadisticas": estadisticas,
-            "datos_progreso": datos_progreso,
-            "datos_recursos": datos_recursos,
-            "historial": historial,
-            "datos_costos": datos_costos,
-            "filtros": {
-                "fecha_inicio": fecha_inicio,
-                "fecha_fin": fecha_fin,
-                "proyecto": proyecto_id,
-                "tipo_reporte": tipo_reporte,
-            },
-        }
-
-        # Registrar generación del reporte
-        Reporte.objects.create(
-            tiporeporte=tipo_reporte,
-            fechageneracion=timezone.now(),
-            idproyecto_id=proyecto_id if proyecto_id else None,
+        # Preparar contexto según tipo de reporte
+        context = prepare_context(
+            tareas=tareas,
+            tipo_reporte=tipo_reporte,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            proyecto_id=proyecto_id,
+            estadisticas=estadisticas,
         )
 
         return render(request, "reportes/index.html", context)
 
     except Exception as e:
         messages.error(request, f"Error al generar reporte: {str(e)}")
-        return redirect("reportes:index")
+        return redirect("dashboard:index")
+
+
+def parse_date(date_str, default=None):
+    """Convierte string a fecha aware o retorna valor por defecto"""
+    if not date_str:
+        return default
+
+    try:
+        fecha = datetime.strptime(date_str, "%Y-%m-%d")
+        return timezone.make_aware(
+            datetime.combine(
+                fecha, datetime.min.time() if fecha == fecha else datetime.max.time()
+            )
+        )
+    except ValueError:
+        return default
+
+
+def calcular_estadisticas_base(tareas):
+    """Calcula las estadísticas básicas de las tareas"""
+    return {
+        "total_tareas": tareas.count(),
+        "tareas_completadas": tareas.filter(estado="Completada").count(),
+        "total_horas": tareas.aggregate(
+            total=Coalesce(
+                Sum("duracionactual", output_field=models.DecimalField()),
+                0,
+                output_field=models.DecimalField(),
+            )
+        )["total"],
+        "costo_total": tareas.aggregate(
+            total=Coalesce(
+                Sum("costoactual", output_field=models.DecimalField()),
+                0,
+                output_field=models.DecimalField(),
+            )
+        )["total"],
+    }
+
+
+def prepare_context(
+    tareas, tipo_reporte, fecha_inicio, fecha_fin, proyecto_id, estadisticas
+):
+    """Prepara el contexto según el tipo de reporte"""
+    context = {
+        "proyectos": Proyecto.objects.all().order_by("nombreproyecto"),
+        "estadisticas": {
+            "total_tareas": tareas.count(),
+            "tareas_completadas": tareas.filter(estado="Completada").count(),
+            "total_horas": tareas.aggregate(
+                total=Coalesce(
+                    Sum(
+                        "duracionactual",
+                        output_field=models.DecimalField(
+                            max_digits=10, decimal_places=2
+                        ),
+                    ),
+                    0.0,
+                    output_field=models.DecimalField(max_digits=10, decimal_places=2),
+                )
+            )["total"],
+            "costo_total": tareas.aggregate(
+                total=Coalesce(
+                    Sum(
+                        "costoactual",
+                        output_field=models.DecimalField(
+                            max_digits=10, decimal_places=2
+                        ),
+                    ),
+                    0.0,
+                    output_field=models.DecimalField(max_digits=10, decimal_places=2),
+                )
+            )["total"],
+        },
+        "filtros": {
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+            "proyecto": proyecto_id,
+            "tipo_reporte": tipo_reporte,
+        },
+    }
+
+    # Agregar datos específicos según tipo de reporte
+    if tipo_reporte == "recursos":
+        context["datos_recursos"] = calcular_estadisticas_recursos(tareas)
+    elif tipo_reporte == "costos":
+        context["datos_costos"] = calcular_estadisticas_costos(tareas)
+    else:  # tipo_reporte == "general"
+        context["datos_generales"] = calcular_estadisticas_generales(tareas)
+        context["historial"] = Historialtarea.objects.select_related(
+            "idtarea", "idtarea__idrequerimiento__idproyecto"
+        ).order_by("-fechacambio")[:10]
+
+    return context
+
+
+def calcular_estadisticas_recursos(tareas):
+    """Calcula estadísticas relacionadas con los recursos y su utilización"""
+    recursos = (
+        tareas.values(
+            "tarearecurso__idrecurso__nombrerecurso",
+            "tarearecurso__idrecurso__idtiporecurso__nametiporecurso",
+        )
+        .annotate(
+            horas_asignadas=Coalesce(
+                Sum("duracionestimada"), 0, output_field=models.DecimalField()
+            ),
+            horas_utilizadas=Coalesce(
+                Sum("duracionactual"), 0, output_field=models.DecimalField()
+            ),
+        )
+        .filter(tarearecurso__isnull=False)
+    )
+
+    return {
+        "total_horas_asignadas": sum(r["horas_asignadas"] for r in recursos),
+        "total_horas_utilizadas": sum(r["horas_utilizadas"] for r in recursos),
+        "recursos": [
+            {
+                "nombre": r["tarearecurso__idrecurso__nombrerecurso"],
+                "tipo": r["tarearecurso__idrecurso__idtiporecurso__nametiporecurso"],
+                "horas_asignadas": r["horas_asignadas"],
+                "horas_utilizadas": r["horas_utilizadas"],
+                "eficiencia": round(
+                    (
+                        (r["horas_utilizadas"] / r["horas_asignadas"] * 100)
+                        if r["horas_asignadas"] > 0
+                        else 0
+                    ),
+                    2,
+                ),
+            }
+            for r in recursos
+        ],
+    }
+
+
+def calcular_estadisticas_costos(tareas):
+    """Calcula estadísticas relacionadas con los costos y presupuestos"""
+    # Calcular totales con valores por defecto
+    totales = tareas.aggregate(
+        total_estimado=Coalesce(
+            Sum("costoestimado"), 0, output_field=models.DecimalField()
+        ),
+        total_actual=Coalesce(
+            Sum("costoactual"), 0, output_field=models.DecimalField()
+        ),
+    )
+
+    total_estimado = totales["total_estimado"]
+    total_actual = totales["total_actual"]
+
+    # Calcular métricas
+    variacion_total = (
+        ((total_actual - total_estimado) / total_estimado * 100)
+        if total_estimado > 0
+        else 0
+    )
+
+    # Agrupar por períodos mensuales
+    periodos = (
+        tareas.annotate(mes=TruncMonth("fechacreacion"))
+        .values("mes")
+        .annotate(
+            estimado=Coalesce(
+                Sum("costoestimado"), 0, output_field=models.DecimalField()
+            ),
+            actual=Coalesce(Sum("costoactual"), 0, output_field=models.DecimalField()),
+        )
+        .order_by("mes")
+    )
+
+    return {
+        "total_estimado": total_estimado,
+        "total_actual": total_actual,
+        "variacion_total": round(variacion_total, 2),
+        "porcentaje_utilizado": round(
+            (total_actual / total_estimado * 100) if total_estimado > 0 else 0, 2
+        ),
+        "indice_eficiencia": round(
+            total_estimado / total_actual if total_actual > 0 else 0, 2
+        ),
+        "periodos": [
+            {
+                "fecha": p["mes"].strftime("%b %Y"),
+                "estimado": p["estimado"],
+                "actual": p["actual"],
+                "variacion": round(
+                    (
+                        ((p["actual"] - p["estimado"]) / p["estimado"] * 100)
+                        if p["estimado"] > 0
+                        else 0
+                    ),
+                    2,
+                ),
+            }
+            for p in periodos
+        ],
+    }
+
+
+def calcular_estadisticas_generales(tareas):
+    """Calcula estadísticas generales del progreso de tareas por proyecto"""
+    # Estadísticas generales de tareas
+    totales = tareas.aggregate(
+        total_completadas=Count("idtarea", filter=Q(estado="Completada")),
+        total_en_progreso=Count("idtarea", filter=Q(estado="En Progreso")),
+        total_pendientes=Count("idtarea", filter=Q(estado="Pendiente")),
+    )
+
+    # Estadísticas por proyecto
+    proyectos = (
+        tareas.values(
+            "idrequerimiento__idproyecto__idproyecto",
+            "idrequerimiento__idproyecto__nombreproyecto",
+        )
+        .annotate(
+            total=Count("idtarea"),
+            completadas=Count("idtarea", filter=Q(estado="Completada")),
+            en_progreso=Count("idtarea", filter=Q(estado="En Progreso")),
+            pendientes=Count("idtarea", filter=Q(estado="Pendiente")),
+        )
+        .filter(total__gt=0)
+    )
+
+    return {
+        "total_completadas": totales["total_completadas"],
+        "total_en_progreso": totales["total_en_progreso"],
+        "total_pendientes": totales["total_pendientes"],
+        "proyectos": [
+            {
+                "nombre": p["idrequerimiento__idproyecto__nombreproyecto"],
+                "completadas": p["completadas"],
+                "en_progreso": p["en_progreso"],
+                "pendientes": p["pendientes"],
+                "porcentaje_completado": round(
+                    (p["completadas"] / p["total"] * 100) if p["total"] > 0 else 0, 1
+                ),
+            }
+            for p in proyectos
+        ],
+    }
 
 
 @login_required
@@ -219,7 +392,7 @@ def exportar_pdf(request):
         filtros = json.loads(request.POST.get("filtros", "{}"))
 
         # Aplicar filtros a la consulta
-        tareas = Tarea.objects.select_related("idrequerimiento__idproyecto")
+        tareas = Tarea.objects.select_related("idrequerimiento__idproyecto").all()
 
         if filtros.get("proyecto"):
             tareas = tareas.filter(idrequerimiento__idproyecto_id=filtros["proyecto"])
@@ -228,12 +401,27 @@ def exportar_pdf(request):
         if filtros.get("fecha_fin"):
             tareas = tareas.filter(fechacreacion__lte=filtros["fecha_fin"])
 
-        # Calcular estadísticas
+        # Definir campo decimal con parámetros específicos
+        decimal_field = models.DecimalField(max_digits=10, decimal_places=2)
+
+        # Calcular estadísticas con manejo de valores nulos y tipo de campo consistente
         estadisticas = {
             "total_tareas": tareas.count(),
             "tareas_completadas": tareas.filter(estado="Completada").count(),
-            "total_horas": sum(t.duracionactual or 0 for t in tareas),
-            "costo_total": sum(t.costoactual or 0 for t in tareas),
+            "total_horas": tareas.aggregate(
+                total=Coalesce(
+                    Sum("duracionactual", output_field=decimal_field),
+                    0.0,
+                    output_field=decimal_field,
+                )
+            )["total"],
+            "costo_total": tareas.aggregate(
+                total=Coalesce(
+                    Sum("costoactual", output_field=decimal_field),
+                    0.0,
+                    output_field=decimal_field,
+                )
+            )["total"],
         }
 
         # Renderizar template HTML
@@ -248,7 +436,7 @@ def exportar_pdf(request):
         )
 
         # Crear PDF
-        pdf = HTML(string=html).write_pdf()
+        pdf = HTML(string=html, base_url=request.build_absolute_uri()).write_pdf()
 
         # Crear response
         response = HttpResponse(pdf, content_type="application/pdf")
@@ -257,19 +445,22 @@ def exportar_pdf(request):
         return response
 
     except Exception as e:
+        print(f"Error al exportar PDF: {str(e)}")  # Para debugging
         return JsonResponse({"error": f"Error al exportar PDF: {str(e)}"}, status=500)
 
 
 @login_required
 def filtrar_historial(request):
-    """Vista para filtrar el historial de tareas via HTMX"""
+    """Vista para filtrar el historial de tareas"""
     try:
-        tipo_filtro = request.GET.get("filtro", "todos")
+        # Obtener parámetros de filtro
+        tipo_filtro = request.GET.get("tipo_filtro", "todos")
         proyecto_id = request.GET.get("proyecto")
+        page = request.GET.get("page", 1)
 
-        # Query base
+        # Query base optimizada
         historial = Historialtarea.objects.select_related(
-            "idtarea__idrequerimiento__idproyecto"
+            "idtarea", "idtarea__idrequerimiento__idproyecto"
         ).order_by("-fechacambio")
 
         # Aplicar filtros
@@ -287,15 +478,20 @@ def filtrar_historial(request):
 
         # Paginación
         paginator = Paginator(historial, 10)
-        page = request.GET.get("page", 1)
         historial_paginado = paginator.get_page(page)
 
-        context = {"historial": historial_paginado}
+        # Obtener proyectos para el filtro
+        proyectos = Proyecto.objects.all()
 
-        return render(request, "reportes/components/historial_tareas.html", context)
+        context = {
+            "historial": historial_paginado,
+            "proyectos": proyectos,
+            "filtro_actual": tipo_filtro,
+            "proyecto_actual": proyecto_id,
+        }
+
+        return render(request, "components/historial_tareas.html", context)
 
     except Exception as e:
-        return HttpResponse(
-            f'<div class="text-red-500 p-4">Error al filtrar historial: {str(e)}</div>',
-            status=500,
-        )
+        messages.error(request, f"Error al filtrar historial: {str(e)}")
+        return redirect("reportes:index")
