@@ -2,33 +2,116 @@
 
 {% block title %}Crear Recurso{% endblock %}
 
-{% block title_body %}<i class="fas fa-plus header-icon"></i> Crear Recurso{% endblock %}
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-cogs text-blue-500 mr-2"></i>
+    <span>Crear Nuevo Recurso</span>
+</div>
+{% endblock %}
 
 {% block body %}
-<main class="p-8">
-    <h2 class="text-2xl font-semibold mb-4">Registrar Nuevo Recurso</h2>
-    <form method="post" action="{% url 'gestionRecursos:crear_recurso' %}">
-        {% csrf_token %}
-        <div class="mb-4">
-            <label for="nombre" class="block text-gray-700">Nombre del Recurso</label>
-            <input type="text" id="nombre" name="nombre" class="w-full p-2 border rounded" required>
+<div class="p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Encabezado -->
+            <div class="p-6 bg-gradient-to-r from-green-500 to-green-600">
+                <h2 class="text-xl font-semibold text-white flex items-center">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    Nuevo Recurso
+                </h2>
+                <p class="mt-2 text-green-100">
+                    Completa los detalles para registrar un nuevo recurso
+                </p>
+            </div>
+
+            <!-- Formulario -->
+            <form method="POST" class="p-6 space-y-6" onsubmit="prepararHabilidades()">
+                {% csrf_token %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Nombre del Recurso -->
+                <div>
+                    <label for="nombre" class="block text-sm font-medium text-gray-700">
+                        Nombre del Recurso <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-cogs text-gray-400"></i>
+                        </div>
+                        <input type="text" 
+                               name="nombre" 
+                               id="nombre"
+                               required
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                               placeholder="Ingrese el nombre del recurso">
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500">
+                        El nombre debe ser único y descriptivo
+                    </p>
+                </div>
+
+                <!-- Tipo de Recurso -->
+                <div>
+                    <label for="tipo_recurso" class="block text-sm font-medium text-gray-700">
+                        Tipo de Recurso <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-tags text-gray-400"></i>
+                        </div>
+                        <select id="tipo_recurso" 
+                                name="tipo_recurso" 
+                                required 
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+                                onchange="mostrarCamposAdicionales(this.value)">
+                            <option value="">Seleccione un tipo de recurso</option>
+                            {% for tipo in tipos %}
+                            <option value="{{ tipo.idtiporecurso }}">{{ tipo.nametiporecurso }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Campos Adicionales -->
+                <div id="campos-adicionales"></div>
+
+                <!-- Guía de Ayuda -->
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-green-800 flex items-center mb-2">
+                        <i class="fas fa-lightbulb text-green-500 mr-2"></i>
+                        Recomendaciones
+                    </h4>
+                    <ul class="text-sm text-green-700 space-y-1 ml-6 list-disc">
+                        <li>Usa nombres claros y descriptivos</li>
+                        <li>Selecciona el tipo de recurso adecuado</li>
+                        <li>Completa todos los campos obligatorios</li>
+                    </ul>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'gestionRecursos:lista_recursos' %}" 
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Registrar Recurso
+                    </button>
+                </div>
+            </form>
         </div>
-        <div class="mb-4">
-            <label for="tipo_recurso" class="block text-gray-700">Tipo de Recurso</label>
-            <select id="tipo_recurso" name="tipo_recurso" class="w-full p-2 border rounded" required onchange="mostrarCamposAdicionales(this.value)">
-                <option value="">Seleccione un tipo de recurso</option>
-                {% for tipo in tipos %}
-                <option value="{{ tipo.idtiporecurso }}">{{ tipo.nametiporecurso }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div id="campos-adicionales"></div>
-        <div class="flex justify-end">
-            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Registrar</button>
-            <a href="{% url 'gestionRecursos:lista_recursos' %}" class="ml-2 text-red-500">Cancelar</a>
-        </div>
-    </form>
-</main>
+    </div>
+</div>
 
 <script>
     function mostrarCamposAdicionales(tipoRecursoId) {
@@ -38,20 +121,21 @@
         if (tipoRecursoId == 1) { // Recurso Humano
             camposAdicionales.innerHTML = `
                 <div class="mb-4">
-                    <label for="cargo" class="block text-gray-700">Cargo</label>
-                    <input type="text" id="cargo" name="cargo" class="w-full p-2 border rounded" required>
+                    <label for="cargo" class="block text-sm font-medium text-gray-700">Cargo</label>
+                    <input type="text" id="cargo" name="cargo" class="w-full p-2 border rounded-md" required>
                 </div>
                 <div class="mb-4">
-                    <label for="habilidades" class="block text-gray-700">Habilidades</label>
-                    <textarea id="habilidades" name="habilidades" class="w-full p-2 border rounded" required></textarea>
+                    <label for="habilidades" class="block text-sm font-medium text-gray-700">Habilidades</label>
+                    <textarea id="habilidades" name="habilidades" class="w-full p-2 border rounded-md" onkeyup="agregarHabilidad(event)"></textarea>
+                    <div id="habilidades-lista" class="flex flex-wrap gap-2 mt-2"></div>
                 </div>
                 <div class="mb-4">
-                    <label for="tarifahora" class="block text-gray-700">Tarifa por Hora</label>
-                    <input type="number" id="tarifahora" name="tarifahora" class="w-full p-2 border rounded" required>
+                    <label for="tarifahora" class="block text-sm font-medium text-gray-700">Tarifa por Hora</label>
+                    <input type="number" id="tarifahora" name="tarifahora" class="w-full p-2 border rounded-md" required>
                 </div>
                 <div class="mb-4">
-                    <label for="usuario" class="block text-gray-700">Usuario</label>
-                    <select id="usuario" name="usuario" class="w-full p-2 border rounded">
+                    <label for="usuario" class="block text-sm font-medium text-gray-700">Usuario</label>
+                    <select id="usuario" name="usuario" class="w-full p-2 border rounded-md">
                         {% for usuario in usuarios_no_asignados %}
                         <option value="{{ usuario.idusuario }}">{{ usuario.nombreusuario }}</option>
                         {% endfor %}
@@ -61,15 +145,43 @@
         } else if (tipoRecursoId == 2) { // Recurso Material
             camposAdicionales.innerHTML = `
                 <div class="mb-4">
-                    <label for="costounidad" class="block text-gray-700">Costo por Unidad</label>
-                    <input type="number" id="costounidad" name="costounidad" class="w-full p-2 border rounded" required>
+                    <label for="costounidad" class="block text-sm font-medium text-gray-700">Costo por Unidad</label>
+                    <input type="number" id="costounidad" name="costounidad" class="w-full p-2 border rounded-md" required>
                 </div>
                 <div class="mb-4">
-                    <label for="fechacompra" class="block text-gray-700">Fecha de Compra</label>
-                    <input type="date" id="fechacompra" name="fechacompra" class="w-full p-2 border rounded" required>
+                    <label for="fechacompra" class="block text-sm font-medium text-gray-700">Fecha de Compra</label>
+                    <input type="date" id="fechacompra" name="fechacompra" class="w-full p-2 border rounded-md" required>
                 </div>
             `;
         }
+    }
+
+    function agregarHabilidad(event) {
+        if (event.key === ',') {
+            event.preventDefault();
+            const input = event.target;
+            const valor = input.value.trim().slice(0, -1);
+            if (valor) {
+                const lista = document.getElementById('habilidades-lista');
+                const etiqueta = document.createElement('span');
+                etiqueta.className = 'px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm cursor-pointer';
+                etiqueta.textContent = valor;
+                etiqueta.ondblclick = function() {
+                    lista.removeChild(etiqueta);
+                };
+                lista.appendChild(etiqueta);
+                input.value = '';
+            }
+        }
+    }
+
+    function prepararHabilidades() {
+        const lista = document.getElementById('habilidades-lista');
+        const habilidades = [];
+        lista.querySelectorAll('span').forEach(etiqueta => {
+            habilidades.push(etiqueta.textContent);
+        });
+        document.getElementById('habilidades').value = habilidades.join(',');
     }
 </script>
 {% endblock %}

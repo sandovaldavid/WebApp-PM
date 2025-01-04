@@ -28,4 +28,19 @@ urlpatterns = [
         verificar_rol_administrador(views.detalle_recurso),
         name="detalle_recurso",
     ),
+    path(
+        "api/requerimientos/<int:proyecto_id>/",
+        views.obtener_requerimientos,
+        name="obtener_requerimientos",
+    ),
+    path(
+        "api/tareas/<int:requerimiento_id>/",
+        views.obtener_tareas,
+        name="obtener_tareas",
+    ),
+    path(
+        "api/recursos/<int:proyecto_id>/",
+        views.obtener_recursos,
+        name="obtener_recursos",
+    ),
 ]

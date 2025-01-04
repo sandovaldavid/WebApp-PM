@@ -13,19 +13,82 @@
             <i class="fas fa-plus mr-2"></i>
             Registrar Recurso
         </a>
-        <button onclick="openModal()" class="bg-blue-500 text-white text-base px-2 py-1 ml-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center">
-            <i class="fas fa-tasks mr-2"></i>
+        <a href="{% url 'gestionRecursos:asignar_recurso' %}" class="bg-blue-500 text-white text-base px-2 py-1 ml-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center">
+            <i class="fas fa-plus mr-2"></i>
             Asignar Recurso
-        </button>
+        </a>
     </div>
 </div>
 {% endblock %}
 
 {% block body %}
 <div class="p-8 space-y-8">
-    <!-- Barra de búsqueda -->
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-semibold"><i class="fas fa-list"></i> Lista de Recursos</h2>
+    <!-- Componente de Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+        <!-- Total Recursos -->
+        <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-blue-600">Total Recursos</p>
+                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total_recursos }}</h3>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-cogs text-blue-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Recursos Humanos -->
+        <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-green-600">Recursos Humanos</p>
+                    <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.total_recursos_humanos }}</h3>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-user text-green-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Recursos Materiales -->
+        <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-purple-600">Recursos Materiales</p>
+                    <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.total_recursos_materiales }}</h3>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-cube text-purple-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recursos Humanos Disponibles -->
+        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-yellow-600">Recursos Humanos Disponibles</p>
+                    <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.recursos_humanos_disponibles }}</h3>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-user-check text-yellow-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recursos Materiales Disponibles -->
+        <div class="bg-indigo-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-indigo-600">Recursos Materiales Disponibles</p>
+                    <h3 class="text-2xl font-bold text-indigo-900">{{ estadisticas.recursos_materiales_disponibles }}</h3>
+                </div>
+                <div class="bg-indigo-100 p-3 rounded-full">
+                    <i class="fas fa-cube text-indigo-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Lista de Recursos -->

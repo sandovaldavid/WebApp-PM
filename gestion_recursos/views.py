@@ -9,11 +9,14 @@ from dashboard.models import (
     Tarea,
     Tarearecurso,
     Usuario,
+    Equipo,
+    Miembro,
 )
 from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.http import JsonResponse
 
 
 @login_required
@@ -48,12 +51,28 @@ def lista_recursos(request):
     except EmptyPage:
         recursos_paginados = paginator.page(paginator.num_pages)
 
+    # Estadísticas
+    total_recursos = Recurso.objects.count()
+    total_recursos_humanos = Recursohumano.objects.count()
+    total_recursos_materiales = Recursomaterial.objects.count()
+    recursos_humanos_disponibles = Recursohumano.objects.filter(idrecurso__disponibilidad=True).count()
+    recursos_materiales_disponibles = Recursomaterial.objects.filter(idrecurso__disponibilidad=True).count()
+
+    estadisticas = {
+        "total_recursos": total_recursos,
+        "total_recursos_humanos": total_recursos_humanos,
+        "total_recursos_materiales": total_recursos_materiales,
+        "recursos_humanos_disponibles": recursos_humanos_disponibles,
+        "recursos_materiales_disponibles": recursos_materiales_disponibles,
+    }
+
     proyectos = Proyecto.objects.all()
     context = {
         "recursos": recursos_paginados,
         "vista": vista,
         "filtros": {"busqueda": busqueda},
         "proyectos": proyectos,
+        "estadisticas": estadisticas,
     }
     return render(
         request,
@@ -65,8 +84,10 @@ def lista_recursos(request):
 @login_required
 def detalle_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
+    habilidades = recurso.recursohumano.habilidades.split(',') if recurso.idtiporecurso.idtiporecurso == 1 else []
     context = {
         "recurso": recurso,
+        "habilidades": habilidades,
     }
     return render(request, "gestion_recursos/detalle_recurso.html", context)
 
@@ -76,7 +97,7 @@ def crear_recurso(request):
     if request.method == "POST":
         nombre = request.POST.get("nombre")
         id_tipo = request.POST.get("tipo_recurso")
-        tipo = Tiporecurso.objects.get(pk=id_tipo)
+        tipo = get_object_or_404(Tiporecurso, pk=id_tipo)
 
         with transaction.atomic():
             # Obtener el último idrecurso y asignar el siguiente valor disponible
@@ -86,7 +107,7 @@ def crear_recurso(request):
             recurso = Recurso.objects.create(
                 idrecurso=nuevo_idrecurso,
                 nombrerecurso=nombre,
-                idtiporecurso=tipo.idtiporecurso,
+                idtiporecurso=tipo,
                 disponibilidad=True,
                 fechacreacion=timezone.now(),
             )
@@ -125,18 +146,19 @@ def crear_recurso(request):
 @login_required
 def editar_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
+    habilidades = recurso.recursohumano.habilidades.split(',') if recurso.idtiporecurso.idtiporecurso == 1 else []
     if request.method == "POST":
         recurso.nombrerecurso = request.POST.get("nombre")
         recurso.fechamodificacion = timezone.now()
         recurso.save()
 
-        if recurso.idtiporecurso == 1:  # Recurso Humano
+        if recurso.idtiporecurso.idtiporecurso == 1:  # Recurso Humano
             recursohumano = get_object_or_404(Recursohumano, pk=id)
             recursohumano.cargo = request.POST.get("cargo")
             recursohumano.habilidades = request.POST.get("habilidades")
             recursohumano.tarifahora = request.POST.get("tarifahora")
             recursohumano.save()
-        elif recurso.idtiporecurso == 2:  # Recurso Material
+        elif recurso.idtiporecurso.idtiporecurso == 2:  # Recurso Material
             recursomaterial = get_object_or_404(Recursomaterial, pk=id)
             recursomaterial.costounidad = request.POST.get("costounidad")
             recursomaterial.fechacompra = request.POST.get("fechacompra")
@@ -148,7 +170,7 @@ def editar_recurso(request, id):
     return render(
         request,
         "gestion_recursos/editar_recurso.html",
-        {"recurso": recurso, "tipos": tipos},
+        {"recurso": recurso, "tipos": tipos, "habilidades": habilidades},
     )
 
 
@@ -174,4 +196,30 @@ def asignar_recurso(request):
             Tarearecurso.objects.create(idtarea=tarea, idrecurso=recurso, cantidad=1)
 
         return redirect("gestionRecursos:lista_recursos")
-    return redirect("gestionRecursos:lista_recursos")
+
+    proyectos = Proyecto.objects.all()
+    context = {
+        "proyectos": proyectos,
+    }
+    return render(request, "gestion_recursos/asignar_recurso.html", context)
+
+@login_required
+def obtener_requerimientos(request, proyecto_id):
+    requerimientos = Requerimiento.objects.filter(idproyecto=proyecto_id)
+    data = [{"idrequerimiento": req.idrequerimiento, "descripcion": req.descripcion} for req in requerimientos]
+    return JsonResponse(data, safe=False)
+
+@login_required
+def obtener_tareas(request, requerimiento_id):
+    tareas = Tarea.objects.filter(idrequerimiento=requerimiento_id)
+    data = [{"idtarea": tarea.idtarea, "nombretarea": tarea.nombretarea} for tarea in tareas]
+    return JsonResponse(data, safe=False)
+
+@login_required
+def obtener_recursos(request, proyecto_id):
+    proyecto = get_object_or_404(Proyecto, pk=proyecto_id)
+    equipo = proyecto.idequipo
+    miembros = Miembro.objects.filter(idequipo=equipo)
+    recursos = [miembro.idrecurso for miembro in miembros]
+    data = [{"idrecurso": recurso.idrecurso, "nombrerecurso": recurso.nombrerecurso} for recurso in recursos]
+    return JsonResponse(data, safe=False)

@@ -3,34 +3,119 @@
 {% block title %}Detalle del Recurso{% endblock %}
 
 {% block title_body %}
-<div class="flex items-center justify-between">
-    <div class="flex items-center">
-        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-        <span>Detalle del Recurso</span>
-    </div>
-    <a href="{% url 'gestionRecursos:lista_recursos' %}" 
-       class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
-        <i class="fas fa-arrow-left mr-2"></i>
-        Volver a la Lista
-    </a>
+<div class="flex items-center">
+    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+    <span>Detalle del Recurso: {{ recurso.nombrerecurso }}</span>
 </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8 space-y-8">
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-2xl font-semibold mb-4">{{ recurso.nombrerecurso }}</h2>
-        <p class="text-gray-600 mb-2"><strong>Tipo:</strong> {{ recurso.idtiporecurso.nametiporecurso }}</p>
-        <p class="text-gray-600 mb-2"><strong>Disponibilidad:</strong> {{ recurso.disponibilidad|yesno:"Disponible,No disponible" }}</p>
-        <p class="text-gray-600 mb-2"><strong>Fecha de Creación:</strong> {{ recurso.fechacreacion|date:"d/m/Y" }}</p>
-        {% if recurso.idtiporecurso.idtiporecurso == 1 %}
-        <p class="text-gray-600 mb-2"><strong>Cargo:</strong> {{ recurso.recursohumano.cargo }}</p>
-        <p class="text-gray-600 mb-2"><strong>Habilidades:</strong> {{ recurso.recursohumano.habilidades }}</p>
-        <p class="text-gray-600 mb-2"><strong>Tarifa por Hora:</strong> {{ recurso.recursohumano.tarifahora }}</p>
-        {% elif recurso.idtiporecurso.idtiporecurso == 2 %}
-        <p class="text-gray-600 mb-2"><strong>Costo por Unidad:</strong> {{ recurso.recursomaterial.costounidad }}</p>
-        <p class="text-gray-600 mb-2"><strong>Fecha de Compra:</strong> {{ recurso.recursomaterial.fechacompra|date:"d/m/Y" }}</p>
-        {% endif %}
+<div class="p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Tarjeta Principal -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Encabezado -->
+            <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+                <div class="flex justify-between items-start">
+                    <!-- Info Principal -->
+                    <div class="flex items-center space-x-4">
+                        <div class="h-16 w-16 rounded-full {% if recurso.idtiporecurso.idtiporecurso == 1 %}bg-blue-100{% else %}bg-green-100{% endif %} flex items-center justify-center">
+                            <i class="fas {% if recurso.idtiporecurso.idtiporecurso == 1 %}fa-user text-blue-600{% else %}fa-cube text-green-600{% endif %} text-2xl"></i>
+                        </div>
+                        <div class="text-white">
+                            <h2 class="text-2xl font-bold">{{ recurso.nombrerecurso }}</h2>
+                            <p class="text-blue-100">
+                                <i class="fas {% if recurso.idtiporecurso.idtiporecurso == 1 %}fa-user-tie{% else %}fa-boxes{% endif %} mr-2"></i>
+                                {{ recurso.idtiporecurso.nametiporecurso }}
+                            </p>
+                            <p class="text-blue-100">
+                                <i class="fas fa-calendar mr-2"></i>
+                                Creado el {{ recurso.fechacreacion|date:"d/m/Y" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Botón Volver -->
+                    <a href="{% url 'gestionRecursos:lista_recursos' %}" 
+                       class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Volver
+                    </a>
+                </div>
+            </div>
+
+            <!-- Contenido -->
+            <div class="p-6 space-y-6">
+                <!-- Información General -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Detalles del Recurso -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            Información del Recurso
+                        </h3>
+                        <div class="space-y-3">
+                            {% if recurso.idtiporecurso.idtiporecurso == 1 %}
+                                <!-- Recurso Humano -->
+                                <div>
+                                    <p class="text-sm text-gray-600">Cargo</p>
+                                    <p class="font-medium">{{ recurso.recursohumano.cargo|default:"No especificado" }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Tarifa por Hora</p>
+                                    <p class="font-medium">${{ recurso.recursohumano.tarifahora|default:"0.00" }}</p>
+                                </div>
+                                {% if habilidades %}
+                                <div>
+                                    <p class="text-sm text-gray-600 mb-2">Habilidades</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        {% for habilidad in habilidades %}
+                                            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                                                {{ habilidad }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if recurso.recursohumano.idusuario %}
+                                <div>
+                                    <p class="text-sm text-gray-600">Usuario Asignado</p>
+                                    <p class="font-medium">{{ recurso.recursohumano.idusuario.nombreusuario }}</p>
+                                </div>
+                                {% endif %}
+                            {% else %}
+                                <!-- Recurso Material -->
+                                <div>
+                                    <p class="text-sm text-gray-600">Costo por Unidad</p>
+                                    <p class="font-medium">${{ recurso.recursomaterial.costounidad|default:"0.00" }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Fecha de Compra</p>
+                                    <p class="font-medium">{{ recurso.recursomaterial.fechacompra|date:"d/m/Y"|default:"No especificada" }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-chart-bar text-blue-500 mr-2"></i>
+                            Estadísticas
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4">                            
+                            <div class="bg-white p-4 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-600">Disponibilidad</p>
+                                <p class="text-2xl font-semibold {% if recurso.disponibilidad %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {{ recurso.disponibilidad|yesno:"Disponible,No disponible" }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

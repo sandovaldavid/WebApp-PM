@@ -1,0 +1,124 @@
+{% extends 'layout.html' %}
+
+{% block title %}Asignar Recurso{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-tasks text-blue-500 mr-2"></i>
+    <span>Asignar Recurso</span>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Encabezado -->
+            <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+                <h2 class="text-xl font-semibold text-white flex items-center">
+                    <i class="fas fa-tasks mr-2"></i>
+                    Asignar Recurso
+                </h2>
+            </div>
+
+            <!-- Formulario -->
+            <form method="POST" class="p-6 space-y-6">
+                {% csrf_token %}
+
+                <!-- Seleccionar Proyecto -->
+                <div class="mb-4">
+                    <label for="proyecto" class="block text-sm font-medium text-gray-700">Seleccionar Proyecto</label>
+                    <select id="proyecto" name="proyecto" class="w-full p-2 border rounded" onchange="loadRequerimientos(this.value)">
+                        <option value="">Seleccione un proyecto</option>
+                        {% for proyecto in proyectos %}
+                        <option value="{{ proyecto.idproyecto }}">{{ proyecto.nombreproyecto }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Seleccionar Requerimiento -->
+                <div class="mb-4">
+                    <label for="requerimiento" class="block text-sm font-medium text-gray-700">Seleccionar Requerimiento</label>
+                    <select id="requerimiento" name="requerimiento" class="w-full p-2 border rounded" onchange="loadTareas(this.value)">
+                        <option value="">Seleccione un requerimiento</option>
+                    </select>
+                </div>
+
+                <!-- Seleccionar Tarea -->
+                <div class="mb-4">
+                    <label for="tarea" class="block text-sm font-medium text-gray-700">Seleccionar Tarea</label>
+                    <select id="tarea" name="tarea" class="w-full p-2 border rounded" onchange="loadRecursos(this.value)">
+                        <option value="">Seleccione una tarea</option>
+                    </select>
+                </div>
+
+                <!-- Seleccionar Recurso -->
+                <div class="mb-4">
+                    <label for="recurso" class="block text-sm font-medium text-gray-700">Seleccionar Recurso</label>
+                    <select id="recurso" name="recurso" class="w-full p-2 border rounded">
+                        <option value="">Seleccione un recurso</option>
+                    </select>
+                </div>
+
+                <!-- Fecha de Asignación -->
+                <div class="mb-4">
+                    <label for="fecha_asignacion" class="block text-sm font-medium text-gray-700">Fecha de Asignación</label>
+                    <input type="date" id="fecha_asignacion" name="fecha_asignacion" class="w-full p-2 border rounded">
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'gestionRecursos:lista_recursos' %}" 
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Asignar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadRequerimientos(proyectoId) {
+        fetch(`/gestion-recursos/api/requerimientos/${proyectoId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const requerimientoSelect = document.getElementById('requerimiento');
+                requerimientoSelect.innerHTML = '<option value="">Seleccione un requerimiento</option>';
+                data.forEach(requerimiento => {
+                    requerimientoSelect.innerHTML += `<option value="${requerimiento.idrequerimiento}">${requerimiento.descripcion}</option>`;
+                });
+            });
+    }
+
+    function loadTareas(requerimientoId) {
+        fetch(`/gestion-recursos/api/tareas/${requerimientoId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const tareaSelect = document.getElementById('tarea');
+                tareaSelect.innerHTML = '<option value="">Seleccione una tarea</option>';
+                data.forEach(tarea => {
+                    tareaSelect.innerHTML += `<option value="${tarea.idtarea}">${tarea.nombretarea}</option>`;
+                });
+            });
+    }
+
+    function loadRecursos(proyectoId) {
+        fetch(`/gestion-recursos/api/recursos/${proyectoId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const recursoSelect = document.getElementById('recurso');
+                recursoSelect.innerHTML = '<option value="">Seleccione un recurso</option>';
+                data.forEach(recurso => {
+                    recursoSelect.innerHTML += `<option value="${recurso.idrecurso}">${recurso.nombrerecurso}</option>`;
+                });
+            });
+    }
+</script>
+{% endblock %}
