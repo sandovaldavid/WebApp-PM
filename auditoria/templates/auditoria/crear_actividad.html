@@ -1,0 +1,150 @@
+{% extends 'layout.html' %}
+
+{% block title %}Crear Actividad{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-plus-circle text-blue-500 mr-2"></i>
+    <span>Crear Nueva Actividad</span>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Encabezado -->
+            <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+                <h2 class="text-xl font-semibold text-white flex items-center">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    Nueva Actividad
+                </h2>
+                <p class="mt-2 text-blue-100">
+                    Completa los detalles para crear una nueva actividad
+                </p>
+            </div>
+
+            <!-- Formulario -->
+            <form method="POST" class="p-6 space-y-6">
+                {% csrf_token %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Nombre de la Actividad -->
+                <div>
+                    <label for="nombre" class="block text-sm font-medium text-gray-700">
+                        Nombre de la Actividad <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-tasks text-gray-400"></i>
+                        </div>
+                        <input type="text" 
+                               name="nombre" 
+                               id="nombre"
+                               required
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Ingrese el nombre de la actividad">
+                    </div>
+                </div>
+
+                <!-- Descripción -->
+                <div>
+                    <label for="descripcion" class="block text-sm font-medium text-gray-700">
+                        Descripción
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute top-3 left-3 flex items-center pointer-events-none">
+                            <i class="fas fa-info-circle text-gray-400"></i>
+                        </div>
+                        <textarea name="descripcion" 
+                                  id="descripcion"
+                                  rows="4"
+                                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder="Describe los detalles de la actividad"></textarea>
+                    </div>
+                </div>
+
+                <!-- Fecha de Creación -->
+                <div>
+                    <label for="fechacreacion" class="block text-sm font-medium text-gray-700">
+                        Fecha de Creación <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-calendar-alt text-gray-400"></i>
+                        </div>
+                        <input type="datetime-local" 
+                               name="fechacreacion" 
+                               id="fechacreacion"
+                               required
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Usuario -->
+                <div>
+                    <label for="idusuario" class="block text-sm font-medium text-gray-700">
+                        Usuario <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <select name="idusuario" 
+                                id="idusuario"
+                                required
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            {% for usuario in usuarios %}
+                                <option value="{{ usuario.idusuario }}">{{ usuario.nombreusuario }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Acción -->
+                <div>
+                    <label for="accion" class="block text-sm font-medium text-gray-700">
+                        Acción <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-cogs text-gray-400"></i>
+                        </div>
+                        <select name="accion" 
+                                id="accion"
+                                required
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="Login">Login</option>
+                            <option value="Logout">Logout</option>
+                            <option value="Creación">Creación</option>
+                            <option value="Modificación">Modificación</option>
+                            <option value="Eliminación">Eliminación</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'auditoria:registro_actividades' %}" 
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Crear Actividad
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

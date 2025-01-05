@@ -2,30 +2,275 @@
 
 {% block title %}Seguridad y Auditoría{% endblock %}
 
-{% block title_body %}<i class="fas fa-plus fa-shield-alt"></i> Seguridad y Auditoría{% endblock %}
+{% block title_body %}
+<div class="flex justify-between items-center">
+    <div class="flex items-center">
+        <i class="fas fa-shield-alt text-blue-500 mr-2"></i>
+        <span>Seguridad y Auditoría</span>
+    </div>
+    <a href="{% url 'auditoria:crear_actividad' %}" 
+    class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
+    <i class="fas fa-plus mr-2"></i>
+        Nueva Actividad
+    </a>
+</div>
+{% endblock %}
+
+{% block style %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
 
 {% block body %}
-<div id="registro-actividades" class="bg-white p-6 rounded-lg shadow-lg mb-6">
-    <h2 class="text-xl font-semibold mb-4">Registro de Actividades</h2>
-    <table class="w-full bg-white shadow-lg rounded-lg">
-        <thead class="bg-gray-200">
-            <tr>
-                <th class="p-4 text-left">Usuario</th>
-                <th class="p-4 text-left">Acción</th>
-                <th class="p-4 text-left">Fecha y Hora</th>
-                <th class="p-4 text-left">Detalles</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for actividad in actividades %}
-            <tr>
-                <td class="p-4">{{ actividad.idusuario.nombreusuario }}</td>
-                <td class="p-4">{{ actividad.accion }}</td>
-                <td class="p-4">{{ actividad.fechacreacion }}</td>
-                <td class="p-4">{{ actividad.descripcion }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="p-8 space-y-8">
+    <!-- Resumen Estadístico -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Total Actividades -->
+        <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-blue-600">Total Actividades</p>
+                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total_actividades }}</h3>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-tasks text-blue-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usuarios Activos -->
+        <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-green-600">Usuarios Activos</p>
+                    <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.usuarios_activos }}</h3>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-users text-green-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas Activas -->
+        <div class="bg-red-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-red-600">Alertas Activas</p>
+                    <h3 class="text-2xl font-bold text-red-900">{{ estadisticas.alertas_activas }}</h3>
+                </div>
+                <div class="bg-red-100 p-3 rounded-full">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Actividades por Usuario (Barras) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-bar text-blue-500 mr-2"></i>
+                Actividades por Usuario
+            </h3>
+            <div class="h-64">
+                <canvas id="actividadesUsuarioChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tipos de Actividades (Donut) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-pie text-purple-500 mr-2"></i>
+                Tipos de Actividades
+            </h3>
+            <div class="h-64">
+                <canvas id="tiposActividadesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+     <!-- Registro de Actividades -->
+    <div id="registro-actividades" class="bg-white p-6 rounded-lg shadow-lg mb-6">
+        <h2 class="text-xl font-semibold mb-4">Registro de Actividades</h2>
+        <!-- Filtros Rápidos -->
+        <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4">
+            <a href="?{% if request.GET.busqueda %}busqueda={{ request.GET.busqueda }}{% endif %}" 
+            class="px-4 py-2 rounded-full {% if not request.GET.filtro %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors">
+                <i class="fas fa-list-ul mr-2"></i>Todos
+            </a>
+            <a href="?filtro=Login{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+            class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Login' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-yellow-200 transition-colors">
+                <i class="fas fa-sign-in-alt mr-2"></i>Login
+            </a>
+            <a href="?filtro=Logout{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+            class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Logout' %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </a>
+            <a href="?filtro=Creación{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+            class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Creación' %}bg-green-100 text-green-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-green-200 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Creación
+            </a>
+            <a href="?filtro=Modificación{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+            class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Modificación' %}bg-red-100 text-red-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-red-200 transition-colors">
+                <i class="fas fa-edit mr-2"></i>Modificación
+            </a>
+            <a href="?filtro=Eliminación{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+            class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Eliminación' %}bg-gray-100 text-gray-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-gray-200 transition-colors">
+                <i class="fas fa-trash mr-2"></i>Eliminación
+            </a>
+        </div>
+
+        <!-- Búsqueda y Filtros -->
+        <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+            <form method="GET" class="flex gap-4">
+                <input type="hidden" name="filtro" value="{{ request.GET.filtro }}">
+                
+                <!-- Búsqueda -->
+                <div class="flex-1">
+                    <input type="text" 
+                        name="busqueda" 
+                        value="{{ filtros.busqueda }}"
+                        placeholder="Buscar por usuario..." 
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                </div>
+
+                <!-- Botones -->
+                <div class="flex gap-2">
+                    <a href="?{% if request.GET.filtro %}filtro={{ request.GET.filtro }}{% endif %}" 
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                        Limpiar
+                    </a>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usuario</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acción</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha y Hora</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detalles</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for actividad in actividades %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ actividad.idusuario.nombreusuario }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-500">{{ actividad.accion }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ actividad.fechacreacion }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-500">{{ actividad.descripcion }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex justify-end space-x-2">
+                                <a href="{% url 'auditoria:editar_actividad' actividad.idactividad %}" class="text-yellow-600 hover:text-yellow-800" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="#" class="text-red-600 hover:text-red-800" title="Eliminar" onclick="eliminarActividad({{ actividad.idactividad }})">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                            No hay actividades disponibles
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de Actividades por Usuario (Barras)
+    const actividadesUsuarioCtx = document.getElementById('actividadesUsuarioChart').getContext('2d');
+    new Chart(actividadesUsuarioCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ datos_actividades_usuario.labels|safe }},
+            datasets: [{
+                label: 'Actividades',
+                data: {{ datos_actividades_usuario.data|safe }},
+                backgroundColor: '#60A5FA',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Gráfico de Tipos de Actividades (Donut)
+    const tiposActividadesCtx = document.getElementById('tiposActividadesChart').getContext('2d');
+    new Chart(tiposActividadesCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ datos_tipos_actividades.labels|safe }},
+            datasets: [{
+                data: {{ datos_tipos_actividades.data|safe }},
+                backgroundColor: ['#FCD34D', '#34D399', '#F87171', '#A78BFA'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+
+function eliminarActividad(id) {
+    if (confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
+        fetch("{% url 'auditoria:eliminar_actividad' 0 %}".replace("0", id), {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert("Error al eliminar la actividad.");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Error al eliminar la actividad.");
+        });
+    }
+}
+</script>
+{% endblock %}
 {% endblock %}

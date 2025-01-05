@@ -10,7 +10,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 class Actividad(models.Model):
-    idactividad = models.IntegerField(primary_key=True)
+    idactividad = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=255)
     descripcion = models.TextField(blank=True, null=True)
     fechacreacion = models.DateTimeField(blank=True, null=True)
