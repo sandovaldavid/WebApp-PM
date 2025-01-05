@@ -81,6 +81,13 @@ DB_USER=development
 DB_PASSWORD=123456
 DB_HOST=db-web-app
 DB_PORT=5432
+
+# Mailtrap configuration
+EMAIL_HOST=smtp.mailtrap.io
+EMAIL_PORT=2525
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+EMAIL_USE_TLS=True
 ```
 
 Accede a `http://127.0.0.1:8000/` en tu navegador para ver la aplicación en funcionamiento.
