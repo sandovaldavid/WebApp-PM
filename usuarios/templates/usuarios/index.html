@@ -1,21 +1,40 @@
 {% extends "usuarios/base.html" %}
 
-{% block title %}Inicio{% endblock %}
+{% block title %}Inicio - Gestión de Proyectos de Desarrollo de Software{% endblock %}
 
 {% block body %}
-<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-        <div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Bienvenido a la Aplicación Web</h2>
+<div class="min-h-screen flex items-center justify-center">
+    <div class="text-center bg-white p-10 rounded-lg shadow-2xl max-w-3xl transform hover:scale-105 transition-transform duration-300 ease-in-out">
+        <h1 class="text-5xl font-extrabold text-gray-900 mb-6">Gestión de Proyectos de Software</h1>
+        <p class="text-lg text-gray-700 mb-8">Simplifica y organiza tus proyectos con nuestra plataforma intuitiva y poderosa. 
+           Lleva tu productividad al siguiente nivel.</p>
+        <div class="flex justify-center space-x-4 mb-6">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                <span class="text-gray-700">Gestión eficiente</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-user-friends text-blue-500 text-xl"></i>
+                <span class="text-gray-700">Colaboración en equipo</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-chart-line text-indigo-500 text-xl"></i>
+                <span class="text-gray-700">Resultados claros</span>
+            </div>
         </div>
         {% if mensaje %}
-            <div class="rounded-md p-4 bg-green-50 text-green-700">{{ mensaje }}</div>
+            <div class="rounded-md p-4 bg-green-50 text-green-700 mb-4">{{ mensaje }}</div>
         {% endif %}
         {% if error %}
-            <div class="rounded-md p-4 bg-red-50 text-red-700">{{ error }}</div>
+            <div class="rounded-md p-4 bg-red-50 text-red-700 mb-4">{{ error }}</div>
         {% endif %}
-        <div class="text-center mt-4">
-            <p>Por favor, <a href="{% url 'usuarios:login' %}" class="font-medium text-blue-600 hover:text-blue-500">inicia sesión</a> o <a href="{% url 'usuarios:register' %}" class="font-medium text-blue-600 hover:text-blue-500">regístrate</a> para continuar.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{% url 'usuarios:register' %}" class="flex items-center justify-center py-3 px-6 text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg text-lg font-medium transition duration-200 transform hover:scale-105 focus:ring-4 focus:ring-blue-500 focus:ring-offset-2">
+                <i class="fas fa-user-plus mr-2"></i> Crear Cuenta
+            </a>
+            <a href="{% url 'usuarios:login' %}" class="flex items-center justify-center py-3 px-6 text-white bg-green-600 hover:bg-green-700 rounded-lg shadow-lg text-lg font-medium transition duration-200 transform hover:scale-105 focus:ring-4 focus:ring-green-500 focus:ring-offset-2">
+                <i class="fas fa-sign-in-alt mr-2"></i> Iniciar Sesión
+            </a>
         </div>
     </div>
 </div>
