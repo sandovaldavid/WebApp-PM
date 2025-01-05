@@ -1,0 +1,73 @@
+{% extends 'layout.html' %}
+
+{% block title %}Editar Requerimiento{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-tasks text-blue-500 mr-2"></i>
+    <span>Editar Requerimiento para el Proyecto: {{ proyecto.nombreproyecto }}</span>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Encabezado -->
+            <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+                <h2 class="text-xl font-semibold text-white flex items-center">
+                    <i class="fas fa-tasks mr-2"></i>
+                    Editar Requerimiento
+                </h2>
+                <p class="mt-2 text-blue-100">
+                    Modifique la descripción del requerimiento
+                </p>
+            </div>
+
+            <!-- Formulario -->
+            <form method="POST" class="p-6 space-y-6">
+                {% csrf_token %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Descripción -->
+                <div>
+                    <label for="descripcion" class="block text-sm font-medium text-gray-700">
+                        Descripción <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-clipboard-list text-gray-400"></i>
+                        </div>
+                        <textarea id="descripcion" name="descripcion" rows="4" required
+                                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">{{ requerimiento.descripcion }}</textarea>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Modifique la descripción detallada del requerimiento
+                    </p>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex justify-between space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Volver
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

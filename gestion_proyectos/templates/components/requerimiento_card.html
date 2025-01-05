@@ -1,0 +1,88 @@
+<div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+    <!-- Cabecera con Descripción -->
+    <div class="p-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <!-- Icono de Requerimiento -->
+                <div class="flex-shrink-0">
+                    <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-tasks text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+                
+                <!-- Información del Requerimiento -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        {{ requerimiento.descripcion }}
+                    </h3>
+                </div>
+            </div>
+
+            <!-- Menú de Acciones -->
+            <div class="flex space-x-2">
+                <a href="{% url 'gestion_proyectos:detalle_requerimiento' requerimiento.idrequerimiento %}"
+                class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors"
+                title="Ver Detalles">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="{% url 'gestion_proyectos:editar_requerimiento' requerimiento.idrequerimiento %}"
+                class="text-yellow-600 hover:text-yellow-800 p-2 rounded-full hover:bg-yellow-50 transition-colors"
+                title="Editar Requerimiento">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <form method="POST" 
+                    action="{% url 'gestion_proyectos:eliminar_requerimiento' requerimiento.idrequerimiento %}"
+                    class="inline"
+                    onsubmit="return confirm('¿Está seguro de eliminar este requerimiento?');">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
+                            title="Eliminar Requerimiento">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cuerpo del Card -->
+    <div class="p-4 space-y-3">
+        <!-- Información del Requerimiento -->
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <p class="text-gray-600">Total Tareas:</p>
+                <p class="font-medium">{{ requerimiento.tarea_set.count }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600">Pendientes:</p>
+                <p class="font-medium">{{ requerimiento.tareas_pendientes }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600">En Progreso:</p>
+                <p class="font-medium">{{ requerimiento.tareas_en_progreso }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600">Completadas:</p>
+                <p class="font-medium">{{ requerimiento.tareas_completadas }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie del Card con Estadísticas -->
+    <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">
+        <div class="grid grid-cols-2 gap-4 text-center text-sm">
+            <div>
+                <p class="text-gray-600">Tareas Asignadas</p>
+                <p class="text-xl font-semibold text-blue-600">
+                    {{ requerimiento.tarea_set.count }}
+                </p>
+            </div>
+            <div>
+                <p class="text-gray-600">Tiempo en Proyecto</p>
+                <p class="text-xl font-semibold text-green-600">
+                    {{ requerimiento.fechacreacion|timesince }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

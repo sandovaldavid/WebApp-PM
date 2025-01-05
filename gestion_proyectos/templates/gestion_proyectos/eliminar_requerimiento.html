@@ -1,0 +1,59 @@
+{% extends 'layout.html' %}
+
+{% block title %}Eliminar Requerimiento{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-tasks text-blue-500 mr-2"></i>
+    <span>Eliminar Requerimiento para el Proyecto: {{ proyecto.nombreproyecto }}</span>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Encabezado -->
+            <div class="p-6 bg-gradient-to-r from-red-500 to-red-600">
+                <h2 class="text-xl font-semibold text-white flex items-center">
+                    <i class="fas fa-tasks mr-2"></i>
+                    Eliminar Requerimiento
+                </h2>
+                <p class="mt-2 text-red-100">
+                    ¿Está seguro de que desea eliminar este requerimiento? Esta acción no se puede deshacer.
+                </p>
+            </div>
+
+            <!-- Formulario -->
+            <form method="POST" class="p-6 space-y-6">
+                {% csrf_token %}
+
+                <!-- Descripción -->
+                <div>
+                    <label for="descripcion" class="block text-sm font-medium text-gray-700">
+                        Descripción
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <textarea id="descripcion" name="descripcion" rows="4" disabled
+                                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md">{{ requerimiento.descripcion }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex justify-between space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Volver
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center">
+                        <i class="fas fa-trash mr-2"></i>
+                        Eliminar Requerimiento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

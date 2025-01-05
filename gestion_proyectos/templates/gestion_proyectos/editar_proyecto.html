@@ -1,250 +1,141 @@
 {% extends 'layout.html' %}
 
-{% load static %}
-
-{% block style %}
-<style>
-    .details-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 1rem;
-    }
-    .details-table th, .details-table td {
-        border: 1px solid #ddd;
-        padding: 8px;
-    }
-    .details-table th {
-        background-color: #f2f2f2;
-        text-align: left;
-    }
-    .details-table tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-    .details-table tr:hover {
-        background-color: #ddd;
-    }
-    .collapsible {
-        cursor: pointer;
-        text-align: left;
-        outline: none;
-        font-size: 15px;
-        background-color: #f2f2f2;
-        padding: 10px;
-        margin-bottom: 5px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .content2 {
-        display: none;
-        overflow: hidden;
-        padding: 10px 18px;
-        margin-bottom: 10px;
-    }
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgb(0,0,0);
-        background-color: rgba(0,0,0,0.4);
-        padding-top: 60px;
-    }
-    .modal-content {
-        background-color: #fefefe;
-        margin: 5% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-    }
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-    }
-    .close:hover,
-    .close:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
-</style>
-{% endblock %}
-
 {% block title %}Editar Proyecto{% endblock %}
 
-{% block title_body %}<i class="fas fa-edit header-icon"></i> Editar Proyecto{% endblock %}
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-edit text-blue-500 mr-2"></i>
+    <span>Editar Proyecto</span>
+</div>
+{% endblock %}
 
 {% block body %}
-<main class="px-8">
-    <div class="bg-white p-6 rounded-lg shadow-lg">
-        <h2 class="text-xl font-semibold mb-4">Editar Proyecto</h2>
-        <form method="post">
+<div class="p-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-6 flex items-center">
+            <i class="fas fa-project-diagram text-blue-500 mr-2"></i>
+            Editar Proyecto: {{ proyecto.nombreproyecto }}
+        </h2>
+
+        <!-- Mostrar mensaje de error si existe -->
+        {% if error %}
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+
+        <form method="POST" class="space-y-6">
             {% csrf_token %}
-            <div class="mb-4">
-                <label for="nombreproyecto" class="block text-sm font-medium text-gray-700">Nombre del Proyecto</label>
-                <input type="text" name="nombreproyecto" id="nombreproyecto" value="{{ proyecto.nombreproyecto }}" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            </div>
-            <div class="mb-4">
-                <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-                <textarea name="descripcion" id="descripcion" rows="3" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ proyecto.descripcion }}</textarea>
-            </div>
-            <div class="mb-4">
-                <label for="estado" class="block text-sm font-medium text-gray-700">Estado</label>
-                <select name="estado" id="estado" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                    <option value="En progreso" {% if proyecto.estado == 'En progreso' %}selected{% endif %}>En progreso</option>
-                    <option value="Completado" {% if proyecto.estado == 'Completado' %}selected{% endif %}>Completado</option>
-                    <option value="Pendiente" {% if proyecto.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label for="fechainicio" class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
-                <input type="date" name="fechainicio" id="fechainicio" value="{{ proyecto.fechainicio|date:'Y-m-d' }}" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            </div>
-            <div class="mb-4">
-                <label for="fechafin" class="block text-sm font-medium text-gray-700">Fecha de Finalización</label>
-                <input type="date" name="fechafin" id="fechafin" value="{{ proyecto.fechafin|date:'Y-m-d' }}" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            </div>
-            <div class="mb-4">
-                <label for="presupuesto" class="block text-sm font-medium text-gray-700">Presupuesto</label>
-                <input type="number" name="presupuesto" id="presupuesto" value="{{ proyecto.presupuesto }}" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            </div>
-            <div class="mb-4">
-                <h3 class="text-lg font-semibold mb-2">Requerimientos</h3>
-                <div id="requerimientos-container">
-                    {% for requerimiento in requerimientos %}
-                    <div class="collapsible">
-                        <span onclick="editarRequerimiento({{ requerimiento.idrequerimiento }}, '{{ requerimiento.descripcion }}')">{{ requerimiento.descripcion }}</span>
-                        <input type="hidden" name="requerimiento_{{ requerimiento.idrequerimiento }}" value="{{ requerimiento.descripcion }}">
-                        <button type="button" class="bg-red-500 text-white px-2 py-1 rounded btn" onclick="confirmarEliminarRequerimiento({{ requerimiento.idrequerimiento }})"><i class="fas fa-trash"></i></button>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Columna Izquierda -->
+                <div class="space-y-6">
+                    <!-- Nombre del Proyecto -->
+                    <div>
+                        <label for="nombreproyecto" class="block text-sm font-medium text-gray-700">Nombre del Proyecto</label>
+                        <div class="mt-1 relative">
+                            <input type="text" name="nombreproyecto" id="nombreproyecto" 
+                                   value="{{ proyecto.nombreproyecto }}"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                   required>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-project-diagram text-gray-400"></i>
+                            </div>
+                        </div>
                     </div>
-                    {% endfor %}
+
+                    <!-- Descripción -->
+                    <div>
+                        <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                        <div class="mt-1 relative">
+                            <textarea name="descripcion" id="descripcion" rows="4"
+                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">{{ proyecto.descripcion }}</textarea>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-info-circle text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
-                <button type="button" class="bg-green-500 text-white px-4 py-2 rounded btn" onclick="openModal('modalNuevoRequerimiento')"><i class="fas fa-plus mr-2"></i>Añadir Requerimiento</button>
+
+                <!-- Columna Derecha -->
+                <div class="space-y-6">
+                    <!-- Estado -->
+                    <div>
+                        <label for="estado" class="block text-sm font-medium text-gray-700">Estado</label>
+                        <div class="mt-1 relative">
+                            <select name="estado" id="estado" 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
+                                <option value="Inicio" {% if proyecto.estado == 'Inicio' %}selected{% endif %}>Inicio</option>
+                                <option value="Planificación" {% if proyecto.estado == 'Planificación' %}selected{% endif %}>Planificación</option>
+                                <option value="Ejecución" {% if proyecto.estado == 'Ejecución' %}selected{% endif %}>Ejecución</option>
+                                <option value="Monitoreo-Control" {% if proyecto.estado == 'Monitoreo-Control' %}selected{% endif %}>Monitoreo-Control</option>
+                                <option value="Cierre" {% if proyecto.estado == 'Cierre' %}selected{% endif %}>Cierre</option>
+                            </select>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-info-circle text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Fechas -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="fechainicio" class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
+                            <div class="mt-1 relative">
+                                <input type="date" name="fechainicio" id="fechainicio" 
+                                       value="{{ proyecto.fechainicio|date:'Y-m-d' }}"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                       required>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-calendar-alt text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="fechafin" class="block text-sm font-medium text-gray-700">Fecha de Finalización</label>
+                            <div class="mt-1 relative">
+                                <input type="date" name="fechafin" id="fechafin" 
+                                       value="{{ proyecto.fechafin|date:'Y-m-d' }}"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                       required>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-calendar-check text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Presupuesto -->
+                    <div>
+                        <label for="presupuesto" class="block text-sm font-medium text-gray-700">Presupuesto</label>
+                        <div class="mt-1 relative">
+                            <input type="number" name="presupuesto" id="presupuesto" 
+                                   value="{{ proyecto.presupuesto }}"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                   min="0" step="0.01" required>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-dollar-sign text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="mt-4 flex justify-end">
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded btn"><i class="fas fa-save mr-2"></i>Guardar Cambios</button>
-            </div>
-        </form>
-    </div>
 
-    <script>
-        let nuevos_requerimientos = [];
-        let editando_requerimiento = null;
-
-        function openModal(modalId) {
-            var modal = document.getElementById(modalId);
-            modal.style.display = "block";
-            if (modalId === 'modalNuevoRequerimiento') {
-                document.getElementById('nueva_descripcion_requerimiento').value = editando_requerimiento !== null ? document.querySelector(`input[name="requerimiento_${editando_requerimiento}"]`).value : '';
-            }
-        }
-
-        function closeModal(modalId) {
-            var modal = document.getElementById(modalId);
-            modal.style.display = "none";
-            if (modalId === 'modalNuevoRequerimiento') {
-                editando_requerimiento = null;
-                document.getElementById('nueva_descripcion_requerimiento').value = '';
-            }
-        }
-
-        function addRequerimiento() {
-            var descripcion = document.getElementById('nueva_descripcion_requerimiento').value;
-            if (editando_requerimiento !== null) {
-                // Actualizar requerimiento existente
-                if (editando_requerimiento.toString().startsWith('nuevo_')) {
-                    nuevos_requerimientos[editando_requerimiento.split('_')[1]].descripcion = descripcion;
-                } else {
-                    document.querySelector(`input[name="requerimiento_${editando_requerimiento}"]`).value = descripcion;
-                    document.querySelector(`span[onclick="editarRequerimiento(${editando_requerimiento}, '${descripcion}')"]`).innerText = descripcion;
-                }
-            } else {
-                // Añadir nuevo requerimiento
-                var nuevoRequerimiento = {
-                    idrequerimiento: 'nuevo_' + nuevos_requerimientos.length,  // Usar índice como ID temporal
-                    descripcion: descripcion
-                };
-                nuevos_requerimientos.push(nuevoRequerimiento);
-            }
-            closeModal('modalNuevoRequerimiento');
-            renderRequerimientos();
-        }
-
-        function eliminarRequerimiento(idrequerimiento) {
-            fetch(`{% url 'gestion_proyectos:eliminar_requerimiento' 0 %}`.replace('0', idrequerimiento), {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                }
-            }).then(response => {
-                if (response.ok) {
-                    window.location.href = `{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}`;
-                } else {
-                    alert('Error al eliminar el requerimiento.');
-                }
-            });
-        }
-
-        function editarRequerimiento(idrequerimiento, descripcion) {
-            editando_requerimiento = idrequerimiento;
-            document.getElementById('nueva_descripcion_requerimiento').value = descripcion;
-            openModal('modalNuevoRequerimiento');
-        }
-
-        function confirmarEliminarRequerimiento(idrequerimiento) {
-            if (confirm("¿Está seguro de que desea eliminar este requerimiento? Se eliminarán todas las tareas asociadas.")) {
-                eliminarRequerimiento(idrequerimiento);
-            }
-        }
-
-        function renderRequerimientos() {
-            var container = document.getElementById('requerimientos-container');
-            container.innerHTML = '';
-            {% for requerimiento in requerimientos %}
-            var requerimientoDiv = document.createElement('div');
-            requerimientoDiv.classList.add('collapsible');
-            requerimientoDiv.innerHTML = `<span onclick="editarRequerimiento({{ requerimiento.idrequerimiento }}, '{{ requerimiento.descripcion }}')">{{ requerimiento.descripcion }}</span>
-                                          <input type="hidden" name="requerimiento_{{ requerimiento.idrequerimiento }}" value="{{ requerimiento.descripcion }}">
-                                          <button type="button" class="bg-red-500 text-white px-2 py-1 rounded btn" onclick="confirmarEliminarRequerimiento({{ requerimiento.idrequerimiento }})"><i class="fas fa-trash"></i></button>`;
-            container.appendChild(requerimientoDiv);
-            {% endfor %}
-            nuevos_requerimientos.forEach(function(requerimiento, index) {
-                var requerimientoDiv = document.createElement('div');
-                requerimientoDiv.classList.add('collapsible');
-                requerimientoDiv.innerHTML = `<span onclick="editarRequerimiento('nuevo_${index}', '${requerimiento.descripcion}')">${requerimiento.descripcion}</span>
-                                              <input type="hidden" name="nuevo_requerimiento_${index}" value="${requerimiento.descripcion}">
-                                              <button type="button" class="bg-red-500 text-white px-2 py-1 rounded btn" onclick="eliminarRequerimiento(${index})"><i class="fas fa-trash"></i></button>`;
-                container.appendChild(requerimientoDiv);
-            });
-        }
-    </script>
-</main>
-
-<!-- Modal para nuevo requerimiento -->
-<div id="modalNuevoRequerimiento" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal('modalNuevoRequerimiento')">&times;</span>
-        <h2 id="modal-title">Nuevo Requerimiento</h2>
-        <form>
-            <div class="mb-4">
-                <label for="nueva_descripcion_requerimiento" class="block text-sm font-medium text-gray-700">Descripción</label>
-                <textarea name="nueva_descripcion_requerimiento" id="nueva_descripcion_requerimiento" rows="3" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"></textarea>
-            </div>
-            <div class="mt-4 flex justify-end">
-                <button type="button" class="bg-green-500 text-white px-4 py-2 rounded btn" onclick="addRequerimiento()"><i class="fas fa-save mr-2"></i>Guardar Requerimiento</button>
+            <!-- Botones de Acción -->
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
+                   class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                    <i class="fas fa-save mr-2"></i>
+                    Guardar Cambios
+                </button>
             </div>
         </form>
     </div>
 </div>
-
 {% endblock %}
 
