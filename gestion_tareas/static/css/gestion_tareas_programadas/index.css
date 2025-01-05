@@ -1,6 +1,7 @@
 .card {
-  background: linear-gradient(145deg, #ffffff, #f3f4f6);
+    background: linear-gradient(145deg, #ffffff, #f3f4f6);
 }
+
 .card-header {
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
 }

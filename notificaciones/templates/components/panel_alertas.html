@@ -8,15 +8,15 @@
                 <p class="text-sm text-gray-500">{{ alertas|length }} alertas pendientes</p>
             </div>
         </div>
-        
+
         <div class="flex items-center space-x-4">
             <!-- Filtro por tipo con HTMX -->
-            <form hx-get="{% url 'notificaciones:filtrar_alertas' %}" 
+            <form hx-get="{% url 'notificaciones:filtrar_alertas' %}"
                   hx-target="#lista-alertas"
                   hx-trigger="change from:select"
                   class="flex items-center space-x-2">
                 <label for="filtro-tipo-alerta" class="text-sm text-gray-600">Filtrar por tipo:</label>
-                <select id="filtro-tipo-alerta" 
+                <select id="filtro-tipo-alerta"
                         name="tipo"
                         class="text-sm border rounded-md px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="todas" {% if tipo_actual == 'todas' %}selected{% endif %}>
@@ -42,7 +42,7 @@
             </form>
 
             <!-- Botón para crear nueva alerta -->
-            <a href="{% url 'notificaciones:crear_alerta' %}" 
+            <a href="{% url 'notificaciones:crear_alerta' %}"
                class="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors">
                 <i class="fas fa-plus mr-2"></i>
                 Nueva Alerta
@@ -66,65 +66,65 @@
 
     <!-- Resumen de Alertas -->
     {% if alertas %}
-    <div class="mt-6 bg-gray-50 rounded-lg p-6">
-        <h3 class="text-lg font-medium text-gray-800 mb-4 flex items-center">
-            <i class="fas fa-chart-pie text-red-500 mr-2"></i>
-            Resumen por Tipo
-        </h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {% for tipo in tipos_alertas %}
-            <div class="bg-white p-4 rounded-lg shadow-sm">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <i class="fas {% if tipo.tipoalerta == 'retraso' %}fa-clock text-orange-500
+        <div class="mt-6 bg-gray-50 rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-chart-pie text-red-500 mr-2"></i>
+                Resumen por Tipo
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {% for tipo in tipos_alertas %}
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas {% if tipo.tipoalerta == 'retraso' %}fa-clock text-orange-500
                                   {% elif tipo.tipoalerta == 'presupuesto' %}fa-dollar-sign text-red-500
                                   {% elif tipo.tipoalerta == 'riesgo' %}fa-exclamation-triangle text-yellow-500
                                   {% else %}fa-ban text-purple-500{% endif %} mr-2"></i>
-                        <span class="text-sm font-medium">{{ tipo.tipoalerta|title }}</span>
-                    </div>
-                    <span class="text-lg font-bold {% if tipo.total > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+                                <span class="text-sm font-medium">{{ tipo.tipoalerta|title }}</span>
+                            </div>
+                            <span class="text-lg font-bold {% if tipo.total > 0 %}text-red-600{% else %}text-green-600{% endif %}">
                         {{ tipo.total }}
                     </span>
-                </div>
-                <!-- Barra de progreso -->
-                <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
-                    <div class="h-2 rounded-full {% if tipo.tipoalerta == 'retraso' %}bg-orange-500
+                        </div>
+                        <!-- Barra de progreso -->
+                        <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full {% if tipo.tipoalerta == 'retraso' %}bg-orange-500
                                                  {% elif tipo.tipoalerta == 'presupuesto' %}bg-red-500
                                                  {% elif tipo.tipoalerta == 'riesgo' %}bg-yellow-500
                                                  {% else %}bg-purple-500{% endif %}"
-                         style="width: {{ tipo.porcentaje|default:0|floatformat:0 }}%">
+                                 style="width: {{ tipo.porcentaje|default:0|floatformat:0 }}%">
+                            </div>
+                        </div>
                     </div>
-                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
-    </div>
     {% endif %}
 
     <!-- Paginación -->
     {% if alertas.has_other_pages %}
-    <div class="mt-6 flex justify-center">
-        <nav class="flex items-center space-x-2">
-            {% if alertas.has_previous %}
-                <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.previous_page_number }}&tipo={{ tipo_actual }}"
-                   hx-target="#lista-alertas"
-                   class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                    <i class="fas fa-chevron-left"></i>
-                </a>
-            {% endif %}
-            
-            <span class="px-3 py-1 bg-red-500 text-white rounded-md">
+        <div class="mt-6 flex justify-center">
+            <nav class="flex items-center space-x-2">
+                {% if alertas.has_previous %}
+                    <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.previous_page_number }}&tipo={{ tipo_actual }}"
+                       hx-target="#lista-alertas"
+                       class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                {% endif %}
+
+                <span class="px-3 py-1 bg-red-500 text-white rounded-md">
                 {{ alertas.number }}
             </span>
-            
-            {% if alertas.has_next %}
-                <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.next_page_number }}&tipo={{ tipo_actual }}"
-                   hx-target="#lista-alertas"
-                   class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-            {% endif %}
-        </nav>
-    </div>
+
+                {% if alertas.has_next %}
+                    <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.next_page_number }}&tipo={{ tipo_actual }}"
+                       hx-target="#lista-alertas"
+                       class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
     {% endif %}
 </div>

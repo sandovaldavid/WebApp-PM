@@ -73,7 +73,7 @@
                     </div>
                 </div>
                 <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-100">
-                    <div style="width:{{ progreso }}%" 
+                    <div style="width:{{ progreso }}%"
                          class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500">
                     </div>
                 </div>
@@ -82,32 +82,32 @@
 
         <!-- Recursos Asignados -->
         {% if tarea.tarearecurso_set.all %}
-        <div class="text-sm">
-            <p class="text-gray-600 mb-2">Recursos Asignados:</p>
-            <div class="flex flex-wrap gap-2">
-                {% for tr in tarea.tarearecurso_set.all %}
-                    <span class="px-2 py-1 bg-gray-100 rounded-full text-gray-700 text-xs flex items-center">
+            <div class="text-sm">
+                <p class="text-gray-600 mb-2">Recursos Asignados:</p>
+                <div class="flex flex-wrap gap-2">
+                    {% for tr in tarea.tarearecurso_set.all %}
+                        <span class="px-2 py-1 bg-gray-100 rounded-full text-gray-700 text-xs flex items-center">
                         <i class="fas {% if tr.idrecurso.idtiporecurso == 1 %}fa-user
                                   {% else %}fa-cube{% endif %} mr-1"></i>
                         {{ tr.idrecurso.nombrerecurso }}
-                        {% if tr.cantidad > 1 %}
-                            <span class="ml-1 text-gray-500">({{ tr.cantidad }})</span>
-                        {% endif %}
+                            {% if tr.cantidad > 1 %}
+                                <span class="ml-1 text-gray-500">({{ tr.cantidad }})</span>
+                            {% endif %}
                     </span>
-                {% endfor %}
+                    {% endfor %}
+                </div>
             </div>
-        </div>
         {% endif %}
     </div>
 
     <!-- Pie con Acciones -->
     <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
-        <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}" 
+        <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}"
            class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-100 transition-colors"
            title="Ver detalles">
             <i class="fas fa-eye"></i>
         </a>
-        <a href="{% url 'gestion_tareas:editar_tarea' tarea.idtarea %}" 
+        <a href="{% url 'gestion_tareas:editar_tarea' tarea.idtarea %}"
            class="text-yellow-600 hover:text-yellow-800 p-2 rounded-full hover:bg-yellow-100 transition-colors"
            title="Editar">
             <i class="fas fa-edit"></i>
@@ -116,18 +116,18 @@
             <!-- Botón para ejecutar ahora -->
             <form method="POST" action="{% url 'gestion_tareas:ejecutar_tarea' tarea.idtarea %}" class="inline">
                 {% csrf_token %}
-                <button type="submit" 
+                <button type="submit"
                         class="text-green-600 hover:text-green-800 p-2 rounded-full hover:bg-green-100 transition-colors"
                         title="Ejecutar ahora">
                     <i class="fas fa-play"></i>
                 </button>
             </form>
         {% endif %}
-        <form method="POST" action="{% url 'gestion_tareas:eliminar_tarea' tarea.idtarea %}" 
-              class="inline" 
+        <form method="POST" action="{% url 'gestion_tareas:eliminar_tarea' tarea.idtarea %}"
+              class="inline"
               onsubmit="return confirm('¿Está seguro de eliminar esta tarea programada?');">
             {% csrf_token %}
-            <button type="submit" 
+            <button type="submit"
                     class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-100 transition-colors"
                     title="Eliminar">
                 <i class="fas fa-trash"></i>

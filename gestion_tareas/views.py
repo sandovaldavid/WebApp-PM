@@ -1,20 +1,21 @@
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
+from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
 from django.utils import timezone
-from django.contrib import messages
-from django.core.paginator import Paginator
-from django.db.models.functions import TruncMonth
+
 from dashboard.models import (
     Tarea,
     Historialtarea,
     Tarearecurso,
-    Recurso,
     Alerta,
     Requerimiento,
     Historialalerta,
 )
+
 
 # Create your views here.
 

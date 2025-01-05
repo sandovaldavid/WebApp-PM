@@ -1,5 +1,4 @@
 from django.db import connection
-from django.apps import apps
 
 
 def drop_all_tables():

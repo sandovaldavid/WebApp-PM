@@ -1,9 +1,10 @@
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from dashboard.models import Proyecto, Requerimiento, Tarea, Equipo
 from django.utils import timezone
 from django.utils.timezone import is_naive, make_aware
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
+
+from dashboard.models import Proyecto, Requerimiento, Tarea, Equipo
 
 
 @login_required

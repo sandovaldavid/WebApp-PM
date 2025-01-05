@@ -3,128 +3,128 @@
 {% block title %}Agregar Miembro al Equipo{% endblock %}
 
 {% block title_body %}
-<div class="flex items-center">
-    <i class="fas fa-user-plus text-blue-500 mr-2"></i>
-    <span>Agregar Miembro al Equipo: {{ equipo.nombreequipo }}</span>
-</div>
+    <div class="flex items-center">
+        <i class="fas fa-user-plus text-blue-500 mr-2"></i>
+        <span>Agregar Miembro al Equipo: {{ equipo.nombreequipo }}</span>
+    </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8">
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-            <!-- Encabezado -->
-            <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
-                <h2 class="text-xl font-semibold text-white flex items-center">
-                    <i class="fas fa-user-plus mr-2"></i>
-                    Agregar Nuevo Miembro
-                </h2>
-                <p class="mt-2 text-blue-100">
-                    Selecciona el recurso que deseas agregar al equipo
-                </p>
-            </div>
-
-            <!-- Formulario -->
-            <form method="POST" class="p-6 space-y-6">
-                {% csrf_token %}
-
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <!-- Tipo de Recurso -->
-                <div>
-                    <label for="tipo_recurso" class="block text-sm font-medium text-gray-700">
-                        Tipo de Recurso <span class="text-red-500">*</span>
-                    </label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-cube text-gray-400"></i>
-                        </div>
-                        <select name="tipo_recurso" 
-                                id="tipo_recurso"
-                                required
-                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Seleccione un tipo de recurso</option>
-                            {% for tipo in tipos_recurso %}
-                                <option value="{{ tipo.idtiporecurso }}">{{ tipo.nametiporecurso }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <p class="mt-1 text-sm text-gray-500">
-                        El tipo de recurso determina las características disponibles
-                    </p>
-                </div>
-
-                <!-- Recurso -->
-                <div>
-                    <label for="recurso" class="block text-sm font-medium text-gray-700">
-                        Recurso <span class="text-red-500">*</span>
-                    </label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-boxes text-gray-400"></i>
-                        </div>
-                        <select name="recurso" 
-                                id="recurso"
-                                required
-                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Seleccione un recurso</option>
-                            {% for recurso in recursos_disponibles %}
-                                <option value="{{ recurso.idrecurso }}" 
-                                        data-tipo="{{ recurso.idtiporecurso.idtiporecurso }}">
-                                    {{ recurso.nombrerecurso }} - 
-                                    {% if recurso.idtiporecurso.idtiporecurso == 1 %}
-                                        {{ recurso.recursohumano.cargo }}
-                                    {% else %}
-                                        ${{ recurso.recursomaterial.costounidad }}
-                                    {% endif %}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Solo se muestran recursos no asignados a otros equipos
-                    </p>
-                </div>
-
-                <!-- Información del Equipo -->
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h4 class="text-sm font-medium text-gray-700 mb-4">
-                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                        Información del Equipo
-                    </h4>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white p-3 rounded-lg border border-gray-200">
-                            <p class="text-sm text-gray-600">Miembros Actuales</p>
-                            <p class="text-lg font-semibold">{{ total_miembros }}</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg border border-gray-200">
-                            <p class="text-sm text-gray-600">Proyectos Activos</p>
-                            <p class="text-lg font-semibold">{{ proyectos_activos }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botones de Acción -->
-                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                    <a href="{% url 'gestion_equipos:gestionar_miembros' equipo.idequipo %}" 
-                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
-                        <i class="fas fa-times mr-2"></i>
-                        Cancelar
-                    </a>
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+    <div class="p-8">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <!-- Encabezado -->
+                <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+                    <h2 class="text-xl font-semibold text-white flex items-center">
                         <i class="fas fa-user-plus mr-2"></i>
-                        Agregar al Equipo
-                    </button>
+                        Agregar Nuevo Miembro
+                    </h2>
+                    <p class="mt-2 text-blue-100">
+                        Selecciona el recurso que deseas agregar al equipo
+                    </p>
                 </div>
-            </form>
+
+                <!-- Formulario -->
+                <form method="POST" class="p-6 space-y-6">
+                    {% csrf_token %}
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Tipo de Recurso -->
+                    <div>
+                        <label for="tipo_recurso" class="block text-sm font-medium text-gray-700">
+                            Tipo de Recurso <span class="text-red-500">*</span>
+                        </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-cube text-gray-400"></i>
+                            </div>
+                            <select name="tipo_recurso"
+                                    id="tipo_recurso"
+                                    required
+                                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Seleccione un tipo de recurso</option>
+                                {% for tipo in tipos_recurso %}
+                                    <option value="{{ tipo.idtiporecurso }}">{{ tipo.nametiporecurso }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">
+                            El tipo de recurso determina las características disponibles
+                        </p>
+                    </div>
+
+                    <!-- Recurso -->
+                    <div>
+                        <label for="recurso" class="block text-sm font-medium text-gray-700">
+                            Recurso <span class="text-red-500">*</span>
+                        </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-boxes text-gray-400"></i>
+                            </div>
+                            <select name="recurso"
+                                    id="recurso"
+                                    required
+                                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Seleccione un recurso</option>
+                                {% for recurso in recursos_disponibles %}
+                                    <option value="{{ recurso.idrecurso }}"
+                                            data-tipo="{{ recurso.idtiporecurso.idtiporecurso }}">
+                                        {{ recurso.nombrerecurso }} -
+                                        {% if recurso.idtiporecurso.idtiporecurso == 1 %}
+                                            {{ recurso.recursohumano.cargo }}
+                                        {% else %}
+                                            ${{ recurso.recursomaterial.costounidad }}
+                                        {% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Solo se muestran recursos no asignados a otros equipos
+                        </p>
+                    </div>
+
+                    <!-- Información del Equipo -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="text-sm font-medium text-gray-700 mb-4">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            Información del Equipo
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white p-3 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-600">Miembros Actuales</p>
+                                <p class="text-lg font-semibold">{{ total_miembros }}</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-600">Proyectos Activos</p>
+                                <p class="text-lg font-semibold">{{ proyectos_activos }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                        <a href="{% url 'gestion_equipos:gestionar_miembros' equipo.idequipo %}"
+                           class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit"
+                                class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Agregar al Equipo
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}

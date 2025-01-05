@@ -1,14 +1,14 @@
 # usuarios/views.py
-from django.shortcuts import render, redirect
-from dashboard.models import Usuario
 from django.contrib import messages
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from dashboard.models import Usuario
-from django.utils import timezone
-from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_protect
+
+from dashboard.models import Usuario
 
 
 @login_required

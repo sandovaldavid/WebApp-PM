@@ -1,8 +1,10 @@
 import uuid
-from django.utils import timezone
+
 from django.contrib.auth.hashers import make_password
-from dashboard.models import Usuario
+from django.utils import timezone
 from faker import Faker
+
+from dashboard.models import Usuario
 
 
 def generar_usuarios(num_usuarios=10):

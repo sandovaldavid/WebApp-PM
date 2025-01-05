@@ -3,22 +3,25 @@
 {% block title %}Inicio{% endblock %}
 
 {% block body %}
-<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-        <div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Bienvenido a la Aplicación Web</h2>
-        </div>
-        {% if mensaje %}
-            <div class="rounded-md p-4 bg-green-50 text-green-700">{{ mensaje }}</div>
-        {% endif %}
-        {% if error %}
-            <div class="rounded-md p-4 bg-red-50 text-red-700">{{ error }}</div>
-        {% endif %}
-        <div class="text-center mt-4">
-            <p>Por favor, <a href="{% url 'usuarios:login' %}" class="font-medium text-blue-600 hover:text-blue-500">inicia sesión</a> o <a href="{% url 'usuarios:register' %}" class="font-medium text-blue-600 hover:text-blue-500">regístrate</a> para continuar.</p>
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Bienvenido a la Aplicación Web</h2>
+            </div>
+            {% if mensaje %}
+                <div class="rounded-md p-4 bg-green-50 text-green-700">{{ mensaje }}</div>
+            {% endif %}
+            {% if error %}
+                <div class="rounded-md p-4 bg-red-50 text-red-700">{{ error }}</div>
+            {% endif %}
+            <div class="text-center mt-4">
+                <p>Por favor, <a href="{% url 'usuarios:login' %}"
+                                 class="font-medium text-blue-600 hover:text-blue-500">inicia sesión</a> o <a
+                        href="{% url 'usuarios:register' %}" class="font-medium text-blue-600 hover:text-blue-500">regístrate</a>
+                    para continuar.</p>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}
 
 

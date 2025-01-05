@@ -42,33 +42,34 @@
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Proyecto
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Progreso
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Completadas
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        En Progreso
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Pendientes
-                    </th>
-                </tr>
+            <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Proyecto
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Progreso
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Completadas
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    En Progreso
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pendientes
+                </th>
+            </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                {% for proyecto in datos_generales.proyectos %}
+            {% for proyecto in datos_generales.proyectos %}
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">{{ proyecto.nombre }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ proyecto.porcentaje_completado }}%"></div>
+                            <div class="bg-blue-600 h-2.5 rounded-full"
+                                 style="width: {{ proyecto.porcentaje_completado }}%"></div>
                         </div>
                         <span class="text-sm text-gray-600">{{ proyecto.porcentaje_completado }}%</span>
                     </td>
@@ -88,13 +89,13 @@
                         </span>
                     </td>
                 </tr>
-                {% empty %}
+            {% empty %}
                 <tr>
                     <td colspan="5" class="px-6 py-4 text-center text-gray-500">
                         No hay datos de progreso disponibles
                     </td>
                 </tr>
-                {% endfor %}
+            {% endfor %}
             </tbody>
         </table>
     </div>

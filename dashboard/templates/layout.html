@@ -1,117 +1,121 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-    <head>
- <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Sistema de Gestión de Proyectos - Panel de administración">
-        <meta name="theme-color" content="#1a56db">
-        
-        <!-- Favicon y PWA -->
-        <link rel="icon" type="image/ico" href="{% static '/img/favicon.ico' %}">
-        <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
-        <link rel="manifest" href="{% static 'manifest.json' %}">
-        
-        <title>{% block title %}Sistema de Gestión{% endblock %} | ProjectManager</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de Gestión de Proyectos - Panel de administración">
+    <meta name="theme-color" content="#1a56db">
 
-        <!-- Estilos críticos inline para evitar FOUC -->
-        <style>
-            body { visibility: hidden; }
-            .preload * { transition: none !important; }
-        </style>
+    <!-- Favicon y PWA -->
+    <link rel="icon" type="image/ico" href="{% static '/img/favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
 
-        <!-- Preload de recursos críticos -->
-        <link rel="preload" href="https://fonts.googleapis.com" as="font" crossorigin>
-        <link rel="preload" href="https://cdnjs.cloudflare.com" as="style" crossorigin>
-        <link rel="preload" href="{% static 'css/layout.css' %}" as="style">
-        
-        <!-- Estilos principales -->
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" 
-              rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
-              rel="stylesheet">
-        <link href="{% static 'css/layout.css' %}" rel="stylesheet">
+    <title>{% block title %}Sistema de Gestión{% endblock %} | ProjectManager</title>
 
-        <!-- Scripts -->
-        <script>
-            // Remover clase preload después de cargar
-            window.addEventListener('load', () => {
-                document.body.classList.remove('preload');
-                document.body.style.visibility = 'visible';
-            });
-        </script>
-        <script src="https://unpkg.com/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
-        <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
-        
-        {% block style %}{% endblock %}
-    </head>
-    <body class="preload">
-        <!-- Botón para alternar la barra lateral -->
-        <button id="toggleSidebar" class="focus:outline-none">
-            <i class="fas fa-bars"></i>
-        </button>
-        <!-- Sidebar -->
-        <aside class="flex">
-            <div class="sidebar bg-gray-800 text-white h-screen hidden lg:block bg-blue-600">
-                <!-- Logo -->
-                <div class="flex items-center justify-center h-16 px-4">
-                    <img src="{% static '/img/default-avatar.png' %}" alt="Logo" class="h-8">
-                </div>
+    <!-- Estilos críticos inline para evitar FOUC -->
+    <style>
+        body {
+            visibility: hidden;
+        }
 
-                <!-- Navegación -->
-                <nav class="mt-5 flex-1 space-y-1 px-2">
-                    {% include 'components/navigation.html' %}
-                </nav>
-            </div>
-        </aside>
-        <div class="content flex-1 expanded">
-            <!-- Cabecera -->
-            <header
-                class="fixed top-0 left-0 w-full flex justify-between items-center p-5 px-14 bg-blue-600 text-white shadow-2xl"
-            >
-                <div class="text-2xl font-bold">
-                    {% block title_body %}{% endblock %}
-                </div>
+        .preload * {
+            transition: none !important;
+        }
+    </style>
 
-                <!-- Acciones del usuario -->
-                {% include 'components/user_menu.html' %}
-            </header>
+    <!-- Preload de recursos críticos -->
+    <link rel="preload" href="https://fonts.googleapis.com" as="font" crossorigin>
+    <link rel="preload" href="https://cdnjs.cloudflare.com" as="style" crossorigin>
+    <link rel="preload" href="{% static 'css/layout.css' %}" as="style">
 
-            <!-- Contenido Principal -->
-            <div class="mt-16">
-                {% if messages %}
-                    <div class="fixed top-4 right-4 z-50 space-y-4">
-                        {% for message in messages %}
-                        <div class="notification-message {% if message.tags %}{{ message.tags }}{% endif %} 
+    <!-- Estilos principales -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+          rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          rel="stylesheet">
+    <link href="{% static 'css/layout.css' %}" rel="stylesheet">
+
+    <!-- Scripts -->
+    <script>
+        // Remover clase preload después de cargar
+        window.addEventListener('load', () => {
+            document.body.classList.remove('preload');
+            document.body.style.visibility = 'visible';
+        });
+    </script>
+    <script src="https://unpkg.com/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+
+    {% block style %}{% endblock %}
+</head>
+<body class="preload">
+<!-- Botón para alternar la barra lateral -->
+<button id="toggleSidebar" class="focus:outline-none">
+    <i class="fas fa-bars"></i>
+</button>
+<!-- Sidebar -->
+<aside class="flex">
+    <div class="sidebar bg-gray-800 text-white h-screen hidden lg:block bg-blue-600">
+        <!-- Logo -->
+        <div class="flex items-center justify-center h-16 px-4">
+            <img src="{% static '/img/default-avatar.png' %}" alt="Logo" class="h-8">
+        </div>
+
+        <!-- Navegación -->
+        <nav class="mt-5 flex-1 space-y-1 px-2">
+            {% include 'components/navigation.html' %}
+        </nav>
+    </div>
+</aside>
+<div class="content flex-1 expanded">
+    <!-- Cabecera -->
+    <header
+            class="fixed top-0 left-0 w-full flex justify-between items-center p-5 px-14 bg-blue-600 text-white shadow-2xl"
+    >
+        <div class="text-2xl font-bold">
+            {% block title_body %}{% endblock %}
+        </div>
+
+        <!-- Acciones del usuario -->
+        {% include 'components/user_menu.html' %}
+    </header>
+
+    <!-- Contenido Principal -->
+    <div class="mt-16">
+        {% if messages %}
+            <div class="fixed top-4 right-4 z-50 space-y-4">
+                {% for message in messages %}
+                    <div class="notification-message {% if message.tags %}{{ message.tags }}{% endif %}
                                     px-4 py-3 rounded-lg shadow-lg 
                                     {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500
                                     {% elif message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500
                                     {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500
                                     {% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}
                                     flex items-center justify-between"
-                            role="alert">
-                            <div class="flex items-center">
-                                <div class="py-1">
-                                    <i class="fas {% if message.tags == 'success' %}fa-check-circle text-green-500
+                         role="alert">
+                        <div class="flex items-center">
+                            <div class="py-1">
+                                <i class="fas {% if message.tags == 'success' %}fa-check-circle text-green-500
                                             {% elif message.tags == 'error' %}fa-times-circle text-red-500
                                             {% elif message.tags == 'warning' %}fa-exclamation-circle text-yellow-500
                                             {% else %}fa-info-circle text-blue-500{% endif %} mr-2"></i>
-                                    <span class="font-medium">{{ message }}</span>
-                                </div>
+                                <span class="font-medium">{{ message }}</span>
                             </div>
-                            <button onclick="this.parentElement.style.display='none'" class="ml-4">
-                                <i class="fas fa-times"></i>
-                            </button>
                         </div>
-                        {% endfor %}
+                        <button onclick="this.parentElement.style.display='none'" class="ml-4">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                {% endif %}
-                {% block body %}
-                {% endblock %}
+                {% endfor %}
             </div>
-        </div>
-        </div>
-        <script src="{% static "js/layout.js"%}"></script>
-        {% block script %}{% endblock %}
-    </body>
+        {% endif %}
+        {% block body %}
+        {% endblock %}
+    </div>
+</div>
+<script src="{% static "js/layout.js" %}"></script>
+{% block script %}{% endblock %}
+</body>
 </html>

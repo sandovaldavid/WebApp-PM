@@ -1,10 +1,11 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from dashboard.models import Equipo, Miembro, Recurso, Tiporecurso, Proyecto
 from django.db.models import Prefetch, Count, Q
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+
+from dashboard.models import Equipo, Miembro, Recurso, Tiporecurso, Proyecto
 
 
 @login_required

@@ -5,27 +5,27 @@
 {% block title_body %}<i class="fas fa-plus fa-shield-alt"></i> Seguridad y Auditoría{% endblock %}
 
 {% block body %}
-<div id="registro-actividades" class="bg-white p-6 rounded-lg shadow-lg mb-6">
-    <h2 class="text-xl font-semibold mb-4">Registro de Actividades</h2>
-    <table class="w-full bg-white shadow-lg rounded-lg">
-        <thead class="bg-gray-200">
+    <div id="registro-actividades" class="bg-white p-6 rounded-lg shadow-lg mb-6">
+        <h2 class="text-xl font-semibold mb-4">Registro de Actividades</h2>
+        <table class="w-full bg-white shadow-lg rounded-lg">
+            <thead class="bg-gray-200">
             <tr>
                 <th class="p-4 text-left">Usuario</th>
                 <th class="p-4 text-left">Acción</th>
                 <th class="p-4 text-left">Fecha y Hora</th>
                 <th class="p-4 text-left">Detalles</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {% for actividad in actividades %}
-            <tr>
-                <td class="p-4">{{ actividad.idusuario.nombreusuario }}</td>
-                <td class="p-4">{{ actividad.accion }}</td>
-                <td class="p-4">{{ actividad.fechacreacion }}</td>
-                <td class="p-4">{{ actividad.descripcion }}</td>
-            </tr>
+                <tr>
+                    <td class="p-4">{{ actividad.idusuario.nombreusuario }}</td>
+                    <td class="p-4">{{ actividad.accion }}</td>
+                    <td class="p-4">{{ actividad.fechacreacion }}</td>
+                    <td class="p-4">{{ actividad.descripcion }}</td>
+                </tr>
             {% endfor %}
-        </tbody>
-    </table>
-</div>
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

@@ -1,167 +1,170 @@
-{%extends 'layout.html'%} 
+{% extends 'layout.html' %}
 
-{%block style%}
-<link rel="stylesheet" href="/static/css/dashboard/index.css" />
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{%endblock%} 
+{% block style %}
+    <link rel="stylesheet" href="/static/css/dashboard/index.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
 
-{% block title %}Dashboard{% endblock %} 
+{% block title %}Dashboard{% endblock %}
 
 {% block title_body %}
-<i class="fas fa-tasks header-icon" ></i>
-Proyect Management
-{% endblock %} 
+    <i class="fas fa-tasks header-icon"></i>
+    Project Management
+{% endblock %}
 
 {% block body %}
 
-<main class="p-8">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Resumen de Proyectos Activos -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-4">
-                <i class="fas fa-project-diagram"></i> Proyectos Activos
-            </h2>
-            <ul>
-                {% for proyecto in proyectos %}
-                <li class="mb-4">
-                    <div class="font-bold">{{ proyecto.nombreproyecto }}</div>
-                    <div>Fecha de inicio: {{ proyecto.fechainicio }}</div>
-                    <div>Estado: {{ proyecto.estado }}</div>
-                    <div>Progreso:</div>
-                    <div class="mt-2">
-                        <div
-                            class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700"
-                        >
-                            <div
-                                class="bg-blue-600 h-2.5 rounded-full"
-                                style="width: {{ proyecto.porcentaje_progreso }}%;"
-                            ></div>
-                        </div>
-                        <span class="text-sm text-gray-600"
-                            >{{ proyecto.porcentaje_progreso}}%
+    <main class="p-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Resumen de Proyectos Activos -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-project-diagram"></i> Proyectos Activos
+                </h2>
+                <ul>
+                    {% for proyecto in proyectos %}
+                        <li class="mb-4">
+                            <div class="font-bold">{{ proyecto.nombreproyecto }}</div>
+                            <div>Fecha de inicio: {{ proyecto.fechainicio }}</div>
+                            <div>Estado: {{ proyecto.estado }}</div>
+                            <div>Progreso:</div>
+                            <div class="mt-2">
+                                <div
+                                        class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700"
+                                >
+                                    <div
+                                            class="bg-blue-600 h-2.5 rounded-full"
+                                            style="width: {{ proyecto.porcentaje_progreso }}%;"
+                                    ></div>
+                                </div>
+                                <span class="text-sm text-gray-600"
+                                >{{ proyecto.porcentaje_progreso }}%
                         </span>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
 
-        <!-- Estadísticas de Tareas -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-4">
-                <i class="fas fa-chart-bar"></i> Estadísticas de Tareas
-            </h2>
-            <canvas id="taskChart" width="400" height="200"></canvas>
-        </div>
+            <!-- Estadísticas de Tareas -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-chart-bar"></i> Estadísticas de Tareas
+                </h2>
+                <canvas id="taskChart" width="400" height="200"></canvas>
+            </div>
 
-        <!-- Distribución de Recursos -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-4">
-                <i class="fas fa-chart-pie"></i> Distribución de Recursos
-            </h2>
-            <canvas id="resourceChart" width="400" height="200"></canvas>
-        </div>
+            <!-- Distribución de Recursos -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-chart-pie"></i> Distribución de Recursos
+                </h2>
+                <canvas id="resourceChart" width="400" height="200"></canvas>
+            </div>
 
-        <!-- Resumen Financiero -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-4">
-                <i class="fas fa-dollar-sign"></i> Resumen Financiero
-            </h2>
-            <div>
-                <p>Presupuesto Total: {{ resumen_financiero.presupuesto_total }}</p>
-                <p>Presupuesto Utilizado: {{ resumen_financiero.presupuesto_utilizado }}</p>
-                <p>Presupuesto Restante: {{ resumen_financiero.presupuesto_restante }}</p>
+            <!-- Resumen Financiero -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-dollar-sign"></i> Resumen Financiero
+                </h2>
+                <div>
+                    <p>Presupuesto Total: {{ resumen_financiero.presupuesto_total }}</p>
+                    <p>Presupuesto Utilizado: {{ resumen_financiero.presupuesto_utilizado }}</p>
+                    <p>Presupuesto Restante: {{ resumen_financiero.presupuesto_restante }}</p>
+                </div>
+            </div>
+
+            <!-- Accesos Directos -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-semibold mb-4">
+                    <i class="fas fa-link"></i> Accesos Directos
+                </h2>
+                <div class="space-y-2">
+                    <a href="{% url 'gestion_proyectos:crear_proyecto' %}"
+                       class="w-full py-2 px-4 bg-blue-500 text-white rounded block text-center">
+                        <i class="fas fa-plus"></i> Crear Proyecto
+                    </a>
+                    <a href="{% url 'gestion_tareas:crear_tarea' %}"
+                       class="w-full py-2 px-4 bg-green-500 text-white rounded block text-center">
+                        <i class="fas fa-tasks"></i> Crear Tarea
+                    </a>
+                    <a href="{% url 'gestionRecursos:lista_recursos' %}"
+                       class="w-full py-2 px-4 bg-yellow-500 text-white rounded block text-center">
+                        <i class="fas fa-users"></i> Gestionar Recursos
+                    </a>
+                </div>
             </div>
         </div>
-
-        <!-- Accesos Directos -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-4">
-                <i class="fas fa-link"></i> Accesos Directos
-            </h2>
-            <div class="space-y-2">
-                <a href="{% url 'gestion_proyectos:crear_proyecto' %}" class="w-full py-2 px-4 bg-blue-500 text-white rounded block text-center">
-                    <i class="fas fa-plus"></i> Crear Proyecto
-                </a>
-                <a href="{% url 'gestion_tareas:crear_tarea' %}" class="w-full py-2 px-4 bg-green-500 text-white rounded block text-center">
-                    <i class="fas fa-tasks"></i> Crear Tarea
-                </a>
-                <a href="{% url 'gestionRecursos:lista_recursos' %}" class="w-full py-2 px-4 bg-yellow-500 text-white rounded block text-center">
-                    <i class="fas fa-users"></i> Gestionar Recursos
-                </a>
-            </div>
-        </div>
-    </div>
-</main>
+    </main>
 {% endblock %} {% block script %}
-<script type="application/json" id="task-data">
+    <script type="application/json" id="task-data">
     {{ tareas_estadisticas|safe }}
 </script>
-<script type="application/json" id="resource-data">
+    <script type="application/json" id="resource-data">
     {{ recursos_estadisticas|safe }}
 </script>
 
-<script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function () {
-        // Obtener los datos del script JSON
-        const taskDataElement = document.getElementById("task-data");
-        const taskData = JSON.parse(taskDataElement.textContent);
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // Obtener los datos del script JSON
+            const taskDataElement = document.getElementById("task-data");
+            const taskData = JSON.parse(taskDataElement.textContent);
 
-        // Gráfico de tareas
-        const ctx = document.getElementById("taskChart").getContext("2d");
-        const taskChart = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: ["Pendientes", "En Progreso", "Completadas"],
-                datasets: [
-                    {
-                        label: "Tareas",
-                        data: [
-                            taskData.pendientes,
-                            taskData.en_progreso,
-                            taskData.completadas,
-                        ],
-                        backgroundColor: ["#f39c12", "#3498db", "#2ecc71"],
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
+            // Gráfico de tareas
+            const ctx = document.getElementById("taskChart").getContext("2d");
+            const taskChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: ["Pendientes", "En Progreso", "Completadas"],
+                    datasets: [
+                        {
+                            label: "Tareas",
+                            data: [
+                                taskData.pendientes,
+                                taskData.en_progreso,
+                                taskData.completadas,
+                            ],
+                            backgroundColor: ["#f39c12", "#3498db", "#2ecc71"],
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                        },
                     },
                 },
-            },
-        });
+            });
 
-        // Obtener los datos del script JSON para recursos
-        const resourceDataElement = document.getElementById("resource-data");
-        const resourceData = JSON.parse(resourceDataElement.textContent);
+            // Obtener los datos del script JSON para recursos
+            const resourceDataElement = document.getElementById("resource-data");
+            const resourceData = JSON.parse(resourceDataElement.textContent);
 
-        // Gráfico de recursos
-        const ctxResource = document.getElementById("resourceChart").getContext("2d");
-        const resourceChart = new Chart(ctxResource, {
-            type: "pie",
-            data: {
-                labels: ["Desarrolladores", "Testers", "Administradores", "Clientes"],
-                datasets: [
-                    {
-                        label: "Recursos",
-                        data: [
-                            resourceData.desarrolladores,
-                            resourceData.testers,
-                            resourceData.administradores,
-                            resourceData.clientes,
-                        ],
-                        backgroundColor: ["#3498db", "#2ecc71", "#e74c3c", "#f1c40f"],
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-            },
+            // Gráfico de recursos
+            const ctxResource = document.getElementById("resourceChart").getContext("2d");
+            const resourceChart = new Chart(ctxResource, {
+                type: "pie",
+                data: {
+                    labels: ["Desarrolladores", "Testers", "Administradores", "Clientes"],
+                    datasets: [
+                        {
+                            label: "Recursos",
+                            data: [
+                                resourceData.desarrolladores,
+                                resourceData.testers,
+                                resourceData.administradores,
+                                resourceData.clientes,
+                            ],
+                            backgroundColor: ["#3498db", "#2ecc71", "#e74c3c", "#f1c40f"],
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                },
+            });
         });
-    });
-</script>
+    </script>
 {% endblock %}

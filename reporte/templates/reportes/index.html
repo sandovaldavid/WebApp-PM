@@ -1,174 +1,182 @@
 {% extends 'layout_reportes.html' %}
-{% load reporte_filters %} 
+{% load reporte_filters %}
 
 {% block title %}Gestión de Reportes{% endblock %}
 
 {% block title_body %}
-<div class="flex items-center justify-between">
-    <div class="flex items-center">
-        <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
-        <span>Gestión de Reportes</span>
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+            <span>Gestión de Reportes</span>
+        </div>
     </div>
-</div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8 space-y-8">
-    <!-- Filtros -->
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <h3 class="text-lg font-semibold mb-4 flex items-center">
-            <i class="fas fa-filter text-gray-600 mr-2"></i>
-            Filtros del Reporte
-        </h3>
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Período -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Período</label>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <input type="date" name="fecha_inicio" value="{{ filtros.fecha_inicio }}"
-                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <input type="date" name="fecha_fin" value="{{ filtros.fecha_fin }}"
-                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+    <div class="p-8 space-y-8">
+        <!-- Filtros -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-filter text-gray-600 mr-2"></i>
+                Filtros del Reporte
+            </h3>
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Período -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Período</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <input type="date" name="fecha_inicio" value="{{ filtros.fecha_inicio }}"
+                                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <input type="date" name="fecha_fin" value="{{ filtros.fecha_fin }}"
+                                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Proyecto -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Proyecto</label>
-                <select name="proyecto" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">Todos los proyectos</option>
-                    {% for proyecto in proyectos %}
-                        <option value="{{ proyecto.idproyecto }}" {% if filtros.proyecto == proyecto.idproyecto %}selected{% endif %}>
-                            {{ proyecto.nombreproyecto }}
+                <!-- Proyecto -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Proyecto</label>
+                    <select name="proyecto"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Todos los proyectos</option>
+                        {% for proyecto in proyectos %}
+                            <option value="{{ proyecto.idproyecto }}"
+                                    {% if filtros.proyecto == proyecto.idproyecto %}selected{% endif %}>
+                                {{ proyecto.nombreproyecto }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Tipo de Reporte -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Reporte</label>
+                    <select name="tipo_reporte"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="general" {% if filtros.tipo_reporte == 'general' %}selected{% endif %}>General
                         </option>
-                    {% endfor %}
-                </select>
+                        <option value="tareas" {% if filtros.tipo_reporte == 'tareas' %}selected{% endif %}>Tareas
+                        </option>
+                        <option value="recursos" {% if filtros.tipo_reporte == 'recursos' %}selected{% endif %}>
+                            Recursos
+                        </option>
+                        <option value="costos" {% if filtros.tipo_reporte == 'costos' %}selected{% endif %}>Costos
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Botones -->
+                <div class="col-span-full flex justify-end space-x-4">
+                    <a href="{% url 'reportes:index' %}"
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="fas fa-undo mr-2"></i>
+                        Limpiar Filtros
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                        <i class="fas fa-sync mr-2"></i>
+                        Actualizar Reporte
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Resumen Estadístico -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-blue-600">Total Tareas</p>
+                        <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total_tareas }}</h3>
+                    </div>
+                    <i class="fas fa-tasks text-blue-500 text-3xl"></i>
+                </div>
             </div>
 
-            <!-- Tipo de Reporte -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Reporte</label>
-                <select name="tipo_reporte" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="general" {% if filtros.tipo_reporte == 'general' %}selected{% endif %}>General</option>
-                    <option value="tareas" {% if filtros.tipo_reporte == 'tareas' %}selected{% endif %}>Tareas</option>
-                    <option value="recursos" {% if filtros.tipo_reporte == 'recursos' %}selected{% endif %}>Recursos</option>
-                    <option value="costos" {% if filtros.tipo_reporte == 'costos' %}selected{% endif %}>Costos</option>
-                </select>
+            <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-green-600">Completadas</p>
+                        <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.tareas_completadas }}</h3>
+                    </div>
+                    <i class="fas fa-check-circle text-green-500 text-3xl"></i>
+                </div>
             </div>
 
-            <!-- Botones -->
-            <div class="col-span-full flex justify-end space-x-4">
-                <a href="{% url 'reportes:index' %}" 
-                   class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
-                    <i class="fas fa-undo mr-2"></i>
-                    Limpiar Filtros
-                </a>
-                <button type="submit" 
-                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
-                    <i class="fas fa-sync mr-2"></i>
-                    Actualizar Reporte
+            <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-purple-600">Horas Registradas</p>
+                        <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.total_horas }}</h3>
+                    </div>
+                    <i class="fas fa-clock text-purple-500 text-3xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-yellow-600">Costo Total</p>
+                        <h3 class="text-2xl font-bold text-yellow-900">${{ estadisticas.costo_total }}</h3>
+                    </div>
+                    <i class="fas fa-dollar-sign text-yellow-500 text-3xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido según tipo de reporte -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {% if filtros.tipo_reporte == 'general' or not filtros.tipo_reporte %}
+                <!-- Progreso por Proyecto -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4">Progreso por Proyecto</h3>
+                    {% include "components/grafico_progreso.html" with datos=datos_generales %}
+                </div>
+
+                <!-- Historial de Tareas -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4">Historial de Tareas</h3>
+                    {% include "components/historial_tareas.html" with historial=historial %}
+                </div>
+            {% elif filtros.tipo_reporte == 'recursos' %}
+                <!-- Distribución de Recursos -->
+                <div class="bg-white p-6 rounded-lg shadow-lg col-span-2">
+                    <h3 class="text-lg font-semibold mb-4">Distribución de Recursos</h3>
+                    {% include "components/grafico_recurso.html" with datos=datos_recursos %}
+                </div>
+            {% elif filtros.tipo_reporte == 'costos' %}
+                <!-- Costos y Presupuestos -->
+                <div class="bg-white p-6 rounded-lg shadow-lg col-span-2">
+                    <h3 class="text-lg font-semibold mb-4">Costos y Presupuestos</h3>
+                    {% include "components/grafico_costos.html" with datos=datos_costos %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Acciones de Exportación -->
+        <div class="flex justify-end space-x-4">
+            <form method="POST" action="{% url 'reportes:exportar_csv' %}">
+                {% csrf_token %}
+                <input type="hidden" name="filtros" value="{{ filtros|to_json }}">
+                <button type="submit"
+                        class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center">
+                    <i class="fas fa-file-csv mr-2"></i>
+                    Exportar CSV
                 </button>
-            </div>
-        </form>
-    </div>
+            </form>
 
-    <!-- Resumen Estadístico -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-blue-600">Total Tareas</p>
-                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total_tareas }}</h3>
-                </div>
-                <i class="fas fa-tasks text-blue-500 text-3xl"></i>
-            </div>
-        </div>
-
-        <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-green-600">Completadas</p>
-                    <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.tareas_completadas }}</h3>
-                </div>
-                <i class="fas fa-check-circle text-green-500 text-3xl"></i>
-            </div>
-        </div>
-
-        <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-purple-600">Horas Registradas</p>
-                    <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.total_horas }}</h3>
-                </div>
-                <i class="fas fa-clock text-purple-500 text-3xl"></i>
-            </div>
-        </div>
-
-        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-yellow-600">Costo Total</p>
-                    <h3 class="text-2xl font-bold text-yellow-900">${{ estadisticas.costo_total }}</h3>
-                </div>
-                <i class="fas fa-dollar-sign text-yellow-500 text-3xl"></i>
-            </div>
+            <form method="POST" action="{% url 'reportes:exportar_pdf' %}">
+                {% csrf_token %}
+                <input type="hidden" name="filtros" value="{{ filtros|to_json }}">
+                <button type="submit"
+                        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center">
+                    <i class="fas fa-file-pdf mr-2"></i>
+                    Exportar PDF
+                </button>
+            </form>
         </div>
     </div>
-
-    <!-- Contenido según tipo de reporte -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {% if filtros.tipo_reporte == 'general' or not filtros.tipo_reporte %}
-            <!-- Progreso por Proyecto -->
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-lg font-semibold mb-4">Progreso por Proyecto</h3>
-                {% include "components/grafico_progreso.html" with datos=datos_generales %}
-            </div>
-
-            <!-- Historial de Tareas -->
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-lg font-semibold mb-4">Historial de Tareas</h3>
-                {% include "components/historial_tareas.html" with historial=historial %}
-            </div>
-        {% elif filtros.tipo_reporte == 'recursos' %}
-            <!-- Distribución de Recursos -->
-            <div class="bg-white p-6 rounded-lg shadow-lg col-span-2">
-                <h3 class="text-lg font-semibold mb-4">Distribución de Recursos</h3>
-                {% include "components/grafico_recurso.html" with datos=datos_recursos %}
-            </div>
-        {% elif filtros.tipo_reporte == 'costos' %}
-            <!-- Costos y Presupuestos -->
-            <div class="bg-white p-6 rounded-lg shadow-lg col-span-2">
-                <h3 class="text-lg font-semibold mb-4">Costos y Presupuestos</h3>
-                {% include "components/grafico_costos.html" with datos=datos_costos %}
-            </div>
-        {% endif %}
-    </div>
-
-    <!-- Acciones de Exportación -->
-    <div class="flex justify-end space-x-4">
-        <form method="POST" action="{% url 'reportes:exportar_csv' %}">
-            {% csrf_token %}
-            <input type="hidden" name="filtros" value="{{ filtros|to_json }}">
-            <button type="submit" 
-                    class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center">
-                <i class="fas fa-file-csv mr-2"></i>
-                Exportar CSV
-            </button>
-        </form>
-
-        <form method="POST" action="{% url 'reportes:exportar_pdf' %}">
-            {% csrf_token %}
-            <input type="hidden" name="filtros" value="{{ filtros|to_json }}">
-            <button type="submit" 
-                    class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center">
-                <i class="fas fa-file-pdf mr-2"></i>
-                Exportar PDF
-            </button>
-        </form>
-    </div>
-</div>
 {% endblock %}

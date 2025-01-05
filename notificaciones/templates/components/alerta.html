@@ -6,7 +6,7 @@
     {% elif alerta.tipoalerta == 'presupuesto' %}border-red-500
     {% elif alerta.tipoalerta == 'riesgo' %}border-yellow-500
     {% else %}border-purple-500{% endif %}{% endif %}">
-    
+
     <div class="flex justify-between items-start">
         <!-- Contenido Principal -->
         <div class="flex-grow">
@@ -21,7 +21,7 @@
                 {% else %}
                     <i class="fas fa-ban text-purple-500 text-xl"></i>
                 {% endif %}
-                
+
                 <h3 class="text-lg font-semibold text-gray-900">
                     {{ alerta.tipoalerta|title }} - {{ alerta.idtarea.nombretarea }}
                 </h3>
@@ -60,26 +60,26 @@
         <!-- Botones de Acción -->
         <div class="flex flex-col space-y-2 ml-4">
             <!-- Botón Ver Detalle -->
-            <a href="{% url 'notificaciones:detalle_alerta' alerta.idalerta %}" 
+            <a href="{% url 'notificaciones:detalle_alerta' alerta.idalerta %}"
                class="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors duration-200">
                 <i class="fas fa-eye mr-2"></i> Ver detalle
             </a>
-            
+
             <!-- Botón Resolver -->
             {% if alerta.activa %}
-            <form method="POST" action="{% url 'notificaciones:resolver_alerta' alerta.idalerta %}" 
-                  class="inline"
-                  onsubmit="return confirm('¿Estás seguro de resolver esta alerta?');">
-                {% csrf_token %}
-                <button type="submit" 
-                        class="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-200 w-full">
-                    <i class="fas fa-check-circle mr-2"></i> Resolver
-                </button>
-            </form>
+                <form method="POST" action="{% url 'notificaciones:resolver_alerta' alerta.idalerta %}"
+                      class="inline"
+                      onsubmit="return confirm('¿Estás seguro de resolver esta alerta?');">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-200 w-full">
+                        <i class="fas fa-check-circle mr-2"></i> Resolver
+                    </button>
+                </form>
             {% endif %}
 
             <!-- Botón Ver Tarea -->
-            <a href="{% url 'gestion_tareas:detalle_tarea' alerta.idtarea.idtarea %}" 
+            <a href="{% url 'gestion_tareas:detalle_tarea' alerta.idtarea.idtarea %}"
                class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200">
                 <i class="fas fa-tasks mr-2"></i> Ver tarea
             </a>

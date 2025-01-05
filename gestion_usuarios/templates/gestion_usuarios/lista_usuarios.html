@@ -1,22 +1,23 @@
-{%extends 'layout.html'%}
+{% extends 'layout.html' %}
 
-{%block style%}
-{%endblock%}
+{% block style %}
+{% endblock %}
 
 {% block title %}Gestion-Usuarios{% endblock %}
 
 {% block title_body %}<i class="fas fa-users header-icon"></i>   Gestion de Usuarios{% endblock %}
 
 {% block body %}
-<main class="p-8">
-    <div class="flex justify-end">
-        <a href="{% url 'gestionUsuarios:crear_usuario' %}" class="btn-secondary px-4 py-2 rounded bg-green-500 text-white inline-block">
-            <i class="fas fa-plus"></i> Registrar Recurso
-        </a>
-    </div>
-    <h2 class="text-xl font-semibold mb-4"><i class="fas fa-list"></i> Lista de Usuarios</h2>
-    <table class="w-full bg-white shadow-lg rounded-lg">
-        <thead class="bg-gray-200">
+    <main class="p-8">
+        <div class="flex justify-end">
+            <a href="{% url 'gestionUsuarios:crear_usuario' %}"
+               class="btn-secondary px-4 py-2 rounded bg-green-500 text-white inline-block">
+                <i class="fas fa-plus"></i> Registrar Recurso
+            </a>
+        </div>
+        <h2 class="text-xl font-semibold mb-4"><i class="fas fa-list"></i> Lista de Usuarios</h2>
+        <table class="w-full bg-white shadow-lg rounded-lg">
+            <thead class="bg-gray-200">
             <tr>
                 <th class="p-4 text-left">Nombre</th>
                 <th class="p-4 text-left">Correo Electrónico</th>
@@ -25,22 +26,22 @@
                 <th class="p-4 text-left">Último Inicio de Sesión</th>
                 <th class="p-4 text-left">Acciones</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {% for usuario in usuarios %}
-            <tr class="table-row">
-                <td class="p-4">{{ usuario.nombreusuario }}</td>
-                <td class="p-4">{{ usuario.email }}</td>
-                <td class="p-4">{{ usuario.rol }}</td>
-                <td class="p-4">{{ usuario.fechacreacion }}</td>
-                <td class="p-4">{{ usuario.last_login }}</td>
-                <td class="p-4">
-                    <a href="#" class="text-blue-500"><i class="fas fa-edit"></i> Editar</a>
-                    <a href="#" class="text-red-500"><i class="fas fa-trash-alt"></i> Eliminar</a>
-                </td>
-            </tr>
+                <tr class="table-row">
+                    <td class="p-4">{{ usuario.nombreusuario }}</td>
+                    <td class="p-4">{{ usuario.email }}</td>
+                    <td class="p-4">{{ usuario.rol }}</td>
+                    <td class="p-4">{{ usuario.fechacreacion }}</td>
+                    <td class="p-4">{{ usuario.last_login }}</td>
+                    <td class="p-4">
+                        <a href="#" class="text-blue-500"><i class="fas fa-edit"></i> Editar</a>
+                        <a href="#" class="text-red-500"><i class="fas fa-trash-alt"></i> Eliminar</a>
+                    </td>
+                </tr>
             {% endfor %}
-        </tbody>
-    </table>
-</main>
+            </tbody>
+        </table>
+    </main>
 {% endblock %}

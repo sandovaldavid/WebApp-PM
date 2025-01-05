@@ -3,105 +3,105 @@
 {% block title %}Registro{% endblock %}
 
 {% block body %}
-<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-        <!-- Header -->
-        <div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Crear una cuenta
-            </h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
-                ¿Ya tienes una cuenta?
-                <a href="{% url 'gestionUsuarios:login' %}" class="font-medium text-blue-600 hover:text-blue-500">
-                    Inicia sesión
-                </a>
-            </p>
-        </div>
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <!-- Header -->
+            <div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                    Crear una cuenta
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-600">
+                    ¿Ya tienes una cuenta?
+                    <a href="{% url 'gestionUsuarios:login' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                        Inicia sesión
+                    </a>
+                </p>
+            </div>
 
-        <!-- Formulario de Registro -->
-        <form class="mt-8 space-y-6" method="POST" action="{% url 'gestionUsuarios:register' %}">
-            {% csrf_token %}
+            <!-- Formulario de Registro -->
+            <form class="mt-8 space-y-6" method="POST" action="{% url 'gestionUsuarios:register' %}">
+                {% csrf_token %}
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="rounded-md p-4 mb-4 {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
-                        {{ message }}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="rounded-md p-4 mb-4 {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Nombre de Usuario -->
+                <div>
+                    <label for="nombreusuario" class="block text-sm font-medium text-gray-700">
+                        Nombre de Usuario
+                    </label>
+                    <div class="mt-1">
+                        <input id="nombreusuario" name="nombreusuario" type="text" required
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                     </div>
-                {% endfor %}
-            {% endif %}
-
-            <!-- Nombre de Usuario -->
-            <div>
-                <label for="nombreusuario" class="block text-sm font-medium text-gray-700">
-                    Nombre de Usuario
-                </label>
-                <div class="mt-1">
-                    <input id="nombreusuario" name="nombreusuario" type="text" required
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 </div>
-            </div>
 
-            <!-- Email -->
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">
-                    Correo Electrónico
-                </label>
-                <div class="mt-1">
-                    <input id="email" name="email" type="email" required
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">
+                        Correo Electrónico
+                    </label>
+                    <div class="mt-1">
+                        <input id="email" name="email" type="email" required
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
                 </div>
-            </div>
 
-            <!-- Contraseña -->
-            <div>
-                <label for="contrasena" class="block text-sm font-medium text-gray-700">
-                    Contraseña
-                </label>
-                <div class="mt-1">
-                    <input id="contrasena" name="contrasena" type="password" required
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <!-- Contraseña -->
+                <div>
+                    <label for="contrasena" class="block text-sm font-medium text-gray-700">
+                        Contraseña
+                    </label>
+                    <div class="mt-1">
+                        <input id="contrasena" name="contrasena" type="password" required
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
                 </div>
-            </div>
 
-            <!-- Confirmar Contraseña -->
-            <div>
-                <label for="confirmar_contrasena" class="block text-sm font-medium text-gray-700">
-                    Confirmar Contraseña
-                </label>
-                <div class="mt-1">
-                    <input id="confirmar_contrasena" name="confirmar_contrasena" type="password" required
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <!-- Confirmar Contraseña -->
+                <div>
+                    <label for="confirmar_contrasena" class="block text-sm font-medium text-gray-700">
+                        Confirmar Contraseña
+                    </label>
+                    <div class="mt-1">
+                        <input id="confirmar_contrasena" name="confirmar_contrasena" type="password" required
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
                 </div>
-            </div>
 
-            <!-- Rol -->
-            <div>
-                <label for="rol" class="block text-sm font-medium text-gray-700">
-                    Rol
-                </label>
-                <div class="mt-1">
-                    <select id="rol" name="rol" required
-                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        <option value="">Selecciona un rol</option>
-                        <option value="Desarrollador">Desarrollador</option>
-                        <option value="JefeProyecto">Jefe de Proyecto</option>
-                        <option value="Cliente">Cliente</option>
-                        <option value="Tester">Tester</option>
-                        <option value="Admin">Administrador</option>
-                    </select>
+                <!-- Rol -->
+                <div>
+                    <label for="rol" class="block text-sm font-medium text-gray-700">
+                        Rol
+                    </label>
+                    <div class="mt-1">
+                        <select id="rol" name="rol" required
+                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="">Selecciona un rol</option>
+                            <option value="Desarrollador">Desarrollador</option>
+                            <option value="JefeProyecto">Jefe de Proyecto</option>
+                            <option value="Cliente">Cliente</option>
+                            <option value="Tester">Tester</option>
+                            <option value="Admin">Administrador</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
 
-            <div>
-                <button type="submit"
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <div>
+                    <button type="submit"
+                            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <span class="absolute left-0 inset-y-0 flex items-center pl-3">
                         <i class="fas fa-user-plus"></i>
                     </span>
-                    Registrarse
-                </button>
-            </div>
-        </form>
+                        Registrarse
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 {% endblock %}

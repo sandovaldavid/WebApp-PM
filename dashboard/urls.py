@@ -1,6 +1,6 @@
 from django.urls import path
+
 from . import views
-from .views import verificar_rol_administrador
 
 app_name = "dashboard"
 urlpatterns = [
