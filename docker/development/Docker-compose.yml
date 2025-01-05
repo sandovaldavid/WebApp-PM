@@ -1,0 +1,28 @@
+services:
+    web:
+        build: .
+        ports:
+            - "8000:8000"
+            - "22:22"
+        volumes:
+            - V:\ubuntu_projects:/workspaces
+        environment:
+            - DB_NAME=Db-Web-App-PM
+            - DB_USER=development
+            - DB_PASSWORD=123456
+            - DB_HOST=db
+            - DB_PORT=5432
+        depends_on:
+            - db
+
+    db:
+        image: postgres:13
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_DB=Db-Web-App-PM
+            - POSTGRES_USER=development
+            - POSTGRES_PASSWORD=123456
+
+volumes:
+    postgres_data:
