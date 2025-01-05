@@ -66,12 +66,12 @@ def lista_usuarios(request):
 
     # Estadísticas
     estadisticas = {
-        "total_usuarios": usuarios.count(),
-        "desarrolladores": usuarios.filter(rol="Desarrollador").count(),
-        "clientes": usuarios.filter(rol="Cliente").count(),
-        "testers": usuarios.filter(rol="Tester").count(),
-        "jefes_proyecto": usuarios.filter(rol="Jefe de Proyecto").count(),
-        "administradores": usuarios.filter(rol="Administrador").count(),
+        "total_usuarios": Usuario.objects.count(),
+        "desarrolladores": Usuario.objects.filter(rol="Desarrollador").count(),
+        "clientes": Usuario.objects.filter(rol="Cliente").count(),
+        "testers": Usuario.objects.filter(rol="Tester").count(),
+        "jefes_proyecto": Usuario.objects.filter(rol="Jefe de Proyecto").count(),
+        "administradores": Usuario.objects.filter(rol="Administrador").count(),
     }
 
     # Paginación

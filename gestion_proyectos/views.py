@@ -1,23 +1,42 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from dashboard.models import Proyecto, Requerimiento, Tarea, Equipo
 from django.utils import timezone
-from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
+from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField, Q
 from django.utils.timezone import is_naive, make_aware
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Case, When, FloatField, Sum, F
 
 @login_required
 def index(request):
-    proyectos = Proyecto.objects.all().order_by('idproyecto')  # Ordenar por idproyecto para evitar resultados inconsistentes
+    vista = request.GET.get("vista", "grid")
+    busqueda = request.GET.get("busqueda", "")
+    filtro = request.GET.get("filtro", "todos")
+    page = request.GET.get("page", 1)
+
+    # Consulta para estadísticas y gráficos
+    proyectos_totales = Proyecto.objects.all()
+
+    # Consulta para la vista paginada
+    proyectos = Proyecto.objects.all()
+
+    if busqueda:
+        proyectos = proyectos.filter(
+            Q(nombreproyecto__icontains=busqueda) | Q(descripcion__icontains=busqueda)
+        )
+
+    if filtro and filtro != "todos":
+        proyectos = proyectos.filter(estado=filtro)
+
+    # Estadísticas
     estadisticas = {
-        'total': proyectos.count(),
-        'inicio': proyectos.filter(estado='Inicio').count(),
-        'planificacion': proyectos.filter(estado='Planificación').count(),
-        'ejecucion': proyectos.filter(estado='Ejecución').count(),
-        'monitoreo_control': proyectos.filter(estado='Monitoreo-Control').count(),
-        'cierre': proyectos.filter(estado='Cierre').count(),
+        'total': proyectos_totales.count(),
+        'inicio': proyectos_totales.filter(estado='Inicio').count(),
+        'planificacion': proyectos_totales.filter(estado='Planificación').count(),
+        'ejecucion': proyectos_totales.filter(estado='Ejecución').count(),
+        'monitoreo_control': proyectos_totales.filter(estado='Monitoreo-Control').count(),
+        'cierre': proyectos_totales.filter(estado='Cierre').count(),
     }
     datos_estado = {
         'labels': ['Inicio', 'Planificación', 'Ejecución', 'Monitoreo-Control', 'Cierre'],
@@ -31,7 +50,7 @@ def index(request):
         "promedio": [
             # Inicio
             (
-                proyectos.filter(estado="Inicio")
+                proyectos_totales.filter(estado="Inicio")
                 .aggregate(
                     promedio=Avg(
                         ExpressionWrapper(
@@ -41,12 +60,12 @@ def index(request):
                     )
                 )["promedio"]
                 .days
-                if proyectos.filter(estado="Inicio").exists()
+                if proyectos_totales.filter(estado="Inicio").exists()
                 else 0
             ),
             # Planificación
             (
-                proyectos.filter(estado="Planificación")
+                proyectos_totales.filter(estado="Planificación")
                 .aggregate(
                     promedio=Avg(
                         ExpressionWrapper(
@@ -56,12 +75,12 @@ def index(request):
                     )
                 )["promedio"]
                 .days
-                if proyectos.filter(estado="Planificación").exists()
+                if proyectos_totales.filter(estado="Planificación").exists()
                 else 0
             ),
             # Ejecución
             (
-                proyectos.filter(estado="Ejecución")
+                proyectos_totales.filter(estado="Ejecución")
                 .aggregate(
                     promedio=Avg(
                         ExpressionWrapper(
@@ -71,12 +90,12 @@ def index(request):
                     )
                 )["promedio"]
                 .days
-                if proyectos.filter(estado="Ejecución").exists()
+                if proyectos_totales.filter(estado="Ejecución").exists()
                 else 0
             ),
             # Monitoreo-Control
             (
-                proyectos.filter(estado="Monitoreo-Control")
+                proyectos_totales.filter(estado="Monitoreo-Control")
                 .aggregate(
                     promedio=Avg(
                         ExpressionWrapper(
@@ -86,12 +105,12 @@ def index(request):
                     )
                 )["promedio"]
                 .days
-                if proyectos.filter(estado="Monitoreo-Control").exists()
+                if proyectos_totales.filter(estado="Monitoreo-Control").exists()
                 else 0
             ),
             # Cierre
             (
-                proyectos.filter(estado="Cierre")
+                proyectos_totales.filter(estado="Cierre")
                 .aggregate(
                     promedio=Avg(
                         ExpressionWrapper(
@@ -101,26 +120,31 @@ def index(request):
                     )
                 )["promedio"]
                 .days
-                if proyectos.filter(estado="Cierre").exists()
+                if proyectos_totales.filter(estado="Cierre").exists()
                 else 0
             ),
         ]
     }
 
     # Paginación
+    proyectos = proyectos.order_by('idproyecto')
     paginator = Paginator(proyectos, 9)
-    page = request.GET.get("page", 1)
-    proyectos_paginados = paginator.get_page(page)
-
+    try:
+        proyectos_paginados = paginator.page(page)
+    except PageNotAnInteger:
+        proyectos_paginados = paginator.page(1)
+    except EmptyPage:
+        proyectos_paginados = paginator.page(paginator.num_pages)
 
     return render(request, 'gestion_proyectos/index.html', {
         'estadisticas': estadisticas,
+        'proyectos_totales': proyectos_totales,
+        'proyectos': proyectos_paginados,
         'datos_estado': datos_estado,
         'datos_tendencia': datos_tendencia,
         'datos_tiempo': datos_tiempo,
-        'proyectos': proyectos_paginados,
-        'vista': request.GET.get('vista', 'grid'),
-        'filtro_activo': request.GET.get('filtro', 'todos'),
+        'vista': vista,
+        'filtros': {"busqueda": busqueda, "filtro": filtro},
     })
 
 @login_required
@@ -427,6 +451,37 @@ def filtrar_proyectos(request):
     return render(request, 'components/lista_proyectos.html', {'proyectos': proyectos_paginados, 'filtro_activo': filtro})
 
 
+@login_required
+def panel_proyectos(request):
+    vista = request.GET.get("vista", "grid")
+    busqueda = request.GET.get("busqueda", "")
+    filtro = request.GET.get("filtro", "todos")
+    page = request.GET.get("page", 1)
 
+    proyectos = Proyecto.objects.all()
+
+    if busqueda:
+        proyectos = proyectos.filter(
+            Q(nombreproyecto__icontains=busqueda) | Q(descripcion__icontains=busqueda)
+        )
+
+    if filtro and filtro != "todos":
+        proyectos = proyectos.filter(estado=filtro)
+
+    # Paginación
+    proyectos = proyectos.order_by('idproyecto')
+    paginator = Paginator(proyectos, 9)
+    try:
+        proyectos_paginados = paginator.page(page)
+    except PageNotAnInteger:
+        proyectos_paginados = paginator.page(1)
+    except EmptyPage:
+        proyectos_paginados = paginator.page(paginator.num_pages)
+
+    return render(request, 'components/panel_proyectos.html', {
+        'proyectos': proyectos_paginados,
+        'vista': vista,
+        'filtros': {"busqueda": busqueda, "filtro": filtro},
+    })
 
 
