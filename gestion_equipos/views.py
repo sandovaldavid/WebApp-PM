@@ -400,8 +400,8 @@ def agregar_miembro(request, equipo_id):
 
             # Verificar que el tipo de recurso coincida
             if (
-                    tipo_recurso
-                    and str(recurso.idtiporecurso.idtiporecurso) != tipo_recurso
+                tipo_recurso
+                and str(recurso.idtiporecurso.idtiporecurso) != tipo_recurso
             ):
                 messages.error(request, "El tipo de recurso seleccionado no coincide")
                 return redirect("gestion_equipos:agregar_miembro", equipo_id=equipo_id)
