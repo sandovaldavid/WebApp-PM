@@ -23,12 +23,19 @@ from django.http import JsonResponse
 def lista_recursos(request):
     busqueda = request.GET.get("busqueda", "")
     vista = request.GET.get("vista", "grid")
+    tipo = request.GET.get("tipo", "")
     page = request.GET.get("page", 1)
 
     recursos = Recurso.objects.all()
 
     if busqueda:
         recursos = recursos.filter(nombrerecurso__icontains=busqueda)
+
+    if tipo:
+        if tipo == "Humano":
+            recursos = recursos.filter(recursohumano__isnull=False)
+        elif tipo == "Material":
+            recursos = recursos.filter(recursomaterial__isnull=False)
 
     recursos_con_costos = []
     for recurso in recursos:
@@ -70,7 +77,7 @@ def lista_recursos(request):
     context = {
         "recursos": recursos_paginados,
         "vista": vista,
-        "filtros": {"busqueda": busqueda},
+        "filtros": {"busqueda": busqueda, "tipo": tipo},
         "proyectos": proyectos,
         "estadisticas": estadisticas,
     }
@@ -100,12 +107,8 @@ def crear_recurso(request):
         tipo = get_object_or_404(Tiporecurso, pk=id_tipo)
 
         with transaction.atomic():
-            # Obtener el último idrecurso y asignar el siguiente valor disponible
-            ultimo_recurso = Recurso.objects.order_by("-idrecurso").first()
-            nuevo_idrecurso = (ultimo_recurso.idrecurso + 1) if ultimo_recurso else 1
 
             recurso = Recurso.objects.create(
-                idrecurso=nuevo_idrecurso,
                 nombrerecurso=nombre,
                 idtiporecurso=tipo,
                 disponibilidad=True,
@@ -177,6 +180,13 @@ def editar_recurso(request, id):
 @login_required
 def eliminar_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
+    
+    # Eliminar de las tablas relacionadas
+    if hasattr(recurso, "recursohumano"):
+        recurso.recursohumano.delete()
+    elif hasattr(recurso, "recursomaterial"):
+        recurso.recursomaterial.delete()
+    
     recurso.delete()
     return redirect("gestionRecursos:lista_recursos")
 

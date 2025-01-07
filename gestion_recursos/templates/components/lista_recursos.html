@@ -7,18 +7,18 @@
                 <i class="fas fa-cogs text-blue-500 mr-2"></i>
                 <span>Recursos</span>
             </h2>
-            <p class="text-sm text-gray-500">{{ recursos|length }} recursos registrados</p>
+            <p class="text-sm text-gray-500">{{ estadisticas.total_recursos }} recursos registrados</p>
         </div>
 
         <!-- Controles y Filtros -->
         <div class="flex flex-col sm:flex-row gap-4">
             <!-- Selector de Vista -->
             <div class="flex bg-gray-100 rounded-lg p-1">
-                <a href="{% url 'gestionRecursos:lista_recursos' %}?vista=grid{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+                <a href="?vista=grid{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}" 
                    class="px-3 py-1 rounded-md {% if vista == 'grid' %}bg-blue-500 text-white{% else %}text-gray-600 hover:bg-gray-200{% endif %} transition-colors">
                     <i class="fas fa-th-large mr-1"></i> Tarjetas
                 </a>
-                <a href="{% url 'gestionRecursos:lista_recursos' %}?vista=list{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+                <a href="?vista=list{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}" 
                    class="px-3 py-1 rounded-md {% if vista == 'list' %}bg-blue-500 text-white{% else %}text-gray-600 hover:bg-gray-200{% endif %} transition-colors">
                     <i class="fas fa-list mr-1"></i> Lista
                 </a>
@@ -37,6 +37,22 @@
                 Asignar Recurso
             </a>
         </div>
+    </div>
+
+    <!-- Filtros Rápidos -->
+    <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4">
+        <a href="?{% if request.GET.vista %}vista={{ request.GET.vista }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+           class="px-4 py-2 rounded-full {% if not request.GET.tipo %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors">
+            <i class="fas fa-list-ul mr-2"></i>Todos
+        </a>
+        <a href="?tipo=Humano{% if request.GET.vista %}&vista={{ request.GET.vista }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+           class="px-4 py-2 rounded-full {% if request.GET.tipo == 'Humano' %}bg-green-100 text-green-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-green-200 transition-colors">
+            <i class="fas fa-user mr-2"></i>Recursos Humanos
+        </a>
+        <a href="?tipo=Material{% if request.GET.vista %}&vista={{ request.GET.vista }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
+           class="px-4 py-2 rounded-full {% if request.GET.tipo == 'Material' %}bg-purple-100 text-purple-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-purple-200 transition-colors">
+            <i class="fas fa-cube mr-2"></i>Recursos Materiales
+        </a>
     </div>
 
     <!-- Búsqueda y Filtros -->
@@ -67,18 +83,15 @@
         </form>
     </div>
 
-    <!-- Recursos Humanos -->
-    <h3 class="text-lg font-semibold mb-4">Recursos Humanos</h3>
+    <!-- Lista de Recursos -->
     {% if vista == 'grid' %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {% for item in recursos %}
-            {% if item.tipo == "Humano" %}
-                {% include 'components/recurso_card.html' with recurso=item %}
-            {% endif %}
+            {% include 'components/recurso_card.html' with recurso=item %}
         {% empty %}
             <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
                 <i class="fas fa-box-open text-6xl mb-4"></i>
-                <p class="text-xl font-medium">No hay recursos humanos registrados</p>
+                <p class="text-xl font-medium">No hay recursos registrados</p>
                 <p class="text-sm mt-2">Crea un recurso para comenzar</p>
             </div>
         {% endfor %}
@@ -97,7 +110,6 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for item in recursos %}
-                {% if item.tipo == "Humano" %}
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">{{ item.recurso.nombrerecurso }}</div>
@@ -126,76 +138,9 @@
                         </div>
                     </td>
                 </tr>
-                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    {% endif %}
-
-    <!-- Recursos Materiales -->
-    <h3 class="text-lg font-semibold mb-4">Recursos Materiales</h3>
-    {% if vista == 'grid' %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for item in recursos %}
-            {% if item.tipo == "Material" %}
-                {% include 'components/recurso_card.html' with recurso=item %}
-            {% endif %}
-        {% empty %}
-            <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
-                <i class="fas fa-box-open text-6xl mb-4"></i>
-                <p class="text-xl font-medium">No hay recursos materiales registrados</p>
-                <p class="text-sm mt-2">Crea un recurso para comenzar</p>
-            </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Disponibilidad</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Costo</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                {% for item in recursos %}
-                {% if item.tipo == "Material" %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">{{ item.recurso.nombrerecurso }}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm text-gray-500">{{ item.tipo }}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-500">{{ item.recurso.disponibilidad|yesno:"Disponible,No disponible" }}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-500">{{ item.costo }}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div class="flex justify-end space-x-2">
-                            <a href="{% url 'gestionRecursos:editar_recurso' item.recurso.idrecurso %}" 
-                               class="text-blue-600 hover:text-blue-900"
-                               title="Editar recurso">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="{% url 'gestionRecursos:eliminar_recurso' item.recurso.idrecurso %}" 
-                               class="text-red-600 hover:text-red-900"
-                               title="Eliminar recurso">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
+    {% endif %}    
 </div>

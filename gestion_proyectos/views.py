@@ -274,15 +274,14 @@ def crear_proyecto(request):
             )
 
         # Obtener el último ID de proyecto y asignar el siguiente ID disponible
-        ultimo_proyecto = Proyecto.objects.order_by('-idproyecto').first()
-        nuevo_id_proyecto = (ultimo_proyecto.idproyecto + 1) if ultimo_proyecto else 1
+        # ultimo_proyecto = Proyecto.objects.order_by('-idproyecto').first()
+        # nuevo_id_proyecto = (ultimo_proyecto.idproyecto + 1) if ultimo_proyecto else 1
 
         # Crear el proyecto
         now = timezone.now()
         if is_naive(now):
             now = make_aware(now)
         proyecto = Proyecto(
-            idproyecto=nuevo_id_proyecto,
             nombreproyecto=nombreproyecto,
             descripcion=descripcion,
             estado=estado,
@@ -301,18 +300,8 @@ def crear_proyecto(request):
             if key.startswith('requerimiento_'):
                 descripcion_requerimiento = value
                 if descripcion_requerimiento.strip():  # Validar descripción no vacía
-                    # Obtener el último ID de requerimiento y asignar el siguiente ID disponible
-                    ultimo_requerimiento = Requerimiento.objects.order_by(
-                        '-idrequerimiento'
-                    ).first()
-                    nuevo_id_requerimiento = (
-                        (ultimo_requerimiento.idrequerimiento + 1)
-                        if ultimo_requerimiento
-                        else 1
-                    )
-
+                    
                     requerimiento = Requerimiento(
-                        idrequerimiento=nuevo_id_requerimiento,
                         descripcion=descripcion_requerimiento,
                         idproyecto=proyecto,
                         fechacreacion=now,

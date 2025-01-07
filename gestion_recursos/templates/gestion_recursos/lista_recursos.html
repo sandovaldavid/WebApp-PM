@@ -89,7 +89,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>   
 
     <!-- Lista de Recursos -->
     {% include 'components/lista_recursos.html' %}
@@ -98,7 +98,7 @@
     {% if recursos.has_other_pages %}
     <div class="flex justify-center space-x-2 mt-6">
         {% if recursos.has_previous %}
-        <a href="?page={{ recursos.previous_page_number }}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}" 
+        <a href="?page={{ recursos.previous_page_number }}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if vista %}&vista={{ vista }}{% endif %}" 
            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
             <i class="fas fa-chevron-left"></i>
         </a>
@@ -109,13 +109,13 @@
         </span>
 
         {% if recursos.has_next %}
-        <a href="?page={{ recursos.next_page_number }}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}" 
+        <a href="?page={{ recursos.next_page_number }}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if vista %}&vista={{ vista }}{% endif %}" 
            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
             <i class="fas fa-chevron-right"></i>
         </a>
         {% endif %}
     </div>
-    {% endif %}
+    {% endif %}    
 </div>
 {% endblock %}
 
