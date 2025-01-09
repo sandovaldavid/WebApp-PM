@@ -14,6 +14,7 @@ from dashboard.models import (
     Usuario,
     Equipo,
     Miembro,
+    Requerimiento
 )
 from django.db import transaction
 from django.utils import timezone
@@ -183,13 +184,13 @@ def editar_recurso(request, id):
 @login_required
 def eliminar_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
-    
+
     # Eliminar de las tablas relacionadas
     if hasattr(recurso, "recursohumano"):
         recurso.recursohumano.delete()
     elif hasattr(recurso, "recursomaterial"):
         recurso.recursomaterial.delete()
-    
+
     recurso.delete()
     return redirect("gestionRecursos:lista_recursos")
 
@@ -228,11 +229,15 @@ def obtener_tareas(request, requerimiento_id):
     data = [{"idtarea": tarea.idtarea, "nombretarea": tarea.nombretarea} for tarea in tareas]
     return JsonResponse(data, safe=False)
 
+
 @login_required
 def obtener_recursos(request, proyecto_id):
     proyecto = get_object_or_404(Proyecto, pk=proyecto_id)
     equipo = proyecto.idequipo
     miembros = Miembro.objects.filter(idequipo=equipo)
     recursos = [miembro.idrecurso for miembro in miembros]
-    data = [{"idrecurso": recurso.idrecurso, "nombrerecurso": recurso.nombrerecurso} for recurso in recursos]
+    data = [
+        {"idrecurso": recurso.idrecurso, "nombrerecurso": recurso.nombrerecurso}
+        for recurso in recursos
+    ]
     return JsonResponse(data, safe=False)
