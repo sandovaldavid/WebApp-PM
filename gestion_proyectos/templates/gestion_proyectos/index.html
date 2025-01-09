@@ -1,0 +1,232 @@
+{% extends "gestion_proyectos/layout.html" %}
+{% load static %}
+
+{% block title %}Panel de Gestión de Proyectos{% endblock %}
+
+{% block style %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block title_body %}
+<div class="flex justify-between items-center">
+    <div class="flex items-center">
+        <i class="fas fa-project-diagram text-blue-500 mr-2"></i>
+        <span>Panel de Gestión de Proyectos</span>
+    </div>
+    <a href="{% url 'gestion_proyectos:crear_proyecto' %}" 
+       class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center">
+        <i class="fas fa-plus mr-2"></i>
+        Nuevo Proyecto
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8 space-y-8">
+    <!-- Resumen Estadístico -->
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+        <!-- Total Proyectos -->
+        <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-blue-600">Total Proyectos</p>
+                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total }}</h3>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-project-diagram text-blue-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inicio -->
+        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-yellow-600">Inicio</p>
+                    <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.inicio }}</h3>
+                </div>
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-clock text-yellow-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Planificación -->
+        <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-green-600">Planificación</p>
+                    <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.planificacion }}</h3>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-spinner fa-spin text-green-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ejecución -->
+        <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-purple-600">Ejecución</p>
+                    <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.ejecucion }}</h3>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-play text-purple-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoreo-Control -->
+        <div class="bg-red-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-red-600">Monitoreo-Control</p>
+                    <h3 class="text-2xl font-bold text-red-900">{{ estadisticas.monitoreo_control }}</h3>
+                </div>
+                <div class="bg-red-100 p-3 rounded-full">
+                    <i class="fas fa-chart-line text-red-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cierre -->
+        <div class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Cierre</p>
+                    <h3 class="text-2xl font-bold text-gray-900">{{ estadisticas.cierre }}</h3>
+                </div>
+                <div class="bg-gray-100 p-3 rounded-full">
+                    <i class="fas fa-check-circle text-gray-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Estado de Proyectos (Donut) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+                Estado de Proyectos
+            </h3>
+            <div class="h-64">
+                <canvas id="estadoProyectosChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tendencia de Proyectos (Líneas) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-line text-purple-500 mr-2"></i>
+                Tendencia de Completitud
+            </h3>
+            <div class="h-64">
+                <canvas id="tendenciaChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tiempo Promedio (Barras Horizontales) -->
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-clock text-yellow-500 mr-2"></i>
+                Tiempo Promedio por Estado
+            </h3>
+            <div class="h-64">
+                <canvas id="tiempoPromedioChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Proyectos -->
+    {% include "components/panel_proyectos.html" %}
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de Estado de Proyectos (Donut)
+    const estadoCtx = document.getElementById('estadoProyectosChart').getContext('2d');
+    new Chart(estadoCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ datos_estado.labels|safe }},
+            datasets: [{
+                data: {{ datos_estado.data|safe }},
+                backgroundColor: ['#FCD34D', '#60A5FA', '#34D399', '#F87171', '#A78BFA'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Gráfico de Tendencia (Líneas)
+    const tendenciaCtx = document.getElementById('tendenciaChart').getContext('2d');
+    new Chart(tendenciaCtx, {
+        type: 'line',
+        data: {
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Proyectos Completados',
+                data: {{ datos_tendencia.completados|default:'[10, 15, 8, 12, 20, 15]'|safe }},
+                borderColor: '#34D399',
+                tension: 0.4,
+                fill: false
+            },
+            {
+                label: 'Proyectos Creados',
+                data: {{ datos_tendencia.creados|default:'[8, 12, 15, 10, 18, 20]'|safe }},
+                borderColor: '#60A5FA',
+                tension: 0.4,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Gráfico de Tiempo Promedio (Barras Horizontales)
+    const tiempoCtx = document.getElementById('tiempoPromedioChart').getContext('2d');
+    new Chart(tiempoCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Inicio', 'Planificación', 'Ejecución', 'Monitoreo-Control', 'Cierre'],
+            datasets: [{
+                label: 'Días Promedio',
+                data: {{ datos_tiempo.promedio|default:'[5, 8, 3, 7, 4]'|safe }},
+                backgroundColor: ['#FCD34D', '#60A5FA', '#34D399', '#F87171', '#A78BFA'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

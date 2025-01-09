@@ -1,0 +1,84 @@
+<div class="bg-white rounded-lg shadow-lg">
+    <!-- Encabezado del Panel -->
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center">
+                <i class="fas fa-project-diagram text-blue-500 text-2xl mr-2"></i>
+                <div>
+                    <h2 class="text-xl font-semibold">Panel de Proyectos</h2>
+                    <p class="text-sm text-gray-500">{{ proyectos|length }} proyectos en total</p>
+                </div>
+            </div>
+            
+            <!-- Botones de Acción -->
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'gestion_proyectos:crear_proyecto' %}" 
+                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nuevo Proyecto
+                </a>
+                <a href="{% url 'gestion_proyectos:lista_proyectos' %}" 
+                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                   <i class="fas fa-filter mr-2"></i>
+                    Filtros Avanzados
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros Rápidos -->
+    <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4">
+        <button class="px-4 py-2 rounded-full {% if filtro_activo == 'todos' %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors"
+                hx-get="{% url 'gestion_proyectos:filtrar_proyectos' %}?filtro=todos" 
+                hx-target="#lista-proyectos"
+                hx-indicator="#loading"
+                hx-trigger="click">
+            <i class="fas fa-list-ul mr-2"></i>Todos
+        </button>
+        <button class="px-4 py-2 rounded-full {% if filtro_activo == 'inicio' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-yellow-200 transition-colors"
+                hx-get="{% url 'gestion_proyectos:filtrar_proyectos' %}?filtro=inicio"
+                hx-target="#lista-proyectos"
+                hx-indicator="#loading"
+                hx-trigger="click">
+            <i class="fas fa-clock mr-2"></i>Inicio
+        </button>
+        <button class="px-4 py-2 rounded-full {% if filtro_activo == 'planificacion' %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors"
+                hx-get="{% url 'gestion_proyectos:filtrar_proyectos' %}?filtro=planificacion"
+                hx-target="#lista-proyectos"
+                hx-indicator="#loading"
+                hx-trigger="click">
+            <i class="fas fa-spinner mr-2"></i>Planificación
+        </button>
+        <button class="px-4 py-2 rounded-full {% if filtro_activo == 'ejecucion' %}bg-green-100 text-green-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-green-200 transition-colors"
+                hx-get="{% url 'gestion_proyectos:filtrar_proyectos' %}?filtro=ejecucion"
+                hx-target="#lista-proyectos"
+                hx-indicator="#loading"
+                hx-trigger="click">
+            <i class="fas fa-play mr-2"></i>Ejecución
+        </button>
+        <button class="px-4 py-2 rounded-full {% if filtro_activo == 'monitoreo_control' %}bg-red-100 text-red-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-red-200 transition-colors"
+                hx-get="{% url 'gestion_proyectos:filtrar_proyectos' %}?filtro=monitoreo_control"
+                hx-target="#lista-proyectos"
+                hx-indicator="#loading"
+                hx-trigger="click">
+            <i class="fas fa-chart-line mr-2"></i>Monitoreo-Control
+        </button>
+        <button class="px-4 py-2 rounded-full {% if filtro_activo == 'cierre' %}bg-gray-100 text-gray-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-gray-200 transition-colors"
+                hx-get="{% url 'gestion_proyectos:filtrar_proyectos' %}?filtro=cierre"
+                hx-target="#lista-proyectos"
+                hx-indicator="#loading"
+                hx-trigger="click">
+            <i class="fas fa-check-circle mr-2"></i>Cierre
+        </button>
+    </div>
+
+    <!-- Indicador de carga -->
+    <div id="loading" class="htmx-indicator flex justify-center p-4">
+        <i class="fas fa-circle-notch fa-spin text-blue-500 text-2xl"></i>
+    </div>
+
+    <!-- Lista de Proyectos -->
+    <div id="lista-proyectos" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% include "components/lista_proyectos.html" %}
+    </div>
+</div>

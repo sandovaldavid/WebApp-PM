@@ -1,9 +1,121 @@
 {% extends 'layout.html' %}
 
 {% block style %}
-    <style>
-        .hidden {
-            display: none;
+<style>
+    .hidden {
+        display: none;
+    }
+    .details-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .details-table th, .details-table td {
+        padding: 12px;
+        text-align: left;
+    }
+    .details-table th {
+        background-color: #4a90e2;
+        color: white;
+    }
+    .details-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .details-table tr:hover {
+        background-color: #f1f1f1;
+    }
+    .btn-selected {
+        background-color: #4a90e2;
+        color: white;
+    }
+    .card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    }
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333333;
+    }
+    .card-text {
+        color: #666666;
+        margin-top: 10px;
+    }
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+    .btn {
+        background-color: #4a90e2;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+    .btn:hover {
+        background-color: #357ab8;
+    }
+    .btn-edit {
+        background-color: #f0ad4e;
+    }
+    .btn-edit:hover {
+        background-color: #ec971f;
+    }
+    .btn-create {
+        background-color: #5cb85c;
+    }
+    .btn-create:hover {
+        background-color: #4cae4c;
+    }
+    .btn-actions {
+        display: flex;
+        gap: 4px;
+    }
+    .btn-actions a {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 8px;
+    }
+    .filter-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .filter-form select,
+    .filter-form input,
+    .filter-form button {
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .filter-form button {
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .filter-form button:hover {
+        background-color: #357ab8;
+    }
+    @media (max-width: 768px) {
+        .grid-cols-1 {
+            grid-template-columns: 1fr;
         }
 
         .details-table {
@@ -127,109 +239,96 @@
     </style>
 {% endblock %}
 
-{% block title %}Gestion-Proyectos{% endblock %}
+{% block title %}Lista de Proyectos{% endblock %}
 
-{% block title_body %}<i class="fas fa-project-diagram header-icon"></i> Gestion de Proyectos{% endblock %}
+{% block title_body %}
+<div class="flex items-center justify-between">
+    <div class="flex items-center">
+        <i class="fas fa-project-diagram text-blue-500 mr-2"></i>
+        <span>Lista de Proyectos</span>
+    </div>
+    <a href="{% url 'gestion_proyectos:crear_proyecto' %}" 
+       class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+        <i class="fas fa-plus mr-2"></i>
+        Nuevo Proyecto
+    </a>
+</div>
+{% endblock %}
 
 {% block body %}
-    <main class="p-8">
-        <div class="flex justify-between items-center mb-4">
-            <div class="flex items-center">
-                <h2 class="text-2xl font-semibold mr-10">Lista de Proyectos</h2>
-                <button id="btn-cards" class="bg-blue-500 text-white px-4 py-2 mr-2 rounded btn-selected"
-                        onclick="toggleView('cards')"><i class="fas fa-th-large mr-2"></i>Vista de Tarjetas
-                </button>
-                <button id="btn-table" class="bg-blue-500 text-white px-4 py-2 rounded" onclick="toggleView('table')"><i
-                        class="fas fa-table mr-2"></i>Vista de Tabla
+<div class="p-8">
+    <!-- Panel de Filtros -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h3 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fas fa-filter text-gray-600 mr-2"></i>
+            Filtros
+        </h3>
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <!-- Búsqueda -->
+            <div>
+                <label for="busqueda" class="block text-sm font-medium text-gray-700 mb-2">Búsqueda</label>
+                <input type="text" name="busqueda" id="busqueda" 
+                       value="{{ filtros.busqueda }}"
+                       placeholder="Buscar proyecto..."
+                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
+            <!-- Estado -->
+            <div>
+                <label for="estado" class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                <select name="estado" id="estado" 
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Todos</option>
+                    {% for estado in estados %}
+                        <option value="{{ estado }}" {% if filtros.estado == estado %}selected{% endif %}>
+                            {{ estado }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Fecha Desde -->
+            <div>
+                <label for="fecha_inicio" class="block text-sm font-medium text-gray-700 mb-2">Fecha Desde</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio"
+                       value="{{ filtros.fecha_inicio }}"
+                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
+            <!-- Fecha Hasta -->
+            <div>
+                <label for="fecha_fin" class="block text-sm font-medium text-gray-700 mb-2">Fecha Hasta</label>
+                <input type="date" name="fecha_fin" id="fecha_fin"
+                       value="{{ filtros.fecha_fin }}"
+                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
+            <!-- Botones -->
+            <div class="col-span-full flex justify-end space-x-4 mt-4">
+                <a href="{% url 'gestion_proyectos:lista_proyectos' %}" 
+                   class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                    <i class="fas fa-undo mr-2"></i>
+                    Limpiar Filtros
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                    <i class="fas fa-search mr-2"></i>
+                    Aplicar Filtros
                 </button>
             </div>
-            <a href="{% url 'gestion_proyectos:crear_proyecto' %}"
-               class="bg-green-500 text-white px-4 py-2 rounded btn-create">
-                <i class="fas fa-plus mr-2"></i>Crear Proyecto
-            </a>
-        </div>
-        <div id="cards-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for proyecto in proyectos %}
-                <div class="card">
-                    <h3 class="card-title">{{ proyecto.nombreproyecto }}</h3>
-                    <p class="card-text">{{ proyecto.descripcion|truncatechars:100 }}</p>
-                    <div class="mt-2">
-                        <span class="text-sm font-semibold">Estado:</span>
-                        <span class="text-yellow-500">{{ proyecto.estado }}</span>
-                    </div>
-                    <div class="mt-2">
-                        <span class="text-sm font-semibold">Fecha de Inicio:</span>
-                        <span>{{ proyecto.fechainicio }}</span>
-                    </div>
-                    <div class="mt-2">
-                        <span class="text-sm font-semibold">Fecha de Finalización:</span>
-                        <span>{{ proyecto.fechafin }}</span>
-                    </div>
-                    <div class="mt-2">
-                        <span class="text-sm font-semibold">Presupuesto:</span>
-                        <span>${{ proyecto.presupuesto }}</span>
-                    </div>
-                    <div class="card-footer">
-                        <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" class="btn"><i
-                                class="fas fa-eye mr-2"></i>Ver Detalles</a>
-                        <a href="{% url 'gestion_proyectos:editar_proyecto' proyecto.idproyecto %}"
-                           class="btn btn-edit"><i class="fas fa-edit mr-2"></i>Editar</a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        <div id="table-view" class="hidden">
-            <table class="details-table">
-                <thead>
-                <tr>
-                    <th>Nombre del Proyecto</th>
-                    <th>Descripción</th>
-                    <th>Estado</th>
-                    <th>Fecha de Inicio</th>
-                    <th>Fecha de Finalización</th>
-                    <th>Presupuesto</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for proyecto in proyectos %}
-                    <tr>
-                        <td>{{ proyecto.nombreproyecto }}</td>
-                        <td>{{ proyecto.descripcion|truncatechars:100 }}</td>
-                        <td>{{ proyecto.estado }}</td>
-                        <td>{{ proyecto.fechainicio }}</td>
-                        <td>{{ proyecto.fechafin }}</td>
-                        <td>${{ proyecto.presupuesto }}</td>
-                        <td class="btn-actions">
-                            <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" class="btn"><i
-                                    class="fas fa-eye"></i></a>
-                            <a href="{% url 'gestion_proyectos:editar_proyecto' proyecto.idproyecto %}"
-                               class="btn btn-edit"><i class="fas fa-edit"></i></a>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </main>
+        </form>
+    </div>
 
-    <script>
-        function toggleView(view) {
-            var cardsView = document.getElementById('cards-view');
-            var tableView = document.getElementById('table-view');
-            var btnCards = document.getElementById('btn-cards');
-            var btnTable = document.getElementById('btn-table');
-            if (view === 'cards') {
-                cardsView.classList.remove('hidden');
-                tableView.classList.add('hidden');
-                btnCards.classList.add('btn-selected');
-                btnTable.classList.remove('btn-selected');
-            } else {
-                cardsView.classList.add('hidden');
-                tableView.classList.remove('hidden');
-                btnCards.classList.remove('btn-selected');
-                btnTable.classList.add('btn-selected');
-            }
-        }
-    </script>
+    <!-- Lista de Proyectos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for proyecto in proyectos %}
+            {% include "components/proyecto_card.html" with proyecto=proyecto %}
+        {% empty %}
+            <div class="col-span-full bg-gray-50 p-8 rounded-lg text-center">
+                <i class="fas fa-project-diagram text-gray-400 text-4xl mb-4"></i>
+                <p class="text-gray-500">No se encontraron proyectos</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}
