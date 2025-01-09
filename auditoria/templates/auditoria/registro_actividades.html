@@ -2,7 +2,19 @@
 
 {% block title %}Seguridad y Auditoría{% endblock %}
 
-{% block title_body %}<i class="fas fa-plus fa-shield-alt"></i> Seguridad y Auditoría{% endblock %}
+{% block title_body %}
+<div class="flex justify-between items-center">
+    <div class="flex items-center">
+        <i class="fas fa-shield-alt text-blue-500 mr-2"></i>
+        <span>Seguridad y Auditoría</span>
+    </div>
+    <a href="{% url 'auditoria:crear_actividad' %}" 
+    class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
+    <i class="fas fa-plus mr-2"></i>
+        Nueva Actividad
+    </a>
+</div>
+{% endblock %}
 
 {% block style %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
