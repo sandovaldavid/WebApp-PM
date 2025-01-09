@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from django.contrib import messages
 
 from dashboard.models import (
     Recurso,
@@ -39,7 +40,7 @@ def lista_recursos(request):
         if tipo == "Humano":
             recursos = recursos.filter(recursohumano__isnull=False)
         elif tipo == "Material":
-            recursos = recursos.filter(recursomaterial__isnull=False)
+            recursos = recursos.filter(recursomaterial__isnull=False) | recursos.filter(idtiporecurso__idtiporecurso=3)
 
     recursos_con_costos = []
     for recurso in recursos:
@@ -132,13 +133,14 @@ def crear_recurso(request):
                     tarifahora=tarifahora,
                     idusuario=usuario,
                 )
-            elif tipo.idtiporecurso == 2:  # Recurso Material
+            elif tipo.idtiporecurso in [2, 3]:  # Recurso Material
                 costounidad = request.POST.get("costounidad")
                 fechacompra = request.POST.get("fechacompra")
                 Recursomaterial.objects.create(
                     idrecurso=recurso, costounidad=costounidad, fechacompra=fechacompra
                 )
 
+        messages.success(request, "Recurso creado exitosamente.")
         return redirect("gestionRecursos:lista_recursos")
 
     tipos = Tiporecurso.objects.all()
@@ -165,12 +167,13 @@ def editar_recurso(request, id):
             recursohumano.habilidades = request.POST.get("habilidades")
             recursohumano.tarifahora = request.POST.get("tarifahora")
             recursohumano.save()
-        elif recurso.idtiporecurso.idtiporecurso == 2:  # Recurso Material
+        elif recurso.idtiporecurso.idtiporecurso in [2, 3]:  # Recurso Material
             recursomaterial = get_object_or_404(Recursomaterial, pk=id)
             recursomaterial.costounidad = request.POST.get("costounidad")
             recursomaterial.fechacompra = request.POST.get("fechacompra")
             recursomaterial.save()
 
+        messages.success(request, "Recurso editado exitosamente.")
         return redirect("gestionRecursos:lista_recursos")
 
     tipos = Tiporecurso.objects.all()
@@ -209,6 +212,7 @@ def asignar_recurso(request):
         if not Tarearecurso.objects.filter(idtarea=tarea, idrecurso=recurso).exists():
             Tarearecurso.objects.create(idtarea=tarea, idrecurso=recurso, cantidad=1)
 
+        messages.success(request, "Recurso asignado exitosamente.")
         return redirect("gestionRecursos:lista_recursos")
 
     proyectos = Proyecto.objects.all()

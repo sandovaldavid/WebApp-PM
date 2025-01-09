@@ -18,4 +18,6 @@ urlpatterns = [
     path('detalle-requerimiento/<int:idrequerimiento>/', views.detalle_requerimiento, name='detalle_requerimiento'),  # Nueva ruta
     path('editar-requerimiento/<int:idrequerimiento>/', views.editar_requerimiento, name='editar_requerimiento'),  # Nueva ruta
     path('eliminar-requerimiento/<int:idrequerimiento>/', views.eliminar_requerimiento, name='eliminar_requerimiento'),  # Nueva ruta
+    path('ajustar_fechas/<int:proyecto_id>/', views.ajustar_fechas, name='ajustar_fechas'),
+    path('ajustar_presupuesto/<int:proyecto_id>/', views.ajustar_presupuesto, name='ajustar_presupuesto'),
 ]

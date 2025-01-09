@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField, When, Case, FloatField, Sum
 from django.utils.timezone import is_naive, make_aware
 from dashboard.models import Proyecto, Requerimiento, Tarea, Equipo
+from django.contrib import messages
 
 @login_required
 def index(request):
@@ -314,6 +315,7 @@ def crear_proyecto(request):
                     )
                     requerimiento.save()
 
+        messages.success(request, "Proyecto creado exitosamente.")
         return redirect("gestion_proyectos:lista_proyectos")
 
     equipos = Equipo.objects.all()
@@ -402,6 +404,7 @@ def editar_proyecto(request, idproyecto):
             Tarea.objects.filter(idrequerimiento=requerimiento).delete()
             requerimiento.delete()
 
+        messages.success(request, "Proyecto editado exitosamente.")
         return redirect("gestion_proyectos:detalle_proyecto", idproyecto=idproyecto)
 
     return render(
@@ -567,5 +570,33 @@ def eliminar_requerimiento(request, idrequerimiento):
         requerimiento.delete()
         return redirect('gestion_proyectos:detalle_proyecto', idproyecto=proyecto.idproyecto)
     return render(request, 'gestion_proyectos/eliminar_requerimiento.html', {'requerimiento': requerimiento, 'proyecto': proyecto})
+
+@login_required
+def ajustar_fechas(request, proyecto_id):
+    proyecto = get_object_or_404(Proyecto, pk=proyecto_id)
+    if request.method == "POST":
+        fechainicio = request.POST.get("fechainicio")
+        fechafin = request.POST.get("fechafin")
+        proyecto.fechainicio = fechainicio
+        proyecto.fechafin = fechafin
+        proyecto.fechamodificacion = timezone.now()
+        proyecto.save()
+        messages.success(request, "Fechas del proyecto ajustadas exitosamente.")
+        return redirect("gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto)
+    return render(request, "gestion_proyectos/ajustar_fechas.html", {"proyecto": proyecto})
+
+@login_required
+def ajustar_presupuesto(request, proyecto_id):
+    proyecto = get_object_or_404(Proyecto, pk=proyecto_id)
+    if request.method == "POST":
+        presupuesto = request.POST.get("presupuesto")
+        presupuestoutilizado = request.POST.get("presupuestoutilizado")
+        proyecto.presupuesto = presupuesto
+        proyecto.presupuestoutilizado = presupuestoutilizado
+        proyecto.fechamodificacion = timezone.now()
+        proyecto.save()
+        messages.success(request, "Presupuesto del proyecto ajustado exitosamente.")
+        return redirect("gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto)
+    return render(request, "gestion_proyectos/ajustar_presupuesto.html", {"proyecto": proyecto})
 
 

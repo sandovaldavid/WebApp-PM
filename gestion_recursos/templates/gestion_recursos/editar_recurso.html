@@ -110,6 +110,17 @@
                         <label for="fechacompra" class="block text-sm font-medium text-gray-700">Fecha de Compra</label>
                         <input type="date" id="fechacompra" name="fechacompra" class="w-full p-2 border rounded-md" value="{{ recurso.recursomaterial.fechacompra|date:"Y-m-d" }}" required>
                     </div>
+
+                    {% elif recurso.idtiporecurso.idtiporecurso == 3 %}
+                    <!-- Campos adicionales para Recurso Material -->
+                    <div class="mb-4">
+                        <label for="costounidad" class="block text-sm font-medium text-gray-700">Costo por Unidad</label>
+                        <input type="number" id="costounidad" name="costounidad" class="w-full p-2 border rounded-md" value="{{ recurso.recursomaterial.costounidad }}" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="fechacompra" class="block text-sm font-medium text-gray-700">Fecha de Compra</label>
+                        <input type="date" id="fechacompra" name="fechacompra" class="w-full p-2 border rounded-md" value="{{ recurso.recursomaterial.fechacompra|date:"Y-m-d" }}" required>
+                    </div>
                     {% endif %}
                 </div>
 

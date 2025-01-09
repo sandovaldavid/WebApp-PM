@@ -228,7 +228,7 @@
             </div>
 
             <!-- Botones de Acción -->
-            <div class="flex justify-between mt-4">
+            <div class="flex justify-between m-4">
 
                 <a href="{% url 'gestion_proyectos:editar_proyecto' proyecto.idproyecto %}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors flex items-center">
                     <i class="fas fa-edit mr-2"></i>Editar Proyecto
@@ -239,10 +239,10 @@
                 <a href="{% url 'gestionRecursos:asignar_recurso'%}" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors flex items-center">
                     <i class="fas fa-user-plus mr-2"></i>Asignar Recursos
                 </a>
-                <a href="{% url 'gestionRecursos:lista_recursos'%}" class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors flex items-center">
+                <a href="{% url 'gestion_proyectos:ajustar_fechas' proyecto.idproyecto %}" class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors flex items-center">
                     <i class="fas fa-calendar-alt mr-2"></i>Ajustar Fechas
                 </a>
-                <a href="{% url 'gestionRecursos:lista_recursos'%}" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors flex items-center">
+                <a href="{% url 'gestion_proyectos:ajustar_presupuesto' proyecto.idproyecto %}" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors flex items-center">
                     <i class="fas fa-dollar-sign mr-2"></i>Ajustar Presupuesto
                 </a>
             </div>
