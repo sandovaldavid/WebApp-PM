@@ -130,7 +130,7 @@ def index(request):
                     )
                 )["promedio"]
                 .days
-                if tareas.filter(estado="En pogreso").exists()
+                if tareas.filter(estado="En Pogreso").exists()
                 else 0
             ),
             # Completadas
