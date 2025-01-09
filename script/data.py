@@ -78,7 +78,7 @@ Proyecto.objects.create(
     fechainicio="2023-07-01",
     fechafin="2024-01-15",
     presupuesto=75000.00,
-    estado="En Progreso",
+    estado="Monitoreo-Control",
     fechacreacion="2023-07-01T08:00:00Z",
     fechamodificacion="2023-07-01T08:00:00Z",
 )
@@ -150,7 +150,7 @@ Proyecto.objects.create(
     fechainicio="2024-01-01",
     fechafin="2024-03-01",
     presupuesto=100000.00,
-    estado="Planificado",
+    estado="Cierre",
     fechacreacion="2023-12-01T08:30:00Z",
     fechamodificacion="2023-12-01T08:30:00Z",
 )
