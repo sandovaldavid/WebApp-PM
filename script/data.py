@@ -18,6 +18,7 @@ from dashboard.models import (
     Tarearecurso,
     Tiporecurso,
     Usuario,
+    Actividad
 )
 
 print("Generando datos de prueba...")
@@ -994,6 +995,171 @@ Historialalerta.objects.create(
         tipoalerta="riesgo",
     ),
     fecharesolucion="2023-11-05T09:00:00Z",
+)
+
+# Create activities for different users and actions
+Actividad.objects.create(
+    nombre="Login usuario",
+    descripcion="Inicio de sesión exitoso",
+    fechacreacion="2023-12-01T08:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=1),
+    accion="Login",
+)
+
+Actividad.objects.create(
+    nombre="Creación de proyecto",
+    descripcion="Se creó el proyecto 'Sistema de Gestión de Inventarios'",
+    fechacreacion="2023-12-01T09:30:00Z",
+    idusuario=Usuario.objects.get(idusuario=1),
+    accion="Creación",
+)
+
+Actividad.objects.create(
+    nombre="Modificación de tarea",
+    descripcion="Se actualizó el estado de la tarea 'Implementación de dashboard analítico'",
+    fechacreacion="2023-12-02T10:15:00Z",
+    idusuario=Usuario.objects.get(idusuario=2),
+    accion="Modificación",
+)
+
+Actividad.objects.create(
+    nombre="Logout usuario",
+    descripcion="Cierre de sesión exitoso",
+    fechacreacion="2023-12-02T17:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=2),
+    accion="Logout",
+)
+
+Actividad.objects.create(
+    nombre="Asignación de recursos",
+    descripcion="Se asignaron recursos al proyecto 'Plataforma E-learning'",
+    fechacreacion="2023-12-03T11:30:00Z",
+    idusuario=Usuario.objects.get(idusuario=3),
+    accion="Modificación",
+)
+
+Actividad.objects.create(
+    nombre="Eliminación de tarea",
+    descripcion="Se eliminó una tarea del proyecto 'App Móvil de Delivery'",
+    fechacreacion="2023-12-03T14:45:00Z",
+    idusuario=Usuario.objects.get(idusuario=3),
+    accion="Eliminación",
+)
+
+Actividad.objects.create(
+    nombre="Creación de equipo",
+    descripcion="Se creó el equipo 'Equipo de QA'",
+    fechacreacion="2023-12-04T09:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=1),
+    accion="Creación",
+)
+
+Actividad.objects.create(
+    nombre="Modificación de requerimiento",
+    descripcion="Se actualizó el requerimiento 'Sistema de tickets y seguimiento'",
+    fechacreacion="2023-12-04T13:20:00Z",
+    idusuario=Usuario.objects.get(idusuario=2),
+    accion="Modificación",
+)
+
+
+# Actividades relacionadas con Equipos
+Actividad.objects.create(
+    nombre="Creación de Equipo",
+    descripcion="Se creó el equipo 'Equipo de Desarrollo Web'",
+    fechacreacion="2023-01-15T10:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=1),
+    accion="Creación",
+)
+
+# Actividades relacionadas con Proyectos
+Actividad.objects.create(
+    nombre="Nuevo Proyecto Registrado",
+    descripcion="Se creó el proyecto 'Sistema de Gestión de Inventarios'",
+    fechacreacion="2023-07-01T08:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=2),
+    accion="Creación",
+)
+
+# Actividades relacionadas con Recursos
+Actividad.objects.create(
+    nombre="Registro de Recurso",
+    descripcion="Se registró el recurso 'Licencia Adobe Creative Suite'",
+    fechacreacion="2023-07-01T08:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=3),
+    accion="Creación",
+)
+
+# Actividades relacionadas con Requerimientos
+Actividad.objects.create(
+    nombre="Creación de Requerimiento",
+    descripcion="Se agregó el requerimiento 'Módulo de gestión de usuarios y permisos'",
+    fechacreacion="2023-07-01T08:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=1),
+    accion="Creación",
+)
+
+# Actividades relacionadas con Tareas
+Actividad.objects.create(
+    nombre="Nueva Tarea Asignada",
+    descripcion="Se creó la tarea 'Implementación de dashboard analítico'",
+    fechacreacion="2023-10-01T08:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=2),
+    accion="Creación",
+)
+
+# Actividades relacionadas con Monitoreo
+Actividad.objects.create(
+    nombre="Actualización de Monitoreo",
+    descripcion="Se actualizó el progreso de la tarea 'Diseño de interfaz de usuario'",
+    fechacreacion="2023-09-30T16:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=3),
+    accion="Modificación",
+)
+
+# Actividades relacionadas con Alertas
+Actividad.objects.create(
+    nombre="Alerta Generada",
+    descripcion="Se generó una alerta de retraso en la tarea 'Implementación de la pantalla de login'",
+    fechacreacion="2023-09-12T14:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=1),
+    accion="Creación",
+)
+
+# Actividades relacionadas con Notificaciones
+Actividad.objects.create(
+    nombre="Envío de Notificación",
+    descripcion="Se envió notificación sobre reunión de planificación del sprint",
+    fechacreacion="2023-12-10T08:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=2),
+    accion="Creación",
+)
+
+# Actividades relacionadas con Miembros
+Actividad.objects.create(
+    nombre="Asignación de Miembro",
+    descripcion="Se asignó el recurso 'Diseñador UX/UI' al 'Equipo de Diseño UX/UI'",
+    fechacreacion="2023-03-15T10:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=3),
+    accion="Creación",
+)
+
+# Actividades relacionadas con Recursos Materiales
+Actividad.objects.create(
+    nombre="Registro de Recurso Material",
+    descripcion="Se registró la compra de 'Monitor 4K'",
+    fechacreacion="2023-06-01T11:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=1),
+    accion="Creación",
+)
+
+# Actividades relacionadas con Recursos Humanos
+Actividad.objects.create(
+    nombre="Registro de Recurso Humano",
+    descripcion="Se registró el recurso humano 'DevOps Engineer'",
+    fechacreacion="2023-08-01T09:00:00Z",
+    idusuario=Usuario.objects.get(idusuario=2),
+    accion="Creación",
 )
 
 print("Datos de prueba generados con éxito.")
