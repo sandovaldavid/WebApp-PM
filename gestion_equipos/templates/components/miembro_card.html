@@ -59,11 +59,11 @@
             <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
                     <p class="text-gray-600">Cargo:</p>
-                    <p class="font-medium">{{ miembro.idrecurso.cargo }}</p>
+                    <p class="font-medium">{{ miembro.idrecurso.recursohumano.cargo|default:"No especificado" }}</p>
                 </div>
                 <div>
                     <p class="text-gray-600">Tarifa/Hora:</p>
-                    <p class="font-medium">${{ miembro.idrecurso.tarifahora|default:"0.00" }}</p>
+                    <p class="font-medium">${{ miembro.idrecurso.recursohumano.tarifahora|default:"0.00" }}</p>
                 </div>
             </div>
             {% if miembro.idrecurso.habilidades %}
@@ -83,11 +83,11 @@
             <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
                     <p class="text-gray-600">Costo Unidad:</p>
-                    <p class="font-medium">${{ miembro.idrecurso.costounidad|default:"0.00" }}</p>
+                    <p class="font-medium">${{ miembro.idrecurso.recursomaterial.costounidad|default:"0.00" }}</p>
                 </div>
                 <div>
                     <p class="text-gray-600">Fecha Compra:</p>
-                    <p class="font-medium">{{ miembro.idrecurso.fechacompra|date:"d/m/Y"|default:"No especificada" }}</p>
+                    <p class="font-medium">{{ miembro.idrecurso.recursomaterial.fechacompra|date:"d/m/Y"|default:"No especificada" }}</p>
                 </div>
             </div>
         {% endif %}
