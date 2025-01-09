@@ -32,7 +32,7 @@ def generar_usuarios(num_usuarios=10):
                 ),  # Asegurarse de encriptar la contraseña
                 rol=rol,
                 token=token,
-                confirmado=confirmado,
+                confirmado=True,
                 fechacreacion=timezone.now(),
                 fechamodificacion=timezone.now(),
             )
