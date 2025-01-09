@@ -1,24 +1,24 @@
-from django.shortcuts import redirect, render
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
-from django.utils import timezone
+import csv
+import json
+from datetime import datetime, timedelta
+
 from django.contrib import messages
-from django.db import models
-from django.db.models import Sum, Q, F, Count
-from django.db.models.functions import TruncMonth, Coalesce
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.core.cache import cache
+from django.db import models
+from django.db.models import Sum, Q, Count
+from django.db.models.functions import TruncMonth, Coalesce
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.utils import timezone
+from weasyprint import HTML
+
 from dashboard.models import (
     Proyecto,
     Tarea,
-    Recurso,
     Historialtarea,
 )
-import csv
-import json
-from django.template.loader import render_to_string
-from datetime import datetime, timedelta
-from weasyprint import HTML
 
 
 @login_required

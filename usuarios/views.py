@@ -1,9 +1,15 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.hashers import make_password, check_password
-from django.core.mail import send_mail, EmailMultiAlternatives
+import uuid
+
 from django.conf import settings
-from django.http import JsonResponse
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import make_password, check_password
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_protect
+
 from dashboard.models import (
     Usuario,
     Administrador,
@@ -12,11 +18,6 @@ from dashboard.models import (
     Tester,
     Desarrollador,
 )
-import uuid
-from django.utils import timezone
-from django.views.decorators.csrf import csrf_protect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 
 
 # Vista para la página de inicio

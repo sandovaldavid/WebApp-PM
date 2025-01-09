@@ -1,0 +1,124 @@
+{% extends 'layout.html' %}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-user text-blue-500 mr-2"></i>
+    <span>Mi Perfil</span>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Tarjeta Principal -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Encabezado con Avatar -->
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
+                <div class="flex items-center space-x-4">
+                    <div class="h-24 w-24 rounded-full bg-white flex items-center justify-center">
+                        <i class="fas fa-user text-blue-500 text-4xl"></i>
+                    </div>
+                    <div class="text-white">
+                        <h1 class="text-2xl font-bold">{{ usuario.nombreusuario }}</h1>
+                        <p class="opacity-90">{{ usuario.rol }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Perfil -->
+            <div class="p-6 space-y-6">
+                <!-- Datos Personales -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">
+                        <i class="fas fa-id-card mr-2 text-blue-500"></i>
+                        Datos Personales
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Correo Electrónico
+                            </label>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <i class="fas fa-envelope text-gray-400 mr-2"></i>
+                                <span>{{ usuario.email }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Rol -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Rol del Sistema
+                            </label>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <i class="fas fa-user-tag text-gray-400 mr-2"></i>
+                                <span>{{ usuario.rol }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de Cuenta -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">
+                        <i class="fas fa-clock mr-2 text-blue-500"></i>
+                        Información de Cuenta
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Fecha de Creación -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Fecha de Registro
+                            </label>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <i class="fas fa-calendar-plus text-gray-400 mr-2"></i>
+                                <span>{{ usuario.fechacreacion|date:"d/m/Y H:i" }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Última Modificación -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Última Actualización
+                            </label>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <i class="fas fa-edit text-gray-400 mr-2"></i>
+                                <span>{{ usuario.fechamodificacion|date:"d/m/Y H:i" }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Último Acceso -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Último Acceso
+                            </label>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <i class="fas fa-sign-in-alt text-gray-400 mr-2"></i>
+                                <span>{{ usuario.last_login|date:"d/m/Y H:i"|default:"Sin accesos registrados" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="px-6 py-4 bg-gray-50 border-t flex justify-end space-x-4">
+                <a href="#" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-cog mr-2"></i>
+                    Configuración
+                </a>
+                <a href="#"
+                   class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                    <i class="fas fa-key mr-2"></i>
+                    Cambiar Contraseña
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

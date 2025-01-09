@@ -2,25 +2,31 @@ body {
     font-family: 'Roboto', sans-serif;
     background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
 }
+
 header {
     background: linear-gradient(90deg, #1e3a8a, #2563eb);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
 .btn {
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
+
 .btn:hover {
     background-color: #1e40af;
     transform: translateY(-2px);
 }
+
 .card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     background: linear-gradient(135deg, #ffffff, #f3f4f6);
 }
+
 .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
+
 .icon {
     color: #2563eb;
 }

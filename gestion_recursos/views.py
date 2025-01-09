@@ -1,11 +1,14 @@
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
+
 from dashboard.models import (
     Recurso,
     Tiporecurso,
     Recursohumano,
     Recursomaterial,
     Proyecto,
-    Requerimiento,
     Tarea,
     Tarearecurso,
     Usuario,

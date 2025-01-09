@@ -120,37 +120,37 @@
 {% endblock %}
 
 {% block script %}
-<script>
-    function openModal() {
-        document.getElementById('modal-assign-resource').classList.remove('hidden');
-    }
+    <script>
+        function openModal() {
+            document.getElementById('modal-assign-resource').classList.remove('hidden');
+        }
 
-    function closeModal() {
-        document.getElementById('modal-assign-resource').classList.add('hidden');
-    }
+        function closeModal() {
+            document.getElementById('modal-assign-resource').classList.add('hidden');
+        }
 
-    function loadRequerimientos(proyectoId) {
-        fetch(`/dashboard/api/requerimientos/${proyectoId}/`)
-            .then(response => response.json())
-            .then(data => {
-                const requerimientoSelect = document.getElementById('requerimiento');
-                requerimientoSelect.innerHTML = '<option value="">Seleccione un requerimiento</option>';
-                data.forEach(requerimiento => {
-                    requerimientoSelect.innerHTML += `<option value="${requerimiento.idrequerimiento}">${requerimiento.descripcion}</option>`;
+        function loadRequerimientos(proyectoId) {
+            fetch(`/dashboard/api/requerimientos/${proyectoId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const requerimientoSelect = document.getElementById('requerimiento');
+                    requerimientoSelect.innerHTML = '<option value="">Seleccione un requerimiento</option>';
+                    data.forEach(requerimiento => {
+                        requerimientoSelect.innerHTML += `<option value="${requerimiento.idrequerimiento}">${requerimiento.descripcion}</option>`;
+                    });
                 });
-            });
-    }
+        }
 
-    function loadTareas(requerimientoId) {
-        fetch(`/dashboard/api/tareas/${requerimientoId}/`)
-            .then(response => response.json())
-            .then(data => {
-                const tareaSelect = document.getElementById('tarea');
-                tareaSelect.innerHTML = '<option value="">Seleccione una tarea</option>';
-                data.forEach(tarea => {
-                    tareaSelect.innerHTML += `<option value="${tarea.idtarea}">${tarea.nombretarea}</option>`;
+        function loadTareas(requerimientoId) {
+            fetch(`/dashboard/api/tareas/${requerimientoId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const tareaSelect = document.getElementById('tarea');
+                    tareaSelect.innerHTML = '<option value="">Seleccione una tarea</option>';
+                    data.forEach(tarea => {
+                        tareaSelect.innerHTML += `<option value="${tarea.idtarea}">${tarea.nombretarea}</option>`;
+                    });
                 });
-            });
-    }
-</script>
+        }
+    </script>
 {% endblock %}

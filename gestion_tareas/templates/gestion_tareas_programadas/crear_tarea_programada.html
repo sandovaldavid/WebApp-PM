@@ -3,182 +3,186 @@
 {% block title %}Crear Tarea Programada{% endblock %}
 
 {% block title_body %}
-<div class="flex items-center">
-    <i class="fas fa-calendar-plus text-blue-500 mr-2"></i>
-    <span>Crear Nueva Tarea Programada</span>
-</div>
+    <div class="flex items-center">
+        <i class="fas fa-calendar-plus text-blue-500 mr-2"></i>
+        <span>Crear Nueva Tarea Programada</span>
+    </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8">
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-xl font-semibold mb-6 flex items-center">
-            <i class="fas fa-clock text-blue-500 mr-2"></i>
-            Nueva Tarea Programada
-        </h2>
+    <div class="p-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-clock text-blue-500 mr-2"></i>
+                Nueva Tarea Programada
+            </h2>
 
-        <form method="POST" class="space-y-6">
-            {% csrf_token %}
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Columna Izquierda -->
-                <div class="space-y-6">
-                    <!-- Requerimiento -->
-                    <div>
-                        <label for="requerimiento" class="block text-sm font-medium text-gray-700">Requerimiento</label>
-                        <div class="mt-1 relative">
-                            <select name="requerimiento" id="requerimiento" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10" 
-                                    required>
-                                <option value="">Seleccione un requerimiento</option>
-                                {% for req in requerimientos %}
-                                    <option value="{{ req.idrequerimiento }}">
-                                        {{ req.descripcion }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-clipboard-list text-gray-400"></i>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Columna Izquierda -->
+                    <div class="space-y-6">
+                        <!-- Requerimiento -->
+                        <div>
+                            <label for="requerimiento"
+                                   class="block text-sm font-medium text-gray-700">Requerimiento</label>
+                            <div class="mt-1 relative">
+                                <select name="requerimiento" id="requerimiento"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                        required>
+                                    <option value="">Seleccione un requerimiento</option>
+                                    {% for req in requerimientos %}
+                                        <option value="{{ req.idrequerimiento }}">
+                                            {{ req.descripcion }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-clipboard-list text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nombre de la Tarea -->
+                        <div>
+                            <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre de la
+                                Tarea</label>
+                            <div class="mt-1 relative">
+                                <input type="text" name="nombre" id="nombre"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                       required>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-tasks text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado -->
+                        <div>
+                            <label for="estado" class="block text-sm font-medium text-gray-700">Estado Inicial</label>
+                            <div class="mt-1 relative">
+                                <select name="estado" id="estado"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="En Progreso">En Progreso</option>
+                                </select>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-info-circle text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prioridad -->
+                        <div>
+                            <label for="prioridad" class="block text-sm font-medium text-gray-700">Prioridad</label>
+                            <div class="mt-1 relative">
+                                <select name="prioridad" id="prioridad"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
+                                    <option value="1">Baja</option>
+                                    <option value="2" selected>Media</option>
+                                    <option value="3">Alta</option>
+                                </select>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-flag text-gray-400"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Nombre de la Tarea -->
-                    <div>
-                        <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre de la Tarea</label>
-                        <div class="mt-1 relative">
-                            <input type="text" name="nombre" id="nombre" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                   required>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-tasks text-gray-400"></i>
+                    <!-- Columna Derecha -->
+                    <div class="space-y-6">
+                        <!-- Frecuencia -->
+                        <div>
+                            <label for="frecuencia" class="block text-sm font-medium text-gray-700">Frecuencia</label>
+                            <div class="mt-1 relative">
+                                <select name="frecuencia" id="frecuencia"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                        required>
+                                    <option value="Diaria">Diaria</option>
+                                    <option value="Semanal">Semanal</option>
+                                    <option value="Mensual">Mensual</option>
+                                </select>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-sync text-gray-400"></i>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Estado -->
-                    <div>
-                        <label for="estado" class="block text-sm font-medium text-gray-700">Estado Inicial</label>
-                        <div class="mt-1 relative">
-                            <select name="estado" id="estado" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                <option value="Pendiente">Pendiente</option>
-                                <option value="En Progreso">En Progreso</option>
-                            </select>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-info-circle text-gray-400"></i>
+                        <!-- Duración Estimada -->
+                        <div>
+                            <label for="duracion_estimada" class="block text-sm font-medium text-gray-700">
+                                Duración Estimada (horas)
+                            </label>
+                            <div class="mt-1 relative">
+                                <input type="number" name="duracion_estimada" id="duracion_estimada"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                       min="1" required>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-clock text-gray-400"></i>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Prioridad -->
-                    <div>
-                        <label for="prioridad" class="block text-sm font-medium text-gray-700">Prioridad</label>
-                        <div class="mt-1 relative">
-                            <select name="prioridad" id="prioridad" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                <option value="1">Baja</option>
-                                <option value="2" selected>Media</option>
-                                <option value="3">Alta</option>
-                            </select>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-flag text-gray-400"></i>
+                        <!-- Costo Estimado -->
+                        <div>
+                            <label for="costo_estimado" class="block text-sm font-medium text-gray-700">
+                                Costo Estimado ($)
+                            </label>
+                            <div class="mt-1 relative">
+                                <input type="number" name="costo_estimado" id="costo_estimado"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                       min="0" step="0.01" required>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-dollar-sign text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fechas -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="fecha_inicio" class="block text-sm font-medium text-gray-700">Primera
+                                    Ejecución</label>
+                                <div class="mt-1 relative">
+                                    <input type="datetime-local" name="fecha_inicio" id="fecha_inicio"
+                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                           required>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-calendar-alt text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="fecha_fin" class="block text-sm font-medium text-gray-700">Fecha
+                                    Límite</label>
+                                <div class="mt-1 relative">
+                                    <input type="datetime-local" name="fecha_fin" id="fecha_fin"
+                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
+                                           required>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-calendar-check text-gray-400"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Columna Derecha -->
-                <div class="space-y-6">
-                    <!-- Frecuencia -->
-                    <div>
-                        <label for="frecuencia" class="block text-sm font-medium text-gray-700">Frecuencia</label>
-                        <div class="mt-1 relative">
-                            <select name="frecuencia" id="frecuencia" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                    required>
-                                <option value="Diaria">Diaria</option>
-                                <option value="Semanal">Semanal</option>
-                                <option value="Mensual">Mensual</option>
-                            </select>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-sync text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Duración Estimada -->
-                    <div>
-                        <label for="duracion_estimada" class="block text-sm font-medium text-gray-700">
-                            Duración Estimada (horas)
-                        </label>
-                        <div class="mt-1 relative">
-                            <input type="number" name="duracion_estimada" id="duracion_estimada" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                   min="1" required>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-clock text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Costo Estimado -->
-                    <div>
-                        <label for="costo_estimado" class="block text-sm font-medium text-gray-700">
-                            Costo Estimado ($)
-                        </label>
-                        <div class="mt-1 relative">
-                            <input type="number" name="costo_estimado" id="costo_estimado" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                   min="0" step="0.01" required>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-dollar-sign text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fechas -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="fecha_inicio" class="block text-sm font-medium text-gray-700">Primera Ejecución</label>
-                            <div class="mt-1 relative">
-                                <input type="datetime-local" name="fecha_inicio" id="fecha_inicio" 
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                       required>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-calendar-alt text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="fecha_fin" class="block text-sm font-medium text-gray-700">Fecha Límite</label>
-                            <div class="mt-1 relative">
-                                <input type="datetime-local" name="fecha_fin" id="fecha_fin" 
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                       required>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-calendar-check text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Botones de Acción -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'gestion_tareas:lista_tareas_programadas' %}"
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Crear Tarea Programada
+                    </button>
                 </div>
-            </div>
-
-            <!-- Botones de Acción -->
-            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                <a href="{% url 'gestion_tareas:lista_tareas_programadas' %}" 
-                   class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
-                    <i class="fas fa-times mr-2"></i>
-                    Cancelar
-                </a>
-                <button type="submit" 
-                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
-                    <i class="fas fa-save mr-2"></i>
-                    Crear Tarea Programada
-                </button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 {% endblock %}

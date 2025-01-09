@@ -11,27 +11,27 @@
 
 <!-- Paginación -->
 {% if alertas.has_other_pages %}
-<div class="mt-6 flex justify-center">
-    <nav class="flex items-center space-x-2">
-        {% if alertas.has_previous %}
-            <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.previous_page_number }}&tipo={{ tipo_actual }}"
-               hx-target="#lista-alertas"
-               class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                <i class="fas fa-chevron-left"></i>
-            </a>
-        {% endif %}
-        
-        <span class="px-3 py-1 bg-red-500 text-white rounded-md">
+    <div class="mt-6 flex justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if alertas.has_previous %}
+                <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.previous_page_number }}&tipo={{ tipo_actual }}"
+                   hx-target="#lista-alertas"
+                   class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% endif %}
+
+            <span class="px-3 py-1 bg-red-500 text-white rounded-md">
             {{ alertas.number }}
         </span>
-        
-        {% if alertas.has_next %}
-            <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.next_page_number }}&tipo={{ tipo_actual }}"
-               hx-target="#lista-alertas"
-               class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                <i class="fas fa-chevron-right"></i>
-            </a>
-        {% endif %}
-    </nav>
-</div>
+
+            {% if alertas.has_next %}
+                <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.next_page_number }}&tipo={{ tipo_actual }}"
+                   hx-target="#lista-alertas"
+                   class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </nav>
+    </div>
 {% endif %}

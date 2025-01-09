@@ -1,5 +1,12 @@
-from django.shortcuts import render, get_object_or_404, redirect
+import json
+
+from django.contrib.auth.decorators import login_required
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Case, When, Count, FloatField, F, Sum, DecimalField
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse
+from django.shortcuts import render, redirect
+
 from .models import (
     Proyecto,
     Tarea,
@@ -12,11 +19,6 @@ from .models import (
     Alerta,
     Equipo,
 )
-from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Case, When, Count, Q, FloatField, F, Sum, DecimalField
-from django.db.models.functions import Coalesce
-from django.contrib.auth.decorators import login_required
-import json
 
 
 def verificar_rol_administrador(view_func):

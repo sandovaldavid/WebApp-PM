@@ -3,197 +3,197 @@
 {% block title %}Notificaciones Activas{% endblock %}
 
 {% block title_body %}
-<div class="flex items-center">
-    <i class="fas fa-bell header-icon text-yellow-500 mr-2"></i> Centro de Notificaciones Activas
-</div>
+    <div class="flex items-center">
+        <i class="fas fa-bell header-icon text-yellow-500 mr-2"></i> Centro de Notificaciones Activas
+    </div>
 {% endblock %}
 
 {% block body %}
-<main class="p-8">
-    <!-- Panel de Control -->
-    <div class="mb-6 flex justify-between items-center">
-        <div class="flex space-x-4">
-            <button onclick="filtrarPorTipo('all')" class="bg-blue-500 text-white px-4 py-2 rounded">
-                <i class="fas fa-list"></i> Todas
-            </button>
-            <button onclick="filtrarPorTipo('notification')" class="bg-green-500 text-white px-4 py-2 rounded">
-                <i class="fas fa-bell"></i> Notificaciones
-            </button>
-            <button onclick="filtrarPorTipo('alert')" class="bg-red-500 text-white px-4 py-2 rounded">
-                <i class="fas fa-exclamation-circle"></i> Alertas
+    <main class="p-8">
+        <!-- Panel de Control -->
+        <div class="mb-6 flex justify-between items-center">
+            <div class="flex space-x-4">
+                <button onclick="filtrarPorTipo('all')" class="bg-blue-500 text-white px-4 py-2 rounded">
+                    <i class="fas fa-list"></i> Todas
+                </button>
+                <button onclick="filtrarPorTipo('notification')" class="bg-green-500 text-white px-4 py-2 rounded">
+                    <i class="fas fa-bell"></i> Notificaciones
+                </button>
+                <button onclick="filtrarPorTipo('alert')" class="bg-red-500 text-white px-4 py-2 rounded">
+                    <i class="fas fa-exclamation-circle"></i> Alertas
+                </button>
+            </div>
+            <button onclick="marcarTodasComoLeidas()" class="bg-gray-500 text-white px-4 py-2 rounded">
+                <i class="fas fa-check-double"></i> Marcar todas como leídas
             </button>
         </div>
-        <button onclick="marcarTodasComoLeidas()" class="bg-gray-500 text-white px-4 py-2 rounded">
-            <i class="fas fa-check-double"></i> Marcar todas como leídas
-        </button>
-    </div>
 
-    <!-- Panel de Notificaciones -->
-    <div class="bg-white p-6 rounded-lg shadow-lg mb-6" id="notifications-panel">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">
-                <i class="fas fa-bell text-blue-500"></i> Notificaciones Sin Leer
-                <span class="text-sm text-gray-500">({{ notificaciones|length }})</span>
-            </h2>
-        </div>
-        
-        {% if notificaciones %}
-        <ul class="divide-y divide-gray-200">
-            {% for notif in notificaciones %}
-            <li class="py-4 hover:bg-gray-50 transition duration-150 notification-item">
-                <div class="flex justify-between items-start">
-                    <div class="flex-grow">
-                        <p class="font-semibold text-gray-900">{{ notif.mensaje }}</p>
-                        <div class="flex items-center mt-2 text-sm text-gray-500">
-                            <i class="fas fa-clock mr-2"></i>
-                            {{ notif.fechacreacion|timesince }} atrás
-                            <span class="mx-2">•</span>
-                            <i class="fas fa-user mr-2"></i>
-                            {{ notif.idusuario.nombreusuario }}
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button class="text-blue-500 hover:text-blue-700 transition duration-150" 
-                                onclick="marcarComoLeida({{ notif.idnotificacion }})">
-                            <i class="fas fa-check-circle"></i>
-                        </button>
-                    </div>
+        <!-- Panel de Notificaciones -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6" id="notifications-panel">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">
+                    <i class="fas fa-bell text-blue-500"></i> Notificaciones Sin Leer
+                    <span class="text-sm text-gray-500">({{ notificaciones|length }})</span>
+                </h2>
+            </div>
+
+            {% if notificaciones %}
+                <ul class="divide-y divide-gray-200">
+                    {% for notif in notificaciones %}
+                        <li class="py-4 hover:bg-gray-50 transition duration-150 notification-item">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-grow">
+                                    <p class="font-semibold text-gray-900">{{ notif.mensaje }}</p>
+                                    <div class="flex items-center mt-2 text-sm text-gray-500">
+                                        <i class="fas fa-clock mr-2"></i>
+                                        {{ notif.fechacreacion|timesince }} atrás
+                                        <span class="mx-2">•</span>
+                                        <i class="fas fa-user mr-2"></i>
+                                        {{ notif.idusuario.nombreusuario }}
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="text-blue-500 hover:text-blue-700 transition duration-150"
+                                            onclick="marcarComoLeida({{ notif.idnotificacion }})">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-check-circle text-4xl mb-2"></i>
+                    <p>No tienes notificaciones sin leer</p>
                 </div>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-check-circle text-4xl mb-2"></i>
-            <p>No tienes notificaciones sin leer</p>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Panel de Alertas -->
-    <div class="bg-white p-6 rounded-lg shadow-lg" id="alerts-panel">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">
-                <i class="fas fa-exclamation-circle text-red-500"></i> Alertas Activas
-                <span class="text-sm text-gray-500">({{ alertas|length }})</span>
-            </h2>
+            {% endif %}
         </div>
 
-        {% if alertas %}
-        <ul class="divide-y divide-gray-200">
-            {% for alerta in alertas %}
-            <li class="py-4 hover:bg-gray-50 transition duration-150 alert-item">
-                <div class="flex justify-between items-start">
-                    <div class="flex-grow">
-                        <div class="flex items-center">
-                            {% if alerta.tipoalerta == 'retraso' %}
-                                <i class="fas fa-clock text-orange-500 mr-2"></i>
-                            {% elif alerta.tipoalerta == 'presupuesto' %}
-                                <i class="fas fa-dollar-sign text-red-500 mr-2"></i>
-                            {% else %}
-                                <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
-                            {% endif %}
-                            <h3 class="font-semibold text-gray-900">
-                                {{ alerta.tipoalerta|title }} - {{ alerta.idtarea.nombretarea }}
-                            </h3>
-                        </div>
-                        <p class="text-gray-600 mt-2">{{ alerta.mensaje }}</p>
-                        <div class="flex items-center mt-2 text-sm text-gray-500">
-                            <i class="fas fa-calendar mr-2"></i>
-                            Creada: {{ alerta.fechacreacion|timesince }} atrás
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-end space-y-2">
-                        <button class="text-red-500 hover:text-red-700 transition duration-150" 
-                                onclick="resolverAlerta({{ alerta.idalerta }})">
-                            <i class="fas fa-times-circle"></i> Resolver
-                        </button>
-                        <a href="{% url 'gestion_tareas:detalle_tarea' alerta.idtarea.idtarea %}" 
-                           class="text-blue-500 hover:text-blue-700 text-sm">
-                            Ver tarea <i class="fas fa-arrow-right ml-1"></i>
-                        </a>
-                    </div>
+        <!-- Panel de Alertas -->
+        <div class="bg-white p-6 rounded-lg shadow-lg" id="alerts-panel">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">
+                    <i class="fas fa-exclamation-circle text-red-500"></i> Alertas Activas
+                    <span class="text-sm text-gray-500">({{ alertas|length }})</span>
+                </h2>
+            </div>
+
+            {% if alertas %}
+                <ul class="divide-y divide-gray-200">
+                    {% for alerta in alertas %}
+                        <li class="py-4 hover:bg-gray-50 transition duration-150 alert-item">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-grow">
+                                    <div class="flex items-center">
+                                        {% if alerta.tipoalerta == 'retraso' %}
+                                            <i class="fas fa-clock text-orange-500 mr-2"></i>
+                                        {% elif alerta.tipoalerta == 'presupuesto' %}
+                                            <i class="fas fa-dollar-sign text-red-500 mr-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                                        {% endif %}
+                                        <h3 class="font-semibold text-gray-900">
+                                            {{ alerta.tipoalerta|title }} - {{ alerta.idtarea.nombretarea }}
+                                        </h3>
+                                    </div>
+                                    <p class="text-gray-600 mt-2">{{ alerta.mensaje }}</p>
+                                    <div class="flex items-center mt-2 text-sm text-gray-500">
+                                        <i class="fas fa-calendar mr-2"></i>
+                                        Creada: {{ alerta.fechacreacion|timesince }} atrás
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end space-y-2">
+                                    <button class="text-red-500 hover:text-red-700 transition duration-150"
+                                            onclick="resolverAlerta({{ alerta.idalerta }})">
+                                        <i class="fas fa-times-circle"></i> Resolver
+                                    </button>
+                                    <a href="{% url 'gestion_tareas:detalle_tarea' alerta.idtarea.idtarea %}"
+                                       class="text-blue-500 hover:text-blue-700 text-sm">
+                                        Ver tarea <i class="fas fa-arrow-right ml-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-check-circle text-4xl mb-2"></i>
+                    <p>No hay alertas activas</p>
                 </div>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-check-circle text-4xl mb-2"></i>
-            <p>No hay alertas activas</p>
+            {% endif %}
         </div>
-        {% endif %}
-    </div>
-</main>
+    </main>
 {% endblock %}
 
 {% block script %}
-<script>
-function marcarComoLeida(idNotificacion) {
-    fetch(`/notificaciones/marcar-leida/${idNotificacion}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        },
-    }).then(response => {
-        if (response.ok) {
-            const item = document.querySelector(`[data-notification="${idNotificacion}"]`);
-            item.classList.add('fade-out');
-            setTimeout(() => {
-                location.reload();
-            }, 300);
+    <script>
+        function marcarComoLeida(idNotificacion) {
+            fetch(`/notificaciones/marcar-leida/${idNotificacion}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+            }).then(response => {
+                if (response.ok) {
+                    const item = document.querySelector(`[data-notification="${idNotificacion}"]`);
+                    item.classList.add('fade-out');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 300);
+                }
+            });
         }
-    });
-}
 
-function resolverAlerta(idAlerta) {
-    if (confirm('¿Estás seguro de que deseas resolver esta alerta?')) {
-        fetch(`/notificaciones/resolver-alerta/${idAlerta}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            },
-        }).then(response => {
-            if (response.ok) {
-                const item = document.querySelector(`[data-alert="${idAlerta}"]`);
-                item.classList.add('fade-out');
-                setTimeout(() => {
-                    location.reload();
-                }, 300);
+        function resolverAlerta(idAlerta) {
+            if (confirm('¿Estás seguro de que deseas resolver esta alerta?')) {
+                fetch(`/notificaciones/resolver-alerta/${idAlerta}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                }).then(response => {
+                    if (response.ok) {
+                        const item = document.querySelector(`[data-alert="${idAlerta}"]`);
+                        item.classList.add('fade-out');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 300);
+                    }
+                });
             }
-        });
-    }
-}
+        }
 
-function marcarTodasComoLeidas() {
-    if (confirm('¿Estás seguro de que deseas marcar todas las notificaciones como leídas?')) {
-        fetch('/notificaciones/marcar-todas-leidas/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            },
-        }).then(response => {
-            if (response.ok) {
-                location.reload();
+        function marcarTodasComoLeidas() {
+            if (confirm('¿Estás seguro de que deseas marcar todas las notificaciones como leídas?')) {
+                fetch('/notificaciones/marcar-todas-leidas/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                });
             }
-        });
-    }
-}
+        }
 
-function filtrarPorTipo(tipo) {
-    const notificationsPanel = document.getElementById('notifications-panel');
-    const alertsPanel = document.getElementById('alerts-panel');
-    
-    if (tipo === 'all') {
-        notificationsPanel.style.display = 'block';
-        alertsPanel.style.display = 'block';
-    } else if (tipo === 'notification') {
-        notificationsPanel.style.display = 'block';
-        alertsPanel.style.display = 'none';
-    } else if (tipo === 'alert') {
-        notificationsPanel.style.display = 'none';
-        alertsPanel.style.display = 'block';
-    }
-}
-</script>
+        function filtrarPorTipo(tipo) {
+            const notificationsPanel = document.getElementById('notifications-panel');
+            const alertsPanel = document.getElementById('alerts-panel');
+
+            if (tipo === 'all') {
+                notificationsPanel.style.display = 'block';
+                alertsPanel.style.display = 'block';
+            } else if (tipo === 'notification') {
+                notificationsPanel.style.display = 'block';
+                alertsPanel.style.display = 'none';
+            } else if (tipo === 'alert') {
+                notificationsPanel.style.display = 'none';
+                alertsPanel.style.display = 'block';
+            }
+        }
+    </script>
 {% endblock %}

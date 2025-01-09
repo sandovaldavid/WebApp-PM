@@ -48,7 +48,7 @@
              x-transition:enter-start="transform opacity-0 scale-95"
              x-transition:enter-end="transform opacity-100 scale-100"
              class="pl-6 mt-1 space-y-1">
-            
+
             <!-- Tareas -->
             <a href="{% url 'gestion_tareas:index' %}"
                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200
@@ -173,7 +173,7 @@
 
 
     <!-- Configuración -->
-    <a href="#" 
+    <a href="#"
        class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
               {% if request.resolver_match.app_name == 'settings' %}
               bg-gray-900 text-white

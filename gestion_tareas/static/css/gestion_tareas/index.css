@@ -1,92 +1,100 @@
 /* Fondo y contenedor principal */
 body {
-  font-family: 'Arial', sans-serif;
-  background: linear-gradient(to right, #ece9e6, #ffffff);
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #ece9e6, #ffffff);
 }
 
 main {
-  max-width: 1200px;
-  margin: 0 auto;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 h2, h3 {
-  color: #333;
+    color: #333;
 }
 
 /* Estilos de la tabla */
 table {
-  width: 100%;
-  border-collapse: collapse;
+    width: 100%;
+    border-collapse: collapse;
 }
 
 th, td {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
 }
 
 th {
-  background-color: #f1f1f1;
-  text-align: left;
+    background-color: #f1f1f1;
+    text-align: left;
 }
 
 /* Estilo de las tarjetas (Cards) */
 .bg-white {
-  background-color: white;
+    background-color: white;
 }
 
 .shadow-lg {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .rounded-lg {
-  border-radius: 10px;
+    border-radius: 10px;
 }
 
 /* Botones */
 button {
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
 }
 
 button:hover {
-  opacity: 0.8;
+    opacity: 0.8;
 }
 
 .text-blue-500 {
-  color: #3182ce;
+    color: #3182ce;
 }
 
 .text-red-500 {
-  color: #e53e3e;
+    color: #e53e3e;
 }
 
 /* Formulario emergente */
 
 #taskForm .bg-white {
-  max-width: 500px;
-  width: 100%;
+    max-width: 500px;
+    width: 100%;
 }
+
 .task-card {
-  background: linear-gradient(to bottom, #ffffff, #f1f1f1);
+    background: linear-gradient(to bottom, #ffffff, #f1f1f1);
 }
+
 .task-card h3 {
-  color: #333;
+    color: #333;
 }
+
 .task-card .status {
-  color: #ff9800;
+    color: #ff9800;
 }
+
 .task-card .responsible {
-  color: #4a90e2;
+    color: #4a90e2;
 }
+
 .stats-card {
-  background: linear-gradient(to bottom, #ffffff, #f1f1f1);
+    background: linear-gradient(to bottom, #ffffff, #f1f1f1);
 }
+
 .stats-card h2 {
-  color: #333;
+    color: #333;
 }
+
 .stats-card .stat {
-  color: #4a90e2;
+    color: #4a90e2;
 }
+
 #taskForm {
-  display: none;
+    display: none;
 }

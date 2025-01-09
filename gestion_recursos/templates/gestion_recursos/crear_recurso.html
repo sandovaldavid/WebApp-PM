@@ -113,13 +113,13 @@
     </div>
 </div>
 
-<script>
-    function mostrarCamposAdicionales(tipoRecursoId) {
-        const camposAdicionales = document.getElementById('campos-adicionales');
-        camposAdicionales.innerHTML = '';
+    <script>
+        function mostrarCamposAdicionales(tipoRecursoId) {
+            const camposAdicionales = document.getElementById('campos-adicionales');
+            camposAdicionales.innerHTML = '';
 
-        if (tipoRecursoId == 1) { // Recurso Humano
-            camposAdicionales.innerHTML = `
+            if (tipoRecursoId == 1) { // Recurso Humano
+                camposAdicionales.innerHTML = `
                 <div class="mb-4">
                     <label for="cargo" class="block text-sm font-medium text-gray-700">Cargo</label>
                     <input type="text" id="cargo" name="cargo" class="w-full p-2 border rounded-md" required>
@@ -142,8 +142,8 @@
                     </select>
                 </div>
             `;
-        } else if (tipoRecursoId == 2) { // Recurso Material
-            camposAdicionales.innerHTML = `
+            } else if (tipoRecursoId == 2) { // Recurso Material
+                camposAdicionales.innerHTML = `
                 <div class="mb-4">
                     <label for="costounidad" class="block text-sm font-medium text-gray-700">Costo por Unidad</label>
                     <input type="number" id="costounidad" name="costounidad" class="w-full p-2 border rounded-md" required>
@@ -153,6 +153,7 @@
                     <input type="date" id="fechacompra" name="fechacompra" class="w-full p-2 border rounded-md" required>
                 </div>
             `;
+            }
         }
     }
 

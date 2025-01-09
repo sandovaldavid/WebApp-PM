@@ -1,6 +1,7 @@
 from django.urls import path
-from . import views
+
 from dashboard.views import verificar_rol_administrador
+from . import views
 
 app_name = "gestion_tareas"
 urlpatterns = [

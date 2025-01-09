@@ -26,34 +26,55 @@
         <form class="mt-8 space-y-6" method="post">
             {% csrf_token %}
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-                <div class="mt-1">
-                    <input id="email" name="email" type="email" required
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        placeholder="Ingrese su correo electrónico" value="{{ email }}">
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Iniciar Sesión</h2>
+                <p class="mt-2 text-center text-sm text-gray-600">
+                    ¿No tienes una cuenta?
+                    <a href="{% url 'usuarios:register' %}" class="font-medium text-blue-600 hover:text-blue-500">Regístrate</a>
+                </p>
+            </div>
+            {% if error %}
+                <div class="rounded-md p-4 bg-red-50 text-red-700">{{ error }}</div>
+            {% endif %}
+            <!-- Mensajes de Error -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="rounded-md p-4 {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <form class="mt-8 space-y-6" method="post">
+                {% csrf_token %}
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                    <div class="mt-1">
+                        <input id="email" name="email" type="email" required
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                               placeholder="Ingrese su correo electrónico" value="{{ email }}">
+                    </div>
                 </div>
-            </div>
-            <div>
-                <label for="contrasena" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                <div class="mt-1">
-                    <input id="contrasena" name="contrasena" type="password" required
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        placeholder="Ingrese su contraseña">
+                <div>
+                    <label for="contrasena" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <div class="mt-1">
+                        <input id="contrasena" name="contrasena" type="password" required
+                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                               placeholder="Ingrese su contraseña">
+                    </div>
                 </div>
-            </div>
-            <div class="text-right mt-4">
-                <a href="{% url 'usuarios:olvide_password' %}" class="text-sm font-medium text-blue-600 hover:text-blue-500">¿Olvidaste tu contraseña?</a>
-            </div>
-            <div>
-                <button type="submit"
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <div class="text-right mt-4">
+                    <a href="{% url 'usuarios:olvide_password' %}"
+                       class="text-sm font-medium text-blue-600 hover:text-blue-500">¿Olvidaste tu contraseña?</a>
+                </div>
+                <div>
+                    <button type="submit"
+                            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     <span class="absolute left-0 inset-y-0 flex items-center pl-3">
                         <i class="fas fa-sign-in-alt"></i>
                     </span>
-                    Ingresar
-                </button>
-            </div>
-        </form>
+                        Ingresar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 {% endblock %}

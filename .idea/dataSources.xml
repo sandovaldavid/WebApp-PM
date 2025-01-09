@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="dbtest_webapp_pm@db-webapp-PM" uuid="66ca3efe-c4f5-4609-bdfe-48aeccdc0d70">
+    <data-source source="LOCAL" name="db-wepapp-pm@docker" uuid="b4d6eda0-1c4a-4c4b-a6df-8c03e33d4401">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://db-webapp-PM:5432/dbtest_webapp_pm</jdbc-url>
+      <jdbc-url>jdbc:postgresql://db:5432/Db-Web-App-PM</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

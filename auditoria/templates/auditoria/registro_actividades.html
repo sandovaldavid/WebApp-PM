@@ -2,18 +2,32 @@
 
 {% block title %}Seguridad y Auditoría{% endblock %}
 
-{% block title_body %}
-<div class="flex justify-between items-center">
-    <div class="flex items-center">
-        <i class="fas fa-shield-alt text-blue-500 mr-2"></i>
-        <span>Seguridad y Auditoría</span>
+{% block title_body %}<i class="fas fa-plus fa-shield-alt"></i> Seguridad y Auditoría{% endblock %}
+
+{% block body %}
+    <div id="registro-actividades" class="bg-white p-6 rounded-lg shadow-lg mb-6">
+        <h2 class="text-xl font-semibold mb-4">Registro de Actividades</h2>
+        <table class="w-full bg-white shadow-lg rounded-lg">
+            <thead class="bg-gray-200">
+            <tr>
+                <th class="p-4 text-left">Usuario</th>
+                <th class="p-4 text-left">Acción</th>
+                <th class="p-4 text-left">Fecha y Hora</th>
+                <th class="p-4 text-left">Detalles</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for actividad in actividades %}
+                <tr>
+                    <td class="p-4">{{ actividad.idusuario.nombreusuario }}</td>
+                    <td class="p-4">{{ actividad.accion }}</td>
+                    <td class="p-4">{{ actividad.fechacreacion }}</td>
+                    <td class="p-4">{{ actividad.descripcion }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <a href="{% url 'auditoria:crear_actividad' %}" 
-    class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
-    <i class="fas fa-plus mr-2"></i>
-        Nueva Actividad
-    </a>
-</div>
 {% endblock %}
 
 {% block style %}

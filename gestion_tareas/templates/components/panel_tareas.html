@@ -9,10 +9,10 @@
                     <p class="text-sm text-gray-500">{{ tareas|length }} tareas en total</p>
                 </div>
             </div>
-            
+
             <!-- Botones de Acción -->
             <div class="flex items-center space-x-4">
-                <a href="{% url 'gestion_tareas:crear_tarea' %}" 
+                <a href="{% url 'gestion_tareas:crear_tarea' %}"
                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
                     <i class="fas fa-plus mr-2"></i>
                     Nueva Tarea
@@ -24,7 +24,7 @@
     <!-- Filtros Rápidos -->
     <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4">
         <button class="px-4 py-2 rounded-full {% if filtro_activo == 'todas' %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors"
-                hx-get="{% url 'gestion_tareas:filtrar_tareas' %}" 
+                hx-get="{% url 'gestion_tareas:filtrar_tareas' %}"
                 hx-target="#lista-tareas"
                 hx-indicator="#loading"
                 hx-trigger="click">

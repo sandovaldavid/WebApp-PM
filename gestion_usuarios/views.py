@@ -267,7 +267,7 @@ def logout_view(request):
 
 @login_required
 def perfil_view(request):
-    return render(request, "gestion_usuarios/perfil.html")
+    return render(request, "gestion_usuarios/perfil.html", {"usuario": request.user})
 
 
 @login_required

@@ -1,20 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
 body {
-font-family: 'Roboto', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
+
 .custom-header {
-background: linear-gradient(90deg, #1e3a8a, #2563eb);
+    background: linear-gradient(90deg, #1e3a8a, #2563eb);
 }
+
 .custom-button {
-transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease;
 }
+
 .custom-button:hover {
-background-color: #1e40af;
+    background-color: #1e40af;
 }
+
 .custom-input:focus {
-border-color: #2563eb;
-box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
 }
+
 .icon {
-margin-right: 8px;
+    margin-right: 8px;
 }

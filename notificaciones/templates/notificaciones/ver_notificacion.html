@@ -3,57 +3,57 @@
 {% block title %}Vista Previa de Notificación{% endblock %}
 
 {% block title_body %}
-<div class="flex items-center">
-    <i class="fas fa-bell text-blue-500 mr-2"></i> Vista Previa de Notificación
-</div>
+    <div class="flex items-center">
+        <i class="fas fa-bell text-blue-500 mr-2"></i> Vista Previa de Notificación
+    </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8">
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <div class="mb-6">
-            <div class="flex items-center mb-2">
-                <i class="fas fa-circle mr-2 
+    <div class="p-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="mb-6">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-circle mr-2
                     {% if notificacion.prioridad == 'alta' %}text-red-500
                     {% elif notificacion.prioridad == 'baja' %}text-green-500
                     {% else %}text-yellow-500{% endif %}">
-                </i>
-                <span class="font-medium">Prioridad {{ notificacion.prioridad|title }}</span>
-            </div>
-            <p class="text-gray-700">{{ notificacion.mensaje }}</p>
-            
-            <div class="mt-4 grid grid-cols-2 gap-4">
-                <div>
-                    <span class="font-semibold">Usuario:</span>
-                    <span>{{ notificacion.idusuario.nombreusuario }}</span>
+                    </i>
+                    <span class="font-medium">Prioridad {{ notificacion.prioridad|title }}</span>
                 </div>
-                <div>
-                    <span class="font-semibold">Categoría:</span>
-                    <span>{{ notificacion.categoria }}</span>
-                </div>
-                <div>
-                    <span class="font-semibold">Fecha de creación:</span>
-                    <span>{{ notificacion.fechacreacion|date:"d/m/Y H:i" }}</span>
-                </div>
-                {% if notificacion.fecha_recordatorio %}
-                <div>
-                    <span class="font-semibold">Recordatorio:</span>
-                    <span>{{ notificacion.fecha_recordatorio|date:"d/m/Y H:i" }}</span>
-                </div>
-                {% endif %}
-            </div>
-        </div>
+                <p class="text-gray-700">{{ notificacion.mensaje }}</p>
 
-        <div class="flex justify-end space-x-4">
-            <a href="{% url 'notificaciones:index' %}" 
-               class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Volver
-            </a>
-            <a href="{% url 'notificaciones:crear_notificacion' %}" 
-               class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
-                <i class="fas fa-plus mr-2"></i>Crear Otra
-            </a>
+                <div class="mt-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="font-semibold">Usuario:</span>
+                        <span>{{ notificacion.idusuario.nombreusuario }}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold">Categoría:</span>
+                        <span>{{ notificacion.categoria }}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold">Fecha de creación:</span>
+                        <span>{{ notificacion.fechacreacion|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    {% if notificacion.fecha_recordatorio %}
+                        <div>
+                            <span class="font-semibold">Recordatorio:</span>
+                            <span>{{ notificacion.fecha_recordatorio|date:"d/m/Y H:i" }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'notificaciones:index' %}"
+                   class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Volver
+                </a>
+                <a href="{% url 'notificaciones:crear_notificacion' %}"
+                   class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Crear Otra
+                </a>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}

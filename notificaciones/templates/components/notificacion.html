@@ -2,7 +2,7 @@
 
 <div class="bg-white rounded-lg shadow-sm p-4 mb-3 hover:shadow-md transition duration-200
     {% if not notificacion.leido %}border-l-4 border-blue-500{% endif %}">
-    
+
     <div class="flex justify-between items-start">
         <!-- Contenido Principal -->
         <div class="flex-grow">
@@ -61,25 +61,26 @@
         <!-- Botones de Acción -->
         <div class="flex items-center space-x-2 ml-4">
             {% if not notificacion.leido %}
-            <form method="POST" action="{% url 'notificaciones:marcar_leida' notificacion.idnotificacion %}" class="inline">
-                {% csrf_token %}
-                <button type="submit" 
-                        class="inline-flex items-center p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
-                    <i class="fas fa-check-circle"></i>
-                </button>
-            </form>
+                <form method="POST" action="{% url 'notificaciones:marcar_leida' notificacion.idnotificacion %}"
+                      class="inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="inline-flex items-center p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
+                        <i class="fas fa-check-circle"></i>
+                    </button>
+                </form>
             {% endif %}
 
-            <a href="{% url 'notificaciones:detalle_notificacion' notificacion.idnotificacion %}" 
+            <a href="{% url 'notificaciones:detalle_notificacion' notificacion.idnotificacion %}"
                class="inline-flex items-center p-2 text-gray-600 hover:bg-gray-50 rounded-full transition-colors">
                 <i class="fas fa-eye"></i>
             </a>
 
-            <form method="POST" action="{% url 'notificaciones:eliminar_notificacion' notificacion.idnotificacion %}" 
+            <form method="POST" action="{% url 'notificaciones:eliminar_notificacion' notificacion.idnotificacion %}"
                   class="inline"
                   onsubmit="return confirm('¿Estás seguro de eliminar esta notificación?');">
                 {% csrf_token %}
-                <button type="submit" 
+                <button type="submit"
                         class="inline-flex items-center p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors">
                     <i class="fas fa-trash-alt"></i>
                 </button>

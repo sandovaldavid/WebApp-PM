@@ -3,126 +3,126 @@
 {% block title %}Editar Equipo{% endblock %}
 
 {% block title_body %}
-<div class="flex items-center">
-    <i class="fas fa-edit text-blue-500 mr-2"></i>
-    <span>Editar Equipo: {{ equipo.nombreequipo }}</span>
-</div>
+    <div class="flex items-center">
+        <i class="fas fa-edit text-blue-500 mr-2"></i>
+        <span>Editar Equipo: {{ equipo.nombreequipo }}</span>
+    </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8">
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-            <!-- Encabezado -->
-            <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
-                <h2 class="text-xl font-semibold text-white flex items-center">
-                    <i class="fas fa-edit mr-2"></i>
-                    Editar Equipo
-                </h2>
-                <p class="mt-2 text-blue-100">
-                    <i class="fas fa-calendar-alt mr-2"></i>
-                    Última modificación: {{ equipo.fechamodificacion|date:"d/m/Y H:i" }}
-                </p>
+    <div class="p-8">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <!-- Encabezado -->
+                <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+                    <h2 class="text-xl font-semibold text-white flex items-center">
+                        <i class="fas fa-edit mr-2"></i>
+                        Editar Equipo
+                    </h2>
+                    <p class="mt-2 text-blue-100">
+                        <i class="fas fa-calendar-alt mr-2"></i>
+                        Última modificación: {{ equipo.fechamodificacion|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+
+                <!-- Formulario -->
+                <form method="POST" class="p-6 space-y-6">
+                    {% csrf_token %}
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Nombre del Equipo -->
+                    <div>
+                        <label for="nombre" class="block text-sm font-medium text-gray-700">
+                            Nombre del Equipo <span class="text-red-500">*</span>
+                        </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-users text-gray-400"></i>
+                            </div>
+                            <input type="text"
+                                   name="nombre"
+                                   id="nombre"
+                                   value="{{ equipo.nombreequipo }}"
+                                   required
+                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Ingrese el nombre del equipo">
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">
+                            El nombre debe ser único y descriptivo
+                        </p>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div>
+                        <label for="descripcion" class="block text-sm font-medium text-gray-700">
+                            Descripción
+                        </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute top-3 left-3 flex items-center pointer-events-none">
+                                <i class="fas fa-info-circle text-gray-400"></i>
+                            </div>
+                            <textarea name="descripcion"
+                                      id="descripcion"
+                                      rows="4"
+                                      class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Describe el propósito y objetivos del equipo">{{ equipo.descripcion }}</textarea>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Una buena descripción ayuda a entender el propósito del equipo
+                        </p>
+                    </div>
+
+                    <!-- Información Adicional -->
+                    <div class="bg-gray-50 p-4 rounded-lg space-y-4">
+                        <h4 class="text-sm font-medium text-gray-700 flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            Información del Equipo
+                        </h4>
+
+                        <!-- Estadísticas -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white p-3 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-600">Miembros</p>
+                                <p class="text-lg font-semibold">{{ equipo.miembro_set.count }}</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-600">Proyectos</p>
+                                <p class="text-lg font-semibold">{{ equipo.proyecto_set.count }}</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-600">Fecha Creación</p>
+                                <p class="text-lg font-semibold">{{ equipo.fechacreacion|date:"d/m/Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                        <a href="{% url 'gestion_equipos:gestionar_miembros' equipo.idequipo %}"
+                           class="px-4 py-2 text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors flex items-center">
+                            <i class="fas fa-users mr-2"></i>
+                            Gestionar Miembros
+                        </a>
+                        <a href="{% url 'gestion_equipos:detalle_equipo' equipo.idequipo %}"
+                           class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit"
+                                class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                            <i class="fas fa-save mr-2"></i>
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <!-- Formulario -->
-            <form method="POST" class="p-6 space-y-6">
-                {% csrf_token %}
-
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <!-- Nombre del Equipo -->
-                <div>
-                    <label for="nombre" class="block text-sm font-medium text-gray-700">
-                        Nombre del Equipo <span class="text-red-500">*</span>
-                    </label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-users text-gray-400"></i>
-                        </div>
-                        <input type="text" 
-                               name="nombre" 
-                               id="nombre"
-                               value="{{ equipo.nombreequipo }}"
-                               required
-                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="Ingrese el nombre del equipo">
-                    </div>
-                    <p class="mt-1 text-sm text-gray-500">
-                        El nombre debe ser único y descriptivo
-                    </p>
-                </div>
-
-                <!-- Descripción -->
-                <div>
-                    <label for="descripcion" class="block text-sm font-medium text-gray-700">
-                        Descripción
-                    </label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
-                        <div class="absolute top-3 left-3 flex items-center pointer-events-none">
-                            <i class="fas fa-info-circle text-gray-400"></i>
-                        </div>
-                        <textarea name="descripcion" 
-                                  id="descripcion"
-                                  rows="4"
-                                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder="Describe el propósito y objetivos del equipo">{{ equipo.descripcion }}</textarea>
-                    </div>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Una buena descripción ayuda a entender el propósito del equipo
-                    </p>
-                </div>
-
-                <!-- Información Adicional -->
-                <div class="bg-gray-50 p-4 rounded-lg space-y-4">
-                    <h4 class="text-sm font-medium text-gray-700 flex items-center">
-                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                        Información del Equipo
-                    </h4>
-                    
-                    <!-- Estadísticas -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-white p-3 rounded-lg border border-gray-200">
-                            <p class="text-sm text-gray-600">Miembros</p>
-                            <p class="text-lg font-semibold">{{ equipo.miembro_set.count }}</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg border border-gray-200">
-                            <p class="text-sm text-gray-600">Proyectos</p>
-                            <p class="text-lg font-semibold">{{ equipo.proyecto_set.count }}</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg border border-gray-200">
-                            <p class="text-sm text-gray-600">Fecha Creación</p>
-                            <p class="text-lg font-semibold">{{ equipo.fechacreacion|date:"d/m/Y" }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botones de Acción -->
-                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                    <a href="{% url 'gestion_equipos:gestionar_miembros' equipo.idequipo %}" 
-                       class="px-4 py-2 text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors flex items-center">
-                        <i class="fas fa-users mr-2"></i>
-                        Gestionar Miembros
-                    </a>
-                    <a href="{% url 'gestion_equipos:detalle_equipo' equipo.idequipo %}" 
-                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
-                        <i class="fas fa-times mr-2"></i>
-                        Cancelar
-                    </a>
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
-                        <i class="fas fa-save mr-2"></i>
-                        Guardar Cambios
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 {% endblock %}

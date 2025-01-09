@@ -22,8 +22,8 @@ Este proyecto es una aplicación web desarrollada en Django para la gestión de 
 1. Clona el repositorio:
 
     ```sh
-    git clone <URL_DEL_REPOSITORIO>
-    cd <NOMBRE_DEL_PROYECTO>
+    git clone https://github.com/sandovaldavid/WebApp-PM.git
+    cd WebApp-PM
     ```
 
 2. Crea y activa un entorno virtual:

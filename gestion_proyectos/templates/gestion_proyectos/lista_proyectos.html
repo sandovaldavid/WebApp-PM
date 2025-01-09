@@ -117,14 +117,126 @@
         .grid-cols-1 {
             grid-template-columns: 1fr;
         }
-        .grid-cols-2 {
-            grid-template-columns: 1fr 1fr;
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .grid-cols-3 {
-            grid-template-columns: 1fr 1fr 1fr;
+
+        .details-table th, .details-table td {
+            padding: 12px;
+            text-align: left;
         }
-    }
-</style>
+
+        .details-table th {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .details-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .details-table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .btn-selected {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333333;
+        }
+
+        .card-text {
+            color: #666666;
+            margin-top: 10px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background-color: #4a90e2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #357ab8;
+        }
+
+        .btn-edit {
+            background-color: #f0ad4e;
+        }
+
+        .btn-edit:hover {
+            background-color: #ec971f;
+        }
+
+        .btn-create {
+            background-color: #5cb85c;
+        }
+
+        .btn-create:hover {
+            background-color: #4cae4c;
+        }
+
+        .btn-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-actions a {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-1 {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-cols-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .grid-cols-3 {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block title %}Lista de Proyectos{% endblock %}
