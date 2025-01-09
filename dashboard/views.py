@@ -47,7 +47,9 @@ def dashboard(request):
             ),
             0.0,  # Si no hay tareas, el progreso es 0.0
         ),
-    ).order_by('-fechacreacion')[:3]  # Ordenar por fecha de creación descendente y obtener los primeros 3 proyectos
+    ).order_by("-fechacreacion")[
+        :3
+    ]  # Ordenar por fecha de creación descendente y obtener los primeros 3 proyectos
 
     tareas_estadisticas = {
         "pendientes": Tarea.objects.filter(estado="Pendiente").count(),
@@ -92,10 +94,12 @@ def dashboard(request):
     }
 
     # Obtener notificaciones recientes
-    notificaciones = Notificacion.objects.filter(leido=False).order_by('-fechacreacion')[:5]
+    notificaciones = Notificacion.objects.filter(leido=False).order_by(
+        "-fechacreacion"
+    )[:5]
 
     # Obtener alertas activas
-    alertas = Alerta.objects.filter(activa=True).order_by('-fechacreacion')[:5]
+    alertas = Alerta.objects.filter(activa=True).order_by("-fechacreacion")[:5]
 
     # Calcular estadísticas de usuarios
     usuarios_estadisticas = {
@@ -120,11 +124,17 @@ def dashboard(request):
         "proyectos": proyectos,
         "tareas_estadisticas": json.dumps(tareas_estadisticas, cls=DjangoJSONEncoder),
         "resumen_financiero": resumen_financiero,
-        "recursos_estadisticas": json.dumps(distribucion_recursos, cls=DjangoJSONEncoder),
+        "recursos_estadisticas": json.dumps(
+            distribucion_recursos, cls=DjangoJSONEncoder
+        ),
         "notificaciones": notificaciones,
         "alertas": alertas,
-        "usuarios_estadisticas": json.dumps(usuarios_estadisticas, cls=DjangoJSONEncoder),
-        "equipos_proyectos_estadisticas": json.dumps(equipos_proyectos_estadisticas, cls=DjangoJSONEncoder),
+        "usuarios_estadisticas": json.dumps(
+            usuarios_estadisticas, cls=DjangoJSONEncoder
+        ),
+        "equipos_proyectos_estadisticas": json.dumps(
+            equipos_proyectos_estadisticas, cls=DjangoJSONEncoder
+        ),
     }
     return render(request, "dashboard/index.html", context)
 
