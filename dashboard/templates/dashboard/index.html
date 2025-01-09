@@ -185,7 +185,7 @@
 <script type="application/json" id="task-data">
     {{ tareas_estadisticas|safe }}
 </script>
-    <script type="application/json" id="resource-data">
+<script type="application/json" id="resource-data">
     {{ recursos_estadisticas|safe }}
 </script>
 <script type="application/json" id="user-stats-data">
@@ -195,67 +195,66 @@
     {{ equipos_proyectos_estadisticas|safe }}
 </script>
 
-    <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", function () {
-            // Obtener los datos del script JSON
-            const taskDataElement = document.getElementById("task-data");
-            const taskData = JSON.parse(taskDataElement.textContent);
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        // Obtener los datos del script JSON
+        const taskDataElement = document.getElementById("task-data");
+        const taskData = JSON.parse(taskDataElement.textContent);
 
-            // Gráfico de tareas
-            const ctx = document.getElementById("taskChart").getContext("2d");
-            const taskChart = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: ["Pendientes", "En Progreso", "Completadas"],
-                    datasets: [
-                        {
-                            label: "Tareas",
-                            data: [
-                                taskData.pendientes,
-                                taskData.en_progreso,
-                                taskData.completadas,
-                            ],
-                            backgroundColor: ["#f39c12", "#3498db", "#2ecc71"],
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                        },
+        // Gráfico de tareas
+        const ctx = document.getElementById("taskChart").getContext("2d");
+        const taskChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: ["Pendientes", "En Progreso", "Completadas"],
+                datasets: [
+                    {
+                        label: "Tareas",
+                        data: [
+                            taskData.pendientes,
+                            taskData.en_progreso,
+                            taskData.completadas,
+                        ],
+                        backgroundColor: ["#f39c12", "#3498db", "#2ecc71"],
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
                     },
                 },
-            });
+            },
+        });
 
-            // Obtener los datos del script JSON para recursos
-            const resourceDataElement = document.getElementById("resource-data");
-            const resourceData = JSON.parse(resourceDataElement.textContent);
+        // Obtener los datos del script JSON para recursos
+        const resourceDataElement = document.getElementById("resource-data");
+        const resourceData = JSON.parse(resourceDataElement.textContent);
 
-            // Gráfico de recursos
-            const ctxResource = document.getElementById("resourceChart").getContext("2d");
-            const resourceChart = new Chart(ctxResource, {
-                type: "pie",
-                data: {
-                    labels: ["Desarrolladores", "Testers", "Administradores", "Clientes"],
-                    datasets: [
-                        {
-                            label: "Recursos",
-                            data: [
-                                resourceData.desarrolladores,
-                                resourceData.testers,
-                                resourceData.administradores,
-                                resourceData.clientes,
-                            ],
-                            backgroundColor: ["#3498db", "#2ecc71", "#e74c3c", "#f1c40f"],
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                },
-            });
+        // Gráfico de recursos
+        const ctxResource = document.getElementById("resourceChart").getContext("2d");
+        const resourceChart = new Chart(ctxResource, {
+            type: "pie",
+            data: {
+                labels: ["Desarrolladores", "Testers", "Administradores", "Clientes"],
+                datasets: [
+                    {
+                        label: "Recursos",
+                        data: [
+                            resourceData.desarrolladores,
+                            resourceData.testers,
+                            resourceData.administradores,
+                            resourceData.clientes,
+                        ],
+                        backgroundColor: ["#3498db", "#2ecc71", "#e74c3c", "#f1c40f"],
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+            },
         });
 
 
