@@ -72,7 +72,7 @@ Proyecto.objects.create(
     fechainicio="2023-06-01",
     fechafin="2023-12-01",
     presupuesto=50000.00,
-    estado="En progreso",
+    estado="En Progreso",
     fechacreacion="2023-06-01T09:00:00Z",
     fechamodificacion="2023-08-01T10:30:00Z",
 )
@@ -272,7 +272,7 @@ Tarea.objects.create(
     duracionestimada=10,
     duracionactual=12,
     dificultad=3,
-    estado="En progreso",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=2000.00,
     costoactual=2200.00,
@@ -322,7 +322,7 @@ Tarea.objects.create(
 Historialtarea.objects.create(
     idtarea=Tarea.objects.get(idtarea=1),  # Asegúrate de tener una tarea con idtarea=1
     fechacambio="2023-09-10T12:00:00Z",
-    descripcioncambio="Se actualizó el estado de la tarea a 'En progreso'.",
+    descripcioncambio="Se actualizó el estado de la tarea a 'En Progreso'.",
 )
 
 Historialtarea.objects.create(
