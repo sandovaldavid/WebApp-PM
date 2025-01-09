@@ -175,7 +175,7 @@ tipo_hardware = Tiporecurso.objects.create(
 Recurso.objects.create(
     nombrerecurso="Diseñador UX/UI",
     idtiporecurso=tipo_humano,
-    disponibilidad=True,
+    disponibilidad=False,
     fechacreacion="2023-03-15T10:00:00Z",
     fechamodificacion="2023-03-15T10:00:00Z",
 )
@@ -183,7 +183,7 @@ Recurso.objects.create(
 Recurso.objects.create(
     nombrerecurso="Analista QA",
     idtiporecurso=tipo_humano,
-    disponibilidad=True,
+    disponibilidad=False,
     fechacreacion="2023-04-01T09:00:00Z",
     fechamodificacion="2023-04-01T09:00:00Z",
 )
@@ -192,7 +192,7 @@ Recurso.objects.create(
 Recurso.objects.create(
     nombrerecurso="Monitor 4K",
     idtiporecurso=tipo_hardware,
-    disponibilidad=True,
+    disponibilidad=False,
     fechacreacion="2023-06-01T11:00:00Z",
     fechamodificacion="2023-06-01T11:00:00Z",
 )
@@ -200,7 +200,7 @@ Recurso.objects.create(
 Recurso.objects.create(
     nombrerecurso="Servidor de Desarrollo",
     idtiporecurso=tipo_hardware,
-    disponibilidad=True,
+    disponibilidad=False,
     fechacreacion="2023-06-15T14:00:00Z",
     fechamodificacion="2023-06-15T14:00:00Z",
 )
@@ -209,7 +209,7 @@ Recurso.objects.create(
 Recurso.objects.create(
     nombrerecurso="Licencia Adobe Creative Suite",
     idtiporecurso=tipo_software,
-    disponibilidad=True,
+    disponibilidad=False,
     fechacreacion="2023-07-01T08:00:00Z",
     fechamodificacion="2023-07-01T08:00:00Z",
 )
@@ -217,7 +217,7 @@ Recurso.objects.create(
 Recurso.objects.create(
     nombrerecurso="Licencia IDE Premium",
     idtiporecurso=tipo_software,
-    disponibilidad=True,
+    disponibilidad=False,
     fechacreacion="2023-07-15T13:00:00Z",
     fechamodificacion="2023-07-15T13:00:00Z",
 )
@@ -226,7 +226,7 @@ Recurso.objects.create(
 Recurso.objects.create(
     nombrerecurso="DevOps Engineer",
     idtiporecurso=tipo_humano,
-    disponibilidad=True,
+    disponibilidad=False,
     fechacreacion="2023-08-01T09:00:00Z",
     fechamodificacion="2023-08-01T09:00:00Z",
 )
@@ -234,7 +234,7 @@ Recurso.objects.create(
 Recurso.objects.create(
     nombrerecurso="Estación de Trabajo",
     idtiporecurso=tipo_hardware,
-    disponibilidad=True,
+    disponibilidad=False,
     fechacreacion="2023-08-15T10:00:00Z",
     fechamodificacion="2023-08-15T10:00:00Z",
 )
@@ -242,7 +242,7 @@ Recurso.objects.create(
 Recurso.objects.create(
     nombrerecurso="Licencia Base de Datos Enterprise",
     idtiporecurso=tipo_software,
-    disponibilidad=True,
+    disponibilidad=False,
     fechacreacion="2023-09-01T11:00:00Z",
     fechamodificacion="2023-09-01T11:00:00Z",
 )
