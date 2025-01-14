@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:14-alpine
+    container_name: db-web-app
+    environment:
+      - POSTGRES_DB=Db-Web-App-PM
+      - POSTGRES_USER=development
+      - POSTGRES_PASSWORD=123456
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+    name: webapp-pm-postgres-data
+
+networks:
+  app-network:
+    driver: bridge
