@@ -37,12 +37,14 @@ def index(request):
 
     # Estadísticas
     estadisticas = {
-        'total': proyectos_totales.count(),
-        'inicio': proyectos_totales.filter(estado='Inicio').count(),
-        'planificacion': proyectos_totales.filter(estado='Planificación').count(),
-        'ejecucion': proyectos_totales.filter(estado='Ejecución').count(),
-        'monitoreo_control': proyectos_totales.filter(estado='Monitoreo-Control').count(),
-        'cierre': proyectos_totales.filter(estado='Cierre').count(),
+        "total": proyectos_totales.count(),
+        "inicio": proyectos_totales.filter(estado="Inicio").count(),
+        "planificacion": proyectos_totales.filter(estado="Planificación").count(),
+        "ejecucion": proyectos_totales.filter(estado="Ejecución").count(),
+        "monitoreo_control": proyectos_totales.filter(
+            estado="Monitoreo-Control"
+        ).count(),
+        "cierre": proyectos_totales.filter(estado="Cierre").count(),
     }
     datos_estado = {
         'labels': ['Inicio', 'Planificación', 'Ejecución', 'Monitoreo-Control', 'Cierre'],
@@ -131,6 +133,8 @@ def index(request):
             ),
         ]
     }
+
+    print(datos_tiempo)
 
     # Paginación
     proyectos = proyectos.order_by('idproyecto')
@@ -598,5 +602,3 @@ def ajustar_presupuesto(request, proyecto_id):
         messages.success(request, "Presupuesto del proyecto ajustado exitosamente.")
         return redirect("gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto)
     return render(request, "gestion_proyectos/ajustar_presupuesto.html", {"proyecto": proyecto})
-
-
