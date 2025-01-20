@@ -32,4 +32,5 @@ urlpatterns = [
         views.crear_tarea_programada,
         name="crear_tarea_programada",
     ),
+    path('estimar-tarea/', views.estimar_tarea, name='estimar_tarea'),
 ]
