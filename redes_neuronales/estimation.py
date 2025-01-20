@@ -166,11 +166,15 @@ def main():
 
         # 2. Configurar y crear modelo
         config = {
-            "vocab_size": vocab_size,
-            "lstm_units": [128, 64, 32],
-            "dense_units": [256, 128, 64],
-            "dropout_rate": 0.3
+            "vocab_size": vocab_size,  # Añadir vocab_size
+            "lstm_units": [64, 32],
+            "dense_units": [128, 64],
+            "dropout_rate": 0.3,
+            "learning_rate": 0.001,
+            "batch_size": 64,
+            "epochs": 200
         }
+        
         model = EstimacionModel(config)
         progress_bar.update(1)
 
