@@ -7,45 +7,35 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import joblib
+from tqdm import tqdm
 
 def setup_environment():
     """Configura el ambiente para TensorFlow"""
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 def load_and_process_data():
-    """
-    Carga y procesa los datos del CSV para el modelo de estimación
-
-    Returns:
-        tuple: Datos procesados para entrenamiento y validación
-    """
+    """Carga y procesa los datos del CSV para el modelo de estimación"""
     try:
+        print("Iniciando procesamiento de datos...")
+        progress_bar = tqdm(total=6, desc="Procesando datos")
+
         # 1. Carga de datos
         data = pd.read_csv("estimacion_tiempos.csv")
+        progress_bar.update(1)
 
-        # 2. Validación de columnas requeridas
-        required_columns = [
-            "idrequerimiento",
-            "complejidad",
-            "prioridad",
-            "tipo_tarea",
-            "duracion",
-        ]
+        # 2. Validación de columnas
+        required_columns = ["idrequerimiento", "complejidad", "prioridad", "tipo_tarea", "duracion"]
         if not all(col in data.columns for col in required_columns):
             raise ValueError("El CSV no contiene todas las columnas requeridas")
+        progress_bar.update(1)
 
         # 3. Procesamiento por requerimiento
-        req_stats = (
-            data.groupby("idrequerimiento")
-            .agg(
-                {
-                    "complejidad": ["mean", "max", "count"],
-                    "duracion": "sum",
-                    "prioridad": "mean",
-                }
-            )
-            .reset_index()
-        )
+        req_stats = data.groupby("idrequerimiento").agg({
+            "complejidad": ["mean", "max", "count"],
+            "duracion": "sum",
+            "prioridad": "mean"
+        }).reset_index()
+        progress_bar.update(1)
 
         # Renombrar columnas agregadas
         req_stats.columns = [
@@ -161,83 +151,65 @@ def load_and_process_data():
 
 def main():
     try:
-        # Setup
-        setup_environment()
+        print("\nIniciando entrenamiento del modelo de estimación...")
+        
+        # Asegurar que existe el directorio models/
+        os.makedirs("models", exist_ok=True)
+        
+        # Configurar barra de progreso general
+        progress_bar = tqdm(total=4, desc="Proceso de entrenamiento")
 
-        # Cargar y procesar datos
-        (
-            X_num_train,
-            X_num_val,
-            X_req_train,
-            X_req_val,  # Añadido X_req para información del requerimiento
-            X_task_train,
-            X_task_val,
-            y_train,
-            y_val,
-            vocab_size,
-        ) = load_and_process_data()
+        # 1. Cargar y procesar datos
+        (X_num_train, X_num_val, X_req_train, X_req_val, 
+         X_task_train, X_task_val, y_train, y_val, vocab_size) = load_and_process_data()
+        progress_bar.update(1)
 
-        # Configuración del modelo
+        # 2. Configurar y crear modelo
         config = {
-            "vocab_size": 6,
+            "vocab_size": vocab_size,
             "lstm_units": [128, 64, 32],
             "dense_units": [256, 128, 64],
-            "dropout_rate": 0.3,
-            "learning_rate": 0.001,
-            "batch_size": 32,
-            "use_attention": True,
-            "use_bidirectional": True,
-            "use_residual": True,
+            "dropout_rate": 0.3
         }
-
-        # Crear modelo
         model = EstimacionModel(config)
+        progress_bar.update(1)
 
-        # Normalizar datos
+        # 3. Normalizar datos
         X_num_train_norm, scaler = model.normalize_data(X_num_train)
         X_num_val_norm = scaler.transform(X_num_val)
+        
+        # Guardar el scaler
+        joblib.dump(scaler, "models/scaler.pkl")
+        progress_bar.update(1)
 
-        # Validación cruzada
+        # 4. Entrenamiento con validación cruzada y final
+        print("\nRealizando validación cruzada...")
         mean_score, std_score = model.cross_validate_model(
             X_num_train_norm, X_task_train, X_req_train, y_train
         )
+        print(f"\nCV Score: {mean_score:.4f} (+/- {std_score:.4f})")
 
-        print(f"CV Score: {mean_score:.4f} (+/- {std_score:.4f})")
-
-        # Entrenar modelo final
+        # Entrenamiento final con barra de progreso
         history = model.train(
-            [
-                X_num_train_norm,
-                X_req_train,
-                X_task_train,
-            ],  # Incluir X_req en el entrenamiento
+            [X_num_train_norm, X_req_train, X_task_train],
             y_train,
             validation_data=([X_num_val_norm, X_req_val, X_task_val], y_val),
-            epochs=100,
+            epochs=100
         )
+        progress_bar.update(1)
 
-        # Analizar importancia de features
-        feature_names = ["Complejidad", "Prioridad", "Info Requerimiento"]
-        importance_scores = model.analyze_feature_importance(
-            X_num_train_norm, X_task_train, X_req_train, y_train, feature_names
-        )
-
-        print("\nImportancia de características:")
-        print("===============================")
-        for feature, score in importance_scores:
-            print(f"{feature}: {score:.4f}")
-
-        # Guardar modelo
-        model.model.summary()
+        # Guardar modelo y artefactos
+        print("\nGuardando modelo y artefactos...")
         model.model.save("models/modelo_estimacion.keras")
-        print("Modelo guardado exitosamente")
-
+        progress_bar.close()
+        
+        print("Entrenamiento completado exitosamente!")
         return history
 
     except Exception as e:
         print(f"Error durante el entrenamiento: {str(e)}")
-        print(traceback.format_exc())
-    return None
+        progress_bar.close()
+        return None
 
 if __name__ == "__main__":
     main()
