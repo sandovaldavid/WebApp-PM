@@ -1,11 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
+from django.db.models import Count, Avg, Max, F, ExpressionWrapper, DurationField
 from django.db.models.functions import TruncMonth
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+from redes_neuronales.ml_model import EstimacionModel, DataPreprocessor
+import tensorflow as tf
+import joblib
+import numpy as np
 
 from dashboard.models import (
     Tarea,
@@ -929,3 +933,65 @@ def crear_tarea_programada(request):
 
 def eliminar_tarea_programada(request):
     return None
+
+@login_required
+def estimar_tarea(request):
+    """Vista para estimar la duración de una tarea usando el modelo ML"""
+    if request.method == "POST":
+        try:
+            # Cargar modelo y preprocessors
+            model = tf.keras.models.load_model("models/modelo_estimacion.keras")
+            preprocessor = joblib.load("models/preprocessor.pkl")
+            scaler_num = joblib.load("models/scaler.pkl")
+            scaler_req = joblib.load("models/scaler_req.pkl")
+
+            # Obtener datos del formulario
+            complejidad = int(request.POST.get('complejidad', 3))
+            prioridad = int(request.POST.get('prioridad', 2))
+            tipo_tarea = request.POST.get('tipo_tarea', 'backend')
+            requerimiento_id = request.POST.get('requerimiento')
+
+            # Preparar datos numéricos
+            X_num = np.array([[complejidad, prioridad]], dtype=np.float32)
+
+            # Obtener estadísticas del requerimiento
+            requerimiento = Requerimiento.objects.get(idrequerimiento=requerimiento_id)
+            tareas_req = Tarea.objects.filter(idrequerimiento=requerimiento)
+            
+            complejidad_media = tareas_req.aggregate(Avg('dificultad'))['dificultad__avg'] or complejidad
+            complejidad_max = tareas_req.aggregate(Max('dificultad'))['dificultad__max'] or complejidad
+            num_tareas = tareas_req.count()
+            prioridad_media = tareas_req.aggregate(Avg('prioridad'))['prioridad__avg'] or prioridad
+
+            # Preparar datos del requerimiento
+            X_req = np.array([[
+                complejidad_media,
+                complejidad_max,
+                num_tareas,
+                prioridad_media
+            ]], dtype=np.float32)
+
+            # Codificar tipo de tarea
+            X_task = preprocessor.encode_task_types([tipo_tarea])
+
+            # Normalizar datos
+            X_num_norm = scaler_num.transform(X_num)
+            X_req_norm = scaler_req.transform(X_req)
+
+            # Realizar predicción
+            estimacion = model.predict([X_num_norm, X_req_norm, np.array(X_task).reshape(-1, 1)])
+            
+            duracion_estimada = int(round(estimacion[0][0]))
+
+            return JsonResponse({
+                'duracion_estimada': duracion_estimada,
+                'success': True
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'error': str(e),
+                'success': False
+            })
+
+    return JsonResponse({'error': 'Método no permitido', 'success': False})
