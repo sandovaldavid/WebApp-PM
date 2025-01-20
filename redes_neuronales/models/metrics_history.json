@@ -1,0 +1,142 @@
+[
+    {
+        "timestamp": "2025-01-20 03:05:00",
+        "metrics": {
+            "MSE": 0.09074422014271183,
+            "RMSE": 0.3012378132683741,
+            "MAE": 0.2554067776799202,
+            "R2": 0.9961994625730368,
+            "Accuracy": 0.77325,
+            "Precision": 0.7745603799437913,
+            "Recall": 0.77325,
+            "F1": 0.7694447634862909
+        },
+        "dataset_stats": {
+            "total_requerimientos": 4887,
+            "total_tareas": 20000,
+            "duracion_promedio": 8.62169,
+            "duracion_mediana": 7.9,
+            "duracion_std": 4.879503104200262
+        }
+    },
+    {
+        "timestamp": "2025-01-20 03:15:01",
+        "metrics": {
+            "MSE": 0.12073959055280165,
+            "RMSE": 0.3474760287455836,
+            "MAE": 0.28502456843852997,
+            "R2": 0.9949432004364525,
+            "Accuracy": 0.73075,
+            "Precision": 0.7290730807756229,
+            "Recall": 0.73075,
+            "F1": 0.7207077277948053
+        },
+        "dataset_stats": {
+            "total_requerimientos": 4887,
+            "total_tareas": 20000,
+            "duracion_promedio": 8.62169,
+            "duracion_mediana": 7.9,
+            "duracion_std": 4.879503104200262
+        }
+    },
+    {
+        "timestamp": "2025-01-20 03:20:19",
+        "metrics": {
+            "MSE": 0.12073959055280165,
+            "RMSE": 0.3474760287455836,
+            "MAE": 0.28502456843852997,
+            "R2": 0.9949432004364525,
+            "Accuracy": 0.73075,
+            "Precision": 0.7290730807756229,
+            "Recall": 0.73075,
+            "F1": 0.7207077277948053
+        },
+        "dataset_stats": {
+            "total_requerimientos": 4887,
+            "total_tareas": 20000,
+            "duracion_promedio": 8.62169,
+            "duracion_mediana": 7.9,
+            "duracion_std": 4.879503104200262
+        }
+    },
+    {
+        "timestamp": "2025-01-20 03:27:22",
+        "metrics": {
+            "MSE": 0.18927490938696395,
+            "RMSE": 0.4350573633292097,
+            "MAE": 0.350563090378046,
+            "R2": 0.9920728132769348,
+            "Accuracy": 0.67175,
+            "Precision": 0.6821533065807459,
+            "Recall": 0.67175,
+            "F1": 0.6589752728094863
+        },
+        "dataset_stats": {
+            "total_requerimientos": 4887,
+            "total_tareas": 20000,
+            "duracion_promedio": 8.62169,
+            "duracion_mediana": 7.9,
+            "duracion_std": 4.879503104200262
+        }
+    },
+    {
+        "timestamp": "2025-01-20 04:15:59",
+        "metrics": {
+            "MSE": 0.10658723681742259,
+            "RMSE": 0.3264770080992268,
+            "MAE": 0.2730446225941181,
+            "R2": 0.9955359274439284,
+            "Accuracy": 0.7765,
+            "Precision": 0.7624085678453969,
+            "Recall": 0.7765,
+            "F1": 0.7611822125229687
+        },
+        "dataset_stats": {
+            "total_requerimientos": 4887,
+            "total_tareas": 20000,
+            "duracion_promedio": 8.62169,
+            "duracion_mediana": 7.9,
+            "duracion_std": 4.879503104200262
+        }
+    },
+    {
+        "timestamp": "2025-01-20 04:46:47",
+        "metrics": {
+            "MSE": 0.10587161153169214,
+            "RMSE": 0.32537918115898584,
+            "MAE": 0.2702108614981174,
+            "R2": 0.9955658991675029,
+            "Accuracy": 0.76475,
+            "Precision": 0.7565615712612173,
+            "Recall": 0.76475,
+            "F1": 0.7507488284578016
+        },
+        "dataset_stats": {
+            "total_requerimientos": 4887,
+            "total_tareas": 20000,
+            "duracion_promedio": 8.62169,
+            "duracion_mediana": 7.9,
+            "duracion_std": 4.879503104200262
+        }
+    },
+    {
+        "timestamp": "2025-01-20 05:30:16",
+        "metrics": {
+            "MSE": 0.11827758589061506,
+            "RMSE": 0.3439150852908535,
+            "MAE": 0.28423794867992397,
+            "R2": 0.9950463137901105,
+            "Accuracy": 0.753,
+            "Precision": 0.7490569300985773,
+            "Recall": 0.753,
+            "F1": 0.743565327035641
+        },
+        "dataset_stats": {
+            "total_requerimientos": 4887,
+            "total_tareas": 20000,
+            "duracion_promedio": 8.62169,
+            "duracion_mediana": 7.9,
+            "duracion_std": 4.879503104200262
+        }
+    }
+]
