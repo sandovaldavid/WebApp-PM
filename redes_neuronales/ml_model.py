@@ -22,6 +22,7 @@ from tensorflow.keras.layers import Reshape
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import KFold
 import numpy as np
+from tqdm import tqdm
 
 class EstimacionModel:
     """Modelo para estimar tiempos de proyectos usando RNN"""
@@ -275,17 +276,36 @@ class EstimacionModel:
 
     def train(self, inputs, targets, validation_data=None, epochs=100):
         """Train model with validation"""
+        class ProgressCallback(tf.keras.callbacks.Callback):
+            def __init__(self):
+                super(ProgressCallback, self).__init__()
+                self.progress_bar = None
+                
+            def on_train_begin(self, logs=None):
+                self.progress_bar = tqdm(total=epochs, desc="Entrenando modelo")
+                
+            def on_epoch_end(self, epoch, logs=None):
+                self.progress_bar.update(1)
+                self.progress_bar.set_postfix({
+                    'loss': f"{logs['loss']:.4f}",
+                    'val_loss': f"{logs['val_loss']:.4f}" if 'val_loss' in logs else 'N/A'
+                })
+                
+            def on_train_end(self, logs=None):
+                self.progress_bar.close()
+
         callbacks = [
+            ProgressCallback(),
             tf.keras.callbacks.EarlyStopping(
-                monitor="loss" if validation_data is None else "val_loss",
+                monitor="val_loss" if validation_data else "loss",
                 patience=10,
-                restore_best_weights=True,
+                restore_best_weights=True
             ),
             tf.keras.callbacks.ModelCheckpoint(
                 "models/best_model.keras",
-                monitor="loss" if validation_data is None else "val_loss",
-                save_best_only=True,
-            ),
+                monitor="val_loss" if validation_data else "loss",
+                save_best_only=True
+            )
         ]
 
         return self.model.fit(
@@ -294,7 +314,7 @@ class EstimacionModel:
             validation_data=validation_data,
             epochs=epochs,
             callbacks=callbacks,
-            verbose=1,
+            verbose=0  # Desactivamos la salida verbosa por defecto
         )
 
     def predict(self, X_num, X_task, X_req):
