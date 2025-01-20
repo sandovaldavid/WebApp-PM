@@ -1,12 +1,21 @@
+import os
 import numpy as np
-from ml_model import EstimacionModel, DataPreprocessor
 import tensorflow as tf
 import joblib
+from ml_model import EstimacionModel
 
 
 def test_estimaciones():
     """Test the trained model with different test cases"""
     try:
+        # Configurar rutas relativas
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        MODEL_DIR = os.path.join(BASE_DIR, "models")
+        
+        # Asegurar que existe el directorio
+        if not os.path.exists(MODEL_DIR):
+            os.makedirs(MODEL_DIR)
+            
         config = {
             "vocab_size": 6,
             "lstm_units": 32,
@@ -14,15 +23,30 @@ def test_estimaciones():
             "dropout_rate": 0.2,
         }
         model = EstimacionModel(config)
-        model.model = tf.keras.models.load_model("models/modelo_estimacion.keras")
+        
+        # Definir rutas de archivos
+        MODEL_PATH = os.path.join(MODEL_DIR, "modelo_estimacion.keras")
+        PREPROCESSOR_PATH = os.path.join(MODEL_DIR, "preprocessor.pkl")
+        SCALER_NUM_PATH = os.path.join(MODEL_DIR, "scaler.pkl")
+        SCALER_REQ_PATH = os.path.join(MODEL_DIR, "scaler_req.pkl")
 
-        # Cargar preprocessors y scalers
-        preprocessor = joblib.load("models/preprocessor.pkl")
-        scaler_num = joblib.load("models/scaler.pkl")
-        scaler_req = joblib.load("models/scaler_req.pkl")
+        # Verificar si los archivos existen
+        for path in [MODEL_PATH, PREPROCESSOR_PATH, SCALER_NUM_PATH, SCALER_REQ_PATH]:
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"No se encuentra el archivo: {path}")
 
+        # Cargar modelo y preprocessors
+        model.model = tf.keras.models.load_model(MODEL_PATH)
+        preprocessor = joblib.load(PREPROCESSOR_PATH)
+        scaler_num = joblib.load(SCALER_NUM_PATH)
+        scaler_req = joblib.load(SCALER_REQ_PATH)
+
+    except FileNotFoundError as e:
+        print(f"Error: {str(e)}")
+        print("Asegúrate de que los archivos del modelo existan en el directorio 'models/'")
+        return
     except Exception as e:
-        print(f"Error: No se pudo cargar el modelo o preprocessors: {str(e)}")
+        print(f"Error inesperado: {str(e)}")
         return
 
     # Casos de prueba
