@@ -56,43 +56,43 @@ class EstimacionModel:
         numeric_input = Input(shape=(2,), name="numeric_input")
         req_input = Input(shape=(4,), name="req_input")
 
-        # Rama numérica con regularización L1/L2
+        # Rama numérica con regularización L1/L2 más fuerte
         x1 = Dense(
             256,
             activation="relu",
-            kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-            name="numeric_dense_1",
+            kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-4, l2=1e-3),  # Aumentar regularización
+            name="numeric_dense_1"
         )(numeric_input)
         x1 = BatchNormalization(momentum=0.9, name="numeric_batch_norm_1")(x1)
-        x1 = Dropout(0.4)(x1)
+        x1 = Dropout(0.5)(x1)  # Aumentar dropout
 
         x1 = Dense(
             128,
             activation="relu",
-            kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-            name="numeric_dense_2",
+            kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-4, l2=1e-3),
+            name="numeric_dense_2"
         )(x1)
         x1 = BatchNormalization(momentum=0.9, name="numeric_batch_norm_2")(x1)
-        x1 = Dropout(0.3)(x1)
+        x1 = Dropout(0.4)(x1)
 
-        # Rama de requerimientos con regularización
+        # Rama de requerimientos con regularización más fuerte
         x2 = Dense(
             128,
             activation="relu",
-            kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-            name="req_dense_1",
+            kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-4, l2=1e-3),  # Aumentar regularización
+            name="req_dense_1"
         )(req_input)
         x2 = BatchNormalization(momentum=0.9, name="req_batch_norm_1")(x2)
-        x2 = Dropout(0.4)(x2)
+        x2 = Dropout(0.5)(x2)  # Aumentar dropout
 
         x2 = Dense(
             64,
-            activation="relu",
-            kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-            name="req_dense_2",
+            activation="relu", 
+            kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-4, l2=1e-3),
+            name="req_dense_2"
         )(x2)
         x2 = BatchNormalization(momentum=0.9, name="req_batch_norm_2")(x2)
-        x2 = Dropout(0.3)(x2)
+        x2 = Dropout(0.4)(x2)
 
         # Concatenación con nombre único
         x = Concatenate(name="concatenate_numeric")([x1, x2])
