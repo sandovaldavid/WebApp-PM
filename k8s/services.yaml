@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-service
+  namespace: webapp-pm
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80 # Puerto del servicio que se expone
+    targetPort: 8000
+  selector:
+    app: django-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: webapp-pm
+spec:
+  ports:
+  - port: 5432
+  selector:
+    app: postgres

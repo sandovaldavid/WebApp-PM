@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-config
+  namespace: webapp-pm
+data:
+  DB_NAME: Db-Web-App-PM
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-credentials
+  namespace: webapp-pm
+type: Opaque
+stringData:
+  DB_USER: development
+  DB_PASSWORD: "123456"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: email-credentials
+  namespace: webapp-pm
+type: Opaque
+stringData:
+  EMAIL_HOST_USER: "tu_correo@gmail.com"
+  EMAIL_HOST_PASSWORD: "tu_password_de_aplicacion"
