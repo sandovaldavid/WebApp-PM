@@ -18,6 +18,7 @@ from tensorflow.keras.layers import Reshape
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import KFold
 import numpy as np
+import os
 
 class EstimacionModel:
     """Modelo para estimar tiempos de proyectos usando RNN"""
@@ -233,7 +234,7 @@ class EstimacionModel:
             ),
         ]
 
-        return self.model.fit(
+        history = self.model.fit(
             inputs,
             targets,
             validation_data=validation_data,
@@ -241,6 +242,17 @@ class EstimacionModel:
             callbacks=callbacks,
             verbose=1,
         )
+
+        # Guardar el modelo con opciones específicas
+        save_path = os.path.join(os.path.dirname(__file__), "models", "modelo_estimacion.keras")
+        self.model.save(
+            save_path,
+            save_format='keras',
+            options=tf.saved_model.SaveOptions(
+                experimental_io_device='/job:localhost'
+            )
+        )
+        return history
 
     def predict(self, X_num, X_task, X_req):
         """Realiza predicciones"""

@@ -6,10 +6,15 @@ from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from redes_neuronales.ml_model import EstimacionModel, DataPreprocessor
+# Cambiar este import:
+# from redes_neuronales.ml_model import EstimacionModel, DataPreprocessor
 import tensorflow as tf
 import joblib
 import numpy as np
+
+import sys
+import os
+from django.conf import settings
 
 from dashboard.models import (
     Tarea,
@@ -939,59 +944,100 @@ def estimar_tarea(request):
     """Vista para estimar la duración de una tarea usando el modelo ML"""
     if request.method == "POST":
         try:
-            # Cargar modelo y preprocessors
-            model = tf.keras.models.load_model("models/modelo_estimacion.keras")
-            preprocessor = joblib.load("models/preprocessor.pkl")
-            scaler_num = joblib.load("models/scaler.pkl")
-            scaler_req = joblib.load("models/scaler_req.pkl")
+            # Configurar rutas relativas
+            #BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            REDES_DIR = os.path.join(BASE_DIR, 'redes_neuronales')
+            MODEL_DIR = os.path.join(BASE_DIR, "redes_neuronales", "models")
+
+            # Verificar que existe el directorio
+            #if not os.path.exists(MODEL_DIR):
+            #   raise FileNotFoundError("No se encuentra el directorio de modelos")
+
+            # Agregar la ruta al path de Python
+            if REDES_DIR not in sys.path:
+                sys.path.append(REDES_DIR)
+
+            # Ahora importar el módulo
+            from ml_model import EstimacionModel, DataPreprocessor
+
+            # Definir rutas de archivos
+            MODEL_PATH = os.path.join(MODEL_DIR, "modelo_estimacion.keras")
+            PREPROCESSOR_PATH = os.path.join(MODEL_DIR, "preprocessor.pkl")
+            SCALER_NUM_PATH = os.path.join(MODEL_DIR, "scaler.pkl")
+            SCALER_REQ_PATH = os.path.join(MODEL_DIR, "scaler_req.pkl")
+
+            # Verificar si los archivos existen
+            for path in [MODEL_PATH, PREPROCESSOR_PATH, SCALER_NUM_PATH, SCALER_REQ_PATH]:
+                if not os.path.exists(path):
+                    raise FileNotFoundError(f"No se encuentra el archivo: {path}")
 
             # Obtener datos del formulario
-            complejidad = int(request.POST.get('complejidad', 3))
+            complejidad = int(request.POST.get('complejidad', 2))
             prioridad = int(request.POST.get('prioridad', 2))
             tipo_tarea = request.POST.get('tipo_tarea', 'backend')
-            requerimiento_id = request.POST.get('requerimiento')
 
-            # Preparar datos numéricos
+            # Prints de debug
+            print("\nDatos recibidos para estimación:")
+            print(f"Complejidad: {complejidad}")
+            print(f"Prioridad: {prioridad}")
+            print(f"Tipo de tarea: {tipo_tarea}")
+            print("------------------------")
+
+            # Preparar datos numéricos (2 características)
             X_num = np.array([[complejidad, prioridad]], dtype=np.float32)
 
-            # Obtener estadísticas del requerimiento
-            requerimiento = Requerimiento.objects.get(idrequerimiento=requerimiento_id)
-            tareas_req = Tarea.objects.filter(idrequerimiento=requerimiento)
-            
-            complejidad_media = tareas_req.aggregate(Avg('dificultad'))['dificultad__avg'] or complejidad
-            complejidad_max = tareas_req.aggregate(Max('dificultad'))['dificultad__max'] or complejidad
-            num_tareas = tareas_req.count()
-            prioridad_media = tareas_req.aggregate(Avg('prioridad'))['prioridad__avg'] or prioridad
+            # Preparar datos de requerimiento (4 características)
+            X_req = np.array([[complejidad, complejidad, 1, prioridad]], dtype=np.float32)
 
-            # Preparar datos del requerimiento
-            X_req = np.array([[
-                complejidad_media,
-                complejidad_max,
-                num_tareas,
-                prioridad_media
-            ]], dtype=np.float32)
+            # Cargar preprocessors
+            preprocessor = joblib.load(PREPROCESSOR_PATH)
+            scaler_num = joblib.load(SCALER_NUM_PATH)
+            scaler_req = joblib.load(SCALER_REQ_PATH)
 
-            # Codificar tipo de tarea
+            # Preparar datos de tipo de tarea
             X_task = preprocessor.encode_task_types([tipo_tarea])
 
-            # Normalizar datos
+            # Normalizar datos usando los scalers correctos
             X_num_norm = scaler_num.transform(X_num)
             X_req_norm = scaler_req.transform(X_req)
 
-            # Realizar predicción
-            estimacion = model.predict([X_num_norm, X_req_norm, np.array(X_task).reshape(-1, 1)])
-            
-            duracion_estimada = int(round(estimacion[0][0]))
+            # Configurar y cargar el modelo
+            config = {
+                "vocab_size": 6,
+                "lstm_units": 32,
+                "dense_units": [64, 32],
+                "dropout_rate": 0.2,
+            }
+            model = EstimacionModel(config)
+            model.model = tf.keras.models.load_model(MODEL_PATH)
+
+            # Realizar predicción usando predict_individual_task
+            resultado = model.predict_individual_task(
+                X_num_norm, 
+                np.array(X_task).reshape(-1, 1), 
+                X_req_norm
+            )
+
+            # Obtener el tiempo estimado y redondear a entero
+            tiempo_estimado = max(1, round(float(resultado['tiempo_estimado'])))
 
             return JsonResponse({
-                'duracion_estimada': duracion_estimada,
+                'duracion_estimada': tiempo_estimado,
                 'success': True
             })
 
+        except FileNotFoundError as e:
+            return JsonResponse({
+                'error': f"Error de archivo: {str(e)}",
+                'success': False
+            })
         except Exception as e:
             return JsonResponse({
-                'error': str(e),
+                'error': f"Error inesperado: {str(e)}",
                 'success': False
             })
 
     return JsonResponse({'error': 'Método no permitido', 'success': False})
+
+

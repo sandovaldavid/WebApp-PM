@@ -82,9 +82,11 @@
                             <div class="mt-1 relative">
                                 <select name="dificultad" id="dificultad"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                    <option value="1">Baja</option>
-                                    <option value="2">Media</option>
-                                    <option value="3">Alta</option>
+                                    <option value="1">Muy Baja</option>
+                                    <option value="2">Baja</option>
+                                    <option value="3">Media</option>
+                                    <option value="4">Alta</option>
+                                    <option value="5">My Alta</option>
                                 </select>
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i class="fas fa-chart-line text-gray-400"></i>
@@ -208,7 +210,7 @@
                 </div>
 
                 <!-- Añadir tooltips informativos -->
-                <div class="group relative">
+                <!--<div class="group relative">
                     <label for="dificultad" class="block text-sm font-medium text-gray-700 flex items-center">
                         Dificultad
                         <i class="fas fa-question-circle ml-1 text-gray-400"></i>
@@ -217,7 +219,7 @@
                         class="opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-sm text-white rounded-md p-2 absolute z-10 invisible group-hover:visible">
                         1: Tarea simple, 2: Complejidad media, 3: Alta complejidad
                     </div>
-                </div>
+                </div>-->
 
                 <!-- Botones de Acción -->
                 <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
@@ -251,7 +253,7 @@
             this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Estimando...';
             this.disabled = true;
 
-            fetch('/tareas/estimar-tarea/', {
+            fetch("{% url 'gestion_tareas:estimar_tarea' %}", {
                 method: 'POST',
                 body: formData,
                 headers: {
