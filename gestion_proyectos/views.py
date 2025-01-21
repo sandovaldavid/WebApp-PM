@@ -21,15 +21,35 @@ def index(request):
     filtro = request.GET.get("filtro", "todos")
     page = request.GET.get("page", 1)
 
-    # Consulta para estadísticas y gráficos
-    proyectos_totales = Proyecto.objects.all()
+    # Verificar si es admin
+    is_admin = (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.rol == "Administrador"
+    )
 
-    # Consulta para la vista paginada
-    proyectos = Proyecto.objects.all()
+    # Query base según permisos
+    if is_admin:
+        # Consulta para estadísticas y gráficos
+        proyectos_totales = Proyecto.objects.all()
+        # Consulta para la vista paginada
+        proyectos = Proyecto.objects.all()
+    else:
+        # Filtrar proyectos relacionados al usuario a través de la cadena de relaciones
+        proyectos_totales = Proyecto.objects.filter(
+            idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+        ).distinct()
+
+        # Filtrar proyectos relacionados al usuario a través de la cadena de relaciones
+        proyectos = Proyecto.objects.filter(
+            idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
+        ).distinct()
+
 
     if busqueda:
         proyectos = proyectos.filter(
-            Q(nombreproyecto__icontains=busqueda) | Q(descripcion__icontains=busqueda)
+            Q(nombreproyecto__icontains=busqueda) | 
+            Q(descripcion__icontains=busqueda)
         )
 
     if filtro and filtro != "todos":
@@ -40,7 +60,7 @@ def index(request):
     six_months_ago = now - timezone.timedelta(days=180)
 
     # Obtener proyectos de los últimos 6 meses
-    proyectos_periodo = Proyecto.objects.filter(
+    proyectos_periodo = proyectos.filter(
         fechacreacion__range=(six_months_ago, now)
     )
 
@@ -192,6 +212,7 @@ def index(request):
         'datos_tiempo': datos_tiempo,
         'vista': vista,
         'filtros': {"busqueda": busqueda, "filtro": filtro},
+        'is_admin': is_admin,  # Agregamos is_admin al contexto
     })
 
 @login_required

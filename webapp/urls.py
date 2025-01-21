@@ -31,6 +31,6 @@ urlpatterns = [
     path("gestion-reportes/", include("reporte.urls")),
     path("gestion-auditoria/", include("auditoria.urls")),
     path("", include("usuarios.urls")),
-    # path('redes-neuronales/', include('redes_neuronales.urls')),
+    path('redes-neuronales/', include('redes_neuronales.urls')),
     # path('usuarios/', include('usuarios.urls')),
 ]
