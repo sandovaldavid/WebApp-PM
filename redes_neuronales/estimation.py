@@ -179,15 +179,10 @@ def main():
 
         # Configuración del modelo
         config = {
-            "vocab_size": 6,
-            "lstm_units": [128, 64, 32],
-            "dense_units": [256, 128, 64],
-            "dropout_rate": 0.3,
-            "learning_rate": 0.001,
-            "batch_size": 32,
-            "use_attention": True,
-            "use_bidirectional": True,
-            "use_residual": True,
+            "vocab_size": vocab_size,
+            "lstm_units": 32,
+            "dense_units": [64, 32],
+            "dropout_rate": 0.2,
         }
 
         # Crear modelo
