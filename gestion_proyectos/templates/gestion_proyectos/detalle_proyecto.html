@@ -204,6 +204,51 @@
                 </div>
             </div>
 
+            <!-- Métricas de Valor Ganado -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
+                <!-- CPI -->
+                <div class="bg-blue-50 p-4 rounded-lg shadow-sm">
+                    <h3 class="text-sm font-medium text-blue-800 mb-3">
+                        <i class="fas fa-chart-line mr-2"></i>Índice de Desempeño de Costo (CPI)
+                    </h3>
+                    <p class="text-lg font-bold text-blue-800 flex items-center">
+                        {{ cpi }}
+                        {% if cpi > 1 %}
+                            <span class="text-green-500 ml-2"><i class="fas fa-arrow-up"></i></span>
+                        {% elif cpi < 1 %}
+                            <span class="text-red-500 ml-2"><i class="fas fa-arrow-down"></i></span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- SPI -->
+                <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+                    <h3 class="text-sm font-medium text-green-800 mb-3">
+                        <i class="fas fa-clock mr-2"></i>Índice de Desempeño de Cronograma (SPI)
+                    </h3>
+                    <p class="text-lg font-bold text-green-800 flex items-center">
+                        {{ spi }}
+                        {% if spi > 1 %}
+                            <span class="text-green-500 ml-2"><i class="fas fa-arrow-up"></i></span>
+                        {% elif spi < 1 %}
+                            <span class="text-red-500 ml-2"><i class="fas fa-arrow-down"></i></span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Valores Acumulados -->
+                <div class="bg-purple-50 p-4 rounded-lg shadow-sm">
+                    <h3 class="text-sm font-medium text-purple-800 mb-3">
+                        <i class="fas fa-dollar-sign mr-2"></i>Valores Acumulados
+                    </h3>
+                    <div class="space-y-2">
+                        <p class="text-sm">PV: ${{ valor_planeado|floatformat:2 }}</p>
+                        <p class="text-sm">EV: ${{ valor_ganado|floatformat:2 }}</p>
+                        <p class="text-sm">AC: ${{ costo_real|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Requerimientos y Tareas Asociadas -->
             {% include 'components/lista_requerimientos.html' with requerimientos=requerimientos vista=vista filtros=filtros proyecto=proyecto %}
 

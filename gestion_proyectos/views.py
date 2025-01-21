@@ -35,6 +35,42 @@ def index(request):
     if filtro and filtro != "todos":
         proyectos = proyectos.filter(estado=filtro)
 
+    # Obtener fecha actual y hace 6 meses
+    now = timezone.now()
+    six_months_ago = now - timezone.timedelta(days=180)
+
+    # Obtener proyectos de los últimos 6 meses
+    proyectos_periodo = Proyecto.objects.filter(
+        fechacreacion__range=(six_months_ago, now)
+    )
+
+    # Inicializar diccionarios para almacenar conteos
+    meses = []
+    completados = []
+    creados = []
+
+    # Obtener datos para los últimos 6 meses
+    for i in range(6):
+        fecha = now - timezone.timedelta(days=30*i)
+        mes_inicio = fecha.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        mes_fin = (mes_inicio + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(seconds=1)
+
+        # Contar proyectos completados (estado Cierre) en el mes
+        completados_mes = proyectos_periodo.filter(
+            estado='Cierre',
+            fechamodificacion__range=(mes_inicio, mes_fin)
+        ).count()
+
+        # Contar proyectos creados en el mes
+        creados_mes = proyectos_periodo.filter(
+            fechacreacion__range=(mes_inicio, mes_fin)
+        ).count()
+
+        # Agregar datos a las listas
+        meses.insert(0, fecha.strftime('%b'))
+        completados.insert(0, completados_mes)
+        creados.insert(0, creados_mes)
+
     # Estadísticas
     estadisticas = {
         "total": proyectos_totales.count(),
@@ -51,8 +87,9 @@ def index(request):
         'data': [estadisticas['inicio'], estadisticas['planificacion'], estadisticas['ejecucion'], estadisticas['monitoreo_control'], estadisticas['cierre']]
     }
     datos_tendencia = {
-        'completados': [10, 15, 8, 12, 20, 15],
-        'creados': [8, 12, 15, 10, 18, 20]
+        'labels': meses,
+        'completados': completados,
+        'creados': creados
     }
     datos_tiempo = {
         "promedio": [
@@ -205,6 +242,33 @@ def lista_proyectos(request):
 @login_required
 def detalle_proyecto(request, idproyecto):
     proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
+
+    # 1. Valor Planeado (PV)
+    valor_planeado = Tarea.objects.filter(
+        idrequerimiento__idproyecto=proyecto
+    ).aggregate(
+        pv=Sum('costoestimado')
+    )['pv'] or 0
+    
+    # 2. Valor Ganado (EV)
+    valor_ganado = Tarea.objects.filter(
+        idrequerimiento__idproyecto=proyecto,
+        estado='Completada'
+    ).aggregate(
+        ev=Sum('costoestimado')
+    )['ev'] or 0
+    
+    # 3. Costo Real (AC)
+    costo_real = Tarea.objects.filter(
+        idrequerimiento__idproyecto=proyecto
+    ).aggregate(
+        ac=Sum('costoactual')
+    )['ac'] or 0
+    
+    # Cálculo de índices
+    cpi = valor_ganado / costo_real if costo_real > 0 else 0
+    spi = valor_ganado / valor_planeado if valor_planeado > 0 else 0
+
     requerimientos = proyecto.requerimiento_set.all()
     tareas = Tarea.objects.filter(idrequerimiento__in=requerimientos)
     recursos = proyecto.idequipo.miembro_set.all()
@@ -237,6 +301,11 @@ def detalle_proyecto(request, idproyecto):
 
     return render(request, 'gestion_proyectos/detalle_proyecto.html', {
         'proyecto': proyecto,
+        'valor_planeado': valor_planeado,
+        'valor_ganado': valor_ganado, 
+        'costo_real': costo_real,
+        'cpi': round(cpi, 2),
+        'spi': round(spi, 2),
         'requerimientos': requerimientos,
         'tareas': tareas,
         'recursos': recursos,

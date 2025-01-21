@@ -175,17 +175,17 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(tendenciaCtx, {
         type: 'line',
         data: {
-            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+            labels: {{ datos_tendencia.labels|safe }},
             datasets: [{
                 label: 'Proyectos Completados',
-                data: {{ datos_tendencia.completados|default:'[10, 15, 8, 12, 20, 15]'|safe }},
+                data: {{ datos_tendencia.completados|safe }},
                 borderColor: '#34D399',
                 tension: 0.4,
                 fill: false
             },
             {
                 label: 'Proyectos Creados',
-                data: {{ datos_tendencia.creados|default:'[8, 12, 15, 10, 18, 20]'|safe }},
+                data: {{ datos_tendencia.creados|safe }},
                 borderColor: '#60A5FA',
                 tension: 0.4,
                 fill: false
@@ -196,7 +196,19 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
                 }
             }
         }
