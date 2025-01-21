@@ -19,7 +19,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import tensorflow as tf
 from tensorflow.keras.layers import Reshape
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler
 from sklearn.model_selection import KFold
 import numpy as np
 from tqdm import tqdm
@@ -39,37 +39,52 @@ class EstimacionModel:
 
     def normalize_data(self, X_numeric):
         """
-        Normaliza las características numéricas usando StandardScaler
+        Normaliza las características numéricas usando RobustScaler
         
         Args:
-            X_numeric: Array con features numéricas [complejidad, prioridad, tareas_requerimiento]
+            X_numeric: Array con features numéricas (16000, 6)
         Returns:
-            X_normalized: Array normalizado
-            scaler: Objeto StandardScaler entrenado
+            tuple: (X_normalized, scaler)
         """
-        self.scaler = StandardScaler()
-        X_normalized = self.scaler.fit_transform(X_numeric)
-        return X_normalized, self.scaler
+        try:
+            # Verificar dimensiones
+            if X_numeric.shape[1] != 6:
+                raise ValueError(f"Expected 6 features, got {X_numeric.shape[1]}")
+                
+            # Crear y ajustar scaler
+            scaler = RobustScaler()
+            X_normalized = scaler.fit_transform(X_numeric)
+            
+            # Verificar resultados
+            if np.isnan(X_normalized).any():
+                raise ValueError("NaN values found after normalization")
+                
+            return X_normalized, scaler
+            
+        except Exception as e:
+            raise ValueError(f"Error in normalization: {str(e)}")
 
     def _build_numeric_branch(self):
         """Construye una rama más compleja para características numéricas con regularización"""
-        numeric_input = Input(shape=(2,), name="numeric_input")
+        numeric_input = Input(shape=(6,), name="numeric_input")  # Actualizar a 6 features
         req_input = Input(shape=(4,), name="req_input")
 
         # Rama numérica con regularización L1/L2 más fuerte
         x1 = Dense(
             256,
             activation="relu",
-            kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-4, l2=1e-3),  # Aumentar regularización
+            kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-4, l2=1e-3),
+            activity_regularizer=tf.keras.regularizers.l2(1e-5),
             name="numeric_dense_1"
         )(numeric_input)
         x1 = BatchNormalization(momentum=0.9, name="numeric_batch_norm_1")(x1)
-        x1 = Dropout(0.5)(x1)  # Aumentar dropout
+        x1 = Dropout(0.5)(x1)
 
         x1 = Dense(
             128,
             activation="relu",
             kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-4, l2=1e-3),
+            activity_regularizer=tf.keras.regularizers.l2(1e-5),
             name="numeric_dense_2"
         )(x1)
         x1 = BatchNormalization(momentum=0.9, name="numeric_batch_norm_2")(x1)
@@ -295,16 +310,17 @@ class EstimacionModel:
                 self.progress_bar.close()
 
         callbacks = [
-            ProgressCallback(),
             tf.keras.callbacks.EarlyStopping(
-                monitor="val_loss" if validation_data else "loss",
-                patience=10,
-                restore_best_weights=True
+                monitor='val_loss',
+                patience=15,
+                restore_best_weights=True,
+                min_delta=0.001
             ),
-            tf.keras.callbacks.ModelCheckpoint(
-                "models/best_model.keras",
-                monitor="val_loss" if validation_data else "loss",
-                save_best_only=True
+            tf.keras.callbacks.ReduceLROnPlateau(
+                monitor='val_loss',
+                factor=0.2,
+                patience=5,
+                min_lr=1e-6
             )
         ]
 
@@ -335,11 +351,11 @@ class EstimacionModel:
 
     def compile_model(self):
         optimizer = tf.keras.optimizers.Adam(
-            learning_rate=self.config.get("learning_rate", 0.001),
-            beta_1=0.9,
-            beta_2=0.999,
-            epsilon=1e-07,
-            amsgrad=True,
+            learning_rate=tf.keras.optimizers.schedules.ExponentialDecay(
+                initial_learning_rate=0.001,
+                decay_steps=10000,
+                decay_rate=0.9
+            )
         )
 
         loss = tf.keras.losses.Huber(delta=1.0)  # Más robusto que MSE
@@ -347,7 +363,12 @@ class EstimacionModel:
         self.model.compile(
             optimizer=optimizer,
             loss=loss,
-            metrics=["mae", "mse", tf.keras.metrics.RootMeanSquaredError()],
+            metrics = [
+                tf.keras.metrics.MeanAbsoluteError(),
+                tf.keras.metrics.MeanSquaredError(),
+                tf.keras.metrics.RootMeanSquaredError(),
+                tf.keras.metrics.MeanAbsolutePercentageError()
+            ]
         )
 
     def augment_data(self, X_num, X_req, y):
