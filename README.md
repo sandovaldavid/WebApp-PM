@@ -92,6 +92,36 @@ EMAIL_USE_TLS=True
 
 ### Kubernetes
 
+#### Imagenes de forma local
+
+1. **Construye las imágenes locales con Docker Compose**:
+
+    ```sh
+    docker-compose build
+    ```
+
+2. **Etiqueta las imágenes locales para que sean accesibles por Kubernetes**:
+
+    ```sh
+    docker tag apv-backend:latest localhost:5000/apv-backend:latest
+    docker tag apv-frontend:latest localhost:5000/apv-frontend:latest
+    ```
+
+3. **Inicia un registro local de Docker** (si no tienes uno ya corriendo):
+
+    ```sh
+    docker run -d -p 5000:5000 --name registry registry:2
+    ```
+
+4. **Empuja las imágenes al registro local**:
+
+    ```sh
+    docker push localhost:5000/apv-backend:latest
+    docker push localhost:5000/apv-frontend:latest
+    ```
+
+#### Deploy
+
 1. Primero, asegúrate de tener un cluster de Kubernetes funcionando (puedes usar Docker Desktop con Kubernetes habilitado):
 
     ```sh
