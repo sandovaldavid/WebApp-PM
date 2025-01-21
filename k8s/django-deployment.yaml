@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-app
+  namespace: webapp-pm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: django-app
+  template:
+    metadata:
+      labels:
+        app: django-app
+    spec:
+      containers:
+      - name: django
+        image: localhost:5000/webapp-pm:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        # Database configuration
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: django-config
+              key: DB_NAME
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DB_PASSWORD
+        - name: DB_HOST
+          value: postgres-service
+        - name: DB_PORT
+          value: "5432"
+        # Email configuration
+        - name: EMAIL_BACKEND
+          value: django.core.mail.backends.smtp.EmailBackend
+        - name: EMAIL_HOST
+          value: smtp.gmail.com
+        - name: EMAIL_PORT
+          value: "587"
+        - name: EMAIL_USE_TLS
+          value: "True"
+        - name: EMAIL_HOST_USER
+          valueFrom:
+            secretKeyRef:
+              name: email-credentials
+              key: EMAIL_HOST_USER
+        - name: EMAIL_HOST_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: email-credentials
+              key: EMAIL_HOST_PASSWORD

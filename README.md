@@ -90,7 +90,115 @@ EMAIL_HOST_PASSWORD=
 EMAIL_USE_TLS=True
 ```
 
-Accede a `http://127.0.0.1:8000/` en tu navegador para ver la aplicación en funcionamiento.
+### Kubernetes
+
+#### Imagenes de forma local
+
+1. **Construye las imágenes locales con Docker Compose**:
+
+    ```sh
+    docker-compose build
+    ```
+
+2. **Etiqueta las imágenes locales para que sean accesibles por Kubernetes**:
+
+    ```sh
+    docker tag apv-backend:latest localhost:5000/apv-backend:latest
+    docker tag apv-frontend:latest localhost:5000/apv-frontend:latest
+    ```
+
+3. **Inicia un registro local de Docker** (si no tienes uno ya corriendo):
+
+    ```sh
+    docker run -d -p 5000:5000 --name registry registry:2
+    ```
+
+4. **Empuja las imágenes al registro local**:
+
+    ```sh
+    docker push localhost:5000/apv-backend:latest
+    docker push localhost:5000/apv-frontend:latest
+    ```
+
+#### Deploy
+
+1. Primero, asegúrate de tener un cluster de Kubernetes funcionando (puedes usar Docker Desktop con Kubernetes habilitado):
+
+    ```sh
+    # Verifica que Kubernetes está funcionando
+    kubectl cluster-info
+    ```
+
+2. Crea el namespace para tu aplicación
+
+    ```sh
+    kubectl create namespace webapp-pm
+    ```
+
+3. Aplica las configuraciones en orden
+
+    ```sh
+    # Aplicar configuraciones y secretos
+    kubectl apply -f k8s/config.yaml
+
+    # Aplicar storage para PostgreSQL
+    kubectl apply -f k8s/storage.yaml
+
+    # Aplicar deployment de PostgreSQL
+    kubectl apply -f k8s/postgres-deployment.yaml
+
+    # Aplicar deployment de Django
+    kubectl apply -f k8s/django-deployment.yaml
+
+    # Aplicar servicios
+    kubectl apply -f k8s/services.yaml
+    ```
+
+4. Verifica que todo esté funcionando:
+
+    ```sh
+    # Ver todos los recursos en tu namespace
+    kubectl get all -n webapp-pm
+
+    # Ver pods
+    kubectl get pods -n webapp-pm
+
+    # Ver servicios
+    kubectl get services -n webapp-pm
+
+    # Ver logs de un pod específico (reemplaza <pod-name> con el nombre real del pod)
+    kubectl logs -n webapp-pm <pod-name>
+    ```
+
+5. Para acceder a tu aplicación:
+
+    ```sh
+    # La aplicación estará disponible en:
+    http://localhost
+    ```
+
+6. Comandos útiles para diagnóstico
+
+    ```sh
+    # Describir un pod (para ver errores detallados)
+    kubectl describe pod -n webapp-pm <pod-name>
+
+    # Ver logs en tiempo real
+    kubectl logs -f -n webapp-pm <pod-name>
+
+    # Ejecutar comandos dentro de un pod
+    kubectl exec -it -n webapp-pm <pod-name> -- /bin/bash
+    ```
+
+7. Para detener y limpiar
+
+    ```sh
+    # Eliminar todos los recursos
+    kubectl delete -f k8s/
+
+    # O eliminar el namespace completo
+    kubectl delete namespace webapp-pm
+    ```
 
 ## Evaluación del Proyecto
 

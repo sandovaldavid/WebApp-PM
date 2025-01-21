@@ -236,12 +236,27 @@ def obtener_tareas(request, requerimiento_id):
 
 @login_required
 def obtener_recursos(request, proyecto_id):
-    proyecto = get_object_or_404(Proyecto, pk=proyecto_id)
-    equipo = proyecto.idequipo
-    miembros = Miembro.objects.filter(idequipo=equipo)
-    recursos = [miembro.idrecurso for miembro in miembros]
-    data = [
-        {"idrecurso": recurso.idrecurso, "nombrerecurso": recurso.nombrerecurso}
-        for recurso in recursos
-    ]
-    return JsonResponse(data, safe=False)
+    try:
+        # Obtener el proyecto
+        proyecto = get_object_or_404(Proyecto, pk=proyecto_id)
+        # Obtener el equipo del proyecto
+        equipo = proyecto.idequipo
+        # Obtener los miembros del equipo
+        miembros = Miembro.objects.filter(idequipo=equipo)
+        # Obtener los recursos asociados a esos miembros
+        recursos = []
+        for miembro in miembros:
+            if miembro.idrecurso not in recursos:
+                recursos.append(miembro.idrecurso)
+        
+        # Preparar la respuesta
+        data = [
+            {
+                "idrecurso": recurso.idrecurso, 
+                "nombrerecurso": recurso.nombrerecurso
+            }
+            for recurso in recursos
+        ]
+        return JsonResponse(data, safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)

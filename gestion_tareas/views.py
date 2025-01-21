@@ -1,11 +1,20 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
+from django.db.models import Count, Avg, Max, F, ExpressionWrapper, DurationField
 from django.db.models.functions import TruncMonth
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+# Cambiar este import:
+# from redes_neuronales.ml_model import EstimacionModel, DataPreprocessor
+import tensorflow as tf
+import joblib
+import numpy as np
+
+import sys
+import os
+from django.conf import settings
 
 from dashboard.models import (
     Tarea,
@@ -929,3 +938,106 @@ def crear_tarea_programada(request):
 
 def eliminar_tarea_programada(request):
     return None
+
+@login_required
+def estimar_tarea(request):
+    """Vista para estimar la duración de una tarea usando el modelo ML"""
+    if request.method == "POST":
+        try:
+            # Configurar rutas relativas
+            #BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            REDES_DIR = os.path.join(BASE_DIR, 'redes_neuronales')
+            MODEL_DIR = os.path.join(BASE_DIR, "redes_neuronales", "models")
+
+            # Verificar que existe el directorio
+            #if not os.path.exists(MODEL_DIR):
+            #   raise FileNotFoundError("No se encuentra el directorio de modelos")
+
+            # Agregar la ruta al path de Python
+            if REDES_DIR not in sys.path:
+                sys.path.append(REDES_DIR)
+
+            # Ahora importar el módulo
+            from ml_model import EstimacionModel, DataPreprocessor
+
+            # Definir rutas de archivos
+            MODEL_PATH = os.path.join(MODEL_DIR, "modelo_estimacion.keras")
+            PREPROCESSOR_PATH = os.path.join(MODEL_DIR, "preprocessor.pkl")
+            SCALER_NUM_PATH = os.path.join(MODEL_DIR, "scaler.pkl")
+            SCALER_REQ_PATH = os.path.join(MODEL_DIR, "scaler_req.pkl")
+
+            # Verificar si los archivos existen
+            for path in [MODEL_PATH, PREPROCESSOR_PATH, SCALER_NUM_PATH, SCALER_REQ_PATH]:
+                if not os.path.exists(path):
+                    raise FileNotFoundError(f"No se encuentra el archivo: {path}")
+
+            # Obtener datos del formulario
+            complejidad = int(request.POST.get('complejidad', 2))
+            prioridad = int(request.POST.get('prioridad', 2))
+            tipo_tarea = request.POST.get('tipo_tarea', 'backend')
+
+            # Prints de debug
+            print("\nDatos recibidos para estimación:")
+            print(f"Complejidad: {complejidad}")
+            print(f"Prioridad: {prioridad}")
+            print(f"Tipo de tarea: {tipo_tarea}")
+            print("------------------------")
+
+            # Preparar datos numéricos (2 características)
+            X_num = np.array([[complejidad, prioridad]], dtype=np.float32)
+
+            # Preparar datos de requerimiento (4 características)
+            X_req = np.array([[complejidad, complejidad, 1, prioridad]], dtype=np.float32)
+
+            # Cargar preprocessors
+            preprocessor = joblib.load(PREPROCESSOR_PATH)
+            scaler_num = joblib.load(SCALER_NUM_PATH)
+            scaler_req = joblib.load(SCALER_REQ_PATH)
+
+            # Preparar datos de tipo de tarea
+            X_task = preprocessor.encode_task_types([tipo_tarea])
+
+            # Normalizar datos usando los scalers correctos
+            X_num_norm = scaler_num.transform(X_num)
+            X_req_norm = scaler_req.transform(X_req)
+
+            # Configurar y cargar el modelo
+            config = {
+                "vocab_size": 6,
+                "lstm_units": 32,
+                "dense_units": [64, 32],
+                "dropout_rate": 0.2,
+            }
+            model = EstimacionModel(config)
+            model.model = tf.keras.models.load_model(MODEL_PATH)
+
+            # Realizar predicción usando predict_individual_task
+            resultado = model.predict_individual_task(
+                X_num_norm, 
+                np.array(X_task).reshape(-1, 1), 
+                X_req_norm
+            )
+
+            # Obtener el tiempo estimado y redondear a entero
+            tiempo_estimado = max(1, round(float(resultado['tiempo_estimado'])))
+
+            return JsonResponse({
+                'duracion_estimada': tiempo_estimado,
+                'success': True
+            })
+
+        except FileNotFoundError as e:
+            return JsonResponse({
+                'error': f"Error de archivo: {str(e)}",
+                'success': False
+            })
+        except Exception as e:
+            return JsonResponse({
+                'error': f"Error inesperado: {str(e)}",
+                'success': False
+            })
+
+    return JsonResponse({'error': 'Método no permitido', 'success': False})
+
+

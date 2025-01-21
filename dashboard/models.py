@@ -394,6 +394,17 @@ class Tarea(models.Model):
     dificultad = models.IntegerField(blank=True, null=True)
     estado = models.CharField(max_length=50, blank=True, null=True)
     prioridad = models.IntegerField(blank=True, null=True)
+    tipo_tarea = models.CharField(
+        max_length=20,
+        choices=[
+            ("frontend", "Frontend"),
+            ("backend", "Backend"),
+            ("database", "Database"),
+            ("testing", "testing"),
+            ("deployment", "Deployment"),
+        ],
+        default="media",
+    )
     costoestimado = models.DecimalField(
         max_digits=15, decimal_places=2, blank=True, null=True
     )

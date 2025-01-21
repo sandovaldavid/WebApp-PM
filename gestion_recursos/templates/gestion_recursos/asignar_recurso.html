@@ -28,7 +28,8 @@
                 <!-- Seleccionar Proyecto -->
                 <div class="mb-4">
                     <label for="proyecto" class="block text-sm font-medium text-gray-700">Seleccionar Proyecto</label>
-                    <select id="proyecto" name="proyecto" class="w-full p-2 border rounded" onchange="loadRequerimientos(this.value)">
+                    <select id="proyecto" name="proyecto" class="w-full p-2 border rounded" 
+                            onchange="loadRequerimientos(this.value); loadRecursos(this.value)">
                         <option value="">Seleccione un proyecto</option>
                         {% for proyecto in proyectos %}
                         <option value="{{ proyecto.idproyecto }}">{{ proyecto.nombreproyecto }}</option>
@@ -47,7 +48,7 @@
                 <!-- Seleccionar Tarea -->
                 <div class="mb-4">
                     <label for="tarea" class="block text-sm font-medium text-gray-700">Seleccionar Tarea</label>
-                    <select id="tarea" name="tarea" class="w-full p-2 border rounded" onchange="loadRecursos(this.value)">
+                    <select id="tarea" name="tarea" class="w-full p-2 border rounded">
                         <option value="">Seleccione una tarea</option>
                     </select>
                 </div>
