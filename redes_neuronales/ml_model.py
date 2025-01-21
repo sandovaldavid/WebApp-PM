@@ -290,7 +290,9 @@ class EstimacionModel:
         ]
 
     def train(self, inputs, targets, validation_data=None, epochs=100):
-        """Train model with validation"""
+        """Train model with validation using custom progress bar"""
+        
+        # Custom callback para la barra de progreso
         class ProgressCallback(tf.keras.callbacks.Callback):
             def __init__(self):
                 super(ProgressCallback, self).__init__()
@@ -310,6 +312,7 @@ class EstimacionModel:
                 self.progress_bar.close()
 
         callbacks = [
+            ProgressCallback(),
             tf.keras.callbacks.EarlyStopping(
                 monitor='val_loss',
                 patience=15,
