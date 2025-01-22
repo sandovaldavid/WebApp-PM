@@ -7,7 +7,9 @@ from dashboard.models import (
     Recurso,
     Tiporecurso,
     Recursohumano,
-    Recursomaterial
+    Recursomaterial,
+    Equipo,
+    Proyecto,
 )
 from script.random_user import generar_usuarios
 from faker import Faker
@@ -651,5 +653,181 @@ Recursomaterial.objects.create(
         tzinfo=timezone.get_current_timezone()
     )
 )
+
+print("Recursos creados exitosamente")
+
+print("Creando equipos ...")
+
+
+Equipo.objects.create(
+    nombreequipo="Equipo de Desarrollo Web",
+    descripcion="Equipo encargado de desarrollar y mantener aplicaciones web.",
+    fechacreacion="2023-01-15T10:00:00Z",
+    fechamodificacion="2023-01-15T10:00:00Z",
+)
+
+Equipo.objects.create(
+    nombreequipo="Equipo de Marketing",
+    descripcion="Equipo encargado de las estrategias de marketing digital y relaciones públicas.",
+    fechacreacion="2023-05-10T09:30:00Z",
+    fechamodificacion="2023-05-10T09:30:00Z",
+)
+
+Equipo.objects.create(
+    nombreequipo="Equipo de Diseño UX/UI",
+    descripcion="Equipo especializado en diseño de interfaces y experiencia de usuario.",
+    fechacreacion="2023-02-01T08:00:00Z",
+    fechamodificacion="2023-02-01T08:00:00Z",
+)
+
+Equipo.objects.create(
+    nombreequipo="Equipo de QA",
+    descripcion="Equipo dedicado al control de calidad y testing de aplicaciones.",
+    fechacreacion="2023-03-15T09:00:00Z",
+    fechamodificacion="2023-03-15T09:00:00Z",
+)
+
+Equipo.objects.create(
+    nombreequipo="Equipo de DevOps",
+    descripcion="Equipo responsable de la infraestructura y despliegue continuo.",
+    fechacreacion="2023-04-01T10:00:00Z",
+    fechamodificacion="2023-04-01T10:00:00Z",
+)
+
+Equipo.objects.create(
+    nombreequipo="Equipo de Análisis de Datos",
+    descripcion="Equipo especializado en análisis de datos y generación de insights.",
+    fechacreacion="2023-05-20T11:00:00Z",
+    fechamodificacion="2023-05-20T11:00:00Z",
+)
+
+Equipo.objects.create(
+    nombreequipo="Equipo de Soporte Técnico",
+    descripcion="Equipo encargado del soporte y mantenimiento de sistemas.",
+    fechacreacion="2023-06-10T13:00:00Z",
+    fechamodificacion="2023-06-10T13:00:00Z",
+)
+
+
+Proyecto.objects.create(
+    nombreproyecto="Sistema de Gestión de Inventarios",
+    descripcion="Desarrollo de sistema ERP para control de inventarios y almacenes.",
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+    fechainicio="2023-07-01",
+    fechafin="2024-01-15",
+    presupuesto=75000.00,
+    estado="Monitoreo-Control",
+    fechacreacion="2023-07-01T08:00:00Z",
+    fechamodificacion="2023-07-01T08:00:00Z",
+)
+
+Proyecto.objects.create(
+    nombreproyecto="Plataforma E-learning",
+    descripcion="Desarrollo de plataforma educativa en línea con contenido interactivo.",
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Diseño UX/UI"),
+    fechainicio="2023-08-15",
+    fechafin="2024-02-28",
+    presupuesto=60000.00,
+    estado="Planificación",
+    fechacreacion="2023-08-15T09:00:00Z",
+    fechamodificacion="2023-08-15T09:00:00Z",
+)
+
+Proyecto.objects.create(
+    nombreproyecto="App Móvil de Delivery",
+    descripcion="Desarrollo de aplicación móvil para servicio de entrega a domicilio.",
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+    fechainicio="2023-09-01",
+    fechafin="2024-03-30",
+    presupuesto=45000.00,
+    estado="Inicio",
+    fechacreacion="2023-09-01T10:00:00Z",
+    fechamodificacion="2023-09-01T10:00:00Z",
+)
+
+Proyecto.objects.create(
+    nombreproyecto="Sistema de Business Intelligence",
+    descripcion="Implementación de herramientas de BI para análisis de datos empresariales.",
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Análisis de Datos"),
+    fechainicio="2023-10-01",
+    fechafin="2024-04-15",
+    presupuesto=90000.00,
+    estado="Planificación",
+    fechacreacion="2023-10-01T08:30:00Z",
+    fechamodificacion="2023-10-01T08:30:00Z",
+)
+
+Proyecto.objects.create(
+    nombreproyecto="Portal de Atención al Cliente",
+    descripcion="Desarrollo de portal web para soporte y atención al cliente.",
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Soporte Técnico"),
+    fechainicio="2023-11-15",
+    fechafin="2024-05-30",
+    presupuesto=40000.00,
+    estado="Ejecución",
+    fechacreacion="2023-11-15T11:00:00Z",
+    fechamodificacion="2023-11-15T11:00:00Z",
+)
+
+Proyecto.objects.create(
+    nombreproyecto="Sistema de Facturación Electrónica",
+    descripcion="Implementación de sistema de facturación conforme a normativas vigentes.",
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+    fechainicio="2023-12-01",
+    fechafin="2024-06-30",
+    presupuesto=55000.00,
+    estado="Inicio",
+    fechacreacion="2023-12-01T09:00:00Z",
+    fechamodificacion="2023-12-01T09:00:00Z",
+)
+
+Proyecto.objects.create(
+    nombreproyecto="Sistema de Gestión de RRHH",
+    descripcion="Desarrollo de plataforma integral para gestión de recursos humanos, nóminas y evaluaciones.",
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+    fechainicio="2024-01-15",
+    fechafin="2024-07-30",
+    presupuesto=85000.00,
+    estado="Inicio",
+    fechacreacion="2024-01-15T09:00:00Z",
+    fechamodificacion="2024-01-15T09:00:00Z",
+)
+
+Proyecto.objects.create(
+    nombreproyecto="Sistema de Gestión Financiera",
+    descripcion="Sistema para control de finanzas, contabilidad y reportes financieros empresariales.",
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Análisis de Datos"),
+    fechainicio="2024-02-01",
+    fechafin="2024-08-15",
+    presupuesto=95000.00,
+    estado="Planificación",
+    fechacreacion="2024-02-01T10:00:00Z",
+    fechamodificacion="2024-02-01T10:00:00Z",
+)
+
+Proyecto.objects.create(
+    nombreproyecto="Portal de Gestión de Proveedores",
+    descripcion="Plataforma web para gestión y seguimiento de proveedores y licitaciones.",
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de QA"),
+    fechainicio="2024-03-01",
+    fechafin="2024-09-30",
+    presupuesto=65000.00,
+    estado="Ejecución",
+    fechacreacion="2024-03-01T08:00:00Z",
+    fechamodificacion="2024-03-01T08:00:00Z",
+)
+
+Proyecto.objects.create(
+    nombreproyecto="CRM Empresarial Integrado",
+    descripcion="Sistema de gestión de relaciones con clientes con análisis predictivo y automatización.",
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Marketing"),
+    fechainicio="2024-04-01",
+    fechafin="2024-10-15",
+    presupuesto=88000.00,
+    estado="Inicio",
+    fechacreacion="2024-04-01T11:00:00Z",
+    fechamodificacion="2024-04-01T11:00:00Z",
+)
+
 
 print("Proceso finalizado")
