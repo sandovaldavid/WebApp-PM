@@ -15,6 +15,7 @@ from dashboard.models import (
     Notificacion,
     Historialnotificacion,
     Requerimiento,
+    Tarea,
 )
 from script.random_user import generar_usuarios
 from faker import Faker
@@ -1470,6 +1471,748 @@ Requerimiento.objects.create(
     fechacreacion="2024-04-20T14:00:00Z",
     fechamodificacion="2024-04-20T14:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
+)
+
+# Sistema de Gestión de Inventarios
+# Requerimiento: Módulo de gestión de usuarios y permisos
+Tarea.objects.create(
+    nombretarea="Desarrollo de sistema de autenticación",
+    fechainicio="2024-01-15",
+    fechafin="2024-01-25",
+    duracionestimada=8,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=2000.00,
+    costoactual=0.00,
+    fechacreacion="2024-01-15T09:00:00Z",
+    fechamodificacion="2024-01-15T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de gestión de usuarios y permisos"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de roles y permisos",
+    fechainicio="2024-01-26",
+    fechafin="2024-02-05",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2500.00,
+    costoactual=0.00,
+    fechacreacion="2024-01-15T09:00:00Z",
+    fechamodificacion="2024-01-15T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de gestión de usuarios y permisos"
+    ),
+)
+
+# Requerimiento: Sistema de control de stock en tiempo real
+Tarea.objects.create(
+    nombretarea="Desarrollo de API de inventario",
+    fechainicio="2024-02-01",
+    fechafin="2024-02-15",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=3000.00,
+    costoactual=0.00,
+    fechacreacion="2024-02-01T09:00:00Z",
+    fechamodificacion="2024-02-01T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de control de stock en tiempo real"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de webhooks para actualizaciones",
+    fechainicio="2024-02-16",
+    fechafin="2024-02-25",
+    duracionestimada=8,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2000.00,
+    costoactual=0.00,
+    fechacreacion="2024-02-01T09:00:00Z",
+    fechamodificacion="2024-02-01T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de control de stock en tiempo real"
+    ),
+)
+
+# Requerimiento: Generación de reportes y estadísticas
+Tarea.objects.create(
+    nombretarea="Desarrollo de módulo de reportes dinámicos",
+    fechainicio="2024-02-26",
+    fechafin="2024-03-10",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2500.00,
+    costoactual=0.00,
+    fechacreacion="2024-02-26T09:00:00Z",
+    fechamodificacion="2024-02-26T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Generación de reportes y estadísticas"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de gráficos estadísticos",
+    fechainicio="2024-03-11",
+    fechafin="2024-03-20",
+    duracionestimada=8,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2000.00,
+    costoactual=0.00,
+    fechacreacion="2024-02-26T09:00:00Z",
+    fechamodificacion="2024-02-26T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Generación de reportes y estadísticas"
+    ),
+)
+
+# Requerimiento: Integración con sistema de facturación
+Tarea.objects.create(
+    nombretarea="Desarrollo de API de integración con facturación",
+    fechainicio="2024-03-21",
+    fechafin="2024-04-05",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=5,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=3500.00,
+    costoactual=0.00,
+    fechacreacion="2024-03-21T09:00:00Z",
+    fechamodificacion="2024-03-21T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Integración con sistema de facturación"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de sincronización de datos",
+    fechainicio="2024-04-06",
+    fechafin="2024-04-15",
+    duracionestimada=8,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2000.00,
+    costoactual=0.00,
+    fechacreacion="2024-03-21T09:00:00Z",
+    fechamodificacion="2024-03-21T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Integración con sistema de facturación"
+    ),
+)
+
+# Requerimiento: Gestión de proveedores y órdenes de compra
+Tarea.objects.create(
+    nombretarea="Desarrollo de módulo de proveedores",
+    fechainicio="2024-04-16",
+    fechafin="2024-04-30",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=2800.00,
+    costoactual=0.00,
+    fechacreacion="2024-04-16T09:00:00Z",
+    fechamodificacion="2024-04-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Gestión de proveedores y órdenes de compra"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Sistema de generación de órdenes de compra",
+    fechainicio="2024-05-01",
+    fechafin="2024-05-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2500.00,
+    costoactual=0.00,
+    fechacreacion="2024-04-16T09:00:00Z",
+    fechamodificacion="2024-04-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Gestión de proveedores y órdenes de compra"
+    ),
+)
+
+# Comenzando con Plataforma E-learning
+# Requerimiento: Sistema de gestión de cursos y contenidos
+Tarea.objects.create(
+    nombretarea="Desarrollo de catálogo de cursos",
+    fechainicio="2024-05-16",
+    fechafin="2024-05-30",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=2700.00,
+    costoactual=0.00,
+    fechacreacion="2024-05-16T09:00:00Z",
+    fechamodificacion="2024-05-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de gestión de cursos y contenidos"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Sistema de carga y gestión de contenidos",
+    fechainicio="2024-06-01",
+    fechafin="2024-06-15",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=3000.00,
+    costoactual=0.00,
+    fechacreacion="2024-05-16T09:00:00Z",
+    fechamodificacion="2024-05-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de gestión de cursos y contenidos"
+    ),
+)
+
+# Requerimiento: Módulo de evaluaciones y seguimiento
+Tarea.objects.create(
+    nombretarea="Desarrollo de sistema de evaluaciones online",
+    fechainicio="2024-06-16",
+    fechafin="2024-06-30",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=2800.00,
+    costoactual=0.00,
+    fechacreacion="2024-06-16T09:00:00Z",
+    fechamodificacion="2024-06-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de evaluaciones y seguimiento"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de sistema de seguimiento de progreso",
+    fechainicio="2024-07-01",
+    fechafin="2024-07-15",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2600.00,
+    costoactual=0.00,
+    fechacreacion="2024-06-16T09:00:00Z",
+    fechamodificacion="2024-06-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de evaluaciones y seguimiento"
+    ),
+)
+
+# Requerimiento: Sistema de videoconferencias integrado
+Tarea.objects.create(
+    nombretarea="Integración de API de videoconferencias",
+    fechainicio="2024-07-16",
+    fechafin="2024-07-31",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=5,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=3500.00,
+    costoactual=0.00,
+    fechacreacion="2024-07-16T09:00:00Z",
+    fechamodificacion="2024-07-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de videoconferencias integrado"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Desarrollo de interfaz de videoconferencias",
+    fechainicio="2024-08-01",
+    fechafin="2024-08-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=0.00,
+    fechacreacion="2024-07-16T09:00:00Z",
+    fechamodificacion="2024-07-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de videoconferencias integrado"
+    ),
+)
+
+# Requerimiento: Gestión de certificaciones y diplomas
+Tarea.objects.create(
+    nombretarea="Desarrollo de generador de certificados",
+    fechainicio="2024-08-16",
+    fechafin="2024-08-30",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2600.00,
+    costoactual=0.00,
+    fechacreacion="2024-08-16T09:00:00Z",
+    fechamodificacion="2024-08-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Gestión de certificaciones y diplomas"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Sistema de validación de certificados online",
+    fechainicio="2024-09-01",
+    fechafin="2024-09-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=2800.00,
+    costoactual=0.00,
+    fechacreacion="2024-08-16T09:00:00Z",
+    fechamodificacion="2024-08-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Gestión de certificaciones y diplomas"
+    ),
+)
+
+# Requerimiento: Sistema de pagos y suscripciones
+Tarea.objects.create(
+    nombretarea="Integración de pasarela de pagos",
+    fechainicio="2024-09-16",
+    fechafin="2024-09-30",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=5,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=3500.00,
+    costoactual=0.00,
+    fechacreacion="2024-09-16T09:00:00Z",
+    fechamodificacion="2024-09-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de pagos y suscripciones"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Gestión de suscripciones y renovaciones",
+    fechainicio="2024-10-01",
+    fechafin="2024-10-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2900.00,
+    costoactual=0.00,
+    fechacreacion="2024-09-16T09:00:00Z",
+    fechamodificacion="2024-09-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de pagos y suscripciones"
+    ),
+)
+
+# App Móvil de Delivery - Sistema de geolocalización en tiempo real
+Tarea.objects.create(
+    nombretarea="Implementación de tracking GPS en tiempo real",
+    fechainicio="2024-10-16",
+    fechafin="2024-10-31",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=5,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=3500.00,
+    costoactual=0.00,
+    fechacreacion="2024-10-16T09:00:00Z",
+    fechamodificacion="2024-10-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de geolocalización en tiempo real"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Desarrollo de visualización de rutas en mapa",
+    fechainicio="2024-11-01",
+    fechafin="2024-11-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=0.00,
+    fechacreacion="2024-10-16T09:00:00Z",
+    fechamodificacion="2024-10-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de geolocalización en tiempo real"
+    ),
+)
+
+# Gestión de pedidos y estados
+Tarea.objects.create(
+    nombretarea="Desarrollo de sistema de gestión de pedidos",
+    fechainicio="2024-11-16",
+    fechafin="2024-11-30",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=3000.00,
+    costoactual=0.00,
+    fechacreacion="2024-11-16T09:00:00Z",
+    fechamodificacion="2024-11-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Gestión de pedidos y estados"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de actualizaciones de estado en tiempo real",
+    fechainicio="2024-12-01",
+    fechafin="2024-12-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2500.00,
+    costoactual=0.00,
+    fechacreacion="2024-11-16T09:00:00Z",
+    fechamodificacion="2024-11-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Gestión de pedidos y estados"
+    ),
+)
+
+# Sistema de calificaciones y reseñas
+Tarea.objects.create(
+    nombretarea="Desarrollo de sistema de calificaciones",
+    fechainicio="2024-12-16",
+    fechafin="2024-12-30",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2500.00,
+    costoactual=0.00,
+    fechacreacion="2024-12-16T09:00:00Z",
+    fechamodificacion="2024-12-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de calificaciones y reseñas"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de gestión de reseñas",
+    fechainicio="2025-01-01",
+    fechafin="2025-01-15",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2700.00,
+    costoactual=0.00,
+    fechacreacion="2024-12-16T09:00:00Z",
+    fechamodificacion="2024-12-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de calificaciones y reseñas"
+    ),
+)
+
+# Integración con múltiples métodos de pago
+Tarea.objects.create(
+    nombretarea="Integración de pasarelas de pago",
+    fechainicio="2025-01-16",
+    fechafin="2025-01-31",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=5,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=3500.00,
+    costoactual=0.00,
+    fechacreacion="2025-01-16T09:00:00Z",
+    fechamodificacion="2025-01-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Integración con múltiples métodos de pago"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Desarrollo de interfaz de pagos",
+    fechainicio="2025-02-01",
+    fechafin="2025-02-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=2800.00,
+    costoactual=0.00,
+    fechacreacion="2025-01-16T09:00:00Z",
+    fechamodificacion="2025-01-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Integración con múltiples métodos de pago"
+    ),
+)
+
+# Sistema de notificaciones push
+Tarea.objects.create(
+    nombretarea="Implementación de sistema de notificaciones",
+    fechainicio="2025-02-16",
+    fechafin="2025-02-28",
+    duracionestimada=9,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2600.00,
+    costoactual=0.00,
+    fechacreacion="2025-02-16T09:00:00Z",
+    fechamodificacion="2025-02-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de notificaciones push"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Configuración de servicios push",
+    fechainicio="2025-03-01",
+    fechafin="2025-03-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2400.00,
+    costoactual=0.00,
+    fechacreacion="2025-02-16T09:00:00Z",
+    fechamodificacion="2025-02-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de notificaciones push"
+    ),
+)
+
+# Diseño de data warehouse empresarial
+Tarea.objects.create(
+    nombretarea="Diseño de arquitectura del data warehouse",
+    fechainicio="2025-03-16",
+    fechafin="2025-03-31",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=5,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=4000.00,
+    costoactual=0.00,
+    fechacreacion="2025-03-16T09:00:00Z",
+    fechamodificacion="2025-03-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Diseño de data warehouse empresarial"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de modelos dimensionales",
+    fechainicio="2025-04-01",
+    fechafin="2025-04-15",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=3500.00,
+    costoactual=0.00,
+    fechacreacion="2025-03-16T09:00:00Z",
+    fechamodificacion="2025-03-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Diseño de data warehouse empresarial"
+    ),
+)
+
+# Desarrollo de ETLs para integración de datos
+Tarea.objects.create(
+    nombretarea="Desarrollo de procesos ETL",
+    fechainicio="2025-04-16",
+    fechafin="2025-04-30",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=3200.00,
+    costoactual=0.00,
+    fechacreacion="2025-04-16T09:00:00Z",
+    fechamodificacion="2025-04-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Desarrollo de ETLs para integración de datos"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de validaciones de datos",
+    fechainicio="2025-05-01",
+    fechafin="2025-05-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=0.00,
+    fechacreacion="2025-04-16T09:00:00Z",
+    fechamodificacion="2025-04-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Desarrollo de ETLs para integración de datos"
+    ),
+)
+
+# Creación de dashboards interactivos
+Tarea.objects.create(
+    nombretarea="Desarrollo de visualizaciones interactivas",
+    fechainicio="2025-05-16",
+    fechafin="2025-05-31",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=3500.00,
+    costoactual=0.00,
+    fechacreacion="2025-05-16T09:00:00Z",
+    fechamodificacion="2025-05-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Creación de dashboards interactivos"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de filtros dinámicos",
+    fechainicio="2025-06-01",
+    fechafin="2025-06-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=0.00,
+    fechacreacion="2025-05-16T09:00:00Z",
+    fechamodificacion="2025-05-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Creación de dashboards interactivos"
+    ),
+)
+
+# Sistema de reportes automatizados
+Tarea.objects.create(
+    nombretarea="Desarrollo de sistema de programación de reportes",
+    fechainicio="2025-06-16",
+    fechafin="2025-06-30",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=4,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=3200.00,
+    costoactual=0.00,
+    fechacreacion="2025-06-16T09:00:00Z",
+    fechamodificacion="2025-06-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de reportes automatizados"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de exportación de reportes",
+    fechainicio="2025-07-01",
+    fechafin="2025-07-15",
+    duracionestimada=10,
+    duracionactual=0,
+    dificultad=3,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=2600.00,
+    costoactual=0.00,
+    fechacreacion="2025-06-16T09:00:00Z",
+    fechamodificacion="2025-06-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de reportes automatizados"
+    ),
+)
+
+# Implementación de análisis predictivo
+Tarea.objects.create(
+    nombretarea="Desarrollo de modelos predictivos",
+    fechainicio="2025-07-16",
+    fechafin="2025-07-31",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=5,
+    estado="Pendiente",
+    prioridad=1,
+    costoestimado=4000.00,
+    costoactual=0.00,
+    fechacreacion="2025-07-16T09:00:00Z",
+    fechamodificacion="2025-07-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Implementación de análisis predictivo"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de algoritmos de machine learning",
+    fechainicio="2025-08-01",
+    fechafin="2025-08-15",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=5,
+    estado="Pendiente",
+    prioridad=2,
+    costoestimado=3800.00,
+    costoactual=0.00,
+    fechacreacion="2025-07-16T09:00:00Z",
+    fechamodificacion="2025-07-16T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Implementación de análisis predictivo"
+    ),
 )
 
 print("Proceso finalizado")
