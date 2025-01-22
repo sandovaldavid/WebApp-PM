@@ -10,6 +10,7 @@ from dashboard.models import (
     Recursomaterial,
     Equipo,
     Proyecto,
+    Miembro,
 )
 from script.random_user import generar_usuarios
 from faker import Faker
@@ -117,6 +118,7 @@ qa_skills = [
 ]
 
 frontend_names = [
+    "Diseñador UX/UI",
     "Frontend Developer Senior",
     "Desarrollador UI/UX",
     "Frontend React Specialist",
@@ -720,7 +722,8 @@ Proyecto.objects.create(
     fechacreacion="2023-07-01T08:00:00Z",
     fechamodificacion="2023-07-01T08:00:00Z",
 )
-
+print("Equipos creados exitosamente")
+print("Creando proyectos ...")
 Proyecto.objects.create(
     nombreproyecto="Plataforma E-learning",
     descripcion="Desarrollo de plataforma educativa en línea con contenido interactivo.",
@@ -829,5 +832,184 @@ Proyecto.objects.create(
     fechamodificacion="2024-04-01T11:00:00Z",
 )
 
+print("Proyectos creados exitosamente")
+
+print("Asignando recursos a equipos...")
+
+# Frontend Team Members
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[0]),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[1]),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[2]),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Marketing"),
+)
+
+# Backend Team Members
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso=backend_names[0]),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso=backend_names[1]),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso=backend_names[2]),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de DevOps"),
+)
+print("Backend Team Members")
+
+# QA Team Members
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Analista QA"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de QA"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="QA Engineer Senior"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de QA"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Analista de Pruebas Automatizadas"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de QA"),
+)
+
+print("QA Team Members")
+
+# Design Team Members
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Diseñador UX/UI"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Diseño UX/UI"),
+)
+
+print("Design Team Members")
+
+# DevOps Members
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="DevOps Engineer"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de DevOps"),
+)
+
+print("DevOps Members")
+
+# Hardware Resources
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Monitor 4K"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Diseño UX/UI"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Servidor de Desarrollo"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de DevOps"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Estación de Trabajo"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Router Empresarial de Alto Rendimiento"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de DevOps"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="NAS Enterprise Storage"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de DevOps"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Sistema de Videoconferencia 4K"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Marketing"),
+)
+
+print("Hardware Resources")
+
+# Software Resources
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Adobe Creative Suite"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Diseño UX/UI"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia IDE Premium"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Base de Datos Enterprise"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Antivirus Empresarial"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de DevOps"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Autodesk Maya"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Diseño UX/UI"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Jira Software"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de QA"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia TestComplete"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de QA"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia VMware Enterprise"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de DevOps"),
+)
+
+print("Software Resources")
+
+# Additional Human Resources
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="QA Automation Engineer"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de QA"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Ingeniero de Control de Calidad"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de QA"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso="Tester de Aplicaciones Web"),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de QA"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso=backend_names[3]),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[3]),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+)
+
+Miembro.objects.create(
+    idrecurso=Recurso.objects.get(nombrerecurso=backend_names[4]),
+    idequipo=Equipo.objects.get(nombreequipo="Equipo de Desarrollo Web"),
+)
+print("Additional Human Resources")
+print("Recursos asignados a equipos exitosamente")
 
 print("Proceso finalizado")
