@@ -17,6 +17,7 @@ from dashboard.models import (
     Requerimiento,
     Tarea,
     Historialtarea,
+    Tarearecurso,
 )
 from script.random_user import generar_usuarios
 from faker import Faker
@@ -2385,5 +2386,244 @@ Historialtarea.objects.create(
     fechacambio="2025-06-01T09:00:00Z",
     descripcioncambio="Desarrollo de sistema de filtros iniciado",
 )
+
+# Recursos Humanos - Frontend
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de interfaz de videoconferencias"),
+    idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[0]),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de gráficos estadísticos"),
+    idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[1]),
+    cantidad=1,
+)
+
+# Recursos Humanos - Backend
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de inventario"),
+    idrecurso=Recurso.objects.get(nombrerecurso=backend_names[0]),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de webhooks para actualizaciones"),
+    idrecurso=Recurso.objects.get(nombrerecurso=backend_names[1]),
+    cantidad=1,
+)
+
+# Recursos Humanos - QA
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de validaciones de datos"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Analista QA"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de calificaciones"),
+    idrecurso=Recurso.objects.get(nombrerecurso="QA Engineer Senior"),
+    cantidad=1,
+)
+
+# Recursos Hardware
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de visualizaciones interactivas"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Monitor 4K"),
+    cantidad=2,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de procesos ETL"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Servidor de Desarrollo"),
+    cantidad=1,
+)
+
+# Recursos Software
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de filtros dinámicos"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia IDE Premium"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de módulo de reportes dinámicos"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Base de Datos Enterprise"),
+    cantidad=1,
+)
+
+# DevOps y Herramientas
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Configuración de servicios push"),
+    idrecurso=Recurso.objects.get(nombrerecurso="DevOps Engineer"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de autenticación"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia VMware Enterprise"),
+    cantidad=1,
+)
+
+# Diseño y Creatividad
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de visualizaciones interactivas"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Adobe Creative Suite"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de interfaz de pagos"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Diseñador UX/UI"),
+    cantidad=1,
+)
+
+# Testing y Calidad
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de gestión de reseñas"),
+    idrecurso=Recurso.objects.get(nombrerecurso="QA Automation Engineer"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de programación de reportes"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia TestComplete"),
+    cantidad=1,
+)
+
+# Infraestructura
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Integración de API de videoconferencias"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Sistema de Videoconferencia 4K"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de modelos dimensionales"),
+    idrecurso=Recurso.objects.get(nombrerecurso="NAS Enterprise Storage"),
+    cantidad=1,
+)
+
+# Network Infrastructure
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de integración con facturación"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Router Empresarial de Alto Rendimiento"),
+    cantidad=1,
+)
+
+# Development Tools
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de modelos predictivos"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Estación de Trabajo"),
+    cantidad=2,
+)
+
+# Backend Development
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de algoritmos de machine learning"),
+    idrecurso=Recurso.objects.get(nombrerecurso=backend_names[2]),
+    cantidad=1,
+)
+
+# Frontend Development
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de interfaz de videoconferencias"),
+    idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[2]),
+    cantidad=1,
+)
+
+# Security Tools
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de autenticación"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Antivirus Empresarial"),
+    cantidad=1,
+)
+
+# Project Management Tools
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de sistema de notificaciones"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Jira Software"),
+    cantidad=1,
+)
+
+# Recursos Humanos Adicionales
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de pruebas automatizadas"),
+    idrecurso=Recurso.objects.get(nombrerecurso="QA Automation Engineer"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de planes de prueba"),
+    idrecurso=Recurso.objects.get(nombrerecurso="QA Engineer Senior"),
+    cantidad=1,
+)
+
+# Hardware y Equipamiento
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Configuración de servidores"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Servidor GPU para ML"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de sistema de almacenamiento"),
+    idrecurso=Recurso.objects.get(nombrerecurso="NAS Enterprise Storage"),
+    cantidad=1,
+)
+
+# Licencias y Software
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Diseño de interfaces de usuario"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Adobe Creative Suite"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de modelos 3D"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Autodesk Maya"),
+    cantidad=1,
+)
+
+# Desarrollo y Testing
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Configuración de ambientes virtuales"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia VMware Enterprise"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Gestión de tickets y seguimiento"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Licencia Jira Software"),
+    cantidad=1,
+)
+
+# Infraestructura de Red
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Configuración de red empresarial"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Router Empresarial de Alto Rendimiento"),
+    cantidad=1,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de comunicaciones"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Sistema de Videoconferencia 4K"),
+    cantidad=1,
+)
+
+# Estaciones de Trabajo
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de aplicaciones cliente"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Estación de Trabajo"),
+    cantidad=2,
+)
+
+Tarearecurso.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Diseño de interfaces gráficas"),
+    idrecurso=Recurso.objects.get(nombrerecurso="Monitor 4K"),
+    cantidad=2,
+)
+
+print("Asignación de recursos a tareas completada")
 
 print("Proceso finalizado")
