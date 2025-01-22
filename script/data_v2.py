@@ -3030,7 +3030,6 @@ Historialalerta.objects.create(
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Implementación de modelos dimensionales"),
-        tipoalerta="presupuesto"
     ),
     fecharesolucion="2025-01-10T09:00:00Z"
 )
@@ -3066,6 +3065,110 @@ Historialalerta.objects.create(
         tipoalerta="riesgo"
     ),
     fecharesolucion="2025-03-10T14:00:00Z"
+)
+
+# Módulo de Pagos
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Integración de pasarela de pagos"),
+        tipoalerta="bloqueo"
+    ),
+    fecharesolucion="2024-09-30T15:00:00Z"
+)
+
+# Gestión de Suscripciones
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Gestión de suscripciones y renovaciones"),
+    ),
+    fecharesolucion="2024-10-15T10:00:00Z"
+)
+
+# Tracking GPS
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Implementación de tracking GPS en tiempo real"),
+    ),
+    fecharesolucion="2024-11-01T11:00:00Z"
+)
+
+# Gestión de Pedidos
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de gestión de pedidos"),
+    ),
+    fecharesolucion="2024-11-30T14:00:00Z"
+)
+
+# Estado en Tiempo Real
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Implementación de actualizaciones de estado en tiempo real"),
+    ),
+    fecharesolucion="2024-12-15T09:00:00Z"
+)
+
+# Data Warehouse
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Diseño de arquitectura del data warehouse"),
+    ),
+    fecharesolucion="2024-12-30T10:00:00Z"
+)
+
+# ETL y Modelos
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Implementación de modelos dimensionales"),
+    ),
+    fecharesolucion="2025-01-15T11:00:00Z"
+)
+
+# Procesos ETL
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de procesos ETL"),
+    ),
+    fecharesolucion="2025-01-30T13:00:00Z"
+)
+
+# Validaciones
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Implementación de validaciones de datos"),
+    ),
+    fecharesolucion="2025-02-15T14:00:00Z"
+)
+# Reportes y Programación
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=34,
+    ),
+    fecharesolucion="2025-03-01T15:00:00Z"
+)
+
+# Exportación de Reportes
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=12,
+    ),
+    fecharesolucion="2025-03-15T10:00:00Z"
+)
+
+# Modelos Predictivos
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=24,
+    ),
+    fecharesolucion="2025-03-30T11:00:00Z"
+)
+
+# Machine Learning
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=33,
+    ),
+    fecharesolucion="2025-04-15T13:00:00Z"
 )
 
 print("Historial de alertas adicional completado")
