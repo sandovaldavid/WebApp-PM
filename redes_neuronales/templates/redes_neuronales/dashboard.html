@@ -19,7 +19,20 @@
 {% block body %}
 <div class="p-8 space-y-8">
     <!-- Resumen de Métricas -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <!-- Nivel de Precisión Global -->
+        <div class="md:col-span-1 bg-indigo-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-indigo-600">Precisión Global</p>
+                    <h3 class="text-2xl font-bold text-indigo-900">{{ global_precision|floatformat:4 }}</h3>
+                </div>
+                <div class="bg-indigo-100 p-3 rounded-full">
+                    <i class="fas fa-brain text-indigo-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
         <!-- MSE -->
         <div class="bg-red-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
@@ -168,6 +181,12 @@
                 data: metricsData.r2_values,
                 borderColor: 'rgb(59, 130, 246)',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Precisión Global',
+                data: metricsData.global_precision_values,
+                borderColor: 'rgb(99, 102, 241)',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
                 tension: 0.4
             }]
         },
