@@ -423,9 +423,10 @@ class Tarea(models.Model):
 
 
 class Tarearecurso(models.Model):
-    idtarea = models.OneToOneField(
-        Tarea, models.DO_NOTHING, db_column="idtarea", primary_key=True
-    )  # The composite primary key (idtarea, idrecurso) found, that is not supported. The first column is selected.
+    idtarearecurso = models.AutoField(primary_key=True)
+    idtarea = models.ForeignKey(
+        Tarea, models.DO_NOTHING, db_column="idtarea"
+    )
     idrecurso = models.ForeignKey(Recurso, models.DO_NOTHING, db_column="idrecurso")
     cantidad = models.IntegerField(blank=True, null=True)
 
