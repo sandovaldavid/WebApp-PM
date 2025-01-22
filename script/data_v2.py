@@ -19,6 +19,7 @@ from dashboard.models import (
     Historialtarea,
     Tarearecurso,
     Alerta,
+    Historialalerta,
 )
 from script.random_user import generar_usuarios
 from faker import Faker
@@ -2889,5 +2890,184 @@ Alerta.objects.create(
 )
 
 print("Creación de alertas completada")
+
+print("Creando historiales de alertas...")
+
+# Sistema de Gestión de Inventarios
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de autenticación"),
+        tipoalerta="riesgo"
+    ),
+    fecharesolucion="2024-01-25T10:00:00Z"
+)
+
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Implementación de roles y permisos"),
+        tipoalerta="retraso"
+    ),
+    fecharesolucion="2024-02-05T11:00:00Z"
+)
+
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de inventario"),
+        tipoalerta="presupuesto"
+    ),
+    fecharesolucion="2024-02-15T09:00:00Z"
+)
+
+# Sistema de Control de Stock
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Implementación de webhooks para actualizaciones"),
+        tipoalerta="bloqueo"
+    ),
+    fecharesolucion="2024-02-25T14:00:00Z"
+)
+
+# Reportes y Estadísticas
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de módulo de reportes dinámicos"),
+        tipoalerta="riesgo"
+    ),
+    fecharesolucion="2024-03-10T15:00:00Z"
+)
+
+# Integración con Facturación
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de integración con facturación"),
+        tipoalerta="bloqueo"
+    ),
+    fecharesolucion="2024-04-01T10:00:00Z"
+)
+
+# Gestión de Proveedores
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de módulo de proveedores"),
+        tipoalerta="presupuesto"
+    ),
+    fecharesolucion="2024-04-25T11:00:00Z"
+)
+
+# Plataforma E-learning
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de catálogo de cursos"),
+        tipoalerta="bloqueo"
+    ),
+    fecharesolucion="2024-05-25T09:00:00Z"
+)
+
+# Sistema de Evaluaciones
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de evaluaciones online"),
+        tipoalerta="riesgo"
+    ),
+    fecharesolucion="2024-06-25T14:00:00Z"
+)
+
+# Sistema de Videoconferencias
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Integración de API de videoconferencias"),
+        tipoalerta="bloqueo"
+    ),
+    fecharesolucion="2024-07-25T11:00:00Z"
+)
+
+# Certificaciones
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de generador de certificados"),
+        tipoalerta="riesgo"
+    ),
+    fecharesolucion="2024-08-25T10:00:00Z"
+)
+
+# Sistema de Pagos
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Integración de pasarela de pagos"),
+        tipoalerta="bloqueo"
+    ),
+    fecharesolucion="2024-09-25T13:00:00Z"
+)
+
+# App Móvil Delivery
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Implementación de tracking GPS en tiempo real"),
+        tipoalerta="riesgo"
+    ),
+    fecharesolucion="2024-10-25T15:00:00Z"
+)
+
+# Gestión de Pedidos
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de gestión de pedidos"),
+        tipoalerta="bloqueo"
+    ),
+    fecharesolucion="2024-11-25T10:00:00Z"
+)
+
+# Business Intelligence
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Diseño de arquitectura del data warehouse"),
+        tipoalerta="riesgo"
+    ),
+    fecharesolucion="2024-12-25T11:00:00Z"
+)
+
+# ETL y Procesamiento de Datos
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Implementación de modelos dimensionales"),
+        tipoalerta="presupuesto"
+    ),
+    fecharesolucion="2025-01-10T09:00:00Z"
+)
+
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de procesos ETL"),
+        tipoalerta="retraso"
+    ),
+    fecharesolucion="2025-01-25T10:00:00Z"
+)
+
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Implementación de validaciones de datos"),
+        tipoalerta="bloqueo"
+    ),
+    fecharesolucion="2025-02-10T11:00:00Z"
+)
+
+# Dashboards y Visualizaciones
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Desarrollo de visualizaciones interactivas"),
+        tipoalerta="presupuesto"
+    ),
+    fecharesolucion="2025-02-25T13:00:00Z"
+)
+
+Historialalerta.objects.create(
+    idalerta=Alerta.objects.get(
+        idtarea=Tarea.objects.get(nombretarea="Implementación de filtros dinámicos"),
+        tipoalerta="riesgo"
+    ),
+    fecharesolucion="2025-03-10T14:00:00Z"
+)
+
+print("Historial de alertas adicional completado")
 
 print("Proceso finalizado")
