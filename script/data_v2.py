@@ -11,6 +11,8 @@ from dashboard.models import (
     Equipo,
     Proyecto,
     Miembro,
+    Usuario,
+    Notificacion,
 )
 from script.random_user import generar_usuarios
 from faker import Faker
@@ -1011,5 +1013,101 @@ Miembro.objects.create(
 )
 print("Additional Human Resources")
 print("Recursos asignados a equipos exitosamente")
+
+# Project: Sistema de Gestión de Inventarios
+Notificacion.objects.create(
+    idusuario=Usuario.objects.get(idusuario=2),
+    mensaje="Revisión del módulo de control de inventarios requerida para el proyecto 'Sistema de Gestión de Inventarios'",
+    leido=False,
+    fechacreacion="2024-01-10T09:00:00Z",
+    prioridad="alta",
+    categoria="Backend",
+    archivada=False,
+    fecha_recordatorio="2024-01-11T09:00:00Z",
+)
+
+# Project: Plataforma E-learning
+Notificacion.objects.create(
+    idusuario=Usuario.objects.get(idusuario=3),
+    mensaje="Validación de módulos de cursos interactivos pendiente en 'Plataforma E-learning'",
+    leido=False,
+    fechacreacion="2024-01-15T10:30:00Z",
+    prioridad="media",
+    categoria="QA",
+    archivada=False,
+    fecha_recordatorio="2024-01-16T10:00:00Z",
+)
+
+# Project: App Móvil de Delivery
+Notificacion.objects.create(
+    idusuario=Usuario.objects.get(idusuario=1),
+    mensaje="Integración de pasarela de pagos requiere revisión urgente - App Móvil de Delivery",
+    leido=False,
+    fechacreacion="2024-01-20T11:00:00Z",
+    prioridad="alta",
+    categoria="Frontend",
+    archivada=False,
+    fecha_recordatorio="2024-01-21T09:00:00Z",
+)
+
+# Project: Sistema de Business Intelligence
+Notificacion.objects.create(
+    idusuario=Usuario.objects.get(idusuario=2),
+    mensaje="Implementación de dashboards analíticos pendiente de aprobación",
+    leido=False,
+    fechacreacion="2024-02-01T14:00:00Z",
+    prioridad="media",
+    categoria="Frontend",
+    archivada=False,
+    fecha_recordatorio="2024-02-02T10:00:00Z",
+)
+
+# Project: Portal de Atención al Cliente
+Notificacion.objects.create(
+    idusuario=Usuario.objects.get(idusuario=3),
+    mensaje="Pruebas del sistema de chat en tiempo real programadas para mañana",
+    leido=False,
+    fechacreacion="2024-02-05T15:00:00Z",
+    prioridad="alta",
+    categoria="QA",
+    archivada=False,
+    fecha_recordatorio="2024-02-06T09:00:00Z",
+)
+
+# Project: Sistema de Gestión Financiera
+Notificacion.objects.create(
+    idusuario=Usuario.objects.get(idusuario=1),
+    mensaje="Reunión de inicio del proyecto 'Sistema de Gestión Financiera' - Presentación de requerimientos",
+    leido=False,
+    fechacreacion="2024-02-10T09:00:00Z",
+    prioridad="alta",
+    categoria="Backend",
+    archivada=False,
+    fecha_recordatorio="2024-02-11T09:00:00Z",
+)
+
+# Project: Portal de Gestión de Proveedores
+Notificacion.objects.create(
+    idusuario=Usuario.objects.get(idusuario=2),
+    mensaje="Review del diseño de la plataforma de proveedores programada",
+    leido=False,
+    fechacreacion="2024-03-01T10:00:00Z",
+    prioridad="media",
+    categoria="Frontend",
+    archivada=False,
+    fecha_recordatorio="2024-03-02T10:00:00Z",
+)
+
+# Project: CRM Empresarial Integrado
+Notificacion.objects.create(
+    idusuario=Usuario.objects.get(idusuario=3),
+    mensaje="Kickoff del proyecto CRM Empresarial - Presentación del equipo",
+    leido=False,
+    fechacreacion="2024-04-01T11:00:00Z",
+    prioridad="alta",
+    categoria="Backend",
+    archivada=False,
+    fecha_recordatorio="2024-04-02T09:00:00Z",
+)
 
 print("Proceso finalizado")
