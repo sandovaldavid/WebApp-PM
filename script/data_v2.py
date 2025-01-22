@@ -18,6 +18,7 @@ from dashboard.models import (
     Tarea,
     Historialtarea,
     Tarearecurso,
+    Alerta,
 )
 from script.random_user import generar_usuarios
 from faker import Faker
@@ -2632,5 +2633,261 @@ Tarearecurso.objects.create(
 )
 
 print("Asignación de recursos a tareas completada")
+
+print("Creando alertas para las tareas...")
+
+# Sistema de Gestión de Inventarios
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de autenticación"),
+    tipoalerta="riesgo",
+    mensaje="Posibles vulnerabilidades detectadas en el sistema de autenticación.",
+    activa=True,
+    fechacreacion="2024-01-20T09:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de roles y permisos"),
+    tipoalerta="retraso",
+    mensaje="La implementación está tomando más tiempo del previsto.",
+    activa=True,
+    fechacreacion="2024-02-01T10:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de inventario"),
+    tipoalerta="presupuesto",
+    mensaje="Se requieren recursos adicionales para completar la API.",
+    activa=True,
+    fechacreacion="2024-02-10T11:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de webhooks para actualizaciones"),
+    tipoalerta="bloqueo",
+    mensaje="Dependencia bloqueante con servicios externos.",
+    activa=True,
+    fechacreacion="2024-02-20T14:00:00Z",
+)
+
+# Generación de reportes y estadísticas
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de módulo de reportes dinámicos"),
+    tipoalerta="riesgo",
+    mensaje="Alto consumo de recursos en la generación de reportes.",
+    activa=True,
+    fechacreacion="2024-03-01T09:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de gráficos estadísticos"),
+    tipoalerta="presupuesto",
+    mensaje="Se necesitan licencias adicionales para las librerías de gráficos.",
+    activa=True,
+    fechacreacion="2024-03-15T10:00:00Z",
+)
+
+# Integración con sistema de facturación
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de integración con facturación"),
+    tipoalerta="bloqueo",
+    mensaje="Sistema de facturación no disponible para pruebas.",
+    activa=True,
+    fechacreacion="2024-03-25T11:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de sincronización de datos"),
+    tipoalerta="retraso",
+    mensaje="Problemas con la sincronización en tiempo real.",
+    activa=True,
+    fechacreacion="2024-04-10T13:00:00Z",
+)
+
+# Gestión de proveedores
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de módulo de proveedores"),
+    tipoalerta="presupuesto",
+    mensaje="Costos de desarrollo superiores a lo estimado.",
+    activa=True,
+    fechacreacion="2024-04-20T15:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Sistema de generación de órdenes de compra"),
+    tipoalerta="riesgo",
+    mensaje="Posibles inconsistencias en el cálculo de impuestos.",
+    activa=True,
+    fechacreacion="2024-05-05T09:00:00Z",
+)
+
+# Plataforma E-learning
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de catálogo de cursos"),
+    tipoalerta="bloqueo",
+    mensaje="Falta definición de categorías de cursos por parte del cliente.",
+    activa=True,
+    fechacreacion="2024-05-20T10:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Sistema de carga y gestión de contenidos"),
+    tipoalerta="presupuesto",
+    mensaje="Necesidad de aumentar capacidad de almacenamiento.",
+    activa=True,
+    fechacreacion="2024-06-05T11:00:00Z",
+)
+
+# Evaluaciones y Seguimiento
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de evaluaciones online"),
+    tipoalerta="riesgo",
+    mensaje="Problemas de rendimiento con evaluaciones concurrentes.",
+    activa=True,
+    fechacreacion="2024-06-20T09:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de sistema de seguimiento de progreso"),
+    tipoalerta="retraso",
+    mensaje="Retraso en integración con sistema de calificaciones.",
+    activa=True,
+    fechacreacion="2024-07-05T14:00:00Z",
+)
+
+# Sistema de Videoconferencias
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Integración de API de videoconferencias"),
+    tipoalerta="bloqueo",
+    mensaje="API del proveedor en mantenimiento programado.",
+    activa=True,
+    fechacreacion="2024-07-20T10:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de interfaz de videoconferencias"),
+    tipoalerta="presupuesto",
+    mensaje="Costo de licencias superior al presupuestado.",
+    activa=True,
+    fechacreacion="2024-08-05T11:00:00Z",
+)
+
+# Certificaciones y Diplomas
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de generador de certificados"),
+    tipoalerta="riesgo",
+    mensaje="Incompatibilidad con algunos formatos de certificados.",
+    activa=True,
+    fechacreacion="2024-08-20T13:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Sistema de validación de certificados online"),
+    tipoalerta="retraso",
+    mensaje="Pendiente definición de proceso de validación.",
+    activa=True,
+    fechacreacion="2024-09-05T09:00:00Z",
+)
+
+# Sistema de Pagos
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Integración de pasarela de pagos"),
+    tipoalerta="bloqueo",
+    mensaje="Pendiente aprobación de credenciales de producción.",
+    activa=True,
+    fechacreacion="2024-09-20T10:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Gestión de suscripciones y renovaciones"),
+    tipoalerta="presupuesto",
+    mensaje="Incremento en costos de procesamiento de pagos.",
+    activa=True,
+    fechacreacion="2024-10-05T11:00:00Z",
+)
+
+# App Móvil de Delivery
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de tracking GPS en tiempo real"),
+    tipoalerta="riesgo",
+    mensaje="Alto consumo de batería en el tracking continuo.",
+    activa=True,
+    fechacreacion="2024-10-20T09:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de visualización de rutas en mapa"),
+    tipoalerta="presupuesto",
+    mensaje="Costos elevados en servicios de mapas.",
+    activa=True,
+    fechacreacion="2024-11-05T10:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de gestión de pedidos"),
+    tipoalerta="bloqueo",
+    mensaje="Pendiente integración con sistema de inventario.",
+    activa=True,
+    fechacreacion="2024-11-20T11:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de actualizaciones de estado en tiempo real"),
+    tipoalerta="retraso",
+    mensaje="Problemas con notificaciones push.",
+    activa=True,
+    fechacreacion="2024-12-05T13:00:00Z",
+)
+
+# Business Intelligence
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Diseño de arquitectura del data warehouse"),
+    tipoalerta="riesgo",
+    mensaje="Complejidad en la integración de fuentes heterogéneas.",
+    activa=True,
+    fechacreacion="2024-12-20T09:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de modelos dimensionales"),
+    tipoalerta="presupuesto",
+    mensaje="Necesidad de aumentar capacidad de almacenamiento.",
+    activa=True,
+    fechacreacion="2025-01-05T10:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de procesos ETL"),
+    tipoalerta="retraso",
+    mensaje="Demoras en la transformación de datos históricos.",
+    activa=True,
+    fechacreacion="2025-01-20T11:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de validaciones de datos"),
+    tipoalerta="bloqueo",
+    mensaje="Fuentes de datos no disponibles para pruebas.",
+    activa=True,
+    fechacreacion="2025-02-05T13:00:00Z",
+)
+
+# Dashboards y Reportes
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de visualizaciones interactivas"),
+    tipoalerta="presupuesto",
+    mensaje="Licencias adicionales requeridas para componentes.",
+    activa=True,
+    fechacreacion="2025-02-20T09:00:00Z",
+)
+
+Alerta.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de filtros dinámicos"),
+    tipoalerta="riesgo",
+    mensaje="Rendimiento degradado con grandes volúmenes de datos.",
+    activa=True,
+    fechacreacion="2025-03-05T10:00:00Z",
+)
+
+print("Creación de alertas completada")
 
 print("Proceso finalizado")
