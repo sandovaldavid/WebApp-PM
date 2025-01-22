@@ -13,6 +13,8 @@ from dashboard.models import (
     Miembro,
     Usuario,
     Notificacion,
+    Historialnotificacion,
+    Requerimiento,
 )
 from script.random_user import generar_usuarios
 from faker import Faker
@@ -1108,6 +1110,366 @@ Notificacion.objects.create(
     categoria="Backend",
     archivada=False,
     fecha_recordatorio="2024-04-02T09:00:00Z",
+)
+
+# Sistema de Gestión de Inventarios
+Historialnotificacion.objects.create(
+    idnotificacion=Notificacion.objects.get(
+        idusuario=Usuario.objects.get(idusuario=2),
+        mensaje="Revisión del módulo de control de inventarios requerida para el proyecto 'Sistema de Gestión de Inventarios'"
+    ),
+    fechalectura="2024-01-11T10:00:00Z"
+)
+
+# Plataforma E-learning
+Historialnotificacion.objects.create(
+    idnotificacion=Notificacion.objects.get(
+        idusuario=Usuario.objects.get(idusuario=3),
+        mensaje="Validación de módulos de cursos interactivos pendiente en 'Plataforma E-learning'"
+    ),
+    fechalectura="2024-01-16T11:00:00Z"
+)
+
+# App Móvil de Delivery
+Historialnotificacion.objects.create(
+    idnotificacion=Notificacion.objects.get(
+        idusuario=Usuario.objects.get(idusuario=1),
+        mensaje="Integración de pasarela de pagos requiere revisión urgente - App Móvil de Delivery"
+    ),
+    fechalectura="2024-01-21T10:00:00Z"
+)
+
+# Sistema de Business Intelligence
+Historialnotificacion.objects.create(
+    idnotificacion=Notificacion.objects.get(
+        idusuario=Usuario.objects.get(idusuario=2),
+        mensaje="Implementación de dashboards analíticos pendiente de aprobación"
+    ),
+    fechalectura="2024-02-02T11:00:00Z"
+)
+
+# Portal de Atención al Cliente
+Historialnotificacion.objects.create(
+    idnotificacion=Notificacion.objects.get(
+        idusuario=Usuario.objects.get(idusuario=3),
+        mensaje="Pruebas del sistema de chat en tiempo real programadas para mañana"
+    ),
+    fechalectura="2024-02-06T10:00:00Z"
+)
+
+# Sistema de Gestión Financiera
+Historialnotificacion.objects.create(
+    idnotificacion=Notificacion.objects.get(
+        idusuario=Usuario.objects.get(idusuario=1),
+        mensaje="Reunión de inicio del proyecto 'Sistema de Gestión Financiera' - Presentación de requerimientos"
+    ),
+    fechalectura="2024-02-11T10:00:00Z"
+)
+
+# Portal de Gestión de Proveedores
+Historialnotificacion.objects.create(
+    idnotificacion=Notificacion.objects.get(
+        idusuario=Usuario.objects.get(idusuario=2),
+        mensaje="Review del diseño de la plataforma de proveedores programada"
+    ),
+    fechalectura="2024-03-02T11:00:00Z"
+)
+
+# CRM Empresarial Integrado
+Historialnotificacion.objects.create(
+    idnotificacion=Notificacion.objects.get(
+        idusuario=Usuario.objects.get(idusuario=3),
+        mensaje="Kickoff del proyecto CRM Empresarial - Presentación del equipo"
+    ),
+    fechalectura="2024-04-02T10:00:00Z"
+)
+
+# Sistema de Gestión de Inventarios
+Requerimiento.objects.create(
+    descripcion="Módulo de gestión de usuarios y permisos",
+    fechacreacion="2023-07-01T08:00:00Z",
+    fechamodificacion="2023-07-01T08:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de Inventarios"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Sistema de control de stock en tiempo real",
+    fechacreacion="2023-07-05T09:00:00Z",
+    fechamodificacion="2023-07-05T09:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de Inventarios"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Generación de reportes y estadísticas",
+    fechacreacion="2023-07-10T10:00:00Z",
+    fechamodificacion="2023-07-10T10:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de Inventarios"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Integración con sistema de facturación",
+    fechacreacion="2023-07-15T11:00:00Z",
+    fechamodificacion="2023-07-15T11:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de Inventarios"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Gestión de proveedores y órdenes de compra",
+    fechacreacion="2023-07-20T13:00:00Z",
+    fechamodificacion="2023-07-20T13:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de Inventarios"),
+)
+
+# Plataforma E-learning
+Requerimiento.objects.create(
+    descripcion="Sistema de gestión de cursos y contenidos",
+    fechacreacion="2023-08-15T09:00:00Z",
+    fechamodificacion="2023-08-15T09:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Plataforma E-learning"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Módulo de evaluaciones y seguimiento",
+    fechacreacion="2023-08-20T10:00:00Z",
+    fechamodificacion="2023-08-20T10:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Plataforma E-learning"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Sistema de videoconferencias integrado",
+    fechacreacion="2023-08-25T11:00:00Z",
+    fechamodificacion="2023-08-25T11:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Plataforma E-learning"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Gestión de certificaciones y diplomas",
+    fechacreacion="2023-08-30T13:00:00Z",
+    fechamodificacion="2023-08-30T13:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Plataforma E-learning"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Sistema de pagos y suscripciones",
+    fechacreacion="2023-09-05T14:00:00Z",
+    fechamodificacion="2023-09-05T14:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Plataforma E-learning"),
+)
+
+# App Móvil de Delivery
+Requerimiento.objects.create(
+    descripcion="Sistema de geolocalización en tiempo real",
+    fechacreacion="2023-09-01T10:00:00Z",
+    fechamodificacion="2023-09-01T10:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="App Móvil de Delivery"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Gestión de pedidos y estados",
+    fechacreacion="2023-09-05T11:00:00Z",
+    fechamodificacion="2023-09-05T11:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="App Móvil de Delivery"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Sistema de calificaciones y reseñas",
+    fechacreacion="2023-09-10T13:00:00Z",
+    fechamodificacion="2023-09-10T13:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="App Móvil de Delivery"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Integración con múltiples métodos de pago",
+    fechacreacion="2023-09-15T14:00:00Z",
+    fechamodificacion="2023-09-15T14:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="App Móvil de Delivery"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Sistema de notificaciones push",
+    fechacreacion="2023-09-20T15:00:00Z",
+    fechamodificacion="2023-09-20T15:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="App Móvil de Delivery"),
+)
+
+# Sistema de Business Intelligence
+Requerimiento.objects.create(
+    descripcion="Diseño de data warehouse empresarial",
+    fechacreacion="2023-10-01T09:00:00Z",
+    fechamodificacion="2023-10-01T09:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Business Intelligence"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Desarrollo de ETLs para integración de datos",
+    fechacreacion="2023-10-05T10:00:00Z",
+    fechamodificacion="2023-10-05T10:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Business Intelligence"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Creación de dashboards interactivos",
+    fechacreacion="2023-10-10T11:00:00Z",
+    fechamodificacion="2023-10-10T11:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Business Intelligence"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Sistema de reportes automatizados",
+    fechacreacion="2023-10-15T13:00:00Z",
+    fechamodificacion="2023-10-15T13:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Business Intelligence"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Implementación de análisis predictivo",
+    fechacreacion="2023-10-20T14:00:00Z",
+    fechamodificacion="2023-10-20T14:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Business Intelligence"),
+)
+
+# Portal de Atención al Cliente
+Requerimiento.objects.create(
+    descripcion="Sistema de tickets y seguimiento",
+    fechacreacion="2023-11-15T09:00:00Z",
+    fechamodificacion="2023-11-15T09:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Atención al Cliente"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Chat en tiempo real con agentes",
+    fechacreacion="2023-11-20T10:00:00Z",
+    fechamodificacion="2023-11-20T10:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Atención al Cliente"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Base de conocimientos y FAQs",
+    fechacreacion="2023-11-25T11:00:00Z",
+    fechamodificacion="2023-11-25T11:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Atención al Cliente"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Sistema de encuestas de satisfacción",
+    fechacreacion="2023-11-30T13:00:00Z",
+    fechamodificacion="2023-11-30T13:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Atención al Cliente"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Integración con redes sociales",
+    fechacreacion="2023-12-05T14:00:00Z",
+    fechamodificacion="2023-12-05T14:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Atención al Cliente"),
+)
+
+# Sistema de Gestión Financiera
+Requerimiento.objects.create(
+    descripcion="Módulo de contabilidad general",
+    fechacreacion="2024-02-01T09:00:00Z",
+    fechamodificacion="2024-02-01T09:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión Financiera"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Sistema de gestión de presupuestos",
+    fechacreacion="2024-02-05T10:00:00Z",
+    fechamodificacion="2024-02-05T10:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión Financiera"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Control de flujo de caja y tesorería",
+    fechacreacion="2024-02-10T11:00:00Z",
+    fechamodificacion="2024-02-10T11:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión Financiera"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Gestión de activos y depreciación",
+    fechacreacion="2024-02-15T13:00:00Z",
+    fechamodificacion="2024-02-15T13:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión Financiera"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Reportes financieros y balance general",
+    fechacreacion="2024-02-20T14:00:00Z",
+    fechamodificacion="2024-02-20T14:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión Financiera"),
+)
+
+# Portal de Gestión de Proveedores
+Requerimiento.objects.create(
+    descripcion="Registro y validación de proveedores",
+    fechacreacion="2024-03-01T09:00:00Z",
+    fechamodificacion="2024-03-01T09:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Gestión de Proveedores"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Sistema de licitaciones electrónicas",
+    fechacreacion="2024-03-05T10:00:00Z",
+    fechamodificacion="2024-03-05T10:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Gestión de Proveedores"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Gestión de contratos y documentación",
+    fechacreacion="2024-03-10T11:00:00Z",
+    fechamodificacion="2024-03-10T11:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Gestión de Proveedores"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Evaluación y calificación de proveedores",
+    fechacreacion="2024-03-15T13:00:00Z",
+    fechamodificacion="2024-03-15T13:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Gestión de Proveedores"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Portal de autogestión para proveedores",
+    fechacreacion="2024-03-20T14:00:00Z",
+    fechamodificacion="2024-03-20T14:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Gestión de Proveedores"),
+)
+
+# CRM Empresarial Integrado
+Requerimiento.objects.create(
+    descripcion="Gestión de contactos y empresas",
+    fechacreacion="2024-04-01T09:00:00Z",
+    fechamodificacion="2024-04-01T09:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Pipeline de ventas y oportunidades",
+    fechacreacion="2024-04-05T10:00:00Z",
+    fechamodificacion="2024-04-05T10:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Automatización de marketing",
+    fechacreacion="2024-04-10T11:00:00Z",
+    fechamodificacion="2024-04-10T11:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Análisis predictivo de ventas",
+    fechacreacion="2024-04-15T13:00:00Z",
+    fechamodificacion="2024-04-15T13:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
+)
+
+Requerimiento.objects.create(
+    descripcion="Integración con servicios de email marketing",
+    fechacreacion="2024-04-20T14:00:00Z",
+    fechamodificacion="2024-04-20T14:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
 )
 
 print("Proceso finalizado")
