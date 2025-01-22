@@ -10,6 +10,46 @@ from django.contrib.auth.decorators import login_required
 import sys
 import os
 
+def normalize_metric(value, metric_name, metrics_history):
+    """Normaliza métricas usando Min-Max scaling con valores observados"""
+    if metric_name in ['Accuracy', 'Precision', 'Recall', 'F1']:
+        return value
+    
+    # Obtener todos los valores históricos de la métrica
+    all_values = [entry['metrics'][metric_name] for entry in metrics_history]
+    min_val = min(all_values)
+    max_val = max(all_values)
+    
+    # Evitar división por cero
+    if max_val == min_val:
+        return 0
+    
+    # Para MSE, RMSE y MAE, invertimos la normalización ya que valores menores son mejores
+    if metric_name in ['MSE', 'RMSE', 'MAE']:
+        return 1 - ((value - min_val) / (max_val - min_val))
+    
+    return (value - min_val) / (max_val - min_val)
+
+def calculate_global_precision(metrics, metrics_history):
+    """Calcula el nivel de precisión global usando pesos predefinidos"""
+    weights = {
+        'MSE': 0.2,
+        'RMSE': 0.2,
+        'MAE': 0.2,
+        'R2': 0.1,
+        'Accuracy': 0.1,
+        'Precision': 0.1,
+        'Recall': 0.05,
+        'F1': 0.05
+    }
+    
+    weighted_sum = 0
+    for metric_name, weight in weights.items():
+        normalized_value = normalize_metric(metrics[metric_name], metric_name, metrics_history)
+        weighted_sum += normalized_value * weight
+    
+    return weighted_sum
+
 @login_required
 def dashboard(request):
     # Cargar historial de métricas
@@ -21,25 +61,34 @@ def dashboard(request):
         metrics_history = []
         latest_metrics = None
 
+    if latest_metrics:
+        global_precision = calculate_global_precision(latest_metrics['metrics'], metrics_history)
+    else:
+        global_precision = 0
+
     # Preparar datos para gráficas
     timestamps = []
     mse_values = []
     accuracy_values = []
     r2_values = []
+    global_precision_values = []
 
     for entry in metrics_history:
         timestamps.append(entry['timestamp'])
         mse_values.append(entry['metrics']['MSE'])
         accuracy_values.append(entry['metrics']['Accuracy'])
         r2_values.append(entry['metrics']['R2'])
+        global_precision_values.append(calculate_global_precision(entry['metrics'], metrics_history))
 
     context = {
         'latest_metrics': latest_metrics,
+        'global_precision': global_precision,
         'metrics_history': json.dumps({
             'timestamps': timestamps,
             'mse_values': mse_values,
             'accuracy_values': accuracy_values,
-            'r2_values': r2_values
+            'r2_values': r2_values,
+            'global_precision_values': global_precision_values
         })
     }
     
