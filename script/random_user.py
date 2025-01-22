@@ -37,7 +37,7 @@ def generar_usuarios(num_usuarios, rol_user):
                 confirmado = True
             )
             usuarios_creados.append(usuario)
-            print(f"Usuario creado: {username}")
+            print(f"Usuario creado: {username} - {email} - {contrasena} - {rol}")
             
         except Exception as e:
             print(f"Error creando usuario: {str(e)}")
