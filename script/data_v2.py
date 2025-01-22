@@ -16,6 +16,7 @@ from dashboard.models import (
     Historialnotificacion,
     Requerimiento,
     Tarea,
+    Historialtarea,
 )
 from script.random_user import generar_usuarios
 from faker import Faker
@@ -2213,6 +2214,136 @@ Tarea.objects.create(
     idrequerimiento=Requerimiento.objects.get(
         descripcion="Implementación de análisis predictivo"
     ),
+)
+
+# Historial para Sistema de Gestión de Inventarios
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de autenticación"),
+    fechacambio="2024-01-15T09:00:00Z",
+    descripcioncambio="Tarea creada con estado: Pendiente",
+)
+
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de autenticación"),
+    fechacambio="2024-01-20T10:30:00Z",
+    descripcioncambio="Avance del 30% en la implementación de autenticación básica",
+)
+
+# Historial para Sistema de Control de Stock
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de inventario"),
+    fechacambio="2024-02-01T09:00:00Z",
+    descripcioncambio="Inicio del desarrollo de endpoints principales",
+)
+
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de webhooks para actualizaciones"),
+    fechacambio="2024-02-16T11:00:00Z",
+    descripcioncambio="Configuración inicial del sistema de webhooks",
+)
+
+# Historial para Plataforma E-learning
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de catálogo de cursos"),
+    fechacambio="2024-05-16T09:30:00Z",
+    descripcioncambio="Inicio de la estructura base del catálogo",
+)
+
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Sistema de carga y gestión de contenidos"),
+    fechacambio="2024-06-01T10:00:00Z",
+    descripcioncambio="Implementación del sistema de carga de archivos",
+)
+
+# Historial para Sistema de Videoconferencias
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Integración de API de videoconferencias"),
+    fechacambio="2024-07-16T14:00:00Z",
+    descripcioncambio="Inicio de pruebas de integración con proveedor",
+)
+
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de interfaz de videoconferencias"),
+    fechacambio="2024-08-01T09:00:00Z",
+    descripcioncambio="Diseño de interfaz principal completado",
+)
+
+# Historial para Sistema de Pagos
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Integración de pasarela de pagos"),
+    fechacambio="2024-09-16T11:00:00Z",
+    descripcioncambio="Configuración inicial de pasarela de pagos",
+)
+
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Gestión de suscripciones y renovaciones"),
+    fechacambio="2024-10-01T10:00:00Z",
+    descripcioncambio="Desarrollo del módulo de suscripciones iniciado",
+)
+
+# Historial para App Móvil de Delivery
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de tracking GPS en tiempo real"),
+    fechacambio="2024-10-16T13:00:00Z",
+    descripcioncambio="Integración con servicios de geolocalización iniciada",
+)
+
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de visualización de rutas en mapa"),
+    fechacambio="2024-11-01T09:00:00Z",
+    descripcioncambio="Implementación de mapas interactivos en proceso",
+)
+
+# Historial para Sistema de Calificaciones
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de calificaciones"),
+    fechacambio="2024-12-16T10:00:00Z",
+    descripcioncambio="Inicio del desarrollo del sistema de calificaciones",
+)
+
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de gestión de reseñas"),
+    fechacambio="2025-01-01T09:00:00Z",
+    descripcioncambio="Configuración del módulo de reseñas iniciada",
+)
+
+# Historial para Sistema BI
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Diseño de arquitectura del data warehouse"),
+    fechacambio="2025-03-16T11:00:00Z",
+    descripcioncambio="Inicio del diseño de arquitectura",
+)
+
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de modelos dimensionales"),
+    fechacambio="2025-04-01T09:00:00Z",
+    descripcioncambio="Desarrollo de modelos dimensionales en proceso",
+)
+
+# Historial para ETL
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de procesos ETL"),
+    fechacambio="2025-04-16T10:00:00Z",
+    descripcioncambio="Inicio de implementación de procesos ETL",
+)
+
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de validaciones de datos"),
+    fechacambio="2025-05-01T09:00:00Z",
+    descripcioncambio="Desarrollo de validaciones de datos iniciado",
+)
+
+# Historial para Dashboards
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Desarrollo de visualizaciones interactivas"),
+    fechacambio="2025-05-16T14:00:00Z",
+    descripcioncambio="Inicio del desarrollo de visualizaciones",
+)
+
+Historialtarea.objects.create(
+    idtarea=Tarea.objects.get(nombretarea="Implementación de filtros dinámicos"),
+    fechacambio="2025-06-01T09:00:00Z",
+    descripcioncambio="Desarrollo de sistema de filtros iniciado",
 )
 
 print("Proceso finalizado")
