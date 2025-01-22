@@ -1478,6 +1478,7 @@ Requerimiento.objects.create(
 # Requerimiento: Módulo de gestión de usuarios y permisos
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de autenticación",
+    tipo_tarea="backend",
     fechainicio="2024-01-15",
     fechafin="2024-01-25",
     duracionestimada=8,
@@ -1496,6 +1497,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de roles y permisos",
+    tipo_tarea="backend",
     fechainicio="2024-01-26",
     fechafin="2024-02-05",
     duracionestimada=10,
@@ -1515,6 +1517,7 @@ Tarea.objects.create(
 # Requerimiento: Sistema de control de stock en tiempo real
 Tarea.objects.create(
     nombretarea="Desarrollo de API de inventario",
+    tipo_tarea="backend",
     fechainicio="2024-02-01",
     fechafin="2024-02-15",
     duracionestimada=12,
@@ -1533,6 +1536,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de webhooks para actualizaciones",
+    tipo_tarea="backend",
     fechainicio="2024-02-16",
     fechafin="2024-02-25",
     duracionestimada=8,
@@ -1552,6 +1556,7 @@ Tarea.objects.create(
 # Requerimiento: Generación de reportes y estadísticas
 Tarea.objects.create(
     nombretarea="Desarrollo de módulo de reportes dinámicos",
+    tipo_tarea="backend",
     fechainicio="2024-02-26",
     fechafin="2024-03-10",
     duracionestimada=10,
@@ -1570,6 +1575,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de gráficos estadísticos",
+    tipo_tarea="frontend",
     fechainicio="2024-03-11",
     fechafin="2024-03-20",
     duracionestimada=8,
@@ -1589,6 +1595,7 @@ Tarea.objects.create(
 # Requerimiento: Integración con sistema de facturación
 Tarea.objects.create(
     nombretarea="Desarrollo de API de integración con facturación",
+    tipo_tarea="backend",
     fechainicio="2024-03-21",
     fechafin="2024-04-05",
     duracionestimada=12,
@@ -1607,6 +1614,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de sincronización de datos",
+    tipo_tarea="backend",
     fechainicio="2024-04-06",
     fechafin="2024-04-15",
     duracionestimada=8,
@@ -1626,6 +1634,7 @@ Tarea.objects.create(
 # Requerimiento: Gestión de proveedores y órdenes de compra
 Tarea.objects.create(
     nombretarea="Desarrollo de módulo de proveedores",
+    tipo_tarea="backend",
     fechainicio="2024-04-16",
     fechafin="2024-04-30",
     duracionestimada=11,
@@ -1644,6 +1653,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Sistema de generación de órdenes de compra",
+    tipo_tarea="backend",
     fechainicio="2024-05-01",
     fechafin="2024-05-15",
     duracionestimada=10,
@@ -1664,6 +1674,7 @@ Tarea.objects.create(
 # Requerimiento: Sistema de gestión de cursos y contenidos
 Tarea.objects.create(
     nombretarea="Desarrollo de catálogo de cursos",
+    tipo_tarea="frontend",
     fechainicio="2024-05-16",
     fechafin="2024-05-30",
     duracionestimada=11,
@@ -1682,6 +1693,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Sistema de carga y gestión de contenidos",
+    tipo_tarea="frontend",
     fechainicio="2024-06-01",
     fechafin="2024-06-15",
     duracionestimada=12,
@@ -1701,6 +1713,7 @@ Tarea.objects.create(
 # Requerimiento: Módulo de evaluaciones y seguimiento
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de evaluaciones online",
+    tipo_tarea="backend",
     fechainicio="2024-06-16",
     fechafin="2024-06-30",
     duracionestimada=10,
@@ -1719,6 +1732,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de sistema de seguimiento de progreso",
+    tipo_tarea="backend",
     fechainicio="2024-07-01",
     fechafin="2024-07-15",
     duracionestimada=11,
@@ -1738,6 +1752,7 @@ Tarea.objects.create(
 # Requerimiento: Sistema de videoconferencias integrado
 Tarea.objects.create(
     nombretarea="Integración de API de videoconferencias",
+    tipo_tarea="backend",
     fechainicio="2024-07-16",
     fechafin="2024-07-31",
     duracionestimada=12,
@@ -1756,6 +1771,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Desarrollo de interfaz de videoconferencias",
+    tipo_tarea="frontend",
     fechainicio="2024-08-01",
     fechafin="2024-08-15",
     duracionestimada=10,
@@ -1775,6 +1791,7 @@ Tarea.objects.create(
 # Requerimiento: Gestión de certificaciones y diplomas
 Tarea.objects.create(
     nombretarea="Desarrollo de generador de certificados",
+    tipo_tarea="backend",
     fechainicio="2024-08-16",
     fechafin="2024-08-30",
     duracionestimada=11,
@@ -1793,6 +1810,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Sistema de validación de certificados online",
+    tipo_tarea="backend",
     fechainicio="2024-09-01",
     fechafin="2024-09-15",
     duracionestimada=10,
@@ -1812,6 +1830,7 @@ Tarea.objects.create(
 # Requerimiento: Sistema de pagos y suscripciones
 Tarea.objects.create(
     nombretarea="Integración de pasarela de pagos",
+    tipo_tarea="backend",
     fechainicio="2024-09-16",
     fechafin="2024-09-30",
     duracionestimada=12,
@@ -1830,6 +1849,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Gestión de suscripciones y renovaciones",
+    tipo_tarea="backend",
     fechainicio="2024-10-01",
     fechafin="2024-10-15",
     duracionestimada=10,
@@ -1849,6 +1869,7 @@ Tarea.objects.create(
 # App Móvil de Delivery - Sistema de geolocalización en tiempo real
 Tarea.objects.create(
     nombretarea="Implementación de tracking GPS en tiempo real",
+    tipo_tarea="backend",
     fechainicio="2024-10-16",
     fechafin="2024-10-31",
     duracionestimada=12,
@@ -1867,6 +1888,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Desarrollo de visualización de rutas en mapa",
+    tipo_tarea="frontend",
     fechainicio="2024-11-01",
     fechafin="2024-11-15",
     duracionestimada=10,
@@ -1886,6 +1908,7 @@ Tarea.objects.create(
 # Gestión de pedidos y estados
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de gestión de pedidos",
+    tipo_tarea="backend",
     fechainicio="2024-11-16",
     fechafin="2024-11-30",
     duracionestimada=11,
@@ -1904,6 +1927,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de actualizaciones de estado en tiempo real",
+    tipo_tarea="backend",
     fechainicio="2024-12-01",
     fechafin="2024-12-15",
     duracionestimada=10,
@@ -1923,6 +1947,7 @@ Tarea.objects.create(
 # Sistema de calificaciones y reseñas
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de calificaciones",
+    tipo_tarea="backend",
     fechainicio="2024-12-16",
     fechafin="2024-12-30",
     duracionestimada=10,
@@ -1941,6 +1966,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de gestión de reseñas",
+    tipo_tarea="backend",
     fechainicio="2025-01-01",
     fechafin="2025-01-15",
     duracionestimada=11,
@@ -1960,6 +1986,7 @@ Tarea.objects.create(
 # Integración con múltiples métodos de pago
 Tarea.objects.create(
     nombretarea="Integración de pasarelas de pago",
+    tipo_tarea="backend",
     fechainicio="2025-01-16",
     fechafin="2025-01-31",
     duracionestimada=12,
@@ -1978,6 +2005,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Desarrollo de interfaz de pagos",
+    tipo_tarea="frontend",
     fechainicio="2025-02-01",
     fechafin="2025-02-15",
     duracionestimada=10,
@@ -1997,6 +2025,7 @@ Tarea.objects.create(
 # Sistema de notificaciones push
 Tarea.objects.create(
     nombretarea="Implementación de sistema de notificaciones",
+    tipo_tarea="backend",
     fechainicio="2025-02-16",
     fechafin="2025-02-28",
     duracionestimada=9,
@@ -2015,6 +2044,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Configuración de servicios push",
+    tipo_tarea="backend",
     fechainicio="2025-03-01",
     fechafin="2025-03-15",
     duracionestimada=10,
@@ -2034,6 +2064,7 @@ Tarea.objects.create(
 # Diseño de data warehouse empresarial
 Tarea.objects.create(
     nombretarea="Diseño de arquitectura del data warehouse",
+    tipo_tarea="backend",
     fechainicio="2025-03-16",
     fechafin="2025-03-31",
     duracionestimada=12,
@@ -2052,6 +2083,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de modelos dimensionales",
+    tipo_tarea="backend",
     fechainicio="2025-04-01",
     fechafin="2025-04-15",
     duracionestimada=11,
@@ -2071,6 +2103,7 @@ Tarea.objects.create(
 # Desarrollo de ETLs para integración de datos
 Tarea.objects.create(
     nombretarea="Desarrollo de procesos ETL",
+    tipo_tarea="backend",
     fechainicio="2025-04-16",
     fechafin="2025-04-30",
     duracionestimada=11,
@@ -2089,6 +2122,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de validaciones de datos",
+    tipo_tarea="backend",
     fechainicio="2025-05-01",
     fechafin="2025-05-15",
     duracionestimada=10,
@@ -2108,6 +2142,7 @@ Tarea.objects.create(
 # Creación de dashboards interactivos
 Tarea.objects.create(
     nombretarea="Desarrollo de visualizaciones interactivas",
+    tipo_tarea="frontend",
     fechainicio="2025-05-16",
     fechafin="2025-05-31",
     duracionestimada=12,
@@ -2126,6 +2161,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de filtros dinámicos",
+    tipo_tarea="frontend",
     fechainicio="2025-06-01",
     fechafin="2025-06-15",
     duracionestimada=10,
@@ -2145,6 +2181,7 @@ Tarea.objects.create(
 # Sistema de reportes automatizados
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de programación de reportes",
+    tipo_tarea="backend",
     fechainicio="2025-06-16",
     fechafin="2025-06-30",
     duracionestimada=11,
@@ -2163,6 +2200,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de exportación de reportes",
+    tipo_tarea="backend",
     fechainicio="2025-07-01",
     fechafin="2025-07-15",
     duracionestimada=10,
@@ -2182,6 +2220,7 @@ Tarea.objects.create(
 # Implementación de análisis predictivo
 Tarea.objects.create(
     nombretarea="Desarrollo de modelos predictivos",
+    tipo_tarea="backend",
     fechainicio="2025-07-16",
     fechafin="2025-07-31",
     duracionestimada=12,
@@ -2200,6 +2239,7 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de algoritmos de machine learning",
+    tipo_tarea="backend",
     fechainicio="2025-08-01",
     fechafin="2025-08-15",
     duracionestimada=11,
