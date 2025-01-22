@@ -9,6 +9,8 @@ from script.random_user import generar_usuarios
 
 print("Iniciando generación de datos de prueba...")
 
+print("---------------------( Creando usuarios ...)---------------------")
+
 try:
     # Crear un usuario administrador
     usuarios_admin = generar_usuarios(1, "Administrador")
@@ -56,4 +58,5 @@ try:
 except Exception as e:
     print(f"Error en el proceso: {str(e)}")
 
+print("---------------------( Usuarios creados exitosamente )---------------------")
 print("Proceso finalizado")
