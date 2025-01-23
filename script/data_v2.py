@@ -2311,6 +2311,201 @@ Tarea.objects.create(
     ),
 )
 
+# 1. Sistema de Gestión de Personal
+Tarea.objects.create(
+    nombretarea="Desarrollo de módulo de gestión de empleados",
+    tipo_tarea="backend",
+    fechainicio="2024-07-15",
+    fechafin="2024-07-30",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=1,
+    costoestimado=3000.00,
+    costoactual=3000.00,
+    fechacreacion="2024-07-15T10:00:00Z",
+    fechamodificacion="2024-07-15T10:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de gestión de empleados y estructura organizacional"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de estructura organizacional",
+    tipo_tarea="backend",
+    fechainicio="2024-07-31",
+    fechafin="2024-08-15",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=3,
+    estado="Completada",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=2800.00,
+    fechacreacion="2024-07-15T10:00:00Z",
+    fechamodificacion="2024-07-15T10:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de gestión de empleados y estructura organizacional"
+    ),
+)
+
+# 2. Sistema de Nóminas
+Tarea.objects.create(
+    nombretarea="Desarrollo de motor de cálculo de nóminas",
+    tipo_tarea="backend",
+    fechainicio="2024-07-20",
+    fechafin="2024-08-05",
+    duracionestimada=15,
+    duracionactual=0,
+    dificultad=5,
+    estado="Completada",
+    prioridad=1,
+    costoestimado=4000.00,
+    costoactual=4000.00,
+    fechacreacion="2024-07-20T09:00:00Z",
+    fechamodificacion="2024-07-20T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Cálculo y procesamiento de nóminas, beneficios y deducciones"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de gestión de beneficios",
+    tipo_tarea="backend",
+    fechainicio="2024-08-06",
+    fechafin="2024-08-20",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=2800.00,
+    fechacreacion="2024-07-20T09:00:00Z",
+    fechamodificacion="2024-07-20T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Cálculo y procesamiento de nóminas, beneficios y deducciones"
+    ),
+)
+
+# 3. Gestión de Evaluaciones
+Tarea.objects.create(
+    nombretarea="Desarrollo de sistema de evaluación de desempeño",
+    tipo_tarea="backend",
+    fechainicio="2024-07-25",
+    fechafin="2024-08-10",
+    duracionestimada=13,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=1,
+    costoestimado=3200.00,
+    costoactual=3200.00,
+    fechacreacion="2024-07-25T11:00:00Z",
+    fechamodificacion="2024-07-25T11:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de evaluación de desempeño y seguimiento de objetivos"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de seguimiento de objetivos",
+    tipo_tarea="backend",
+    fechainicio="2024-08-11",
+    fechafin="2024-08-25",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=3,
+    estado="Completada",
+    prioridad=2,
+    costoestimado=2600.00,
+    costoactual=2600.00,
+    fechacreacion="2024-07-25T11:00:00Z",
+    fechamodificacion="2024-07-25T11:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de evaluación de desempeño y seguimiento de objetivos"
+    ),
+)
+
+# 4. Control de Asistencia
+Tarea.objects.create(
+    nombretarea="Desarrollo de módulo de control de asistencia",
+    tipo_tarea="backend",
+    fechainicio="2024-07-30",
+    fechafin="2024-08-15",
+    duracionestimada=13,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=1,
+    costoestimado=3200.00,
+    costoactual=3200.00,
+    fechacreacion="2024-07-30T14:00:00Z",
+    fechamodificacion="2024-07-30T14:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de control de asistencia, vacaciones y permisos"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de gestión de vacaciones y permisos",
+    tipo_tarea="backend",
+    fechainicio="2024-08-16",
+    fechafin="2024-08-30",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=3,
+    estado="Completada",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=2800.00,
+    fechacreacion="2024-07-30T14:00:00Z",
+    fechamodificacion="2024-07-30T14:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de control de asistencia, vacaciones y permisos"
+    ),
+)
+
+# 5. Reportes y Analytics
+Tarea.objects.create(
+    nombretarea="Desarrollo de sistema de reportes de RRHH",
+    tipo_tarea="backend",
+    fechainicio="2024-08-05",
+    fechafin="2024-08-20",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=1,
+    costoestimado=3000.00,
+    costoactual=3000.00,
+    fechacreacion="2024-08-05T13:00:00Z",
+    fechamodificacion="2024-08-05T13:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Generación de reportes, métricas y análisis de recursos humanos"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de dashboards analíticos de RRHH",
+    tipo_tarea="frontend",
+    fechainicio="2024-08-21",
+    fechafin="2024-09-05",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=2800.00,
+    fechacreacion="2024-08-05T13:00:00Z",
+    fechamodificacion="2024-08-05T13:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Generación de reportes, métricas y análisis de recursos humanos"
+    ),
+)
+
 # Historial para Sistema de Gestión de Inventarios
 Historialtarea.objects.create(
     idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de autenticación"),
