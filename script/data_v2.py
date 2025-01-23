@@ -1487,6 +1487,48 @@ Requerimiento.objects.create(
     idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
 )
 
+# Requerimeintos proyecto Sistema de Gestión de RRHH:
+
+# 1. Sistema de Gestión de Personal
+Requerimiento.objects.create(
+    descripcion="Módulo de gestión de empleados y estructura organizacional",
+    fechacreacion="2024-07-15T10:00:00Z",
+    fechamodificacion="2024-07-15T10:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
+)
+
+# 2. Sistema de Nóminas
+Requerimiento.objects.create(
+    descripcion="Cálculo y procesamiento de nóminas, beneficios y deducciones",
+    fechacreacion="2024-07-20T09:00:00Z",
+    fechamodificacion="2024-07-20T09:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
+)
+
+# 3. Gestión de Evaluaciones
+Requerimiento.objects.create(
+    descripcion="Sistema de evaluación de desempeño y seguimiento de objetivos",
+    fechacreacion="2024-07-25T11:00:00Z",
+    fechamodificacion="2024-07-25T11:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
+)
+
+# 4. Control de Asistencia
+Requerimiento.objects.create(
+    descripcion="Módulo de control de asistencia, vacaciones y permisos",
+    fechacreacion="2024-07-30T14:00:00Z",
+    fechamodificacion="2024-07-30T14:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
+)
+
+# 5. Reportes y Analytics
+Requerimiento.objects.create(
+    descripcion="Generación de reportes, métricas y análisis de recursos humanos",
+    fechacreacion="2024-08-05T13:00:00Z",
+    fechamodificacion="2024-08-05T13:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
+)
+
 # Sistema de Gestión de Inventarios
 # Requerimiento: Módulo de gestión de usuarios y permisos
 Tarea.objects.create(
