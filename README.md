@@ -114,8 +114,7 @@ EMAIL_HOST_PASSWORD=
 4. **Empuja las imágenes al registro local**:
 
     ```sh
-    docker push localhost:5000/apv-backend:latest
-    docker push localhost:5000/apv-frontend:latest
+    docker tag webapp-pm-web:latest localhost:5000/webapp-pm-backend:latest
     ```
 
 #### Deploy
