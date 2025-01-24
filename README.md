@@ -83,11 +83,10 @@ DB_HOST=db-web-app
 DB_PORT=5432
 
 # Mailtrap configuration
-EMAIL_HOST=smtp.mailtrap.io
-EMAIL_PORT=2525
+EMAIL_HOST=
+EMAIL_PORT=
 EMAIL_HOST_USER=
 EMAIL_HOST_PASSWORD=
-EMAIL_USE_TLS=True
 ```
 
 ### Kubernetes
