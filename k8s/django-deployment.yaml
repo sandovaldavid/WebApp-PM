@@ -15,8 +15,12 @@ spec:
     spec:
       containers:
       - name: django
-        image: localhost:5000/webapp-pm:latest
+        image: localhost:5000/webapp-pm-backend:latest
         imagePullPolicy: Always
+        command: ["/bin/sh", "-c"]
+        args:
+          - python manage.py migrate &&
+            python manage.py runserver 0.0.0.0:8000
         ports:
         - containerPort: 8000
         env:
@@ -41,14 +45,10 @@ spec:
         - name: DB_PORT
           value: "5432"
         # Email configuration
-        - name: EMAIL_BACKEND
-          value: django.core.mail.backends.smtp.EmailBackend
         - name: EMAIL_HOST
-          value: smtp.gmail.com
+          value: sandbox.smtp.mailtrap.io
         - name: EMAIL_PORT
           value: "587"
-        - name: EMAIL_USE_TLS
-          value: "True"
         - name: EMAIL_HOST_USER
           valueFrom:
             secretKeyRef:
