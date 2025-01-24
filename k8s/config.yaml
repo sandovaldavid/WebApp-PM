@@ -23,5 +23,5 @@ metadata:
   namespace: webapp-pm
 type: Opaque
 stringData:
-  EMAIL_HOST_USER: "tu_correo@gmail.com"
-  EMAIL_HOST_PASSWORD: "tu_password_de_aplicacion"
+  EMAIL_HOST_USER: "your_credentials"
+  EMAIL_HOST_PASSWORD: "your_credentials"
