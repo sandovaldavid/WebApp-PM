@@ -15,12 +15,10 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       # Email configuration
-      - EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-      - EMAIL_HOST=smtp.gmail.com
-      - EMAIL_PORT=587
-      - EMAIL_HOST_USER=tu_correo@gmail.com
-      - EMAIL_HOST_PASSWORD=tu_password_de_aplicacion
-      - EMAIL_USE_TLS=True
+      - EMAIL_HOST = 'your_credentiales smtp'
+      - EMAIL_HOST_USER = 'your_credentiales'
+      - EMAIL_HOST_PASSWORD = 'your_credentiales'
+      - EMAIL_PORT = 'your_credentiales'
     depends_on:
       db:
         condition: service_healthy
