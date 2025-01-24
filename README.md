@@ -102,8 +102,7 @@ EMAIL_HOST_PASSWORD=
 2. **Etiqueta las imágenes locales para que sean accesibles por Kubernetes**:
 
     ```sh
-    docker tag apv-backend:latest localhost:5000/apv-backend:latest
-    docker tag apv-frontend:latest localhost:5000/apv-frontend:latest
+    docker tag webapp-pm-web:latest localhost:5000/webapp-pm-backend:latest
     ```
 
 3. **Inicia un registro local de Docker** (si no tienes uno ya corriendo):
