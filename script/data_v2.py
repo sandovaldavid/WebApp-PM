@@ -727,6 +727,7 @@ Proyecto.objects.create(
     fechainicio="2024-09-01",
     fechafin="2025-02-15",
     presupuesto=75000.00,
+    presupuestoutilizado=30450.1246,
     estado="Monitoreo-Control",
     fechacreacion="2024-07-01T08:00:00Z",
     fechamodificacion="2024-07-01T08:00:00Z",
@@ -740,6 +741,7 @@ Proyecto.objects.create(
     fechainicio="2024-01-15",
     fechafin="2024-02-28",
     presupuesto=60000.00,
+    presupuestoutilizado=60000,
     estado="Cierre",
     fechacreacion="2024-08-15T09:00:00Z",
     fechamodificacion="2024-08-15T09:00:00Z",
@@ -752,6 +754,7 @@ Proyecto.objects.create(
     fechainicio="2024-11-04",
     fechafin="2025-03-15",
     presupuesto=45000.00,
+    presupuestoutilizado=29743,
     estado="Ejecución",
     fechacreacion="2024-10-01T10:00:00Z",
     fechamodificacion="2024-10-01T10:00:00Z",
@@ -764,6 +767,7 @@ Proyecto.objects.create(
     fechainicio="2024-10-01",
     fechafin="2025-04-15",
     presupuesto=90000.00,
+    presupuestoutilizado=50567,
     estado="Ejecución",
     fechacreacion="2024-10-01T08:30:00Z",
     fechamodificacion="2024-10-01T08:30:00Z",
@@ -776,6 +780,7 @@ Proyecto.objects.create(
     fechainicio="2024-11-15",
     fechafin="2025-05-30",
     presupuesto=40000.00,
+    presupuestoutilizado=23089,
     estado="Ejecución",
     fechacreacion="2024-11-15T11:00:00Z",
     fechamodificacion="2024-11-15T11:00:00Z",
@@ -788,6 +793,7 @@ Proyecto.objects.create(
     fechainicio="2024-08-01",
     fechafin="2025-02-10",
     presupuesto=55000.00,
+    presupuestoutilizado=45069,
     estado="Ejecución",
     fechacreacion="2024-08-01T09:00:00Z",
     fechamodificacion="2024-08-01T09:00:00Z",
@@ -800,6 +806,7 @@ Proyecto.objects.create(
     fechainicio="2024-07-15",
     fechafin="2024-12-30",
     presupuesto=85000.00,
+    presupuestoutilizado=85000,
     estado="Cierre",
     fechacreacion="2024-07-15T09:00:00Z",
     fechamodificacion="2024-07-15T09:00:00Z",
@@ -812,6 +819,7 @@ Proyecto.objects.create(
     fechainicio="2025-01-10",
     fechafin="2025-02-11",
     presupuesto=95000.00,
+    presupuestoutilizado=0,
     estado="Planificación",
     fechacreacion="2025-01-01T10:00:00Z",
     fechamodificacion="2025-01-01T10:00:00Z",
@@ -824,6 +832,7 @@ Proyecto.objects.create(
     fechainicio="2024-10-01",
     fechafin="2025-03-15",
     presupuesto=65000.00,
+    presupuestoutilizado=48234,
     estado="Ejecución",
     fechacreacion="2024-10-01T08:00:00Z",
     fechamodificacion="2024-10-01T08:00:00Z",
@@ -836,6 +845,7 @@ Proyecto.objects.create(
     fechainicio="2024-12-15",
     fechafin="2025-05-15",
     presupuesto=88000.00,
+    presupuestoutilizado=1542,
     estado="Inicio",
     fechacreacion="2024-12-01T11:00:00Z",
     fechamodificacion="2024-12-01T11:00:00Z",
@@ -1477,6 +1487,48 @@ Requerimiento.objects.create(
     idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
 )
 
+# Requerimeintos proyecto Sistema de Gestión de RRHH:
+
+# 1. Sistema de Gestión de Personal
+Requerimiento.objects.create(
+    descripcion="Módulo de gestión de empleados y estructura organizacional",
+    fechacreacion="2024-07-15T10:00:00Z",
+    fechamodificacion="2024-07-15T10:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
+)
+
+# 2. Sistema de Nóminas
+Requerimiento.objects.create(
+    descripcion="Cálculo y procesamiento de nóminas, beneficios y deducciones",
+    fechacreacion="2024-07-20T09:00:00Z",
+    fechamodificacion="2024-07-20T09:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
+)
+
+# 3. Gestión de Evaluaciones
+Requerimiento.objects.create(
+    descripcion="Sistema de evaluación de desempeño y seguimiento de objetivos",
+    fechacreacion="2024-07-25T11:00:00Z",
+    fechamodificacion="2024-07-25T11:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
+)
+
+# 4. Control de Asistencia
+Requerimiento.objects.create(
+    descripcion="Módulo de control de asistencia, vacaciones y permisos",
+    fechacreacion="2024-07-30T14:00:00Z",
+    fechamodificacion="2024-07-30T14:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
+)
+
+# 5. Reportes y Analytics
+Requerimiento.objects.create(
+    descripcion="Generación de reportes, métricas y análisis de recursos humanos",
+    fechacreacion="2024-08-05T13:00:00Z",
+    fechamodificacion="2024-08-05T13:00:00Z",
+    idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
+)
+
 # Sistema de Gestión de Inventarios
 # Requerimiento: Módulo de gestión de usuarios y permisos
 Tarea.objects.create(
@@ -1487,7 +1539,7 @@ Tarea.objects.create(
     duracionestimada=8,
     duracionactual=0,
     dificultad=3,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=2000.00,
     costoactual=0.00,
@@ -1526,7 +1578,7 @@ Tarea.objects.create(
     duracionestimada=12,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=3000.00,
     costoactual=0.00,
@@ -1584,7 +1636,7 @@ Tarea.objects.create(
     duracionestimada=8,
     duracionactual=0,
     dificultad=3,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=2,
     costoestimado=2000.00,
     costoactual=0.00,
@@ -1623,7 +1675,7 @@ Tarea.objects.create(
     duracionestimada=8,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=2,
     costoestimado=2000.00,
     costoactual=0.00,
@@ -1662,7 +1714,7 @@ Tarea.objects.create(
     duracionestimada=10,
     duracionactual=0,
     dificultad=3,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=2,
     costoestimado=2500.00,
     costoactual=0.00,
@@ -1683,10 +1735,10 @@ Tarea.objects.create(
     duracionestimada=11,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="Completada",
     prioridad=1,
     costoestimado=2700.00,
-    costoactual=0.00,
+    costoactual=2700.00,
     fechacreacion="2024-05-16T09:00:00Z",
     fechamodificacion="2024-05-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
@@ -1702,10 +1754,10 @@ Tarea.objects.create(
     duracionestimada=12,
     duracionactual=0,
     dificultad=3,
-    estado="Pendiente",
+    estado="Completada",
     prioridad=2,
     costoestimado=3000.00,
-    costoactual=0.00,
+    costoactual=3000.00,
     fechacreacion="2024-05-16T09:00:00Z",
     fechamodificacion="2024-05-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
@@ -1722,10 +1774,10 @@ Tarea.objects.create(
     duracionestimada=10,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="Completada",
     prioridad=1,
     costoestimado=2800.00,
-    costoactual=0.00,
+    costoactual=2800.00,
     fechacreacion="2024-06-16T09:00:00Z",
     fechamodificacion="2024-06-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
@@ -1741,10 +1793,10 @@ Tarea.objects.create(
     duracionestimada=11,
     duracionactual=0,
     dificultad=3,
-    estado="Pendiente",
+    estado="Completada",
     prioridad=2,
     costoestimado=2600.00,
-    costoactual=0.00,
+    costoactual=2600.00,
     fechacreacion="2024-06-16T09:00:00Z",
     fechamodificacion="2024-06-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
@@ -1761,10 +1813,10 @@ Tarea.objects.create(
     duracionestimada=12,
     duracionactual=0,
     dificultad=5,
-    estado="Pendiente",
+    estado="Completada",
     prioridad=1,
     costoestimado=3500.00,
-    costoactual=0.00,
+    costoactual=3500.00,
     fechacreacion="2024-07-16T09:00:00Z",
     fechamodificacion="2024-07-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
@@ -1780,10 +1832,10 @@ Tarea.objects.create(
     duracionestimada=10,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="Completada",
     prioridad=2,
     costoestimado=2800.00,
-    costoactual=0.00,
+    costoactual=2800.00,
     fechacreacion="2024-07-16T09:00:00Z",
     fechamodificacion="2024-07-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
@@ -1800,10 +1852,10 @@ Tarea.objects.create(
     duracionestimada=11,
     duracionactual=0,
     dificultad=3,
-    estado="Pendiente",
+    estado="Completada",
     prioridad=2,
     costoestimado=2600.00,
-    costoactual=0.00,
+    costoactual=2600.00,
     fechacreacion="2024-08-16T09:00:00Z",
     fechamodificacion="2024-08-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
@@ -1819,10 +1871,10 @@ Tarea.objects.create(
     duracionestimada=10,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="Completada",
     prioridad=1,
     costoestimado=2800.00,
-    costoactual=0.00,
+    costoactual=2800.00,
     fechacreacion="2024-08-16T09:00:00Z",
     fechamodificacion="2024-08-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
@@ -1839,10 +1891,10 @@ Tarea.objects.create(
     duracionestimada=12,
     duracionactual=0,
     dificultad=5,
-    estado="Pendiente",
+    estado="Completada",
     prioridad=1,
     costoestimado=3500.00,
-    costoactual=0.00,
+    costoactual=3500.00,
     fechacreacion="2024-09-16T09:00:00Z",
     fechamodificacion="2024-09-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
@@ -1858,10 +1910,10 @@ Tarea.objects.create(
     duracionestimada=10,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="Completada",
     prioridad=2,
     costoestimado=2900.00,
-    costoactual=0.00,
+    costoactual=2900.00,
     fechacreacion="2024-09-16T09:00:00Z",
     fechamodificacion="2024-09-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
@@ -1897,7 +1949,7 @@ Tarea.objects.create(
     duracionestimada=10,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=2,
     costoestimado=2800.00,
     costoactual=0.00,
@@ -1917,7 +1969,7 @@ Tarea.objects.create(
     duracionestimada=11,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=3000.00,
     costoactual=0.00,
@@ -1936,7 +1988,7 @@ Tarea.objects.create(
     duracionestimada=10,
     duracionactual=0,
     dificultad=3,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=2,
     costoestimado=2500.00,
     costoactual=0.00,
@@ -1995,7 +2047,7 @@ Tarea.objects.create(
     duracionestimada=12,
     duracionactual=0,
     dificultad=5,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=3500.00,
     costoactual=0.00,
@@ -2014,7 +2066,7 @@ Tarea.objects.create(
     duracionestimada=10,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=2800.00,
     costoactual=0.00,
@@ -2034,7 +2086,7 @@ Tarea.objects.create(
     duracionestimada=9,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=2,
     costoestimado=2600.00,
     costoactual=0.00,
@@ -2073,7 +2125,7 @@ Tarea.objects.create(
     duracionestimada=12,
     duracionactual=0,
     dificultad=5,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=4000.00,
     costoactual=0.00,
@@ -2112,7 +2164,7 @@ Tarea.objects.create(
     duracionestimada=11,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=3200.00,
     costoactual=0.00,
@@ -2151,7 +2203,7 @@ Tarea.objects.create(
     duracionestimada=12,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=3500.00,
     costoactual=0.00,
@@ -2190,7 +2242,7 @@ Tarea.objects.create(
     duracionestimada=11,
     duracionactual=0,
     dificultad=4,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=3200.00,
     costoactual=0.00,
@@ -2229,7 +2281,7 @@ Tarea.objects.create(
     duracionestimada=12,
     duracionactual=0,
     dificultad=5,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=1,
     costoestimado=4000.00,
     costoactual=0.00,
@@ -2248,7 +2300,7 @@ Tarea.objects.create(
     duracionestimada=11,
     duracionactual=0,
     dificultad=5,
-    estado="Pendiente",
+    estado="En Progreso",
     prioridad=2,
     costoestimado=3800.00,
     costoactual=0.00,
@@ -2256,6 +2308,201 @@ Tarea.objects.create(
     fechamodificacion="2025-07-16T09:00:00Z",
     idrequerimiento=Requerimiento.objects.get(
         descripcion="Implementación de análisis predictivo"
+    ),
+)
+
+# 1. Sistema de Gestión de Personal
+Tarea.objects.create(
+    nombretarea="Desarrollo de módulo de gestión de empleados",
+    tipo_tarea="backend",
+    fechainicio="2024-07-15",
+    fechafin="2024-07-30",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=1,
+    costoestimado=3000.00,
+    costoactual=3000.00,
+    fechacreacion="2024-07-15T10:00:00Z",
+    fechamodificacion="2024-07-15T10:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de gestión de empleados y estructura organizacional"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de estructura organizacional",
+    tipo_tarea="backend",
+    fechainicio="2024-07-31",
+    fechafin="2024-08-15",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=3,
+    estado="Completada",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=2800.00,
+    fechacreacion="2024-07-15T10:00:00Z",
+    fechamodificacion="2024-07-15T10:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de gestión de empleados y estructura organizacional"
+    ),
+)
+
+# 2. Sistema de Nóminas
+Tarea.objects.create(
+    nombretarea="Desarrollo de motor de cálculo de nóminas",
+    tipo_tarea="backend",
+    fechainicio="2024-07-20",
+    fechafin="2024-08-05",
+    duracionestimada=15,
+    duracionactual=0,
+    dificultad=5,
+    estado="Completada",
+    prioridad=1,
+    costoestimado=4000.00,
+    costoactual=4000.00,
+    fechacreacion="2024-07-20T09:00:00Z",
+    fechamodificacion="2024-07-20T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Cálculo y procesamiento de nóminas, beneficios y deducciones"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de gestión de beneficios",
+    tipo_tarea="backend",
+    fechainicio="2024-08-06",
+    fechafin="2024-08-20",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=2800.00,
+    fechacreacion="2024-07-20T09:00:00Z",
+    fechamodificacion="2024-07-20T09:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Cálculo y procesamiento de nóminas, beneficios y deducciones"
+    ),
+)
+
+# 3. Gestión de Evaluaciones
+Tarea.objects.create(
+    nombretarea="Desarrollo de sistema de evaluación de desempeño",
+    tipo_tarea="backend",
+    fechainicio="2024-07-25",
+    fechafin="2024-08-10",
+    duracionestimada=13,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=1,
+    costoestimado=3200.00,
+    costoactual=3200.00,
+    fechacreacion="2024-07-25T11:00:00Z",
+    fechamodificacion="2024-07-25T11:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de evaluación de desempeño y seguimiento de objetivos"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de seguimiento de objetivos",
+    tipo_tarea="backend",
+    fechainicio="2024-08-11",
+    fechafin="2024-08-25",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=3,
+    estado="Completada",
+    prioridad=2,
+    costoestimado=2600.00,
+    costoactual=2600.00,
+    fechacreacion="2024-07-25T11:00:00Z",
+    fechamodificacion="2024-07-25T11:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Sistema de evaluación de desempeño y seguimiento de objetivos"
+    ),
+)
+
+# 4. Control de Asistencia
+Tarea.objects.create(
+    nombretarea="Desarrollo de módulo de control de asistencia",
+    tipo_tarea="backend",
+    fechainicio="2024-07-30",
+    fechafin="2024-08-15",
+    duracionestimada=13,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=1,
+    costoestimado=3200.00,
+    costoactual=3200.00,
+    fechacreacion="2024-07-30T14:00:00Z",
+    fechamodificacion="2024-07-30T14:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de control de asistencia, vacaciones y permisos"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de gestión de vacaciones y permisos",
+    tipo_tarea="backend",
+    fechainicio="2024-08-16",
+    fechafin="2024-08-30",
+    duracionestimada=11,
+    duracionactual=0,
+    dificultad=3,
+    estado="Completada",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=2800.00,
+    fechacreacion="2024-07-30T14:00:00Z",
+    fechamodificacion="2024-07-30T14:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Módulo de control de asistencia, vacaciones y permisos"
+    ),
+)
+
+# 5. Reportes y Analytics
+Tarea.objects.create(
+    nombretarea="Desarrollo de sistema de reportes de RRHH",
+    tipo_tarea="backend",
+    fechainicio="2024-08-05",
+    fechafin="2024-08-20",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=1,
+    costoestimado=3000.00,
+    costoactual=3000.00,
+    fechacreacion="2024-08-05T13:00:00Z",
+    fechamodificacion="2024-08-05T13:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Generación de reportes, métricas y análisis de recursos humanos"
+    ),
+)
+
+Tarea.objects.create(
+    nombretarea="Implementación de dashboards analíticos de RRHH",
+    tipo_tarea="frontend",
+    fechainicio="2024-08-21",
+    fechafin="2024-09-05",
+    duracionestimada=12,
+    duracionactual=0,
+    dificultad=4,
+    estado="Completada",
+    prioridad=2,
+    costoestimado=2800.00,
+    costoactual=2800.00,
+    fechacreacion="2024-08-05T13:00:00Z",
+    fechamodificacion="2024-08-05T13:00:00Z",
+    idrequerimiento=Requerimiento.objects.get(
+        descripcion="Generación de reportes, métricas y análisis de recursos humanos"
     ),
 )
 

@@ -100,7 +100,7 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 {% for tarea in tareas %}
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ tarea.nombretarea }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap"><a class="text-blue-500" href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}">{{ tarea.nombretarea }}</a></td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2 py-1 text-xs rounded-full 
                                             {% if tarea.estado == 'Pendiente' %}bg-yellow-100 text-yellow-800

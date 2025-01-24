@@ -83,11 +83,10 @@ DB_HOST=db-web-app
 DB_PORT=5432
 
 # Mailtrap configuration
-EMAIL_HOST=smtp.mailtrap.io
-EMAIL_PORT=2525
+EMAIL_HOST=
+EMAIL_PORT=
 EMAIL_HOST_USER=
 EMAIL_HOST_PASSWORD=
-EMAIL_USE_TLS=True
 ```
 
 ### Kubernetes
@@ -103,8 +102,7 @@ EMAIL_USE_TLS=True
 2. **Etiqueta las imágenes locales para que sean accesibles por Kubernetes**:
 
     ```sh
-    docker tag apv-backend:latest localhost:5000/apv-backend:latest
-    docker tag apv-frontend:latest localhost:5000/apv-frontend:latest
+    docker tag webapp-pm-web:latest localhost:5000/webapp-pm-backend:latest
     ```
 
 3. **Inicia un registro local de Docker** (si no tienes uno ya corriendo):
@@ -116,8 +114,7 @@ EMAIL_USE_TLS=True
 4. **Empuja las imágenes al registro local**:
 
     ```sh
-    docker push localhost:5000/apv-backend:latest
-    docker push localhost:5000/apv-frontend:latest
+    docker push localhost:5000/webapp-pm-backend:latest
     ```
 
 #### Deploy
