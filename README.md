@@ -215,4 +215,4 @@ Las contribuciones son bienvenidas. Por favor, abre un issue o envía un pull re
 
 ## Licencia
 
-Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
+Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo [`LICENSE`](LICENSE) para más detalles.
