@@ -46,12 +46,19 @@ git clone https://github.com/sandovaldavid/WebApp-PM.git
 cd WebApp-PM
 
 # Crear entorno conda
-conda create -n webapp-pm python=3.9
+conda create -n webapp-pm python=3.10
 conda activate webapp-pm
 
 # Instalar dependencias
 conda install --file requirements.txt
 conda install --file requirements-ml.txt
+
+# Crear entorno local en conda
+conda create -p ./env python=3.10
+conda activate ./env
+
+pip install -r requirements.txt
+pip install -r requirements-ml.txt
 ```
 
 ### ⚙️ Configuración
