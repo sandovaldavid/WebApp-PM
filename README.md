@@ -1,218 +1,154 @@
-# Gestión de Proyectos para Consultoría Informática
+# WebApp-PM: Gestión Inteligente de Proyectos 🚀
 
-Este proyecto es una aplicación web desarrollada en Django para la gestión de proyectos en una empresa de consultoría informática. La aplicación permite gestionar equipos, tareas, recursos, notificaciones, reportes y más.
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Django](https://img.shields.io/badge/Django-4.2+-green.svg)](https://www.djangoproject.com/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.0+-orange.svg)](https://tensorflow.org/)
+[![License](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](docker-compose.yml)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-blue.svg)](k8s/)
 
-## Estructura del Proyecto
+Sistema inteligente de gestión de proyectos informáticos con estimación de tiempos mediante redes neuronales LSTM 🧠
 
-- **auditoria/**: Módulo para la auditoría de acciones.
-- **dashboard/**: Módulo principal del dashboard.
-- **gestion_equipos/**: Gestión de equipos y miembros.
-- **gestion_proyectos/**: Gestión de proyectos y requerimientos.
-- **gestion_recursos/**: Gestión de recursos humanos y materiales.
-- **gestion_tareas/**: Gestión de tareas y su monitoreo.
-- **integracion/**: Integración con herramientas externas.
-- **notificaciones/**: Gestión de notificaciones y alertas.
-- **redes_neuronales/**: Modelos de redes neuronales para estimaciones.
-- **reporte/**: Generación de reportes.
-- **usuarios/**: Gestión de usuarios y roles.
-- **webapp/**: Configuración principal del proyecto Django.
+## ✨ Características
 
-## Instalación
+-   👥 **Gestión de Usuarios**: Sistema de roles y permisos
+-   📊 **Dashboard Interactivo**: Visualización en tiempo real
+-   📋 **Gestión de Proyectos**: Seguimiento completo del ciclo de vida
+-   ⏱️ **Estimación Inteligente**: Predicción de tiempos con LSTM
+-   📱 **Notificaciones**: Sistema de alertas en tiempo real
+-   📈 **Reportes Automáticos**: Generación de informes detallados
+-   🔄 **Integración**: Conexión con Jira y Trello
 
-1. Clona el repositorio:
+## 🛠️ Instalación
 
-    ```sh
-    git clone https://github.com/sandovaldavid/WebApp-PM.git
-    cd WebApp-PM
-    ```
-
-2. Crea y activa un entorno virtual:
-
-    ```sh
-    python -m venv env
-    source env/bin/activate  # En Windows usa `env\Scripts\activate`
-    ```
-
-3. Instala las dependencias:
-
-    ```sh
-    pip install -r requirements.txt
-    ```
-
-4. Realiza las migraciones:
-
-    ```sh
-    python manage.py migrate
-    ```
-
-5. Ejecuta el servidor de desarrollo:
-
-    ```sh
-    python manage.py runserver
-    ```
-
-## Uso
-
-### Scripts
-
-#### Limpiar Base de Datos
-
-``` sh
-python manage.py shell < script/clean_db.py     
-```
-
-#### Limpiar tablas y reiniciar contador de Id's
-
-``` sh
-python manage.py shell < script/clean_tables.py   
-```
-
-#### Poblar Base de Datos con datos de prueba
-
-``` sh
-python manage.py shell < script/data.py  
-```
-
-### Archivo `.env`
+### Usando Python venv
 
 ```sh
-DB_NAME=Db-Web-App-PM
-DB_USER=development
-DB_PASSWORD=123456
-DB_HOST=db-web-app
-DB_PORT=5432
+# Clonar el repositorio
+git clone https://github.com/sandovaldavid/WebApp-PM.git
+cd WebApp-PM
 
-# Mailtrap configuration
-EMAIL_HOST=
-EMAIL_PORT=
-EMAIL_HOST_USER=
-EMAIL_HOST_PASSWORD=
+# Crear entorno virtual
+python -m venv env
+source env/bin/activate  # Linux/MacOS
+env\Scripts\activate     # Windows
+
+# Instalar dependencias
+pip install -r requirements.txt
+pip install -r requirements-ml.txt
 ```
 
-### Kubernetes
+### Usando Conda
 
-#### Imagenes de forma local
+```sh
+# Clonar el repositorio
+git clone https://github.com/sandovaldavid/WebApp-PM.git
+cd WebApp-PM
 
-1. **Construye las imágenes locales con Docker Compose**:
+# Crear entorno conda
+conda create -n webapp-pm python=3.10
+conda activate webapp-pm
 
-    ```sh
-    docker-compose build
-    ```
+# Instalar dependencias
+conda install --file requirements.txt
+conda install --file requirements-ml.txt
 
-2. **Etiqueta las imágenes locales para que sean accesibles por Kubernetes**:
+# Crear entorno local en conda
+conda create -p ./env python=3.10
+conda activate ./env
 
-    ```sh
-    docker tag webapp-pm-web:latest localhost:5000/webapp-pm-backend:latest
-    ```
+pip install -r requirements.txt
+pip install -r requirements-ml.txt
+```
 
-3. **Inicia un registro local de Docker** (si no tienes uno ya corriendo):
+### ⚙️ Configuración
 
-    ```sh
-    docker run -d -p 5000:5000 --name registry registry:2
-    ```
+1. Configurar variables de entorno:
 
-4. **Empuja las imágenes al registro local**:
+```sh
+cp .env.example .env
+# Editar .env con tus configuraciones
+```
 
-    ```sh
-    docker push localhost:5000/webapp-pm-backend:latest
-    ```
+2. Inicializar la base de datos:
 
-#### Deploy
+```sh
+python manage.py migrate
+python manage.py createsuperuser
+```
 
-1. Primero, asegúrate de tener un cluster de Kubernetes funcionando (puedes usar Docker Desktop con Kubernetes habilitado):
+3. Cargar datos de prueba:
 
-    ```sh
-    # Verifica que Kubernetes está funcionando
-    kubectl cluster-info
-    ```
+```sh
+python manage.py shell < script/data.py
+```
 
-2. Crea el namespace para tu aplicación
+## 🚀 Uso
 
-    ```sh
-    kubectl create namespace webapp-pm
-    ```
+### Desarrollo local
 
-3. Aplica las configuraciones en orden
+```sh
+python manage.py runserver
+```
 
-    ```sh
-    # Aplicar configuraciones y secretos
-    kubectl apply -f k8s/config.yaml
+### Docker 🐳
 
-    # Aplicar storage para PostgreSQL
-    kubectl apply -f k8s/storage.yaml
+```sh
+docker-compose up --build
+```
 
-    # Aplicar deployment de PostgreSQL
-    kubectl apply -f k8s/postgres-deployment.yaml
+### Kubernetes ☸️
 
-    # Aplicar deployment de Django
-    kubectl apply -f k8s/django-deployment.yaml
+```sh
+kubectl create namespace webapp-pm
+kubectl apply -f k8s/
+```
 
-    # Aplicar servicios
-    kubectl apply -f k8s/services.yaml
-    ```
+## 🧠 Modelo de ML
 
-4. Verifica que todo esté funcionando:
+El sistema utiliza una red neuronal LSTM para estimar la duración de tareas basándose en:
 
-    ```sh
-    # Ver todos los recursos en tu namespace
-    kubectl get all -n webapp-pm
+-   Complejidad del proyecto
+-   Prioridad
+-   Tipo de tarea
+-   Histórico de proyectos similares
 
-    # Ver pods
-    kubectl get pods -n webapp-pm
+El modelo se encuentra en redes_neuronales y se entrena automáticamente con datos históricos.
 
-    # Ver servicios
-    kubectl get services -n webapp-pm
+## 🤝 Contribuciones
 
-    # Ver logs de un pod específico (reemplaza <pod-name> con el nombre real del pod)
-    kubectl logs -n webapp-pm <pod-name>
-    ```
+1. Fork el repositorio
+2. Crea una rama (`git checkout -b feature/amazing`)
+3. Commit tus cambios (`git commit -m 'Add amazing feature'`)
+4. Push a la rama (`git push origin feature/amazing`)
+5. Abre un Pull Request
 
-5. Para acceder a tu aplicación:
+### Guía de Contribución
 
-    ```sh
-    # La aplicación estará disponible en:
-    http://localhost
-    ```
+-   Sigue el estilo de código PEP 8
+-   Añade pruebas para nueva funcionalidad
+-   Actualiza la documentación según sea necesario
+-   Verifica que los tests pasen antes de enviar PR
 
-6. Comandos útiles para diagnóstico
+## 📝 Licencia
 
-    ```sh
-    # Describir un pod (para ver errores detallados)
-    kubectl describe pod -n webapp-pm <pod-name>
+Este proyecto está bajo la Licencia GNU Affero General Public License v3.0 - ver el archivo [LICENSE](LICENSE) para detalles.
 
-    # Ver logs en tiempo real
-    kubectl logs -f -n webapp-pm <pod-name>
+También debe actualizarse el badge de la licencia en la parte superior:
 
-    # Ejecutar comandos dentro de un pod
-    kubectl exec -it -n webapp-pm <pod-name> -- /bin/bash
-    ```
+[![License](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
-7. Para detener y limpiar
+## 📊 Estructura del Proyecto
 
-    ```sh
-    # Eliminar todos los recursos
-    kubectl delete -f k8s/
+-   📁 **auditoria/**: Sistema de auditoría
+-   📁 **dashboard/**: Interfaz principal
+-   📁 **gestion_equipos/**: Gestión de equipos
+-   📁 **gestion_proyectos/**: Control de proyectos
+-   📁 **gestion_tareas/**: Administración de tareas
+-   📁 **redes_neuronales/**: Modelos LSTM
+-   📁 **webapp/**: Configuración Django
 
-    # O eliminar el namespace completo
-    kubectl delete namespace webapp-pm
-    ```
+## 📫 Contacto
 
-## Evaluación del Proyecto
-
-### Funcionalidades Implementadas
-
-- **Gestión de Usuarios**: Registro, autenticación y roles.
-- **Gestión de Proyectos**: Creación y seguimiento de proyectos.
-- **Gestión de Tareas**: Asignación y monitoreo de tareas.
-- **Gestión de Recursos**: Administración de recursos humanos y materiales.
-- **Notificaciones**: Alertas y notificaciones en tiempo real.
-- **Reportes**: Generación de reportes detallados.
-- **Integración**: Conexión con herramientas externas como Jira y Trello.
-
-## Contribuciones
-
-Las contribuciones son bienvenidas. Por favor, abre un issue o envía un pull request para discutir cualquier cambio que desees realizar.
-
-## Licencia
-
-Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
+-   Crear un [issue](https://github.com/sandovaldavid/WebApp-PM/issues)
+-   Enviar un PR

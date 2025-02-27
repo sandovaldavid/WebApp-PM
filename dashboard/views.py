@@ -48,7 +48,7 @@ def dashboard(request):
             0.0,  # Si no hay tareas, el progreso es 0.0
         ),
     ).order_by("-fechacreacion")[
-        :3
+        :6
     ]  # Ordenar por fecha de creación descendente y obtener los primeros 3 proyectos
 
     tareas_estadisticas = {
@@ -58,32 +58,23 @@ def dashboard(request):
     }
 
     # Calcular resumen financiero
-    resumen_financiero = {
-        "presupuesto_total": Proyecto.objects.aggregate(
-            total=Coalesce(
-                Sum("presupuesto", output_field=DecimalField()),
-                0,
-                output_field=DecimalField(),
-            )
-        )["total"],
-        "presupuesto_utilizado": Proyecto.objects.aggregate(
-            utilizado=Coalesce(
-                Sum("presupuestoutilizado", output_field=DecimalField()),
-                0,
-                output_field=DecimalField(),
-            )
-        )["utilizado"],
-        "presupuesto_restante": Proyecto.objects.aggregate(
-            restante=Coalesce(
-                Sum(
-                    F("presupuesto") - F("presupuestoutilizado"),
-                    output_field=DecimalField(),
-                ),
-                0,
-                output_field=DecimalField(),
-            )
-        )["restante"],
-    }
+    resumen_financiero = Proyecto.objects.aggregate(
+        presupuesto_total=Coalesce(
+            Sum('presupuesto', output_field=DecimalField(max_digits=15, decimal_places=2)),
+            0,
+            output_field=DecimalField(max_digits=15, decimal_places=2)
+        ),
+        presupuesto_utilizado=Coalesce(
+            Sum('presupuestoutilizado', output_field=DecimalField(max_digits=15, decimal_places=2)),
+            0,
+            output_field=DecimalField(max_digits=15, decimal_places=2)
+        )
+    )
+
+    resumen_financiero['presupuesto_restante'] = (
+        resumen_financiero['presupuesto_total'] - 
+        resumen_financiero['presupuesto_utilizado']
+    )
 
     # Calcular distribución de recursos
     distribucion_recursos = {
