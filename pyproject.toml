@@ -13,7 +13,7 @@ exclude = '''
   | buck-out
   | build
   | dist
-  | .*/migrations/
+  | .*/migrations/*
 )/
 '''
 skip-string-normalization = true
