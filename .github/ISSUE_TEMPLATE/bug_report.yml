@@ -1,0 +1,46 @@
+name: Reporte de Bug
+description: Crear un reporte para ayudarnos a mejorar
+title: "[BUG]: "
+labels: ["bug"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por tomarte el tiempo de reportar un bug!
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripción del Bug
+      description: Una descripción clara y concisa del problema
+      placeholder: Cuando intento hacer X, ocurre Y en lugar de Z
+    validations:
+      required: true
+  - type: dropdown
+    id: modulo
+    attributes:
+      label: Módulo afectado
+      description: ¿Qué parte del sistema está afectada?
+      options:
+        - Dashboard
+        - Gestión de Proyectos
+        - Gestión de Tareas
+        - Gestión de Equipos
+        - Gestión de Recursos
+        - Redes Neuronales/IA
+        - Reportes
+        - Otro
+    validations:
+      required: true
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducir
+      description: ¿Cómo podemos reproducir este bug?
+      placeholder: |
+        1. Ir a '...'
+        2. Hacer clic en '....'
+        3. Desplazarse hasta '....'
+        4. Ver el error
+    validations:
+      required: true
