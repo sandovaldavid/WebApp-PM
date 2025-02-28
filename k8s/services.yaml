@@ -6,7 +6,7 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 80 # Puerto del servicio que se expone
+  - port: 8000 # Puerto del servicio que se expone
     targetPort: 8000
   selector:
     app: django-app

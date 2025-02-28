@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentación de WebApp-PM
+    url: https://tu-url-de-documentacion.com
+    about: Consulta la documentación oficial antes de reportar un problema
+  - name: Preguntas y Discusiones
+    url: https://github.com/sandovaldavid/WebApp-PM/discussions
+    about: Por favor, utiliza el área de discusiones para preguntas y debates generales

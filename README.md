@@ -80,7 +80,7 @@ python manage.py createsuperuser
 3. Cargar datos de prueba:
 
 ```sh
-python manage.py shell < script/data.py
+python manage.py shell < script/data_v2.py
 ```
 
 ## 🚀 Uso
