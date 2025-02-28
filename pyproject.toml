@@ -13,7 +13,7 @@ exclude = '''
   | buck-out
   | build
   | dist
-  | node_modules
+  | .*/migrations/
 )/
 '''
 skip-string-normalization = true
