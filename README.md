@@ -124,6 +124,13 @@ El proyecto utiliza herramientas de formateo automático para mantener un estilo
 - **Black**: Para formatear archivos Python
 - **Prettier**: Para formatear archivos HTML, CSS y JavaScript
 
+### Ejecutar permisos de los scripts
+
+```sh
+chmod +x script/check-format.sh
+chmod +x script/format.sh
+```
+
 ### Ejecutar el Formateo
 
 Para formatear todo el código del proyecto:
