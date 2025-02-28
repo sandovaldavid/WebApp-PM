@@ -1,0 +1,18 @@
+[tool.black]
+line-length = 88
+include = '\.pyx?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | env
+  | _build
+  | buck-out
+  | build
+  | dist
+  | node_modules
+)/
+'''
