@@ -6,6 +6,7 @@ from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+
 # Cambiar este import:
 # from redes_neuronales.ml_model import EstimacionModel, DataPreprocessor
 import tensorflow as tf
@@ -939,19 +940,20 @@ def crear_tarea_programada(request):
 def eliminar_tarea_programada(request):
     return None
 
+
 @login_required
 def estimar_tarea(request):
     """Vista para estimar la duración de una tarea usando el modelo ML"""
     if request.method == "POST":
         try:
             # Configurar rutas relativas
-            #BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             REDES_DIR = os.path.join(BASE_DIR, 'redes_neuronales')
             MODEL_DIR = os.path.join(BASE_DIR, "redes_neuronales", "models")
 
             # Verificar que existe el directorio
-            #if not os.path.exists(MODEL_DIR):
+            # if not os.path.exists(MODEL_DIR):
             #   raise FileNotFoundError("No se encuentra el directorio de modelos")
 
             # Agregar la ruta al path de Python
@@ -968,7 +970,12 @@ def estimar_tarea(request):
             SCALER_REQ_PATH = os.path.join(MODEL_DIR, "scaler_req.pkl")
 
             # Verificar si los archivos existen
-            for path in [MODEL_PATH, PREPROCESSOR_PATH, SCALER_NUM_PATH, SCALER_REQ_PATH]:
+            for path in [
+                MODEL_PATH,
+                PREPROCESSOR_PATH,
+                SCALER_NUM_PATH,
+                SCALER_REQ_PATH,
+            ]:
                 if not os.path.exists(path):
                     raise FileNotFoundError(f"No se encuentra el archivo: {path}")
 
@@ -988,7 +995,9 @@ def estimar_tarea(request):
             X_num = np.array([[complejidad, prioridad]], dtype=np.float32)
 
             # Preparar datos de requerimiento (4 características)
-            X_req = np.array([[complejidad, complejidad, 1, prioridad]], dtype=np.float32)
+            X_req = np.array(
+                [[complejidad, complejidad, 1, prioridad]], dtype=np.float32
+            )
 
             # Cargar preprocessors
             preprocessor = joblib.load(PREPROCESSOR_PATH)
@@ -1014,30 +1023,21 @@ def estimar_tarea(request):
 
             # Realizar predicción usando predict_individual_task
             resultado = model.predict_individual_task(
-                X_num_norm, 
-                np.array(X_task).reshape(-1, 1), 
-                X_req_norm
+                X_num_norm, np.array(X_task).reshape(-1, 1), X_req_norm
             )
 
             # Obtener el tiempo estimado y redondear a entero
             tiempo_estimado = max(1, round(float(resultado['tiempo_estimado'])))
 
-            return JsonResponse({
-                'duracion_estimada': tiempo_estimado,
-                'success': True
-            })
+            return JsonResponse({'duracion_estimada': tiempo_estimado, 'success': True})
 
         except FileNotFoundError as e:
-            return JsonResponse({
-                'error': f"Error de archivo: {str(e)}",
-                'success': False
-            })
+            return JsonResponse(
+                {'error': f"Error de archivo: {str(e)}", 'success': False}
+            )
         except Exception as e:
-            return JsonResponse({
-                'error': f"Error inesperado: {str(e)}",
-                'success': False
-            })
+            return JsonResponse(
+                {'error': f"Error inesperado: {str(e)}", 'success': False}
+            )
 
     return JsonResponse({'error': 'Método no permitido', 'success': False})
-
-

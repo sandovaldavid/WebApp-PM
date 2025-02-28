@@ -1,0 +1,52 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    name: Verificar formato de código
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v3
+    
+    - name: Configurar Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+    
+    - name: Instalar dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install black
+    
+    - name: Verificar formato de código Python
+      run: |
+        python -m black --check .
+      id: black
+      continue-on-error: true
+    
+    - name: Crear comentario en PR si hay problemas de formato
+      if: ${{ github.event_name == 'pull_request' && steps.black.outcome == 'failure' }}
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '⚠️ **Formato de código incorrecto**: El código Python no cumple con las reglas de formateo de Black. Por favor ejecuta `./script/format.sh` antes de enviar tu PR.'
+          })
+    
+    - name: Fallar workflow si hay problemas de formato
+      if: steps.black.outcome == 'failure'
+      run: |
+        echo "❌ Código Python no formateado correctamente. Ejecuta './script/format.sh' localmente para corregir los problemas."
+        exit 1

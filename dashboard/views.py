@@ -60,20 +60,26 @@ def dashboard(request):
     # Calcular resumen financiero
     resumen_financiero = Proyecto.objects.aggregate(
         presupuesto_total=Coalesce(
-            Sum('presupuesto', output_field=DecimalField(max_digits=15, decimal_places=2)),
+            Sum(
+                'presupuesto',
+                output_field=DecimalField(max_digits=15, decimal_places=2),
+            ),
             0,
-            output_field=DecimalField(max_digits=15, decimal_places=2)
+            output_field=DecimalField(max_digits=15, decimal_places=2),
         ),
         presupuesto_utilizado=Coalesce(
-            Sum('presupuestoutilizado', output_field=DecimalField(max_digits=15, decimal_places=2)),
+            Sum(
+                'presupuestoutilizado',
+                output_field=DecimalField(max_digits=15, decimal_places=2),
+            ),
             0,
-            output_field=DecimalField(max_digits=15, decimal_places=2)
-        )
+            output_field=DecimalField(max_digits=15, decimal_places=2),
+        ),
     )
 
     resumen_financiero['presupuesto_restante'] = (
-        resumen_financiero['presupuesto_total'] - 
-        resumen_financiero['presupuesto_utilizado']
+        resumen_financiero['presupuesto_total']
+        - resumen_financiero['presupuesto_utilizado']
     )
 
     # Calcular distribución de recursos

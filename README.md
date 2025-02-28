@@ -115,6 +115,45 @@ El sistema utiliza una red neuronal LSTM para estimar la duración de tareas bas
 
 El modelo se encuentra en redes_neuronales y se entrena automáticamente con datos históricos.
 
+## 🧹 Formateo de Código
+
+El proyecto utiliza herramientas de formateo automático para mantener un estilo de código consistente.
+
+### Herramientas de Formateo
+
+- **Black**: Para formatear archivos Python
+- **Prettier**: Para formatear archivos HTML, CSS y JavaScript
+
+### Ejecutar permisos de los scripts
+
+```sh
+chmod +x script/check-format.sh
+chmod +x script/format.sh
+```
+
+### Ejecutar el Formateo
+
+Para formatear todo el código del proyecto:
+
+```sh
+# Formatear todo el código
+./script/format.sh
+```
+
+Para verificar el formato sin aplicar cambios:
+
+```sh
+# Verificar el formato (sin modificar archivos)
+./script/check-format.sh
+```
+
+### Instalación de las Herramientas de Formateo
+
+```sh
+# Instalar Black para Python
+pip install black
+```
+
 ## 🤝 Contribuciones
 
 1. Fork el repositorio

@@ -18,7 +18,7 @@ from dashboard.models import (
     Tarearecurso,
     Tiporecurso,
     Usuario,
-    Actividad
+    Actividad,
 )
 
 print("Generando datos de prueba...")

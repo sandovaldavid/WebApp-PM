@@ -34,42 +34,34 @@ try:
     usuarios_admin = generar_usuarios(1, "Administrador")
     if usuarios_admin:
         usuario_admin = usuarios_admin[0]
-        admin = Administrador.objects.create(
-            idusuario=usuario_admin
-        )
+        admin = Administrador.objects.create(idusuario=usuario_admin)
         print("Administrador creados exitosamente")
     else:
         print("No se pudo crear el usuario administrador")
-    
+
     # Crear usuario Jefe de Proyecto
     JefeProyecto = generar_usuarios(5, "Jefe de Proyecto")
     if JefeProyecto:
         for jefe in JefeProyecto:
-            Jefeproyecto.objects.create(
-                idusuario=jefe
-            )
+            Jefeproyecto.objects.create(idusuario=jefe)
         print("Jefes de Proyecto creados exitosamente")
     else:
         print("No se pudieron crear los Jefes de Proyecto")
-        
+
     # Crear usuardesarroladores ios para Recursos Humanos
     desarroladores = generar_usuarios(10, "Desarrollador")
     if desarroladores:
         for desarrolador in desarroladores:
-            Desarrollador.objects.create(
-                idusuario=desarrolador
-            )
+            Desarrollador.objects.create(idusuario=desarrolador)
         print("Desarroladores creados exitosamente")
     else:
         print("No se pudieron crear los Desarroladores")
-    
+
     # Crear testes para Recursos Humanos
     testers = generar_usuarios(10, "Desarrollador")
     if testers:
         for tester in testers:
-            Tester.objects.create(
-                idusuario=tester
-            )
+            Tester.objects.create(idusuario=tester)
         print("Testers creados exitosamente")
     else:
         print("No se pudieron crear los Testers")
@@ -94,7 +86,9 @@ tipo_hardware = Tiporecurso.objects.create(
     nametiporecurso="Hardware",
     descripcion="Equipos y dispositivos físicos utilizados en proyectos.",
 )
-print("---------------------( Tipos de Recurso creados exitosamente )---------------------")
+print(
+    "---------------------( Tipos de Recurso creados exitosamente )---------------------"
+)
 
 print("---------------------( Creando Recursos ...)---------------------")
 
@@ -105,7 +99,7 @@ frontend_skills = [
     "Vue.js, Nuxt.js, TypeScript, Webpack, Jest, CSS Grid, Flexbox, UI/UX principles",
     "React Native, Next.js, Material-UI, Tailwind CSS, GraphQL, PWA development",
     "Angular, RxJS, SCSS, Cypress, WebPack, Performance optimization, Cross-browser compatibility",
-    "JavaScript frameworks, CSS preprocessors, Component libraries, Web accessibility, SEO best practices"
+    "JavaScript frameworks, CSS preprocessors, Component libraries, Web accessibility, SEO best practices",
 ]
 
 backend_skills = [
@@ -113,7 +107,7 @@ backend_skills = [
     "Node.js, Express.js, MongoDB, GraphQL, REST APIs, Microservices, RabbitMQ, Kubernetes",
     "Java, Spring Boot, Hibernate, MySQL, JUnit, Maven, Jenkins, Swagger, OAuth2",
     "PHP, Laravel, Symfony, MariaDB, Memcached, RESTful Services, Unit Testing, Git flow",
-    "Python, FastAPI, SQLAlchemy, Redis, Docker, Kubernetes, gRPC, Message Queues"
+    "Python, FastAPI, SQLAlchemy, Redis, Docker, Kubernetes, gRPC, Message Queues",
 ]
 
 qa_skills = [
@@ -137,7 +131,7 @@ frontend_names = [
     "Desarrollador Frontend Mobile",
     "Frontend Architect",
     "Frontend Performance Engineer",
-    "Desarrollador Frontend Full Stack"
+    "Desarrollador Frontend Full Stack",
 ]
 
 backend_names = [
@@ -150,7 +144,7 @@ backend_names = [
     "Desarrollador API REST",
     "Backend Cloud Engineer",
     "Ingeniero Backend Go",
-    "Backend Systems Developer"
+    "Backend Systems Developer",
 ]
 
 Recurso.objects.create(
@@ -165,8 +159,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[0]),
     idusuario=desarroladores[0],
     cargo=frontend_names[0],
-    habilidades = "Diseño de interfaces, experiencia de usuario, prototipado",
-    tarifahora = 25.00,
+    habilidades="Diseño de interfaces, experiencia de usuario, prototipado",
+    tarifahora=25.00,
 )
 
 Recurso.objects.create(
@@ -181,8 +175,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="DevOps Engineer"),
     idusuario=desarroladores[1],
     cargo="DevOps Engineer",
-    habilidades = "Automatización de despliegues, integración continua, monitoreo",
-    tarifahora = 50.00,
+    habilidades="Automatización de despliegues, integración continua, monitoreo",
+    tarifahora=50.00,
 )
 
 Recurso.objects.create(
@@ -197,8 +191,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[1]),
     idusuario=desarroladores[2],
     cargo=frontend_names[1],
-    habilidades = frontend_skills[0],
-    tarifahora = 40.00,
+    habilidades=frontend_skills[0],
+    tarifahora=40.00,
 )
 
 Recurso.objects.create(
@@ -213,8 +207,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[2]),
     idusuario=desarroladores[3],
     cargo=frontend_names[2],
-    habilidades = frontend_skills[1],
-    tarifahora = 40.00,
+    habilidades=frontend_skills[1],
+    tarifahora=40.00,
 )
 
 Recurso.objects.create(
@@ -229,8 +223,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[3]),
     idusuario=desarroladores[4],
     cargo=frontend_names[3],
-    habilidades = frontend_skills[2],
-    tarifahora = 40.00,
+    habilidades=frontend_skills[2],
+    tarifahora=40.00,
 )
 
 Recurso.objects.create(
@@ -245,8 +239,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso=backend_names[0]),
     idusuario=desarroladores[5],
     cargo=backend_names[0],
-    habilidades = backend_skills[0],
-    tarifahora = 60.00,
+    habilidades=backend_skills[0],
+    tarifahora=60.00,
 )
 
 Recurso.objects.create(
@@ -261,8 +255,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso=backend_names[1]),
     idusuario=desarroladores[6],
     cargo=backend_names[1],
-    habilidades = backend_skills[1],
-    tarifahora = 60.00,
+    habilidades=backend_skills[1],
+    tarifahora=60.00,
 )
 
 Recurso.objects.create(
@@ -277,8 +271,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso=backend_names[2]),
     idusuario=desarroladores[7],
     cargo=backend_names[2],
-    habilidades = backend_skills[2],
-    tarifahora = 60.00,
+    habilidades=backend_skills[2],
+    tarifahora=60.00,
 )
 
 Recurso.objects.create(
@@ -293,8 +287,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso=backend_names[3]),
     idusuario=desarroladores[8],
     cargo=backend_names[3],
-    habilidades = backend_skills[3],
-    tarifahora = 60.00,
+    habilidades=backend_skills[3],
+    tarifahora=60.00,
 )
 
 Recurso.objects.create(
@@ -309,8 +303,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso=backend_names[4]),
     idusuario=desarroladores[9],
     cargo=backend_names[4],
-    habilidades = backend_skills[4],
-    tarifahora = 60.00,
+    habilidades=backend_skills[4],
+    tarifahora=60.00,
 )
 
 print("Creando recursos humanos - Testers...")
@@ -327,8 +321,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Analista QA"),
     idusuario=testers[0],
     cargo="Analista QA",
-    habilidades = qa_skills[0],
-    tarifahora = 30.00,
+    habilidades=qa_skills[0],
+    tarifahora=30.00,
 )
 
 Recurso.objects.create(
@@ -343,8 +337,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="QA Engineer Senior"),
     idusuario=testers[0],
     cargo="QA Engineer Senior",
-    habilidades = qa_skills[1],
-    tarifahora = 70.00,
+    habilidades=qa_skills[1],
+    tarifahora=70.00,
 )
 
 Recurso.objects.create(
@@ -359,8 +353,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Analista de Pruebas Automatizadas"),
     idusuario=testers[0],
     cargo="Analista de Pruebas Automatizadas",
-    habilidades = qa_skills[2],
-    tarifahora = 75.00,
+    habilidades=qa_skills[2],
+    tarifahora=75.00,
 )
 
 Recurso.objects.create(
@@ -375,8 +369,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Ingeniero de Control de Calidad"),
     idusuario=testers[0],
     cargo="Ingeniero de Control de Calidad",
-    habilidades = qa_skills[3],
-    tarifahora = 65.00,
+    habilidades=qa_skills[3],
+    tarifahora=65.00,
 )
 
 Recurso.objects.create(
@@ -391,8 +385,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Tester de Aplicaciones Web"),
     idusuario=testers[0],
     cargo="Tester de Aplicaciones Web",
-    habilidades = qa_skills[4],
-    tarifahora = 75.00,
+    habilidades=qa_skills[4],
+    tarifahora=75.00,
 )
 
 Recurso.objects.create(
@@ -407,8 +401,8 @@ Recursohumano.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="QA Automation Engineer"),
     idusuario=testers[0],
     cargo="QA Automation Engineer",
-    habilidades = qa_skills[5],
-    tarifahora = 80.00,
+    habilidades=qa_skills[5],
+    tarifahora=80.00,
 )
 print("Creando recursos hardware y software...")
 
@@ -423,11 +417,9 @@ Recurso.objects.create(
 Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Monitor 4K"),
     costounidad=5,
-    fechacompra = fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+    fechacompra=fake.date_time_between(
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -441,11 +433,9 @@ Recurso.objects.create(
 Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Servidor de Desarrollo"),
     costounidad=5,
-    fechacompra = fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+    fechacompra=fake.date_time_between(
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 # Recursos Software
@@ -460,11 +450,9 @@ Recurso.objects.create(
 Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Adobe Creative Suite"),
     costounidad=200,
-    fechacompra = fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+    fechacompra=fake.date_time_between(
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -478,11 +466,9 @@ Recurso.objects.create(
 Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia IDE Premium"),
     costounidad=300,
-    fechacompra = fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+    fechacompra=fake.date_time_between(
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -496,11 +482,9 @@ Recurso.objects.create(
 Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Estación de Trabajo"),
     costounidad=500,
-    fechacompra = fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+    fechacompra=fake.date_time_between(
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -514,11 +498,9 @@ Recurso.objects.create(
 Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Base de Datos Enterprise"),
     costounidad=600,
-    fechacompra = fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+    fechacompra=fake.date_time_between(
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -533,10 +515,8 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Antivirus Empresarial"),
     costounidad=100,
     fechacompra=fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -548,13 +528,13 @@ Recurso.objects.create(
 )
 
 Recursomaterial.objects.create(
-    idrecurso=Recurso.objects.get(nombrerecurso="Router Empresarial de Alto Rendimiento"),
+    idrecurso=Recurso.objects.get(
+        nombrerecurso="Router Empresarial de Alto Rendimiento"
+    ),
     costounidad=1000,
     fechacompra=fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -569,10 +549,8 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Autodesk Maya"),
     costounidad=500,
     fechacompra=fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -587,10 +565,8 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="NAS Enterprise Storage"),
     costounidad=5000,
     fechacompra=fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -605,10 +581,8 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Jira Software"),
     costounidad=300,
     fechacompra=fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -623,10 +597,8 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia TestComplete"),
     costounidad=1500,
     fechacompra=fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -641,10 +613,8 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Sistema de Videoconferencia 4K"),
     costounidad=80,
     fechacompra=fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 Recurso.objects.create(
@@ -659,10 +629,8 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia VMware Enterprise"),
     costounidad=500,
     fechacompra=fake.date_time_between(
-        start_date='-3y',
-        end_date='-2y',
-        tzinfo=timezone.get_current_timezone()
-    )
+        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+    ),
 )
 
 print("Recursos creados exitosamente")
@@ -939,7 +907,9 @@ Miembro.objects.create(
 )
 
 Miembro.objects.create(
-    idrecurso=Recurso.objects.get(nombrerecurso="Router Empresarial de Alto Rendimiento"),
+    idrecurso=Recurso.objects.get(
+        nombrerecurso="Router Empresarial de Alto Rendimiento"
+    ),
     idequipo=Equipo.objects.get(nombreequipo="Equipo de DevOps"),
 )
 
@@ -1131,72 +1101,72 @@ Notificacion.objects.create(
 Historialnotificacion.objects.create(
     idnotificacion=Notificacion.objects.get(
         idusuario=Usuario.objects.get(idusuario=2),
-        mensaje="Revisión del módulo de control de inventarios requerida para el proyecto 'Sistema de Gestión de Inventarios'"
+        mensaje="Revisión del módulo de control de inventarios requerida para el proyecto 'Sistema de Gestión de Inventarios'",
     ),
-    fechalectura="2024-01-11T10:00:00Z"
+    fechalectura="2024-01-11T10:00:00Z",
 )
 
 # Plataforma E-learning
 Historialnotificacion.objects.create(
     idnotificacion=Notificacion.objects.get(
         idusuario=Usuario.objects.get(idusuario=3),
-        mensaje="Validación de módulos de cursos interactivos pendiente en 'Plataforma E-learning'"
+        mensaje="Validación de módulos de cursos interactivos pendiente en 'Plataforma E-learning'",
     ),
-    fechalectura="2024-01-16T11:00:00Z"
+    fechalectura="2024-01-16T11:00:00Z",
 )
 
 # App Móvil de Delivery
 Historialnotificacion.objects.create(
     idnotificacion=Notificacion.objects.get(
         idusuario=Usuario.objects.get(idusuario=1),
-        mensaje="Integración de pasarela de pagos requiere revisión urgente - App Móvil de Delivery"
+        mensaje="Integración de pasarela de pagos requiere revisión urgente - App Móvil de Delivery",
     ),
-    fechalectura="2024-01-21T10:00:00Z"
+    fechalectura="2024-01-21T10:00:00Z",
 )
 
 # Sistema de Business Intelligence
 Historialnotificacion.objects.create(
     idnotificacion=Notificacion.objects.get(
         idusuario=Usuario.objects.get(idusuario=2),
-        mensaje="Implementación de dashboards analíticos pendiente de aprobación"
+        mensaje="Implementación de dashboards analíticos pendiente de aprobación",
     ),
-    fechalectura="2024-02-02T11:00:00Z"
+    fechalectura="2024-02-02T11:00:00Z",
 )
 
 # Portal de Atención al Cliente
 Historialnotificacion.objects.create(
     idnotificacion=Notificacion.objects.get(
         idusuario=Usuario.objects.get(idusuario=3),
-        mensaje="Pruebas del sistema de chat en tiempo real programadas para mañana"
+        mensaje="Pruebas del sistema de chat en tiempo real programadas para mañana",
     ),
-    fechalectura="2024-02-06T10:00:00Z"
+    fechalectura="2024-02-06T10:00:00Z",
 )
 
 # Sistema de Gestión Financiera
 Historialnotificacion.objects.create(
     idnotificacion=Notificacion.objects.get(
         idusuario=Usuario.objects.get(idusuario=1),
-        mensaje="Reunión de inicio del proyecto 'Sistema de Gestión Financiera' - Presentación de requerimientos"
+        mensaje="Reunión de inicio del proyecto 'Sistema de Gestión Financiera' - Presentación de requerimientos",
     ),
-    fechalectura="2024-02-11T10:00:00Z"
+    fechalectura="2024-02-11T10:00:00Z",
 )
 
 # Portal de Gestión de Proveedores
 Historialnotificacion.objects.create(
     idnotificacion=Notificacion.objects.get(
         idusuario=Usuario.objects.get(idusuario=2),
-        mensaje="Review del diseño de la plataforma de proveedores programada"
+        mensaje="Review del diseño de la plataforma de proveedores programada",
     ),
-    fechalectura="2024-03-02T11:00:00Z"
+    fechalectura="2024-03-02T11:00:00Z",
 )
 
 # CRM Empresarial Integrado
 Historialnotificacion.objects.create(
     idnotificacion=Notificacion.objects.get(
         idusuario=Usuario.objects.get(idusuario=3),
-        mensaje="Kickoff del proyecto CRM Empresarial - Presentación del equipo"
+        mensaje="Kickoff del proyecto CRM Empresarial - Presentación del equipo",
     ),
-    fechalectura="2024-04-02T10:00:00Z"
+    fechalectura="2024-04-02T10:00:00Z",
 )
 
 # Sistema de Gestión de Inventarios
@@ -2527,7 +2497,9 @@ Historialtarea.objects.create(
 )
 
 Historialtarea.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Implementación de webhooks para actualizaciones"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Implementación de webhooks para actualizaciones"
+    ),
     fechacambio="2024-02-16T11:00:00Z",
     descripcioncambio="Configuración inicial del sistema de webhooks",
 )
@@ -2553,7 +2525,9 @@ Historialtarea.objects.create(
 )
 
 Historialtarea.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de interfaz de videoconferencias"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de interfaz de videoconferencias"
+    ),
     fechacambio="2024-08-01T09:00:00Z",
     descripcioncambio="Diseño de interfaz principal completado",
 )
@@ -2573,13 +2547,17 @@ Historialtarea.objects.create(
 
 # Historial para App Móvil de Delivery
 Historialtarea.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Implementación de tracking GPS en tiempo real"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Implementación de tracking GPS en tiempo real"
+    ),
     fechacambio="2024-10-16T13:00:00Z",
     descripcioncambio="Integración con servicios de geolocalización iniciada",
 )
 
 Historialtarea.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de visualización de rutas en mapa"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de visualización de rutas en mapa"
+    ),
     fechacambio="2024-11-01T09:00:00Z",
     descripcioncambio="Implementación de mapas interactivos en proceso",
 )
@@ -2638,7 +2616,9 @@ Historialtarea.objects.create(
 
 # Recursos Humanos - Frontend
 Tarearecurso.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de interfaz de videoconferencias"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de interfaz de videoconferencias"
+    ),
     idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[0]),
     cantidad=1,
 )
@@ -2657,7 +2637,9 @@ Tarearecurso.objects.create(
 )
 
 Tarearecurso.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Implementación de webhooks para actualizaciones"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Implementación de webhooks para actualizaciones"
+    ),
     idrecurso=Recurso.objects.get(nombrerecurso=backend_names[1]),
     cantidad=1,
 )
@@ -2735,7 +2717,9 @@ Tarearecurso.objects.create(
 )
 
 Tarearecurso.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de programación de reportes"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de sistema de programación de reportes"
+    ),
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia TestComplete"),
     cantidad=1,
 )
@@ -2755,8 +2739,12 @@ Tarearecurso.objects.create(
 
 # Network Infrastructure
 Tarearecurso.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de integración con facturación"),
-    idrecurso=Recurso.objects.get(nombrerecurso="Router Empresarial de Alto Rendimiento"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de API de integración con facturación"
+    ),
+    idrecurso=Recurso.objects.get(
+        nombrerecurso="Router Empresarial de Alto Rendimiento"
+    ),
     cantidad=1,
 )
 
@@ -2769,14 +2757,18 @@ Tarearecurso.objects.create(
 
 # Backend Development
 Tarearecurso.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Implementación de algoritmos de machine learning"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Implementación de algoritmos de machine learning"
+    ),
     idrecurso=Recurso.objects.get(nombrerecurso=backend_names[2]),
     cantidad=1,
 )
 
 # Frontend Development
 Tarearecurso.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de interfaz de videoconferencias"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de interfaz de videoconferencias"
+    ),
     idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[2]),
     cantidad=1,
 )
@@ -2790,7 +2782,9 @@ Tarearecurso.objects.create(
 
 # Project Management Tools
 Tarearecurso.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Implementación de sistema de notificaciones"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Implementación de sistema de notificaciones"
+    ),
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Jira Software"),
     cantidad=1,
 )
@@ -2804,7 +2798,7 @@ Tarearecurso.objects.create(
 
 Tarearecurso.objects.create(
     idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de inventario"),
-    idrecurso=Recurso.objects.get(nombrerecurso=backend_names[1]), 
+    idrecurso=Recurso.objects.get(nombrerecurso=backend_names[1]),
     cantidad=1,
 )
 
@@ -2816,7 +2810,9 @@ Tarearecurso.objects.create(
 )
 
 Tarearecurso.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de interfaz de videoconferencias"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de interfaz de videoconferencias"
+    ),
     idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[1]),
     cantidad=1,
 )
@@ -2862,7 +2858,9 @@ Tarearecurso.objects.create(
 
 # Management and Collaboration Tools
 Tarearecurso.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Implementación de sistema de notificaciones"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Implementación de sistema de notificaciones"
+    ),
     idrecurso=Recurso.objects.get(nombrerecurso="Python/Django Developer"),
     cantidad=1,
 )
@@ -2910,7 +2908,9 @@ Alerta.objects.create(
 )
 
 Alerta.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Implementación de webhooks para actualizaciones"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Implementación de webhooks para actualizaciones"
+    ),
     tipoalerta="bloqueo",
     mensaje="Dependencia bloqueante con servicios externos.",
     activa=True,
@@ -2936,7 +2936,9 @@ Alerta.objects.create(
 
 # Integración con sistema de facturación
 Alerta.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de integración con facturación"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de API de integración con facturación"
+    ),
     tipoalerta="bloqueo",
     mensaje="Sistema de facturación no disponible para pruebas.",
     activa=True,
@@ -2987,7 +2989,9 @@ Alerta.objects.create(
 
 # Evaluaciones y Seguimiento
 Alerta.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de evaluaciones online"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de sistema de evaluaciones online"
+    ),
     tipoalerta="riesgo",
     mensaje="Problemas de rendimiento con evaluaciones concurrentes.",
     activa=True,
@@ -2995,7 +2999,9 @@ Alerta.objects.create(
 )
 
 Alerta.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Implementación de sistema de seguimiento de progreso"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Implementación de sistema de seguimiento de progreso"
+    ),
     tipoalerta="retraso",
     mensaje="Retraso en integración con sistema de calificaciones.",
     activa=True,
@@ -3012,7 +3018,9 @@ Alerta.objects.create(
 )
 
 Alerta.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de interfaz de videoconferencias"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de interfaz de videoconferencias"
+    ),
     tipoalerta="presupuesto",
     mensaje="Costo de licencias superior al presupuestado.",
     activa=True,
@@ -3029,7 +3037,9 @@ Alerta.objects.create(
 )
 
 Alerta.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Sistema de validación de certificados online"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Sistema de validación de certificados online"
+    ),
     tipoalerta="retraso",
     mensaje="Pendiente definición de proceso de validación.",
     activa=True,
@@ -3055,7 +3065,9 @@ Alerta.objects.create(
 
 # App Móvil de Delivery
 Alerta.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Implementación de tracking GPS en tiempo real"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Implementación de tracking GPS en tiempo real"
+    ),
     tipoalerta="riesgo",
     mensaje="Alto consumo de batería en el tracking continuo.",
     activa=True,
@@ -3063,7 +3075,9 @@ Alerta.objects.create(
 )
 
 Alerta.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de visualización de rutas en mapa"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de visualización de rutas en mapa"
+    ),
     tipoalerta="presupuesto",
     mensaje="Costos elevados en servicios de mapas.",
     activa=True,
@@ -3071,7 +3085,9 @@ Alerta.objects.create(
 )
 
 Alerta.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de gestión de pedidos"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Desarrollo de sistema de gestión de pedidos"
+    ),
     tipoalerta="bloqueo",
     mensaje="Pendiente integración con sistema de inventario.",
     activa=True,
@@ -3079,7 +3095,9 @@ Alerta.objects.create(
 )
 
 Alerta.objects.create(
-    idtarea=Tarea.objects.get(nombretarea="Implementación de actualizaciones de estado en tiempo real"),
+    idtarea=Tarea.objects.get(
+        nombretarea="Implementación de actualizaciones de estado en tiempo real"
+    ),
     tipoalerta="retraso",
     mensaje="Problemas con notificaciones push.",
     activa=True,
@@ -3144,231 +3162,267 @@ print("Creando historiales de alertas...")
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de autenticación"),
-        tipoalerta="riesgo"
+        tipoalerta="riesgo",
     ),
-    fecharesolucion="2024-01-25T10:00:00Z"
+    fecharesolucion="2024-01-25T10:00:00Z",
 )
 
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Implementación de roles y permisos"),
-        tipoalerta="retraso"
+        tipoalerta="retraso",
     ),
-    fecharesolucion="2024-02-05T11:00:00Z"
+    fecharesolucion="2024-02-05T11:00:00Z",
 )
 
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de inventario"),
-        tipoalerta="presupuesto"
+        tipoalerta="presupuesto",
     ),
-    fecharesolucion="2024-02-15T09:00:00Z"
+    fecharesolucion="2024-02-15T09:00:00Z",
 )
 
 # Sistema de Control de Stock
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Implementación de webhooks para actualizaciones"),
-        tipoalerta="bloqueo"
+        idtarea=Tarea.objects.get(
+            nombretarea="Implementación de webhooks para actualizaciones"
+        ),
+        tipoalerta="bloqueo",
     ),
-    fecharesolucion="2024-02-25T14:00:00Z"
+    fecharesolucion="2024-02-25T14:00:00Z",
 )
 
 # Reportes y Estadísticas
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Desarrollo de módulo de reportes dinámicos"),
-        tipoalerta="riesgo"
+        idtarea=Tarea.objects.get(
+            nombretarea="Desarrollo de módulo de reportes dinámicos"
+        ),
+        tipoalerta="riesgo",
     ),
-    fecharesolucion="2024-03-10T15:00:00Z"
+    fecharesolucion="2024-03-10T15:00:00Z",
 )
 
 # Integración con Facturación
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de integración con facturación"),
-        tipoalerta="bloqueo"
+        idtarea=Tarea.objects.get(
+            nombretarea="Desarrollo de API de integración con facturación"
+        ),
+        tipoalerta="bloqueo",
     ),
-    fecharesolucion="2024-04-01T10:00:00Z"
+    fecharesolucion="2024-04-01T10:00:00Z",
 )
 
 # Gestión de Proveedores
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Desarrollo de módulo de proveedores"),
-        tipoalerta="presupuesto"
+        tipoalerta="presupuesto",
     ),
-    fecharesolucion="2024-04-25T11:00:00Z"
+    fecharesolucion="2024-04-25T11:00:00Z",
 )
 
 # Plataforma E-learning
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Desarrollo de catálogo de cursos"),
-        tipoalerta="bloqueo"
+        tipoalerta="bloqueo",
     ),
-    fecharesolucion="2024-05-25T09:00:00Z"
+    fecharesolucion="2024-05-25T09:00:00Z",
 )
 
 # Sistema de Evaluaciones
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de evaluaciones online"),
-        tipoalerta="riesgo"
+        idtarea=Tarea.objects.get(
+            nombretarea="Desarrollo de sistema de evaluaciones online"
+        ),
+        tipoalerta="riesgo",
     ),
-    fecharesolucion="2024-06-25T14:00:00Z"
+    fecharesolucion="2024-06-25T14:00:00Z",
 )
 
 # Sistema de Videoconferencias
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Integración de API de videoconferencias"),
-        tipoalerta="bloqueo"
+        idtarea=Tarea.objects.get(
+            nombretarea="Integración de API de videoconferencias"
+        ),
+        tipoalerta="bloqueo",
     ),
-    fecharesolucion="2024-07-25T11:00:00Z"
+    fecharesolucion="2024-07-25T11:00:00Z",
 )
 
 # Certificaciones
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Desarrollo de generador de certificados"),
-        tipoalerta="riesgo"
+        idtarea=Tarea.objects.get(
+            nombretarea="Desarrollo de generador de certificados"
+        ),
+        tipoalerta="riesgo",
     ),
-    fecharesolucion="2024-08-25T10:00:00Z"
+    fecharesolucion="2024-08-25T10:00:00Z",
 )
 
 # Sistema de Pagos
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Integración de pasarela de pagos"),
-        tipoalerta="bloqueo"
+        tipoalerta="bloqueo",
     ),
-    fecharesolucion="2024-09-25T13:00:00Z"
+    fecharesolucion="2024-09-25T13:00:00Z",
 )
 
 # App Móvil Delivery
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Implementación de tracking GPS en tiempo real"),
-        tipoalerta="riesgo"
+        idtarea=Tarea.objects.get(
+            nombretarea="Implementación de tracking GPS en tiempo real"
+        ),
+        tipoalerta="riesgo",
     ),
-    fecharesolucion="2024-10-25T15:00:00Z"
+    fecharesolucion="2024-10-25T15:00:00Z",
 )
 
 # Gestión de Pedidos
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de gestión de pedidos"),
-        tipoalerta="bloqueo"
+        idtarea=Tarea.objects.get(
+            nombretarea="Desarrollo de sistema de gestión de pedidos"
+        ),
+        tipoalerta="bloqueo",
     ),
-    fecharesolucion="2024-11-25T10:00:00Z"
+    fecharesolucion="2024-11-25T10:00:00Z",
 )
 
 # Business Intelligence
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Diseño de arquitectura del data warehouse"),
-        tipoalerta="riesgo"
+        idtarea=Tarea.objects.get(
+            nombretarea="Diseño de arquitectura del data warehouse"
+        ),
+        tipoalerta="riesgo",
     ),
-    fecharesolucion="2024-12-25T11:00:00Z"
+    fecharesolucion="2024-12-25T11:00:00Z",
 )
 
 # ETL y Procesamiento de Datos
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Implementación de modelos dimensionales"),
+        idtarea=Tarea.objects.get(
+            nombretarea="Implementación de modelos dimensionales"
+        ),
     ),
-    fecharesolucion="2025-01-10T09:00:00Z"
+    fecharesolucion="2025-01-10T09:00:00Z",
 )
 
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Desarrollo de procesos ETL"),
-        tipoalerta="retraso"
+        tipoalerta="retraso",
     ),
-    fecharesolucion="2025-01-25T10:00:00Z"
+    fecharesolucion="2025-01-25T10:00:00Z",
 )
 
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Implementación de validaciones de datos"),
-        tipoalerta="bloqueo"
+        idtarea=Tarea.objects.get(
+            nombretarea="Implementación de validaciones de datos"
+        ),
+        tipoalerta="bloqueo",
     ),
-    fecharesolucion="2025-02-10T11:00:00Z"
+    fecharesolucion="2025-02-10T11:00:00Z",
 )
 
 # Dashboards y Visualizaciones
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Desarrollo de visualizaciones interactivas"),
-        tipoalerta="presupuesto"
+        idtarea=Tarea.objects.get(
+            nombretarea="Desarrollo de visualizaciones interactivas"
+        ),
+        tipoalerta="presupuesto",
     ),
-    fecharesolucion="2025-02-25T13:00:00Z"
+    fecharesolucion="2025-02-25T13:00:00Z",
 )
 
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Implementación de filtros dinámicos"),
-        tipoalerta="riesgo"
+        tipoalerta="riesgo",
     ),
-    fecharesolucion="2025-03-10T14:00:00Z"
+    fecharesolucion="2025-03-10T14:00:00Z",
 )
 
 # Módulo de Pagos
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Integración de pasarela de pagos"),
-        tipoalerta="bloqueo"
+        tipoalerta="bloqueo",
     ),
-    fecharesolucion="2024-09-30T15:00:00Z"
+    fecharesolucion="2024-09-30T15:00:00Z",
 )
 
 # Gestión de Suscripciones
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Gestión de suscripciones y renovaciones"),
+        idtarea=Tarea.objects.get(
+            nombretarea="Gestión de suscripciones y renovaciones"
+        ),
     ),
-    fecharesolucion="2024-10-15T10:00:00Z"
+    fecharesolucion="2024-10-15T10:00:00Z",
 )
 
 # Tracking GPS
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Implementación de tracking GPS en tiempo real"),
+        idtarea=Tarea.objects.get(
+            nombretarea="Implementación de tracking GPS en tiempo real"
+        ),
     ),
-    fecharesolucion="2024-11-01T11:00:00Z"
+    fecharesolucion="2024-11-01T11:00:00Z",
 )
 
 # Gestión de Pedidos
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de gestión de pedidos"),
+        idtarea=Tarea.objects.get(
+            nombretarea="Desarrollo de sistema de gestión de pedidos"
+        ),
     ),
-    fecharesolucion="2024-11-30T14:00:00Z"
+    fecharesolucion="2024-11-30T14:00:00Z",
 )
 
 # Estado en Tiempo Real
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Implementación de actualizaciones de estado en tiempo real"),
+        idtarea=Tarea.objects.get(
+            nombretarea="Implementación de actualizaciones de estado en tiempo real"
+        ),
     ),
-    fecharesolucion="2024-12-15T09:00:00Z"
+    fecharesolucion="2024-12-15T09:00:00Z",
 )
 
 # Data Warehouse
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Diseño de arquitectura del data warehouse"),
+        idtarea=Tarea.objects.get(
+            nombretarea="Diseño de arquitectura del data warehouse"
+        ),
     ),
-    fecharesolucion="2024-12-30T10:00:00Z"
+    fecharesolucion="2024-12-30T10:00:00Z",
 )
 
 # ETL y Modelos
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Implementación de modelos dimensionales"),
+        idtarea=Tarea.objects.get(
+            nombretarea="Implementación de modelos dimensionales"
+        ),
     ),
-    fecharesolucion="2025-01-15T11:00:00Z"
+    fecharesolucion="2025-01-15T11:00:00Z",
 )
 
 # Procesos ETL
@@ -3376,22 +3430,24 @@ Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=Tarea.objects.get(nombretarea="Desarrollo de procesos ETL"),
     ),
-    fecharesolucion="2025-01-30T13:00:00Z"
+    fecharesolucion="2025-01-30T13:00:00Z",
 )
 
 # Validaciones
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
-        idtarea=Tarea.objects.get(nombretarea="Implementación de validaciones de datos"),
+        idtarea=Tarea.objects.get(
+            nombretarea="Implementación de validaciones de datos"
+        ),
     ),
-    fecharesolucion="2025-02-15T14:00:00Z"
+    fecharesolucion="2025-02-15T14:00:00Z",
 )
 # Reportes y Programación
 Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=34,
     ),
-    fecharesolucion="2025-03-01T15:00:00Z"
+    fecharesolucion="2025-03-01T15:00:00Z",
 )
 
 # Exportación de Reportes
@@ -3399,7 +3455,7 @@ Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=12,
     ),
-    fecharesolucion="2025-03-15T10:00:00Z"
+    fecharesolucion="2025-03-15T10:00:00Z",
 )
 
 # Modelos Predictivos
@@ -3407,7 +3463,7 @@ Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=24,
     ),
-    fecharesolucion="2025-03-30T11:00:00Z"
+    fecharesolucion="2025-03-30T11:00:00Z",
 )
 
 # Machine Learning
@@ -3415,7 +3471,7 @@ Historialalerta.objects.create(
     idalerta=Alerta.objects.get(
         idtarea=33,
     ),
-    fecharesolucion="2025-04-15T13:00:00Z"
+    fecharesolucion="2025-04-15T13:00:00Z",
 )
 
 print("Historial de alertas adicional completado")

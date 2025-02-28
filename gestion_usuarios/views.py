@@ -24,6 +24,7 @@ import uuid
 from django.conf import settings
 from django.db import transaction
 
+
 def enviar_correo_confirmacion(email, token):
     asunto = "Confirma tu cuenta"
     mensaje_texto = f"Por favor, confirma tu cuenta haciendo clic en el siguiente enlace: \nhttp://localhost:8000/confirmar/{token}"
@@ -42,6 +43,7 @@ def enviar_correo_confirmacion(email, token):
     correo = EmailMultiAlternatives(asunto, mensaje_texto, remitente, [email])
     correo.attach_alternative(mensaje_html, "text/html")
     correo.send()
+
 
 @login_required
 def lista_usuarios(request):
@@ -75,7 +77,9 @@ def lista_usuarios(request):
     }
 
     # Paginación
-    usuarios = usuarios.order_by('idusuario')  # Ordenar por idusuario para evitar advertencia
+    usuarios = usuarios.order_by(
+        'idusuario'
+    )  # Ordenar por idusuario para evitar advertencia
     paginator = Paginator(usuarios, 9)  # 9 usuarios por página
     try:
         usuarios_paginados = paginator.page(page)
@@ -85,7 +89,14 @@ def lista_usuarios(request):
         usuarios_paginados = paginator.page(paginator.num_pages)
 
     return render(
-        request, "gestion_usuarios/lista_usuarios.html", {"usuarios": usuarios_paginados, "estadisticas": estadisticas, "vista": vista, "filtros": {"busqueda": busqueda, "rol": rol}}
+        request,
+        "gestion_usuarios/lista_usuarios.html",
+        {
+            "usuarios": usuarios_paginados,
+            "estadisticas": estadisticas,
+            "vista": vista,
+            "filtros": {"busqueda": busqueda, "rol": rol},
+        },
     )
 
 
@@ -155,7 +166,10 @@ def crear_usuario(request):
                 # Enviar correo de confirmación
                 enviar_correo_confirmacion(email, token)
 
-                messages.success(request, "Usuario creado exitosamente. Esperando confirmación por correo electrónico.")
+                messages.success(
+                    request,
+                    "Usuario creado exitosamente. Esperando confirmación por correo electrónico.",
+                )
                 return redirect("gestionUsuarios:lista_usuarios")
 
         except Exception as e:
@@ -274,6 +288,7 @@ def perfil_view(request):
 def configuracion_view(request):
     return render(request, "gestion_usuarios/configuracion.html")
 
+
 @login_required
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, idusuario=usuario_id)
@@ -288,15 +303,29 @@ def editar_usuario(request, usuario_id):
                 # Validaciones
                 if not all([nombre, email, rol]):
                     messages.error(request, "Todos los campos son requeridos")
-                    return redirect("gestionUsuarios:editar_usuario", usuario_id=usuario_id)
+                    return redirect(
+                        "gestionUsuarios:editar_usuario", usuario_id=usuario_id
+                    )
 
-                if Usuario.objects.filter(nombreusuario=nombre).exclude(idusuario=usuario_id).exists():
+                if (
+                    Usuario.objects.filter(nombreusuario=nombre)
+                    .exclude(idusuario=usuario_id)
+                    .exists()
+                ):
                     messages.error(request, "El nombre de usuario ya está en uso")
-                    return redirect("gestionUsuarios:editar_usuario", usuario_id=usuario_id)
+                    return redirect(
+                        "gestionUsuarios:editar_usuario", usuario_id=usuario_id
+                    )
 
-                if Usuario.objects.filter(email=email).exclude(idusuario=usuario_id).exists():
+                if (
+                    Usuario.objects.filter(email=email)
+                    .exclude(idusuario=usuario_id)
+                    .exists()
+                ):
                     messages.error(request, "El correo electrónico ya está registrado")
-                    return redirect("gestionUsuarios:editar_usuario", usuario_id=usuario_id)
+                    return redirect(
+                        "gestionUsuarios:editar_usuario", usuario_id=usuario_id
+                    )
 
                 # Actualizar usuario
                 usuario.nombreusuario = nombre
