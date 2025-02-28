@@ -8,7 +8,7 @@ from tensorflow.keras.layers import (
     Concatenate,
     Dropout,
     BatchNormalization,
-    Add
+    Add,
 )
 from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -19,6 +19,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import KFold
 import numpy as np
 import os
+
 
 class EstimacionModel:
     """Modelo para estimar tiempos de proyectos usando RNN"""
@@ -36,7 +37,7 @@ class EstimacionModel:
     def normalize_data(self, X_numeric):
         """
         Normaliza las características numéricas usando StandardScaler
-        
+
         Args:
             X_numeric: Array con features numéricas [complejidad, prioridad, tareas_requerimiento]
         Returns:
@@ -74,17 +75,9 @@ class EstimacionModel:
     def _build_task_type_branch(self):
         """Construye la rama para procesar tipos de tareas"""
         task_input = Input(shape=(1,), name="task_input")
-        x = Embedding(
-            self.config["vocab_size"],
-            32,
-            name="embedding"
-        )(task_input)
+        x = Embedding(self.config["vocab_size"], 32, name="embedding")(task_input)
         x = Reshape((1, 32), name="reshape")(x)
-        x = LSTM(
-            32,
-            return_sequences=False,
-            name="lstm"
-        )(x)
+        x = LSTM(32, return_sequences=False, name="lstm")(x)
         x = BatchNormalization()(x)
         x = Dropout(0.2)(x)
         return task_input, x
@@ -197,26 +190,14 @@ class EstimacionModel:
             'complejidad': X_num[0][0],
             'prioridad': X_num[0][1],
             'tipo_tarea': X_task[0],
-            'contexto_req': X_req[0][0]
+            'contexto_req': X_req[0][0],
         }
 
     def get_callbacks(self):
         return [
-            EarlyStopping(
-                monitor='val_loss',
-                patience=15,
-                restore_best_weights=True
-            ),
-            ReduceLROnPlateau(
-                monitor='val_loss',
-                factor=0.2,
-                patience=5
-            ),
-            ModelCheckpoint(
-                'best_model.h5',
-                monitor='val_loss',
-                save_best_only=True
-            )
+            EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True),
+            ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5),
+            ModelCheckpoint('best_model.h5', monitor='val_loss', save_best_only=True),
         ]
 
     def train(self, inputs, targets, validation_data=None, epochs=100):
@@ -244,19 +225,20 @@ class EstimacionModel:
         )
 
         # Guardar el modelo con opciones específicas
-        save_path = os.path.join(os.path.dirname(__file__), "models", "modelo_estimacion.keras")
+        save_path = os.path.join(
+            os.path.dirname(__file__), "models", "modelo_estimacion.keras"
+        )
         self.model.save(
             save_path,
             save_format='keras',
-            options=tf.saved_model.SaveOptions(
-                experimental_io_device='/job:localhost'
-            )
+            options=tf.saved_model.SaveOptions(experimental_io_device='/job:localhost'),
         )
         return history
 
     def predict(self, X_num, X_task, X_req):
         """Realiza predicciones"""
         return self.model.predict([X_num, X_req, X_task])
+
 
 class DataPreprocessor:
     """Clase para preprocesamiento de datos"""

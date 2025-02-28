@@ -11,11 +11,11 @@ def test_estimaciones():
         # Configurar rutas relativas
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         MODEL_DIR = os.path.join(BASE_DIR, "models")
-        
+
         # Asegurar que existe el directorio
         if not os.path.exists(MODEL_DIR):
             os.makedirs(MODEL_DIR)
-            
+
         config = {
             "vocab_size": 6,
             "lstm_units": 32,
@@ -23,7 +23,7 @@ def test_estimaciones():
             "dropout_rate": 0.2,
         }
         model = EstimacionModel(config)
-        
+
         # Definir rutas de archivos
         MODEL_PATH = os.path.join(MODEL_DIR, "modelo_estimacion.keras")
         PREPROCESSOR_PATH = os.path.join(MODEL_DIR, "preprocessor.pkl")
@@ -43,7 +43,9 @@ def test_estimaciones():
 
     except FileNotFoundError as e:
         print(f"Error: {str(e)}")
-        print("Asegúrate de que los archivos del modelo existan en el directorio 'models/'")
+        print(
+            "Asegúrate de que los archivos del modelo existan en el directorio 'models/'"
+        )
         return
     except Exception as e:
         print(f"Error inesperado: {str(e)}")

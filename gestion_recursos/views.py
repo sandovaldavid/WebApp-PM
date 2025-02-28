@@ -15,7 +15,7 @@ from dashboard.models import (
     Usuario,
     Equipo,
     Miembro,
-    Requerimiento
+    Requerimiento,
 )
 from django.db import transaction
 from django.utils import timezone
@@ -40,7 +40,9 @@ def lista_recursos(request):
         if tipo == "Humano":
             recursos = recursos.filter(recursohumano__isnull=False)
         elif tipo == "Material":
-            recursos = recursos.filter(recursomaterial__isnull=False) | recursos.filter(idtiporecurso__idtiporecurso=3)
+            recursos = recursos.filter(recursomaterial__isnull=False) | recursos.filter(
+                idtiporecurso__idtiporecurso=3
+            )
 
     recursos_con_costos = []
     for recurso in recursos:
@@ -67,8 +69,12 @@ def lista_recursos(request):
     total_recursos = Recurso.objects.count()
     total_recursos_humanos = Recursohumano.objects.count()
     total_recursos_materiales = Recursomaterial.objects.count()
-    recursos_humanos_disponibles = Recursohumano.objects.filter(idrecurso__disponibilidad=True).count()
-    recursos_materiales_disponibles = Recursomaterial.objects.filter(idrecurso__disponibilidad=True).count()
+    recursos_humanos_disponibles = Recursohumano.objects.filter(
+        idrecurso__disponibilidad=True
+    ).count()
+    recursos_materiales_disponibles = Recursomaterial.objects.filter(
+        idrecurso__disponibilidad=True
+    ).count()
 
     estadisticas = {
         "total_recursos": total_recursos,
@@ -96,7 +102,11 @@ def lista_recursos(request):
 @login_required
 def detalle_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
-    habilidades = recurso.recursohumano.habilidades.split(',') if recurso.idtiporecurso.idtiporecurso == 1 else []
+    habilidades = (
+        recurso.recursohumano.habilidades.split(',')
+        if recurso.idtiporecurso.idtiporecurso == 1
+        else []
+    )
     context = {
         "recurso": recurso,
         "habilidades": habilidades,
@@ -155,7 +165,11 @@ def crear_recurso(request):
 @login_required
 def editar_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
-    habilidades = recurso.recursohumano.habilidades.split(',') if recurso.idtiporecurso.idtiporecurso == 1 else []
+    habilidades = (
+        recurso.recursohumano.habilidades.split(',')
+        if recurso.idtiporecurso.idtiporecurso == 1
+        else []
+    )
     if request.method == "POST":
         recurso.nombrerecurso = request.POST.get("nombre")
         recurso.fechamodificacion = timezone.now()
@@ -221,16 +235,23 @@ def asignar_recurso(request):
     }
     return render(request, "gestion_recursos/asignar_recurso.html", context)
 
+
 @login_required
 def obtener_requerimientos(request, proyecto_id):
     requerimientos = Requerimiento.objects.filter(idproyecto=proyecto_id)
-    data = [{"idrequerimiento": req.idrequerimiento, "descripcion": req.descripcion} for req in requerimientos]
+    data = [
+        {"idrequerimiento": req.idrequerimiento, "descripcion": req.descripcion}
+        for req in requerimientos
+    ]
     return JsonResponse(data, safe=False)
+
 
 @login_required
 def obtener_tareas(request, requerimiento_id):
     tareas = Tarea.objects.filter(idrequerimiento=requerimiento_id)
-    data = [{"idtarea": tarea.idtarea, "nombretarea": tarea.nombretarea} for tarea in tareas]
+    data = [
+        {"idtarea": tarea.idtarea, "nombretarea": tarea.nombretarea} for tarea in tareas
+    ]
     return JsonResponse(data, safe=False)
 
 
@@ -248,13 +269,10 @@ def obtener_recursos(request, proyecto_id):
         for miembro in miembros:
             if miembro.idrecurso not in recursos:
                 recursos.append(miembro.idrecurso)
-        
+
         # Preparar la respuesta
         data = [
-            {
-                "idrecurso": recurso.idrecurso, 
-                "nombrerecurso": recurso.nombrerecurso
-            }
+            {"idrecurso": recurso.idrecurso, "nombrerecurso": recurso.nombrerecurso}
             for recurso in recursos
         ]
         return JsonResponse(data, safe=False)

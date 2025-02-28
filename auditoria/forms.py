@@ -1,6 +1,7 @@
 from django import forms
 from dashboard.models import Actividad
 
+
 class ActividadForm(forms.ModelForm):
     class Meta:
         model = Actividad

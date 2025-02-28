@@ -10,25 +10,27 @@ from django.contrib.auth.decorators import login_required
 import sys
 import os
 
+
 def normalize_metric(value, metric_name, metrics_history):
     """Normaliza métricas usando Min-Max scaling con valores observados"""
     if metric_name in ['Accuracy', 'Precision', 'Recall', 'F1']:
         return value
-    
+
     # Obtener todos los valores históricos de la métrica
     all_values = [entry['metrics'][metric_name] for entry in metrics_history]
     min_val = min(all_values)
     max_val = max(all_values)
-    
+
     # Evitar división por cero
     if max_val == min_val:
         return 0
-    
+
     # Para MSE, RMSE y MAE, invertimos la normalización ya que valores menores son mejores
     if metric_name in ['MSE', 'RMSE', 'MAE']:
         return 1 - ((value - min_val) / (max_val - min_val))
-    
+
     return (value - min_val) / (max_val - min_val)
+
 
 def calculate_global_precision(metrics, metrics_history):
     """Calcula el nivel de precisión global usando pesos predefinidos"""
@@ -40,15 +42,18 @@ def calculate_global_precision(metrics, metrics_history):
         'Accuracy': 0.1,
         'Precision': 0.1,
         'Recall': 0.05,
-        'F1': 0.05
+        'F1': 0.05,
     }
-    
+
     weighted_sum = 0
     for metric_name, weight in weights.items():
-        normalized_value = normalize_metric(metrics[metric_name], metric_name, metrics_history)
+        normalized_value = normalize_metric(
+            metrics[metric_name], metric_name, metrics_history
+        )
         weighted_sum += normalized_value * weight
-    
+
     return weighted_sum
+
 
 @login_required
 def dashboard(request):
@@ -62,7 +67,9 @@ def dashboard(request):
         latest_metrics = None
 
     if latest_metrics:
-        global_precision = calculate_global_precision(latest_metrics['metrics'], metrics_history)
+        global_precision = calculate_global_precision(
+            latest_metrics['metrics'], metrics_history
+        )
     else:
         global_precision = 0
 
@@ -78,34 +85,39 @@ def dashboard(request):
         mse_values.append(entry['metrics']['MSE'])
         accuracy_values.append(entry['metrics']['Accuracy'])
         r2_values.append(entry['metrics']['R2'])
-        global_precision_values.append(calculate_global_precision(entry['metrics'], metrics_history))
+        global_precision_values.append(
+            calculate_global_precision(entry['metrics'], metrics_history)
+        )
 
     context = {
         'latest_metrics': latest_metrics,
         'global_precision': global_precision,
-        'metrics_history': json.dumps({
-            'timestamps': timestamps,
-            'mse_values': mse_values,
-            'accuracy_values': accuracy_values,
-            'r2_values': r2_values,
-            'global_precision_values': global_precision_values
-        })
+        'metrics_history': json.dumps(
+            {
+                'timestamps': timestamps,
+                'mse_values': mse_values,
+                'accuracy_values': accuracy_values,
+                'r2_values': r2_values,
+                'global_precision_values': global_precision_values,
+            }
+        ),
     }
-    
+
     return render(request, 'redes_neuronales/dashboard.html', context)
+
 
 @login_required
 def estimate_time(request):
     if request.method == 'POST':
         try:
-           # Configurar rutas relativas
-            #BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            # Configurar rutas relativas
+            # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             REDES_DIR = os.path.join(BASE_DIR, 'redes_neuronales')
             MODEL_DIR = os.path.join(BASE_DIR, "redes_neuronales", "models")
 
             # Verificar que existe el directorio
-            #if not os.path.exists(MODEL_DIR):
+            # if not os.path.exists(MODEL_DIR):
             #   raise FileNotFoundError("No se encuentra el directorio de modelos")
 
             # Agregar la ruta al path de Python
@@ -122,7 +134,12 @@ def estimate_time(request):
             SCALER_REQ_PATH = os.path.join(MODEL_DIR, "scaler_req.pkl")
 
             # Verificar si los archivos existen
-            for path in [MODEL_PATH, PREPROCESSOR_PATH, SCALER_NUM_PATH, SCALER_REQ_PATH]:
+            for path in [
+                MODEL_PATH,
+                PREPROCESSOR_PATH,
+                SCALER_NUM_PATH,
+                SCALER_REQ_PATH,
+            ]:
                 if not os.path.exists(path):
                     raise FileNotFoundError(f"No se encuentra el archivo: {path}")
 
@@ -142,7 +159,9 @@ def estimate_time(request):
             X_num = np.array([[complejidad, prioridad]], dtype=np.float32)
 
             # Preparar datos de requerimiento (4 características)
-            X_req = np.array([[complejidad, complejidad, 1, prioridad]], dtype=np.float32)
+            X_req = np.array(
+                [[complejidad, complejidad, 1, prioridad]], dtype=np.float32
+            )
 
             # Cargar preprocessors
             preprocessor = joblib.load(PREPROCESSOR_PATH)
@@ -168,29 +187,27 @@ def estimate_time(request):
 
             # Realizar predicción usando predict_individual_task
             resultado = model.predict_individual_task(
-                X_num_norm, 
-                np.array(X_task).reshape(-1, 1), 
-                X_req_norm
+                X_num_norm, np.array(X_task).reshape(-1, 1), X_req_norm
             )
 
             # Obtener el tiempo estimado y redondear a entero
             estimated_time = float(resultado['tiempo_estimado'])
 
-            return JsonResponse({
-                'success': True,
-                'estimated_time': round(estimated_time, 2),
-                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            })
+            return JsonResponse(
+                {
+                    'success': True,
+                    'estimated_time': round(estimated_time, 2),
+                    'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            )
 
         except FileNotFoundError as e:
-            return JsonResponse({
-                'error': f"Error de archivo: {str(e)}",
-                'success': False
-            })
+            return JsonResponse(
+                {'error': f"Error de archivo: {str(e)}", 'success': False}
+            )
         except Exception as e:
-            return JsonResponse({
-                'error': f"Error inesperado: {str(e)}",
-                'success': False
-            })
+            return JsonResponse(
+                {'error': f"Error inesperado: {str(e)}", 'success': False}
+            )
 
     return JsonResponse({'error': 'Método no permitido', 'success': False})

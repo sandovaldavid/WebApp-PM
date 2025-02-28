@@ -8,9 +8,11 @@ from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import joblib
 
+
 def setup_environment():
     """Configura el ambiente para TensorFlow"""
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 
 def load_and_process_data():
     """
@@ -134,7 +136,7 @@ def load_and_process_data():
 
         # 11. Guardar preprocessors y scalers
         joblib.dump(preprocessor, "models/preprocessor.pkl")
-        joblib.dump(scaler, "models/scaler.pkl") 
+        joblib.dump(scaler, "models/scaler.pkl")
         joblib.dump(scaler_req, "models/scaler_req.pkl")
 
         print("\nEstadísticas del dataset:")
@@ -158,6 +160,7 @@ def load_and_process_data():
         raise FileNotFoundError("No se encontró el archivo estimacion_tiempos.csv")
     except Exception as e:
         raise Exception(f"Error al procesar los datos: {str(e)}")
+
 
 def main():
     try:
@@ -233,6 +236,7 @@ def main():
         print(f"Error durante el entrenamiento: {str(e)}")
         print(traceback.format_exc())
     return None
+
 
 if __name__ == "__main__":
     main()

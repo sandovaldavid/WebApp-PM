@@ -9,10 +9,21 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField, When, Case, FloatField, Sum
+from django.db.models import (
+    Count,
+    Avg,
+    F,
+    ExpressionWrapper,
+    DurationField,
+    When,
+    Case,
+    FloatField,
+    Sum,
+)
 from django.utils.timezone import is_naive, make_aware
 from dashboard.models import Proyecto, Requerimiento, Tarea, Equipo
 from django.contrib import messages
+
 
 @login_required
 def index(request):
@@ -45,11 +56,9 @@ def index(request):
             idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
         ).distinct()
 
-
     if busqueda:
         proyectos = proyectos.filter(
-            Q(nombreproyecto__icontains=busqueda) | 
-            Q(descripcion__icontains=busqueda)
+            Q(nombreproyecto__icontains=busqueda) | Q(descripcion__icontains=busqueda)
         )
 
     if filtro and filtro != "todos":
@@ -60,9 +69,7 @@ def index(request):
     six_months_ago = now - timezone.timedelta(days=180)
 
     # Obtener proyectos de los últimos 6 meses
-    proyectos_periodo = proyectos.filter(
-        fechacreacion__range=(six_months_ago, now)
-    )
+    proyectos_periodo = proyectos.filter(fechacreacion__range=(six_months_ago, now))
 
     # Inicializar diccionarios para almacenar conteos
     meses = []
@@ -71,14 +78,15 @@ def index(request):
 
     # Obtener datos para los últimos 6 meses
     for i in range(6):
-        fecha = now - timezone.timedelta(days=30*i)
+        fecha = now - timezone.timedelta(days=30 * i)
         mes_inicio = fecha.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        mes_fin = (mes_inicio + timezone.timedelta(days=32)).replace(day=1) - timezone.timedelta(seconds=1)
+        mes_fin = (mes_inicio + timezone.timedelta(days=32)).replace(
+            day=1
+        ) - timezone.timedelta(seconds=1)
 
         # Contar proyectos completados (estado Cierre) en el mes
         completados_mes = proyectos_periodo.filter(
-            estado='Cierre',
-            fechamodificacion__range=(mes_inicio, mes_fin)
+            estado='Cierre', fechamodificacion__range=(mes_inicio, mes_fin)
         ).count()
 
         # Contar proyectos creados en el mes
@@ -103,14 +111,22 @@ def index(request):
         "cierre": proyectos_totales.filter(estado="Cierre").count(),
     }
     datos_estado = {
-        'labels': ['Inicio', 'Planificación', 'Ejecución', 'Monitoreo-Control', 'Cierre'],
-        'data': [estadisticas['inicio'], estadisticas['planificacion'], estadisticas['ejecucion'], estadisticas['monitoreo_control'], estadisticas['cierre']]
+        'labels': [
+            'Inicio',
+            'Planificación',
+            'Ejecución',
+            'Monitoreo-Control',
+            'Cierre',
+        ],
+        'data': [
+            estadisticas['inicio'],
+            estadisticas['planificacion'],
+            estadisticas['ejecucion'],
+            estadisticas['monitoreo_control'],
+            estadisticas['cierre'],
+        ],
     }
-    datos_tendencia = {
-        'labels': meses,
-        'completados': completados,
-        'creados': creados
-    }
+    datos_tendencia = {'labels': meses, 'completados': completados, 'creados': creados}
     datos_tiempo = {
         "promedio": [
             # Inicio
@@ -203,17 +219,22 @@ def index(request):
     except EmptyPage:
         proyectos_paginados = paginator.page(paginator.num_pages)
 
-    return render(request, 'gestion_proyectos/index.html', {
-        'estadisticas': estadisticas,
-        'proyectos_totales': proyectos_totales,
-        'proyectos': proyectos_paginados,
-        'datos_estado': datos_estado,
-        'datos_tendencia': datos_tendencia,
-        'datos_tiempo': datos_tiempo,
-        'vista': vista,
-        'filtros': {"busqueda": busqueda, "filtro": filtro},
-        'is_admin': is_admin,  # Agregamos is_admin al contexto
-    })
+    return render(
+        request,
+        'gestion_proyectos/index.html',
+        {
+            'estadisticas': estadisticas,
+            'proyectos_totales': proyectos_totales,
+            'proyectos': proyectos_paginados,
+            'datos_estado': datos_estado,
+            'datos_tendencia': datos_tendencia,
+            'datos_tiempo': datos_tiempo,
+            'vista': vista,
+            'filtros': {"busqueda": busqueda, "filtro": filtro},
+            'is_admin': is_admin,  # Agregamos is_admin al contexto
+        },
+    )
+
 
 @login_required
 def lista_proyectos(request):
@@ -248,7 +269,13 @@ def lista_proyectos(request):
 
     context = {
         "proyectos": proyectos,
-        "estados": ["Inicio", "Planificación", "Ejecución", "Monitoreo-Control", "Cierre"],
+        "estados": [
+            "Inicio",
+            "Planificación",
+            "Ejecución",
+            "Monitoreo-Control",
+            "Cierre",
+        ],
         "filtros": {
             "estado": estado,
             "fecha_inicio": fecha_inicio,
@@ -260,32 +287,35 @@ def lista_proyectos(request):
 
     return render(request, "gestion_proyectos/lista_proyectos.html", context)
 
+
 @login_required
 def detalle_proyecto(request, idproyecto):
     proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
 
     # 1. Valor Planeado (PV)
-    valor_planeado = Tarea.objects.filter(
-        idrequerimiento__idproyecto=proyecto
-    ).aggregate(
-        pv=Sum('costoestimado')
-    )['pv'] or 0
-    
+    valor_planeado = (
+        Tarea.objects.filter(idrequerimiento__idproyecto=proyecto).aggregate(
+            pv=Sum('costoestimado')
+        )['pv']
+        or 0
+    )
+
     # 2. Valor Ganado (EV)
-    valor_ganado = Tarea.objects.filter(
-        idrequerimiento__idproyecto=proyecto,
-        estado='Completada'
-    ).aggregate(
-        ev=Sum('costoestimado')
-    )['ev'] or 0
-    
+    valor_ganado = (
+        Tarea.objects.filter(
+            idrequerimiento__idproyecto=proyecto, estado='Completada'
+        ).aggregate(ev=Sum('costoestimado'))['ev']
+        or 0
+    )
+
     # 3. Costo Real (AC)
-    costo_real = Tarea.objects.filter(
-        idrequerimiento__idproyecto=proyecto
-    ).aggregate(
-        ac=Sum('costoactual')
-    )['ac'] or 0
-    
+    costo_real = (
+        Tarea.objects.filter(idrequerimiento__idproyecto=proyecto).aggregate(
+            ac=Sum('costoactual')
+        )['ac']
+        or 0
+    )
+
     # Cálculo de índices
     cpi = valor_ganado / costo_real if costo_real > 0 else 0
     spi = valor_ganado / valor_planeado if valor_planeado > 0 else 0
@@ -298,9 +328,10 @@ def detalle_proyecto(request, idproyecto):
     desviacion_presupuesto = 0
     if proyecto.presupuestoutilizado and proyecto.presupuesto:
         desviacion_presupuesto = (
-            (proyecto.presupuestoutilizado - proyecto.presupuesto) / proyecto.presupuesto
+            (proyecto.presupuestoutilizado - proyecto.presupuesto)
+            / proyecto.presupuesto
         ) * 100
-    
+
     total_tareas = tareas.count()
     total_requerimientos = requerimientos.count()
     tareas_completadas = tareas.filter(estado='Completada').count()
@@ -310,9 +341,15 @@ def detalle_proyecto(request, idproyecto):
     duracion_actual = tareas.aggregate(total=Sum('duracionactual'))['total'] or 0
 
     for requerimiento in requerimientos:
-        requerimiento.tareas_pendientes = tareas.filter(idrequerimiento=requerimiento, estado='Pendiente').count()
-        requerimiento.tareas_en_progreso = tareas.filter(idrequerimiento=requerimiento, estado='En Progreso').count()
-        requerimiento.tareas_completadas = tareas.filter(idrequerimiento=requerimiento, estado='Completada').count()
+        requerimiento.tareas_pendientes = tareas.filter(
+            idrequerimiento=requerimiento, estado='Pendiente'
+        ).count()
+        requerimiento.tareas_en_progreso = tareas.filter(
+            idrequerimiento=requerimiento, estado='En Progreso'
+        ).count()
+        requerimiento.tareas_completadas = tareas.filter(
+            idrequerimiento=requerimiento, estado='Completada'
+        ).count()
 
     vista = request.GET.get("vista", "grid")
     busqueda = request.GET.get("busqueda", "")
@@ -320,27 +357,32 @@ def detalle_proyecto(request, idproyecto):
     if busqueda:
         requerimientos = requerimientos.filter(descripcion__icontains=busqueda)
 
-    return render(request, 'gestion_proyectos/detalle_proyecto.html', {
-        'proyecto': proyecto,
-        'valor_planeado': valor_planeado,
-        'valor_ganado': valor_ganado, 
-        'costo_real': costo_real,
-        'cpi': round(cpi, 2),
-        'spi': round(spi, 2),
-        'requerimientos': requerimientos,
-        'tareas': tareas,
-        'recursos': recursos,
-        'presupuesto_restante': presupuesto_restante,
-        'desviacion_presupuesto': desviacion_presupuesto,
-        'progreso': progreso,
-        'duracion_estimada': duracion_estimada,
-        'duracion_actual': duracion_actual,
-        'total_tareas': total_tareas,
-        'tareas_completadas': tareas_completadas,
-        'total_requerimientos': total_requerimientos,
-        'vista': vista,
-        'filtros': {"busqueda": busqueda},
-    })
+    return render(
+        request,
+        'gestion_proyectos/detalle_proyecto.html',
+        {
+            'proyecto': proyecto,
+            'valor_planeado': valor_planeado,
+            'valor_ganado': valor_ganado,
+            'costo_real': costo_real,
+            'cpi': round(cpi, 2),
+            'spi': round(spi, 2),
+            'requerimientos': requerimientos,
+            'tareas': tareas,
+            'recursos': recursos,
+            'presupuesto_restante': presupuesto_restante,
+            'desviacion_presupuesto': desviacion_presupuesto,
+            'progreso': progreso,
+            'duracion_estimada': duracion_estimada,
+            'duracion_actual': duracion_actual,
+            'total_tareas': total_tareas,
+            'tareas_completadas': tareas_completadas,
+            'total_requerimientos': total_requerimientos,
+            'vista': vista,
+            'filtros': {"busqueda": busqueda},
+        },
+    )
+
 
 @login_required
 def crear_proyecto(request):
@@ -400,7 +442,7 @@ def crear_proyecto(request):
             if key.startswith("requerimiento_"):
                 descripcion_requerimiento = value
                 if descripcion_requerimiento.strip():  # Validar descripción no vacía
-                    
+
                     requerimiento = Requerimiento(
                         descripcion=descripcion_requerimiento,
                         idproyecto=proyecto,
@@ -446,7 +488,7 @@ def editar_proyecto(request, idproyecto):
         now = timezone.now()
         if is_naive(now):
             now = make_aware(now)
-        
+
         proyecto.nombreproyecto = nombreproyecto
         proyecto.descripcion = descripcion
         proyecto.estado = estado
@@ -464,7 +506,9 @@ def editar_proyecto(request, idproyecto):
                 if descripcion_requerimiento.strip():  # Validar descripción no vacía
                     if req_id.isdigit():
                         try:
-                            requerimiento = Requerimiento.objects.get(idrequerimiento=req_id)
+                            requerimiento = Requerimiento.objects.get(
+                                idrequerimiento=req_id
+                            )
                             requerimiento.descripcion = descripcion_requerimiento
                             requerimiento.fechamodificacion = now
                             requerimiento.save()
@@ -507,6 +551,7 @@ def editar_proyecto(request, idproyecto):
         {"proyecto": proyecto, "requerimientos": requerimientos},
     )
 
+
 @login_required
 def eliminar_requerimiento(request, idrequerimiento):
     if request.method == "POST":
@@ -521,6 +566,7 @@ def eliminar_requerimiento(request, idrequerimiento):
             )
     return JsonResponse({'success': False, 'error': 'Método no permitido.'})
 
+
 @login_required
 def eliminar_proyecto(request, idproyecto):
     if request.method == 'POST':
@@ -532,6 +578,7 @@ def eliminar_proyecto(request, idproyecto):
             return JsonResponse({'success': False, 'error': 'Proyecto no encontrado.'})
     return JsonResponse({'success': False, 'error': 'Método no permitido.'})
 
+
 @login_required
 def estadisticas_proyecto(request, idproyecto):
     proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
@@ -540,13 +587,18 @@ def estadisticas_proyecto(request, idproyecto):
     recursos = proyecto.idequipo.miembro_set.all()
     presupuestoutilizado = proyecto.presupuestoutilizado or 0
     presupuesto_restante = proyecto.presupuesto - presupuestoutilizado
-    return render(request, 'gestion_proyectos/estadisticas_proyecto.html', {
-        'proyecto': proyecto,
-        'requerimientos': requerimientos,
-        'tareas': tareas,
-        'recursos': recursos,
-        'presupuesto_restante': presupuesto_restante
-    })
+    return render(
+        request,
+        'gestion_proyectos/estadisticas_proyecto.html',
+        {
+            'proyecto': proyecto,
+            'requerimientos': requerimientos,
+            'tareas': tareas,
+            'recursos': recursos,
+            'presupuesto_restante': presupuesto_restante,
+        },
+    )
+
 
 @login_required
 def filtrar_proyectos(request):
@@ -564,13 +616,16 @@ def filtrar_proyectos(request):
     elif filtro == 'cierre':
         proyectos = proyectos.filter(estado='Cierre')
 
-
-      # Paginación
+    # Paginación
     paginator = Paginator(proyectos, 9)
     page = request.GET.get("page", 1)
     proyectos_paginados = paginator.get_page(page)
-   
-    return render(request, 'components/lista_proyectos.html', {'proyectos': proyectos_paginados, 'filtro_activo': filtro})
+
+    return render(
+        request,
+        'components/lista_proyectos.html',
+        {'proyectos': proyectos_paginados, 'filtro_activo': filtro},
+    )
 
 
 @login_required
@@ -600,11 +655,16 @@ def panel_proyectos(request):
     except EmptyPage:
         proyectos_paginados = paginator.page(paginator.num_pages)
 
-    return render(request, 'components/panel_proyectos.html', {
-        'proyectos': proyectos_paginados,
-        'vista': vista,
-        'filtros': {"busqueda": busqueda, "filtro": filtro},
-    })
+    return render(
+        request,
+        'components/panel_proyectos.html',
+        {
+            'proyectos': proyectos_paginados,
+            'vista': vista,
+            'filtros': {"busqueda": busqueda, "filtro": filtro},
+        },
+    )
+
 
 @login_required
 def crear_requerimiento(request, idproyecto):
@@ -621,27 +681,35 @@ def crear_requerimiento(request, idproyecto):
             )
             requerimiento.save()
             return redirect('gestion_proyectos:detalle_proyecto', idproyecto=idproyecto)
-    return render(request, 'gestion_proyectos/crear_requerimiento.html', {'proyecto': proyecto})
+    return render(
+        request, 'gestion_proyectos/crear_requerimiento.html', {'proyecto': proyecto}
+    )
+
 
 @login_required
 def detalle_requerimiento(request, idrequerimiento):
     requerimiento = get_object_or_404(Requerimiento, idrequerimiento=idrequerimiento)
     tareas = Tarea.objects.filter(idrequerimiento=requerimiento)
-    
+
     # Calcular estadísticas
     total_tareas = tareas.count()
     tareas_pendientes = tareas.filter(estado='Pendiente').count()
     tareas_en_progreso = tareas.filter(estado='En Progreso').count()
     tareas_completadas = tareas.filter(estado='Completada').count()
 
-    return render(request, 'gestion_proyectos/detalle_requerimiento.html', {
-        'requerimiento': requerimiento,
-        'tareas': tareas,
-        'total_tareas': total_tareas,
-        'tareas_pendientes': tareas_pendientes,
-        'tareas_en_progreso': tareas_en_progreso,
-        'tareas_completadas': tareas_completadas,
-    })
+    return render(
+        request,
+        'gestion_proyectos/detalle_requerimiento.html',
+        {
+            'requerimiento': requerimiento,
+            'tareas': tareas,
+            'total_tareas': total_tareas,
+            'tareas_pendientes': tareas_pendientes,
+            'tareas_en_progreso': tareas_en_progreso,
+            'tareas_completadas': tareas_completadas,
+        },
+    )
+
 
 @login_required
 def editar_requerimiento(request, idrequerimiento):
@@ -653,8 +721,15 @@ def editar_requerimiento(request, idrequerimiento):
             requerimiento.descripcion = descripcion
             requerimiento.fechamodificacion = timezone.now()
             requerimiento.save()
-            return redirect('gestion_proyectos:detalle_proyecto', idproyecto=proyecto.idproyecto)
-    return render(request, 'gestion_proyectos/editar_requerimiento.html', {'requerimiento': requerimiento, 'proyecto': proyecto})
+            return redirect(
+                'gestion_proyectos:detalle_proyecto', idproyecto=proyecto.idproyecto
+            )
+    return render(
+        request,
+        'gestion_proyectos/editar_requerimiento.html',
+        {'requerimiento': requerimiento, 'proyecto': proyecto},
+    )
+
 
 @login_required
 def eliminar_requerimiento(request, idrequerimiento):
@@ -662,8 +737,15 @@ def eliminar_requerimiento(request, idrequerimiento):
     proyecto = requerimiento.idproyecto
     if request.method == 'POST':
         requerimiento.delete()
-        return redirect('gestion_proyectos:detalle_proyecto', idproyecto=proyecto.idproyecto)
-    return render(request, 'gestion_proyectos/eliminar_requerimiento.html', {'requerimiento': requerimiento, 'proyecto': proyecto})
+        return redirect(
+            'gestion_proyectos:detalle_proyecto', idproyecto=proyecto.idproyecto
+        )
+    return render(
+        request,
+        'gestion_proyectos/eliminar_requerimiento.html',
+        {'requerimiento': requerimiento, 'proyecto': proyecto},
+    )
+
 
 @login_required
 def ajustar_fechas(request, proyecto_id):
@@ -676,8 +758,13 @@ def ajustar_fechas(request, proyecto_id):
         proyecto.fechamodificacion = timezone.now()
         proyecto.save()
         messages.success(request, "Fechas del proyecto ajustadas exitosamente.")
-        return redirect("gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto)
-    return render(request, "gestion_proyectos/ajustar_fechas.html", {"proyecto": proyecto})
+        return redirect(
+            "gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto
+        )
+    return render(
+        request, "gestion_proyectos/ajustar_fechas.html", {"proyecto": proyecto}
+    )
+
 
 @login_required
 def ajustar_presupuesto(request, proyecto_id):
@@ -690,5 +777,9 @@ def ajustar_presupuesto(request, proyecto_id):
         proyecto.fechamodificacion = timezone.now()
         proyecto.save()
         messages.success(request, "Presupuesto del proyecto ajustado exitosamente.")
-        return redirect("gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto)
-    return render(request, "gestion_proyectos/ajustar_presupuesto.html", {"proyecto": proyecto})
+        return redirect(
+            "gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto
+        )
+    return render(
+        request, "gestion_proyectos/ajustar_presupuesto.html", {"proyecto": proyecto}
+    )

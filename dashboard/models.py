@@ -424,9 +424,7 @@ class Tarea(models.Model):
 
 class Tarearecurso(models.Model):
     idtarearecurso = models.AutoField(primary_key=True)
-    idtarea = models.ForeignKey(
-        Tarea, models.DO_NOTHING, db_column="idtarea"
-    )
+    idtarea = models.ForeignKey(Tarea, models.DO_NOTHING, db_column="idtarea")
     idrecurso = models.ForeignKey(Recurso, models.DO_NOTHING, db_column="idrecurso")
     cantidad = models.IntegerField(blank=True, null=True)
 
