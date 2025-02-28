@@ -7,6 +7,11 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](docker-compose.yml)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-blue.svg)](k8s/)
 
+<p align="center">
+    <img src="https://img.shields.io/badge/STATUS-EN%20DESAROLLO-green"></br>
+    <img src="https://img.shields.io/github/stars/sandovaldavid?style=social">
+</p>
+
 Sistema inteligente de gestión de proyectos informáticos con estimación de tiempos mediante redes neuronales LSTM 🧠
 
 ## ✨ Características
@@ -121,8 +126,8 @@ El proyecto utiliza herramientas de formateo automático para mantener un estilo
 
 ### Herramientas de Formateo
 
-- **Black**: Para formatear archivos Python
-- **Prettier**: Para formatear archivos HTML, CSS y JavaScript
+-   **Black**: Para formatear archivos Python
+-   **Prettier**: Para formatear archivos HTML, CSS y JavaScript
 
 ### Ejecutar permisos de los scripts
 
