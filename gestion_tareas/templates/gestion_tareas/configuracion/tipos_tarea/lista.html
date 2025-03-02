@@ -1,0 +1,82 @@
+{% extends 'layout.html' %}
+
+{% block title %}Tipos de Tarea{% endblock %}
+
+{% block title_body %}
+    <div class="flex items-center justify-between w-full">
+        <div class="flex items-center">
+            <i class="fas fa-code text-blue-500 mr-2"></i>
+            <span>Tipos de Tarea</span>
+        </div>
+        <a href="{% url 'gestion_tareas:crear_tipo_tarea' %}" class="px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm flex items-center">
+            <i class="fas fa-plus mr-1.5"></i>
+            Nuevo Tipo
+        </a>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="p-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-code text-blue-500 mr-2"></i>
+                Lista de Tipos de Tarea
+            </h2>
+
+            {% if tipos_tarea %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tareas</th>
+                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for tipo in tipos_tarea %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="py-4 px-6 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ tipo.nombre }}</div>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="text-sm text-gray-700">{{ tipo.descripcion|default:"--" }}</div>
+                                    </td>
+                                    <td class="py-4 px-6 whitespace-nowrap">
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            {{ tipo.num_tareas }}
+                                        </span>
+                                    </td>
+                                    <td class="py-4 px-6 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-2">
+                                            <a href="{% url 'gestion_tareas:editar_tipo_tarea' id=tipo.idtipotarea %}" class="text-blue-600 hover:text-blue-900">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </a>
+                                            
+                                            <form method="POST" action="{% url 'gestion_tareas:eliminar_tipo_tarea' id=tipo.idtipotarea %}" onsubmit="return confirm('¿Está seguro que desea eliminar este tipo de tarea?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="text-red-600 hover:text-red-900">
+                                                    <i class="fas fa-trash-alt"></i> Eliminar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-10 bg-gray-50 rounded-lg">
+                    <i class="fas fa-folder-open text-4xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-500">No hay tipos de tarea definidos.</p>
+                    <a href="{% url 'gestion_tareas:crear_tipo_tarea' %}" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Nuevo Tipo
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,406 @@
+{% extends 'layout.html' %}
+
+{% block title %}Fases del Proceso{% endblock %}
+
+{% block title_body %}
+    <div class="flex items-center justify-between w-full">
+        <div class="flex items-center">
+            <i class="fas fa-project-diagram text-green-500 mr-2"></i>
+            <span>Fases del Proceso</span>
+        </div>
+        <a href="{% url 'gestion_tareas:crear_fase' %}" class="px-3 py-1.5 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm flex items-center">
+            <i class="fas fa-plus mr-1.5"></i>
+            Nueva Fase
+        </a>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="p-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-project-diagram text-green-500 mr-2"></i>
+                Lista de Fases del Proceso
+            </h2>
+
+            <!-- Diagrama del flujo de fases con estilos actualizados -->
+            {% if fases %}
+                <!-- Nueva sección para reordenar fases con drag & drop -->
+                <div class="mb-8 bg-gray-50 p-6 rounded-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-700">Organizar Fases (Arrastrar y Soltar)</h3>
+                        <button id="guardar-orden" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors hidden">
+                            <i class="fas fa-save mr-2"></i>Guardar Orden
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <p class="text-sm text-gray-600 mb-4">
+                            <i class="fas fa-info-circle mr-1"></i> Arrastre las fases para cambiar su orden en el flujo del proceso. Los cambios se guardarán automáticamente.
+                        </p>
+                        
+                        <ul id="sortable-fases" class="space-y-2 cursor-move">
+                            {% for fase in fases %}
+                                <li class="fase-item p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center hover:bg-gray-100 transition-colors" data-id="{{ fase.idfase }}">
+                                    <div class="drag-handle mr-3 text-gray-400 cursor-grab">
+                                        <i class="fas fa-grip-lines"></i>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3
+                                            {% if forloop.first %}bg-green-100 text-green-700 border-green-300
+                                            {% elif forloop.last %}bg-purple-100 text-purple-700 border-purple-300
+                                            {% else %}bg-blue-100 text-blue-700 border-blue-300{% endif %} 
+                                            border-2">
+                                        <span class="font-bold text-sm">{{ fase.orden }}</span>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <div class="font-medium">{{ fase.nombre }}</div>
+                                        {% if fase.descripcion %}
+                                            <div class="text-xs text-gray-500 truncate">{{ fase.descripcion|truncatechars:60 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- ...existing code... -->
+
+                <!-- Sección de información y leyenda para reordenación -->
+                <div class="mt-4 p-4 bg-green-50 rounded-lg text-sm text-green-700 mb-4">
+                    <p class="flex items-start">
+                        <i class="fas fa-lightbulb mr-2 mt-1"></i>
+                        <span>
+                            <strong>Consejo:</strong> Para insertar una fase entre dos existentes, simplemente cree una nueva fase y luego arrástrela a la posición deseada en la sección "Organizar Fases".
+                        </span>
+                    </p>
+                </div>
+                
+                <div class="mb-8 bg-gray-50 p-6 rounded-xl">
+                    <h3 class="text-lg font-medium text-gray-700 mb-4">Flujo Actual del Proceso</h3>
+                    
+                    <div class="relative mb-8">
+                        <!-- Línea de tiempo horizontal -->
+                        <div class="hidden md:block absolute top-10 left-0 right-0 h-2 bg-gradient-to-r from-green-200 via-blue-200 to-purple-200 rounded-full z-0"></div>
+                        
+                        <!-- Contenedor de fases con scroll horizontal y centrado -->
+                        <div class="overflow-x-auto pb-8 pt-2">
+                            <div class="flex items-center justify-center md:justify-center min-w-max mx-auto px-4 md:px-0">
+                                {% for fase in fases %}
+                                    <div class="relative flex flex-col items-center text-center z-10 {% if not forloop.first %}ml-16 md:ml-24{% endif %}">
+                                        <!-- Numeración y círculo de fase -->
+                                        <div class="w-20 h-20 rounded-full flex items-center justify-center mb-3 relative
+                                                    {% if forloop.first %}bg-green-100 border-green-500
+                                                    {% elif forloop.last %}bg-purple-100 border-purple-500
+                                                    {% else %}bg-blue-100 border-blue-500{% endif %} 
+                                                    border-3 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 duration-200">
+                                            <!-- Número de fase -->
+                                            <span class="text-xl font-bold 
+                                                        {% if forloop.first %}text-green-700
+                                                        {% elif forloop.last %}text-purple-700
+                                                        {% else %}text-blue-700{% endif %}">
+                                                {{ fase.orden }}
+                                            </span>
+                                            
+                                            <!-- Flecha de conexión mejorada (excepto para la última fase) -->
+                                            {% if not forloop.last %}
+                                                <div class="absolute -right-16 md:-right-24 top-1/2 transform -translate-y-1/2 flex items-center z-20">
+                                                    <div class="w-12 md:w-20 h-[3px] 
+                                                            {% if forloop.first %}
+                                                                bg-gradient-to-r from-green-500 to-blue-500
+                                                            {% else %}
+                                                                {% if forloop.counter == fases|length|add:-1 %}
+                                                                    bg-gradient-to-r from-blue-500 to-purple-500
+                                                                {% else %}
+                                                                    bg-gradient-to-r from-blue-500 to-blue-500
+                                                                {% endif %}
+                                                            {% endif %} 
+                                                            relative">
+                                                        <!-- Triángulo de flecha -->
+                                                        <div class="absolute right-0 -top-[5px] w-0 h-0 
+                                                                    border-t-[6px] border-b-[6px] border-l-[10px] border-r-0
+                                                                    {% if forloop.counter == fases|length|add:-1 %}
+                                                                        border-l-purple-500
+                                                                    {% else %}
+                                                                        border-l-blue-500
+                                                                    {% endif %}
+                                                                    border-t-transparent border-b-transparent"></div>
+                                                        
+                                                        <!-- Efecto de animación para la flecha -->
+                                                        <div class="absolute inset-0 w-full opacity-50 animate-pulse
+                                                            {% if forloop.first %}
+                                                                bg-gradient-to-r from-green-300 to-blue-300
+                                                            {% else %}
+                                                                {% if forloop.counter == fases|length|add:-1 %}
+                                                                    bg-gradient-to-r from-blue-300 to-purple-300
+                                                                {% else %}
+                                                                    bg-gradient-to-r from-blue-300 to-blue-300
+                                                                {% endif %}
+                                                            {% endif %}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Nombre de la fase -->
+                                        <div class="w-24 text-sm font-medium {% if forloop.first %}text-green-700
+                                                     {% elif forloop.last %}text-purple-700
+                                                     {% else %}text-blue-700{% endif %} truncate px-1"
+                                             title="{{ fase.nombre }}">
+                                            {{ fase.nombre }}
+                                        </div>
+                                        
+                                        <!-- Descripción abreviada con tooltip -->
+                                        {% if fase.descripcion %}
+                                            <div class="w-24 text-xs text-gray-500 truncate px-1 mt-1 group relative">
+                                                <!-- Versión abreviada -->
+                                                <span>{{ fase.descripcion|truncatechars:15 }}</span>
+                                                
+                                                <!-- Tooltip mejorado -->
+                                                <div class="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 z-30 
+                                                            w-48 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-2xl mb-3
+                                                            transition-opacity duration-300">
+                                                    {{ fase.descripcion }}
+                                                    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 -mb-2 
+                                                                w-4 h-4 bg-gray-800 rotate-45"></div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Vista Compacta para Móviles -->
+                    <div class="block md:hidden mt-4 border border-gray-200 rounded-lg overflow-hidden">
+                        <div class="bg-gray-50 p-2 text-xs font-semibold text-gray-600 border-b border-gray-200">
+                            Secuencia de Fases
+                        </div>
+                        <div class="divide-y divide-gray-200">
+                            {% for fase in fases %}
+                                <div class="flex items-center p-2 hover:bg-gray-50">
+                                    <div class="flex-shrink-0 mr-2 w-6 h-6 rounded-full 
+                                               {% if forloop.first %}bg-green-100 text-green-700
+                                               {% elif forloop.last %}bg-purple-100 text-purple-700
+                                               {% else %}bg-blue-100 text-blue-700{% endif %} 
+                                               flex items-center justify-center font-semibold text-xs">
+                                        {{ fase.orden }}
+                                    </div>
+                                    <div class="flex-grow">
+                                        <div class="text-sm font-medium">{{ fase.nombre }}</div>
+                                        {% if fase.descripcion %}
+                                            <div class="text-xs text-gray-500 truncate">{{ fase.descripcion|truncatechars:30 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de fases -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orden</th>
+                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Creación</th>
+                                <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for fase in fases %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="py-4 px-6 whitespace-nowrap">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center
+                                                    {% if forloop.first %}bg-green-100 text-green-700 border-green-300
+                                                    {% elif forloop.last %}bg-purple-100 text-purple-700 border-purple-300
+                                                    {% else %}bg-blue-100 text-blue-700 border-blue-300{% endif %} 
+                                                    border-2 shadow-sm">
+                                            <span class="text-sm font-bold">{{ fase.orden }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ fase.nombre }}</div>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <div class="text-sm text-gray-700">{{ fase.descripcion|default:"--"|truncatechars:100 }}</div>
+                                    </td>
+                                    <td class="py-4 px-6 whitespace-nowrap">
+                                        <div class="text-sm text-gray-500">{{ fase.fechacreacion|date:"d/m/Y" }}</div>
+                                    </td>
+                                    <td class="py-4 px-6 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-2">
+                                            <a href="{% url 'gestion_tareas:editar_fase' id=fase.idfase %}" class="text-blue-600 hover:text-blue-900">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </a>
+                                            
+                                            <form method="POST" action="{% url 'gestion_tareas:eliminar_fase' id=fase.idfase %}" onsubmit="return confirm('¿Está seguro que desea eliminar esta fase?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="text-red-600 hover:text-red-900">
+                                                    <i class="fas fa-trash-alt"></i> Eliminar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Leyenda y Explicación -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg text-sm border border-gray-200">
+                    <h4 class="font-semibold mb-2 text-gray-700">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Información del Flujo de Fases
+                    </h4>
+                    <p class="mb-2 text-gray-600">Las tareas progresan secuencialmente a través de estas fases durante su ciclo de vida. Cada fase representa un estado distinto en el proceso de desarrollo.</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-green-100 border-2 border-green-400 mr-2"></div>
+                            <span class="text-green-700 font-medium">Fase Inicial</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-400 mr-2"></div>
+                            <span class="text-blue-700 font-medium">Fases Intermedias</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-purple-100 border-2 border-purple-400 mr-2"></div>
+                            <span class="text-purple-700 font-medium">Fase Final</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de ayuda para reorganización de fases -->
+                <div class="mt-4 p-4 bg-blue-50 rounded-lg text-sm text-blue-700">
+                    <p><i class="fas fa-wrench mr-2"></i> Puede reorganizar el orden de las fases editando el campo "Orden" de cada fase. El sistema organiza el flujo de trabajo según este orden.</p>
+                </div>
+            {% else %}
+                <div class="text-center py-8 bg-gray-50 rounded-lg">
+                    <div class="mb-4">
+                        <i class="fas fa-diagram-project text-4xl text-gray-400"></i>
+                    </div>
+                    <p class="text-gray-600 mb-4">No hay fases definidas en el sistema.</p>
+                    <p class="text-gray-500 mb-4">Las fases del proceso permiten organizar las tareas en etapas secuenciales de desarrollo.</p>
+                    <a href="{% url 'gestion_tareas:crear_fase' %}" class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Primera Fase
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fasesList = document.getElementById('sortable-fases');
+            const saveButton = document.getElementById('guardar-orden');
+            let hasChanges = false;
+            
+            if (fasesList) {
+                const sortable = new Sortable(fasesList, {
+                    animation: 150,
+                    ghostClass: 'bg-green-100',
+                    handle: '.drag-handle',
+                    onEnd: function() {
+                        // Mostrar botón de guardar cuando hay cambios
+                        hasChanges = true;
+                        saveButton.classList.remove('hidden');
+                        
+                        // Actualizar visualmente el número de orden
+                        updateOrderNumbers();
+                    }
+                });
+                
+                // Función para actualizar los números de orden visualmente
+                function updateOrderNumbers() {
+                    const items = fasesList.querySelectorAll('.fase-item');
+                    items.forEach((item, index) => {
+                        const orderBadge = item.querySelector('.rounded-full span');
+                        if (orderBadge) {
+                            orderBadge.textContent = index + 1;
+                        }
+                    });
+                }
+                
+                // Guardar el nuevo orden
+                saveButton.addEventListener('click', function() {
+                    const items = fasesList.querySelectorAll('.fase-item');
+                    const newOrder = Array.from(items).map(item => item.dataset.id);
+                    
+                    // Mostrar feedback visual de que se está guardando
+                    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+                    saveButton.disabled = true;
+                    
+                    // Enviar orden al servidor mediante AJAX
+                    const formData = new FormData();
+                    newOrder.forEach(id => formData.append('orden[]', id));
+                    
+                    // Añadir CSRF token
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    
+                    fetch('{% url "gestion_tareas:actualizar_orden_fases" %}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            saveButton.innerHTML = '<i class="fas fa-check mr-2"></i>¡Guardado!';
+                            setTimeout(() => {
+                                saveButton.classList.add('hidden');
+                                saveButton.innerHTML = '<i class="fas fa-save mr-2"></i>Guardar Orden';
+                                saveButton.disabled = false;
+                                
+                                // Mostrar notificación de éxito
+                                const notification = document.createElement('div');
+                                notification.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg transition-opacity duration-500';
+                                notification.innerHTML = '<i class="fas fa-check-circle mr-2"></i>El orden de las fases se ha actualizado correctamente';
+                                document.body.appendChild(notification);
+                                
+                                setTimeout(() => {
+                                    notification.style.opacity = '0';
+                                    setTimeout(() => notification.remove(), 500);
+                                }, 3000);
+                                
+                                // Actualizar la visualización de la página para reflejar el nuevo orden
+                                window.location.reload();
+                            }, 1500);
+                            hasChanges = false;
+                        } else {
+                            saveButton.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Error al guardar';
+                            saveButton.disabled = false;
+                            alert('Error al guardar el nuevo orden: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        saveButton.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Error al guardar';
+                        saveButton.disabled = false;
+                        console.error('Error:', error);
+                    });
+                });
+                
+                // Evitar salir de la página con cambios sin guardar
+                window.addEventListener('beforeunload', function(e) {
+                    if (hasChanges) {
+                        const message = 'Hay cambios sin guardar. ¿Seguro que quieres salir?';
+                        e.returnValue = message;
+                        return message;
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

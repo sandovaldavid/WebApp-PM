@@ -1,0 +1,115 @@
+{% extends 'layout.html' %}
+
+{% block title %}Editar Tarea Común{% endblock %}
+
+{% block title_body %}
+    <div class="flex items-center">
+        <i class="fas fa-edit text-purple-500 mr-2"></i>
+        <span>Editar Tarea Común</span>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="p-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-clipboard-list text-purple-500 mr-2"></i>
+                Editar Tarea Común
+            </h2>
+
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Nombre -->
+                <div>
+                    <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+                    <div class="mt-1 relative">
+                        <input type="text" name="nombre" id="nombre"
+                               value="{{ tarea_comun.nombre }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10"
+                               required>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-clipboard-list text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Descripción -->
+                <div>
+                    <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                    <div class="mt-1 relative">
+                        <textarea name="descripcion" id="descripcion" rows="3"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10">{{ tarea_comun.descripcion|default:'' }}</textarea>
+                        <div class="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-align-left text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tipo de Tarea -->
+                <div>
+                    <label for="tipo_tarea" class="block text-sm font-medium text-gray-700">Tipo de Tarea</label>
+                    <div class="mt-1 relative">
+                        <select name="tipo_tarea" id="tipo_tarea"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10">
+                            <option value="">Seleccione un tipo de tarea</option>
+                            {% for tipo in tipos_tarea %}
+                                <option value="{{ tipo.idtipotarea }}" {% if tarea_comun.idtipotarea and tipo.idtipotarea == tarea_comun.idtipotarea.idtipotarea %}selected{% endif %}>
+                                    {{ tipo.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-code text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tiempo Promedio -->
+                <div>
+                    <label for="tiempo_promedio" class="block text-sm font-medium text-gray-700">Tiempo Promedio (horas)</label>
+                    <div class="mt-1 relative">
+                        <input type="number" name="tiempo_promedio" id="tiempo_promedio"
+                               value="{{ tarea_comun.tiempo_promedio|default:'' }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10"
+                               min="0" step="0.5">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-clock text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Variabilidad del Tiempo -->
+                <div>
+                    <label for="variabilidad_tiempo" class="block text-sm font-medium text-gray-700">Variabilidad del Tiempo</label>
+                    <div class="mt-1 relative">
+                        <input type="number" name="variabilidad_tiempo" id="variabilidad_tiempo"
+                               value="{{ tarea_comun.variabilidad_tiempo|default:'' }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10"
+                               min="0" step="0.01">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-random text-gray-400"></i>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">
+                            Factor de variación en el tiempo de ejecución (ej: 0.2 significa una variación de ±20%).
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Botones de Acción -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'gestion_tareas:lista_tareas_comunes' %}"
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

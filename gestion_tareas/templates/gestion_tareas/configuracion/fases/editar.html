@@ -1,0 +1,81 @@
+{% extends 'layout.html' %}
+
+{% block title %}Editar Fase{% endblock %}
+
+{% block title_body %}
+    <div class="flex items-center">
+        <i class="fas fa-edit text-green-500 mr-2"></i>
+        <span>Editar Fase del Proceso</span>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="p-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-project-diagram text-green-500 mr-2"></i>
+                Editar Fase del Proceso
+            </h2>
+
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Nombre -->
+                <div>
+                    <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre de la Fase</label>
+                    <div class="mt-1 relative">
+                        <input type="text" name="nombre" id="nombre" value="{{ fase.nombre }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 pl-10"
+                               required>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-project-diagram text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Descripción -->
+                <div>
+                    <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                    <div class="mt-1 relative">
+                        <textarea name="descripcion" id="descripcion" rows="3"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 pl-10">{{ fase.descripcion|default:'' }}</textarea>
+                        <div class="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-align-left text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Orden (ahora de solo lectura) -->
+                <div>
+                    <label for="orden" class="block text-sm font-medium text-gray-700">Orden en el Proceso</label>
+                    <div class="mt-1 relative">
+                        <input type="number" name="orden" id="orden" value="{{ fase.orden }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm pl-10 cursor-not-allowed"
+                               readonly>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-sort-numeric-down text-gray-400"></i>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500 flex items-center">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        El orden de las fases solo puede modificarse usando la función arrastrar y soltar en la lista de fases.
+                    </p>
+                </div>
+                
+                <!-- Botones de Acción -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'gestion_tareas:lista_fases' %}"
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
