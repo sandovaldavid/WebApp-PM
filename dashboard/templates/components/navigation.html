@@ -52,7 +52,7 @@
             <!-- Tareas -->
             <a href="{% url 'gestion_tareas:index' %}"
                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200
-                      {% if request.resolver_match.url_name == 'tareas' %}
+                      {% if request.resolver_match.url_name == 'index' %}
                       bg-gray-900 text-white
                       {% else %}
                       text-gray-300 hover:bg-gray-700 hover:text-white
@@ -71,6 +71,18 @@
                       {% endif %}">
                 <i class="fas fa-calendar-check mr-3 text-lg"></i>
                 <span>Tareas Programadas</span>
+            </a>
+            
+            <!-- Configuración de Tareas (Nuevo) -->
+            <a href="{% url 'gestion_tareas:configuracion_tareas' %}"
+               class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200
+                      {% if request.resolver_match.url_name == 'configuracion_tareas' %}
+                      bg-gray-900 text-white
+                      {% else %}
+                      text-gray-300 hover:bg-gray-700 hover:text-white
+                      {% endif %}">
+                <i class="fas fa-cog mr-3 text-lg"></i>
+                <span>Configuración</span>
             </a>
         </div>
     </div>
