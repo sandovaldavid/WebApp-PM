@@ -20,13 +20,62 @@ from dashboard.models import (
     Tarearecurso,
     Alerta,
     Historialalerta,
+    # Nuevos modelos importados
+    TipoTarea,
+    Fase,
+    TareaComun,
+    TareaTareaComun,
+    HistorialEquipo,
 )
 from script.random_user import generar_usuarios
 from faker import Faker
 from django.utils import timezone
+import random
 
 print("Iniciando generación de datos de prueba...")
 fake = Faker()
+
+# Crear tipos de tareas iniciales
+print("---------------------( Creando tipos de tareas ...)---------------------")
+tipos_tarea = [
+    {"nombre": "Frontend", "descripcion": "Desarrollo de interfaces de usuario y experiencia de usuario"},
+    {"nombre": "Backend", "descripcion": "Desarrollo de lógica de negocio y servicios de servidor"},
+    {"nombre": "Database", "descripcion": "Tareas relacionadas con bases de datos"},
+    {"nombre": "Testing", "descripcion": "Pruebas y aseguramiento de calidad"},
+    {"nombre": "DevOps", "descripcion": "Infraestructura y despliegue"},
+    {"nombre": "Documentación", "descripcion": "Elaboración de documentación técnica y de usuario"},
+    {"nombre": "Análisis", "descripcion": "Análisis de requerimientos y diseño de soluciones"},
+]
+
+tipo_tarea_objects = {}
+for tipo in tipos_tarea:
+    obj = TipoTarea.objects.create(
+        nombre=tipo["nombre"],
+        descripcion=tipo["descripcion"],
+    )
+    tipo_tarea_objects[tipo["nombre"]] = obj
+    print(f"Tipo de tarea '{tipo['nombre']}' creado")
+
+# Crear fases iniciales
+print("---------------------( Creando fases ...)---------------------")
+fases = [
+    {"nombre": "Inicio/Conceptualización", "descripcion": "Fase inicial del proyecto", "orden": 1},
+    {"nombre": "Elaboración/Requisitos", "descripcion": "Definición y análisis de requisitos", "orden": 2},
+    {"nombre": "Construcción/Desarrollo", "descripcion": "Implementación de la solución", "orden": 3},
+    {"nombre": "Transición/Implementación", "descripcion": "Despliegue y entrega", "orden": 4},
+    {"nombre": "Mantenimiento", "descripcion": "Soporte y mantenimiento post-implementación", "orden": 5},
+]
+
+fase_objects = {}
+for fase in fases:
+    obj = Fase.objects.create(
+        nombre=fase["nombre"],
+        descripcion=fase["descripcion"],
+        orden=fase["orden"],
+    )
+    fase_objects[fase["nombre"]] = obj
+    print(f"Fase '{fase['nombre']}' creada")
+
 print("---------------------( Creando usuarios ...)---------------------")
 
 try:
@@ -147,10 +196,12 @@ backend_names = [
     "Backend Systems Developer",
 ]
 
+# Añadimos carga_trabajo a los recursos
 Recurso.objects.create(
     nombrerecurso=frontend_names[0],
     idtiporecurso=tipo_humano,
     disponibilidad=False,
+    carga_trabajo=0.75,  # 75% de carga de trabajo
     fechacreacion="2023-03-15T10:00:00Z",
     fechamodificacion="2023-03-15T10:00:00Z",
 )
@@ -167,6 +218,7 @@ Recurso.objects.create(
     nombrerecurso="DevOps Engineer",
     idtiporecurso=tipo_humano,
     disponibilidad=False,
+    carga_trabajo=0.85,  # 85% de carga de trabajo
     fechacreacion="2023-08-01T09:00:00Z",
     fechamodificacion="2023-08-01T09:00:00Z",
 )
@@ -183,6 +235,7 @@ Recurso.objects.create(
     nombrerecurso=frontend_names[1],
     idtiporecurso=tipo_humano,
     disponibilidad=False,
+    carga_trabajo=0.65,
     fechacreacion="2023-08-01T09:00:00Z",
     fechamodificacion="2023-08-01T09:00:00Z",
 )
@@ -1172,6 +1225,7 @@ Historialnotificacion.objects.create(
 # Sistema de Gestión de Inventarios
 Requerimiento.objects.create(
     descripcion="Módulo de gestión de usuarios y permisos",
+    keywords="autenticación, autorización, roles, permisos, seguridad",
     fechacreacion="2023-07-01T08:00:00Z",
     fechamodificacion="2023-07-01T08:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de Inventarios"),
@@ -1179,6 +1233,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Sistema de control de stock en tiempo real",
+    keywords="inventario, stock, tiempo real, alertas, monitoreo",
     fechacreacion="2023-07-05T09:00:00Z",
     fechamodificacion="2023-07-05T09:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de Inventarios"),
@@ -1186,6 +1241,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Generación de reportes y estadísticas",
+    keywords="reportes, estadísticas, análisis, gráficos, datos",
     fechacreacion="2023-07-10T10:00:00Z",
     fechamodificacion="2023-07-10T10:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de Inventarios"),
@@ -1193,6 +1249,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Integración con sistema de facturación",
+    keywords="integración, facturación, pagos, contabilidad, ERP",
     fechacreacion="2023-07-15T11:00:00Z",
     fechamodificacion="2023-07-15T11:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de Inventarios"),
@@ -1200,6 +1257,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Gestión de proveedores y órdenes de compra",
+    keywords="proveedores, órdenes de compra, gestión, compras, inventario",
     fechacreacion="2023-07-20T13:00:00Z",
     fechamodificacion="2023-07-20T13:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de Inventarios"),
@@ -1208,6 +1266,7 @@ Requerimiento.objects.create(
 # Plataforma E-learning
 Requerimiento.objects.create(
     descripcion="Sistema de gestión de cursos y contenidos",
+    keywords="cursos, contenidos, gestión, educación, e-learning",
     fechacreacion="2023-08-15T09:00:00Z",
     fechamodificacion="2023-08-15T09:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Plataforma E-learning"),
@@ -1215,6 +1274,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Módulo de evaluaciones y seguimiento",
+    keywords="evaluaciones, seguimiento, progreso, educación, e-learning",
     fechacreacion="2023-08-20T10:00:00Z",
     fechamodificacion="2023-08-20T10:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Plataforma E-learning"),
@@ -1222,6 +1282,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Sistema de videoconferencias integrado",
+    keywords="videoconferencias, integración, comunicación, educación, e-learning",
     fechacreacion="2023-08-25T11:00:00Z",
     fechamodificacion="2023-08-25T11:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Plataforma E-learning"),
@@ -1229,6 +1290,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Gestión de certificaciones y diplomas",
+    keywords="certificaciones, diplomas, gestión, educación, e-learning",
     fechacreacion="2023-08-30T13:00:00Z",
     fechamodificacion="2023-08-30T13:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Plataforma E-learning"),
@@ -1236,6 +1298,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Sistema de pagos y suscripciones",
+    keywords="pagos, suscripciones, gestión, educación, e-learning",
     fechacreacion="2023-09-05T14:00:00Z",
     fechamodificacion="2023-09-05T14:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Plataforma E-learning"),
@@ -1244,6 +1307,7 @@ Requerimiento.objects.create(
 # App Móvil de Delivery
 Requerimiento.objects.create(
     descripcion="Sistema de geolocalización en tiempo real",
+    keywords="geolocalización, tiempo real, tracking, delivery, móvil",
     fechacreacion="2023-09-01T10:00:00Z",
     fechamodificacion="2023-09-01T10:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="App Móvil de Delivery"),
@@ -1251,6 +1315,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Gestión de pedidos y estados",
+    keywords="pedidos, estados, gestión, delivery, móvil",
     fechacreacion="2023-09-05T11:00:00Z",
     fechamodificacion="2023-09-05T11:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="App Móvil de Delivery"),
@@ -1258,6 +1323,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Sistema de calificaciones y reseñas",
+    keywords="calificaciones, reseñas, gestión, delivery, móvil",
     fechacreacion="2023-09-10T13:00:00Z",
     fechamodificacion="2023-09-10T13:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="App Móvil de Delivery"),
@@ -1265,6 +1331,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Integración con múltiples métodos de pago",
+    keywords="integración, métodos de pago, gestión, delivery, móvil",
     fechacreacion="2023-09-15T14:00:00Z",
     fechamodificacion="2023-09-15T14:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="App Móvil de Delivery"),
@@ -1272,6 +1339,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Sistema de notificaciones push",
+    keywords="notificaciones push, gestión, delivery, móvil",
     fechacreacion="2023-09-20T15:00:00Z",
     fechamodificacion="2023-09-20T15:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="App Móvil de Delivery"),
@@ -1280,6 +1348,7 @@ Requerimiento.objects.create(
 # Sistema de Business Intelligence
 Requerimiento.objects.create(
     descripcion="Diseño de data warehouse empresarial",
+    keywords="data warehouse, diseño, BI, análisis, datos",
     fechacreacion="2023-10-01T09:00:00Z",
     fechamodificacion="2023-10-01T09:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Business Intelligence"),
@@ -1287,6 +1356,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Desarrollo de ETLs para integración de datos",
+    keywords="ETL, integración de datos, BI, análisis, datos",
     fechacreacion="2023-10-05T10:00:00Z",
     fechamodificacion="2023-10-05T10:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Business Intelligence"),
@@ -1294,6 +1364,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Creación de dashboards interactivos",
+    keywords="dashboards, interactivos, BI, análisis, datos",
     fechacreacion="2023-10-10T11:00:00Z",
     fechamodificacion="2023-10-10T11:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Business Intelligence"),
@@ -1301,6 +1372,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Sistema de reportes automatizados",
+    keywords="reportes, automatizados, BI, análisis, datos",
     fechacreacion="2023-10-15T13:00:00Z",
     fechamodificacion="2023-10-15T13:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Business Intelligence"),
@@ -1308,6 +1380,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Implementación de análisis predictivo",
+    keywords="análisis predictivo, BI, análisis, datos, machine learning",
     fechacreacion="2023-10-20T14:00:00Z",
     fechamodificacion="2023-10-20T14:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Business Intelligence"),
@@ -1316,6 +1389,7 @@ Requerimiento.objects.create(
 # Portal de Atención al Cliente
 Requerimiento.objects.create(
     descripcion="Sistema de tickets y seguimiento",
+    keywords="tickets, seguimiento, atención al cliente, soporte, portal",
     fechacreacion="2023-11-15T09:00:00Z",
     fechamodificacion="2023-11-15T09:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Atención al Cliente"),
@@ -1323,6 +1397,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Chat en tiempo real con agentes",
+    keywords="chat en tiempo real, agentes, atención al cliente, soporte, portal",
     fechacreacion="2023-11-20T10:00:00Z",
     fechamodificacion="2023-11-20T10:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Atención al Cliente"),
@@ -1330,6 +1405,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Base de conocimientos y FAQs",
+    keywords="base de conocimientos, FAQs, atención al cliente, soporte, portal",
     fechacreacion="2023-11-25T11:00:00Z",
     fechamodificacion="2023-11-25T11:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Atención al Cliente"),
@@ -1337,6 +1413,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Sistema de encuestas de satisfacción",
+    keywords="encuestas de satisfacción, atención al cliente, soporte, portal",
     fechacreacion="2023-11-30T13:00:00Z",
     fechamodificacion="2023-11-30T13:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Atención al Cliente"),
@@ -1344,6 +1421,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Integración con redes sociales",
+    keywords="integración, redes sociales, atención al cliente, soporte, portal",
     fechacreacion="2023-12-05T14:00:00Z",
     fechamodificacion="2023-12-05T14:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Atención al Cliente"),
@@ -1352,6 +1430,7 @@ Requerimiento.objects.create(
 # Sistema de Gestión Financiera
 Requerimiento.objects.create(
     descripcion="Módulo de contabilidad general",
+    keywords="contabilidad general, gestión financiera, ERP, finanzas, contabilidad",
     fechacreacion="2024-02-01T09:00:00Z",
     fechamodificacion="2024-02-01T09:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión Financiera"),
@@ -1359,6 +1438,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Sistema de gestión de presupuestos",
+    keywords="gestión de presupuestos, ERP, finanzas, contabilidad, gestión financiera",
     fechacreacion="2024-02-05T10:00:00Z",
     fechamodificacion="2024-02-05T10:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión Financiera"),
@@ -1366,6 +1446,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Control de flujo de caja y tesorería",
+    keywords="flujo de caja, tesorería, ERP, finanzas, contabilidad, gestión financiera",
     fechacreacion="2024-02-10T11:00:00Z",
     fechamodificacion="2024-02-10T11:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión Financiera"),
@@ -1373,6 +1454,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Gestión de activos y depreciación",
+    keywords="gestión de activos, depreciación, ERP, finanzas, contabilidad, gestión financiera",
     fechacreacion="2024-02-15T13:00:00Z",
     fechamodificacion="2024-02-15T13:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión Financiera"),
@@ -1380,6 +1462,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Reportes financieros y balance general",
+    keywords="reportes financieros, balance general, ERP, finanzas, contabilidad, gestión financiera",
     fechacreacion="2024-02-20T14:00:00Z",
     fechamodificacion="2024-02-20T14:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión Financiera"),
@@ -1388,6 +1471,7 @@ Requerimiento.objects.create(
 # Portal de Gestión de Proveedores
 Requerimiento.objects.create(
     descripcion="Registro y validación de proveedores",
+    keywords="registro, validación, proveedores, gestión, compras",
     fechacreacion="2024-03-01T09:00:00Z",
     fechamodificacion="2024-03-01T09:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Gestión de Proveedores"),
@@ -1395,6 +1479,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Sistema de licitaciones electrónicas",
+    keywords="licitaciones electrónicas, proveedores, gestión, compras",
     fechacreacion="2024-03-05T10:00:00Z",
     fechamodificacion="2024-03-05T10:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Gestión de Proveedores"),
@@ -1402,6 +1487,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Gestión de contratos y documentación",
+    keywords="gestión de contratos, documentación, proveedores, gestión, compras",
     fechacreacion="2024-03-10T11:00:00Z",
     fechamodificacion="2024-03-10T11:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Gestión de Proveedores"),
@@ -1409,6 +1495,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Evaluación y calificación de proveedores",
+    keywords="evaluación, calificación, proveedores, gestión, compras",
     fechacreacion="2024-03-15T13:00:00Z",
     fechamodificacion="2024-03-15T13:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Gestión de Proveedores"),
@@ -1416,6 +1503,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Portal de autogestión para proveedores",
+    keywords="autogestión, proveedores, gestión, compras",
     fechacreacion="2024-03-20T14:00:00Z",
     fechamodificacion="2024-03-20T14:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Portal de Gestión de Proveedores"),
@@ -1424,6 +1512,7 @@ Requerimiento.objects.create(
 # CRM Empresarial Integrado
 Requerimiento.objects.create(
     descripcion="Gestión de contactos y empresas",
+    keywords="gestión de contactos, empresas, CRM, relaciones con clientes",
     fechacreacion="2024-04-01T09:00:00Z",
     fechamodificacion="2024-04-01T09:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
@@ -1431,6 +1520,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Pipeline de ventas y oportunidades",
+    keywords="pipeline de ventas, oportunidades, CRM, relaciones con clientes",
     fechacreacion="2024-04-05T10:00:00Z",
     fechamodificacion="2024-04-05T10:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
@@ -1438,6 +1528,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Automatización de marketing",
+    keywords="automatización de marketing, CRM, relaciones con clientes",
     fechacreacion="2024-04-10T11:00:00Z",
     fechamodificacion="2024-04-10T11:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
@@ -1445,6 +1536,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Análisis predictivo de ventas",
+    keywords="análisis predictivo de ventas, CRM, relaciones con clientes",
     fechacreacion="2024-04-15T13:00:00Z",
     fechamodificacion="2024-04-15T13:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
@@ -1452,6 +1544,7 @@ Requerimiento.objects.create(
 
 Requerimiento.objects.create(
     descripcion="Integración con servicios de email marketing",
+    keywords="integración, servicios de email marketing, CRM, relaciones con clientes",
     fechacreacion="2024-04-20T14:00:00Z",
     fechamodificacion="2024-04-20T14:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="CRM Empresarial Integrado"),
@@ -1462,6 +1555,7 @@ Requerimiento.objects.create(
 # 1. Sistema de Gestión de Personal
 Requerimiento.objects.create(
     descripcion="Módulo de gestión de empleados y estructura organizacional",
+    keywords="gestión de empleados, estructura organizacional, RRHH",
     fechacreacion="2024-07-15T10:00:00Z",
     fechamodificacion="2024-07-15T10:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
@@ -1470,6 +1564,7 @@ Requerimiento.objects.create(
 # 2. Sistema de Nóminas
 Requerimiento.objects.create(
     descripcion="Cálculo y procesamiento de nóminas, beneficios y deducciones",
+    keywords="cálculo de nóminas, procesamiento de nóminas, beneficios, deducciones, RRHH",
     fechacreacion="2024-07-20T09:00:00Z",
     fechamodificacion="2024-07-20T09:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
@@ -1478,6 +1573,7 @@ Requerimiento.objects.create(
 # 3. Gestión de Evaluaciones
 Requerimiento.objects.create(
     descripcion="Sistema de evaluación de desempeño y seguimiento de objetivos",
+    keywords="evaluación de desempeño, seguimiento de objetivos, RRHH",
     fechacreacion="2024-07-25T11:00:00Z",
     fechamodificacion="2024-07-25T11:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
@@ -1486,6 +1582,7 @@ Requerimiento.objects.create(
 # 4. Control de Asistencia
 Requerimiento.objects.create(
     descripcion="Módulo de control de asistencia, vacaciones y permisos",
+    keywords="control de asistencia, vacaciones, permisos, RRHH",
     fechacreacion="2024-07-30T14:00:00Z",
     fechamodificacion="2024-07-30T14:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
@@ -1494,6 +1591,7 @@ Requerimiento.objects.create(
 # 5. Reportes y Analytics
 Requerimiento.objects.create(
     descripcion="Generación de reportes, métricas y análisis de recursos humanos",
+    keywords="reportes, métricas, análisis de recursos humanos, RRHH",
     fechacreacion="2024-08-05T13:00:00Z",
     fechamodificacion="2024-08-05T13:00:00Z",
     idproyecto=Proyecto.objects.get(nombreproyecto="Sistema de Gestión de RRHH"),
@@ -1501,9 +1599,14 @@ Requerimiento.objects.create(
 
 # Sistema de Gestión de Inventarios
 # Requerimiento: Módulo de gestión de usuarios y permisos
-Tarea.objects.create(
+tarea1 = Tarea.objects.create(
     nombretarea="Desarrollo de sistema de autenticación",
-    tipo_tarea="backend",
+    descripcion="Implementar un sistema de autenticación seguro con opciones de recuperación de contraseña y autenticación de dos factores.",
+    tags="seguridad, auth, login, jwt, oauth",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.85,
+    tamaño_estimado=120,
     fechainicio="2024-01-15",
     fechafin="2024-01-25",
     duracionestimada=8,
@@ -1520,9 +1623,14 @@ Tarea.objects.create(
     ),
 )
 
-Tarea.objects.create(
+tarea2 = Tarea.objects.create(
     nombretarea="Implementación de roles y permisos",
-    tipo_tarea="backend",
+    descripcion="Desarrollar un sistema flexible de roles y permisos basado en acciones y recursos.",
+    tags="rbac, permisos, autorización, seguridad",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=140,
     fechainicio="2024-01-26",
     fechafin="2024-02-05",
     duracionestimada=10,
@@ -1542,7 +1650,10 @@ Tarea.objects.create(
 # Requerimiento: Sistema de control de stock en tiempo real
 Tarea.objects.create(
     nombretarea="Desarrollo de API de inventario",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=100,
     fechainicio="2024-02-01",
     fechafin="2024-02-15",
     duracionestimada=12,
@@ -1561,7 +1672,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de webhooks para actualizaciones",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.7,
+    tamaño_estimado=80,
     fechainicio="2024-02-16",
     fechafin="2024-02-25",
     duracionestimada=8,
@@ -1581,7 +1695,10 @@ Tarea.objects.create(
 # Requerimiento: Generación de reportes y estadísticas
 Tarea.objects.create(
     nombretarea="Desarrollo de módulo de reportes dinámicos",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.85,
+    tamaño_estimado=110,
     fechainicio="2024-02-26",
     fechafin="2024-03-10",
     duracionestimada=10,
@@ -1600,7 +1717,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de gráficos estadísticos",
-    tipo_tarea="frontend",
+    tipo_tarea=tipo_tarea_objects["Frontend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=90,
     fechainicio="2024-03-11",
     fechafin="2024-03-20",
     duracionestimada=8,
@@ -1620,7 +1740,10 @@ Tarea.objects.create(
 # Requerimiento: Integración con sistema de facturación
 Tarea.objects.create(
     nombretarea="Desarrollo de API de integración con facturación",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=130,
     fechainicio="2024-03-21",
     fechafin="2024-04-05",
     duracionestimada=12,
@@ -1639,7 +1762,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de sincronización de datos",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2024-04-06",
     fechafin="2024-04-15",
     duracionestimada=8,
@@ -1659,7 +1785,10 @@ Tarea.objects.create(
 # Requerimiento: Gestión de proveedores y órdenes de compra
 Tarea.objects.create(
     nombretarea="Desarrollo de módulo de proveedores",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.85,
+    tamaño_estimado=120,
     fechainicio="2024-04-16",
     fechafin="2024-04-30",
     duracionestimada=11,
@@ -1678,7 +1807,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Sistema de generación de órdenes de compra",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2024-05-01",
     fechafin="2024-05-15",
     duracionestimada=10,
@@ -1699,7 +1831,10 @@ Tarea.objects.create(
 # Requerimiento: Sistema de gestión de cursos y contenidos
 Tarea.objects.create(
     nombretarea="Desarrollo de catálogo de cursos",
-    tipo_tarea="frontend",
+    tipo_tarea=tipo_tarea_objects["Frontend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.85,
+    tamaño_estimado=110,
     fechainicio="2024-05-16",
     fechafin="2024-05-30",
     duracionestimada=11,
@@ -1718,7 +1853,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Sistema de carga y gestión de contenidos",
-    tipo_tarea="frontend",
+    tipo_tarea=tipo_tarea_objects["Frontend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=90,
     fechainicio="2024-06-01",
     fechafin="2024-06-15",
     duracionestimada=12,
@@ -1738,7 +1876,10 @@ Tarea.objects.create(
 # Requerimiento: Módulo de evaluaciones y seguimiento
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de evaluaciones online",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=100,
     fechainicio="2024-06-16",
     fechafin="2024-06-30",
     duracionestimada=10,
@@ -1757,7 +1898,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de sistema de seguimiento de progreso",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=90,
     fechainicio="2024-07-01",
     fechafin="2024-07-15",
     duracionestimada=11,
@@ -1777,7 +1921,10 @@ Tarea.objects.create(
 # Requerimiento: Sistema de videoconferencias integrado
 Tarea.objects.create(
     nombretarea="Integración de API de videoconferencias",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=120,
     fechainicio="2024-07-16",
     fechafin="2024-07-31",
     duracionestimada=12,
@@ -1796,7 +1943,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Desarrollo de interfaz de videoconferencias",
-    tipo_tarea="frontend",
+    tipo_tarea=tipo_tarea_objects["Frontend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2024-08-01",
     fechafin="2024-08-15",
     duracionestimada=10,
@@ -1816,7 +1966,10 @@ Tarea.objects.create(
 # Requerimiento: Gestión de certificaciones y diplomas
 Tarea.objects.create(
     nombretarea="Desarrollo de generador de certificados",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.85,
+    tamaño_estimado=110,
     fechainicio="2024-08-16",
     fechafin="2024-08-30",
     duracionestimada=11,
@@ -1835,7 +1988,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Sistema de validación de certificados online",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2024-09-01",
     fechafin="2024-09-15",
     duracionestimada=10,
@@ -1855,7 +2011,10 @@ Tarea.objects.create(
 # Requerimiento: Sistema de pagos y suscripciones
 Tarea.objects.create(
     nombretarea="Integración de pasarela de pagos",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=120,
     fechainicio="2024-09-16",
     fechafin="2024-09-30",
     duracionestimada=12,
@@ -1874,7 +2033,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Gestión de suscripciones y renovaciones",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2024-10-01",
     fechafin="2024-10-15",
     duracionestimada=10,
@@ -1894,7 +2056,10 @@ Tarea.objects.create(
 # App Móvil de Delivery - Sistema de geolocalización en tiempo real
 Tarea.objects.create(
     nombretarea="Implementación de tracking GPS en tiempo real",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=120,
     fechainicio="2024-10-16",
     fechafin="2024-10-31",
     duracionestimada=12,
@@ -1913,7 +2078,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Desarrollo de visualización de rutas en mapa",
-    tipo_tarea="frontend",
+    tipo_tarea=tipo_tarea_objects["Frontend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2024-11-01",
     fechafin="2024-11-15",
     duracionestimada=10,
@@ -1933,7 +2101,10 @@ Tarea.objects.create(
 # Gestión de pedidos y estados
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de gestión de pedidos",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=110,
     fechainicio="2024-11-16",
     fechafin="2024-11-30",
     duracionestimada=11,
@@ -1952,7 +2123,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de actualizaciones de estado en tiempo real",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=90,
     fechainicio="2024-12-01",
     fechafin="2024-12-15",
     duracionestimada=10,
@@ -1972,7 +2146,10 @@ Tarea.objects.create(
 # Sistema de calificaciones y reseñas
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de calificaciones",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=100,
     fechainicio="2024-12-16",
     fechafin="2024-12-30",
     duracionestimada=10,
@@ -1991,7 +2168,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de gestión de reseñas",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=90,
     fechainicio="2025-01-01",
     fechafin="2025-01-15",
     duracionestimada=11,
@@ -2011,7 +2191,10 @@ Tarea.objects.create(
 # Integración con múltiples métodos de pago
 Tarea.objects.create(
     nombretarea="Integración de pasarelas de pago",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=120,
     fechainicio="2025-01-16",
     fechafin="2025-01-31",
     duracionestimada=12,
@@ -2030,7 +2213,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Desarrollo de interfaz de pagos",
-    tipo_tarea="frontend",
+    tipo_tarea=tipo_tarea_objects["Frontend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2025-02-01",
     fechafin="2025-02-15",
     duracionestimada=10,
@@ -2050,7 +2236,10 @@ Tarea.objects.create(
 # Sistema de notificaciones push
 Tarea.objects.create(
     nombretarea="Implementación de sistema de notificaciones",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=100,
     fechainicio="2025-02-16",
     fechafin="2025-02-28",
     duracionestimada=9,
@@ -2069,7 +2258,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Configuración de servicios push",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=90,
     fechainicio="2025-03-01",
     fechafin="2025-03-15",
     duracionestimada=10,
@@ -2089,7 +2281,10 @@ Tarea.objects.create(
 # Diseño de data warehouse empresarial
 Tarea.objects.create(
     nombretarea="Diseño de arquitectura del data warehouse",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=120,
     fechainicio="2025-03-16",
     fechafin="2025-03-31",
     duracionestimada=12,
@@ -2108,7 +2303,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de modelos dimensionales",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2025-04-01",
     fechafin="2025-04-15",
     duracionestimada=11,
@@ -2128,7 +2326,10 @@ Tarea.objects.create(
 # Desarrollo de ETLs para integración de datos
 Tarea.objects.create(
     nombretarea="Desarrollo de procesos ETL",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=110,
     fechainicio="2025-04-16",
     fechafin="2025-04-30",
     duracionestimada=11,
@@ -2147,7 +2348,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de validaciones de datos",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=90,
     fechainicio="2025-05-01",
     fechafin="2025-05-15",
     duracionestimada=10,
@@ -2167,7 +2371,10 @@ Tarea.objects.create(
 # Creación de dashboards interactivos
 Tarea.objects.create(
     nombretarea="Desarrollo de visualizaciones interactivas",
-    tipo_tarea="frontend",
+    tipo_tarea=tipo_tarea_objects["Frontend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=120,
     fechainicio="2025-05-16",
     fechafin="2025-05-31",
     duracionestimada=12,
@@ -2186,7 +2393,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de filtros dinámicos",
-    tipo_tarea="frontend",
+    tipo_tarea=tipo_tarea_objects["Frontend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2025-06-01",
     fechafin="2025-06-15",
     duracionestimada=10,
@@ -2206,7 +2416,10 @@ Tarea.objects.create(
 # Sistema de reportes automatizados
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de programación de reportes",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=110,
     fechainicio="2025-06-16",
     fechafin="2025-06-30",
     duracionestimada=11,
@@ -2225,7 +2438,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de exportación de reportes",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=90,
     fechainicio="2025-07-01",
     fechafin="2025-07-15",
     duracionestimada=10,
@@ -2245,7 +2461,10 @@ Tarea.objects.create(
 # Implementación de análisis predictivo
 Tarea.objects.create(
     nombretarea="Desarrollo de modelos predictivos",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=120,
     fechainicio="2025-07-16",
     fechafin="2025-07-31",
     duracionestimada=12,
@@ -2264,7 +2483,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de algoritmos de machine learning",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=110,
     fechainicio="2025-08-01",
     fechafin="2025-08-15",
     duracionestimada=11,
@@ -2284,7 +2506,10 @@ Tarea.objects.create(
 # 1. Sistema de Gestión de Personal
 Tarea.objects.create(
     nombretarea="Desarrollo de módulo de gestión de empleados",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.85,
+    tamaño_estimado=120,
     fechainicio="2024-07-15",
     fechafin="2024-07-30",
     duracionestimada=12,
@@ -2303,7 +2528,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de estructura organizacional",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2024-07-31",
     fechafin="2024-08-15",
     duracionestimada=12,
@@ -2323,7 +2551,10 @@ Tarea.objects.create(
 # 2. Sistema de Nóminas
 Tarea.objects.create(
     nombretarea="Desarrollo de motor de cálculo de nóminas",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=130,
     fechainicio="2024-07-20",
     fechafin="2024-08-05",
     duracionestimada=15,
@@ -2342,7 +2573,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de gestión de beneficios",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2024-08-06",
     fechafin="2024-08-20",
     duracionestimada=11,
@@ -2362,7 +2596,10 @@ Tarea.objects.create(
 # 3. Gestión de Evaluaciones
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de evaluación de desempeño",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=110,
     fechainicio="2024-07-25",
     fechafin="2024-08-10",
     duracionestimada=13,
@@ -2381,7 +2618,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de seguimiento de objetivos",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=90,
     fechainicio="2024-08-11",
     fechafin="2024-08-25",
     duracionestimada=11,
@@ -2401,7 +2641,10 @@ Tarea.objects.create(
 # 4. Control de Asistencia
 Tarea.objects.create(
     nombretarea="Desarrollo de módulo de control de asistencia",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.8,
+    tamaño_estimado=110,
     fechainicio="2024-07-30",
     fechafin="2024-08-15",
     duracionestimada=13,
@@ -2420,7 +2663,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de gestión de vacaciones y permisos",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=90,
     fechainicio="2024-08-16",
     fechafin="2024-08-30",
     duracionestimada=11,
@@ -2440,7 +2686,10 @@ Tarea.objects.create(
 # 5. Reportes y Analytics
 Tarea.objects.create(
     nombretarea="Desarrollo de sistema de reportes de RRHH",
-    tipo_tarea="backend",
+    tipo_tarea=tipo_tarea_objects["Backend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.85,
+    tamaño_estimado=120,
     fechainicio="2024-08-05",
     fechafin="2024-08-20",
     duracionestimada=12,
@@ -2459,7 +2708,10 @@ Tarea.objects.create(
 
 Tarea.objects.create(
     nombretarea="Implementación de dashboards analíticos de RRHH",
-    tipo_tarea="frontend",
+    tipo_tarea=tipo_tarea_objects["Frontend"],
+    fase=fase_objects["Construcción/Desarrollo"],
+    claridad_requisitos=0.75,
+    tamaño_estimado=100,
     fechainicio="2024-08-21",
     fechafin="2024-09-05",
     duracionestimada=12,
@@ -2621,12 +2873,14 @@ Tarearecurso.objects.create(
     ),
     idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[0]),
     cantidad=1,
+    experiencia=4,  # Proficiente
 )
 
 Tarearecurso.objects.create(
     idtarea=Tarea.objects.get(nombretarea="Implementación de gráficos estadísticos"),
     idrecurso=Recurso.objects.get(nombrerecurso=frontend_names[1]),
     cantidad=1,
+    experiencia=5,  # Experto
 )
 
 # Recursos Humanos - Backend
@@ -2634,6 +2888,7 @@ Tarearecurso.objects.create(
     idtarea=Tarea.objects.get(nombretarea="Desarrollo de API de inventario"),
     idrecurso=Recurso.objects.get(nombrerecurso=backend_names[0]),
     cantidad=1,
+    experiencia=4,  # Proficiente
 )
 
 Tarearecurso.objects.create(
@@ -2642,6 +2897,7 @@ Tarearecurso.objects.create(
     ),
     idrecurso=Recurso.objects.get(nombrerecurso=backend_names[1]),
     cantidad=1,
+    experiencia=5,  # Experto
 )
 
 # Recursos Humanos - QA
@@ -2649,12 +2905,14 @@ Tarearecurso.objects.create(
     idtarea=Tarea.objects.get(nombretarea="Implementación de validaciones de datos"),
     idrecurso=Recurso.objects.get(nombrerecurso="Analista QA"),
     cantidad=1,
+    experiencia=4,  # Proficiente
 )
 
 Tarearecurso.objects.create(
     idtarea=Tarea.objects.get(nombretarea="Desarrollo de sistema de calificaciones"),
     idrecurso=Recurso.objects.get(nombrerecurso="QA Engineer Senior"),
     cantidad=1,
+    experiencia=5,  # Experto
 )
 
 # Recursos Hardware

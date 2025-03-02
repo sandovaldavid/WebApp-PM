@@ -58,6 +58,75 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Descripción (campo nuevo) -->
+                        <div>
+                            <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                            <div class="mt-1 relative">
+                                <textarea name="descripcion" id="descripcion" rows="3"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">{{ tarea.descripcion|default:'' }}</textarea>
+                                <div class="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-align-left text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tags (campo nuevo) -->
+                        <div>
+                            <label for="tags" class="block text-sm font-medium text-gray-700">Etiquetas</label>
+                            <div class="mt-1 relative">
+                                <input type="text" name="tags" id="tags"
+                                       value="{{ tarea.tags|default:'' }}"
+                                       placeholder="Separadas por comas (ej: frontend, responsive, mobile)"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-tags text-gray-400"></i>
+                                </div>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">
+                                Separe las etiquetas con comas
+                            </p>
+                        </div>
+
+                        <!-- Tipo de Tarea (campo nuevo) -->
+                        <div>
+                            <label for="tipo_tarea" class="block text-sm font-medium text-gray-700">Tipo de Tarea</label>
+                            <div class="mt-1 relative">
+                                <select name="tipo_tarea" id="tipo_tarea"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
+                                    <option value="">Seleccione un tipo</option>
+                                    {% for tipo in tipos_tarea %}
+                                        <option value="{{ tipo.idtipotarea }}" 
+                                        {% if tarea.tipo_tarea and tipo.idtipotarea == tarea.tipo_tarea.idtipotarea %}selected{% endif %}>
+                                            {{ tipo.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-code text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fase (campo nuevo) -->
+                        <div>
+                            <label for="fase" class="block text-sm font-medium text-gray-700">Fase</label>
+                            <div class="mt-1 relative">
+                                <select name="fase" id="fase"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
+                                    <option value="">Seleccione una fase</option>
+                                    {% for fase in fases %}
+                                        <option value="{{ fase.idfase }}"
+                                        {% if tarea.fase and fase.idfase == tarea.fase.idfase %}selected{% endif %}>
+                                            {{ fase.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-project-diagram text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Estado -->
                         <div>
@@ -100,6 +169,61 @@
 
                     <!-- Columna Derecha -->
                     <div class="space-y-6">
+                        <!-- Dificultad (campo nuevo) -->
+                        <div>
+                            <label for="dificultad" class="block text-sm font-medium text-gray-700">Dificultad</label>
+                            <div class="mt-1 relative">
+                                <select name="dificultad" id="dificultad"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
+                                    {% for nivel in niveles_dificultad %}
+                                        <option value="{{ nivel.valor }}" 
+                                            {% if tarea.dificultad == nivel.valor %}selected{% endif %}>
+                                            {{ nivel.label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-chart-line text-gray-400"></i>
+                                </div>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">
+                                Nivel de complejidad de la tarea
+                            </p>
+                        </div>
+
+                        <!-- Claridad de Requisitos (campo nuevo) -->
+                        <div>
+                            <label for="claridad_requisitos" class="block text-sm font-medium text-gray-700">
+                                Claridad de Requisitos
+                            </label>
+                            <div class="mt-1 relative">
+                                <input type="range" name="claridad_requisitos" id="claridad_requisitos"
+                                       min="0" max="1" step="0.1" 
+                                       value="{{ tarea.claridad_requisitos|default:0.8 }}"
+                                       class="mt-1 block w-full">
+                                <div class="flex justify-between text-xs text-gray-600 px-1">
+                                    <span>Baja</span>
+                                    <span id="claridad_valor">0%</span>
+                                    <span>Alta</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tamaño Estimado (campo nuevo) -->
+                        <div>
+                            <label for="tamano_estimado" class="block text-sm font-medium text-gray-700">
+                                Tamaño Estimado (story points)
+                            </label>
+                            <div class="mt-1 relative">
+                                <input type="number" name="tamano_estimado" id="tamano_estimado"
+                                       min="1" max="100" value="{{ tarea.tamaño_estimado|default:5 }}"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-ruler text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Duración -->
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -211,4 +335,19 @@
             </form>
         </div>
     </div>
+
+    <script>
+        // Actualizar el porcentaje de claridad de requisitos
+        document.addEventListener('DOMContentLoaded', function() {
+            // Función para actualizar el valor mostrado
+            function updateClaridadValue() {
+                const valor = Math.round(document.getElementById('claridad_requisitos').value * 100);
+                document.getElementById('claridad_valor').textContent = valor + '%';
+            }
+            
+            // Actualizar al inicio y cuando cambie
+            updateClaridadValue();
+            document.getElementById('claridad_requisitos').addEventListener('input', updateClaridadValue);
+        });
+    </script>
 {% endblock %}

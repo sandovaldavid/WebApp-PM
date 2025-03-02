@@ -266,6 +266,7 @@ class Recurso(models.Model):
         "Tiporecurso", models.DO_NOTHING, db_column="idtiporecurso"
     )
     disponibilidad = models.BooleanField(blank=True, null=True)
+    carga_trabajo = models.FloatField(default=0.0, blank=True, null=True)  # Nuevo campo
     fechacreacion = models.DateTimeField(blank=True, null=True)
     fechamodificacion = models.DateTimeField(blank=True, null=True)
 
@@ -332,6 +333,7 @@ class Reporteusuario(models.Model):
 class Requerimiento(models.Model):
     idrequerimiento = models.AutoField(primary_key=True)
     descripcion = models.TextField()
+    keywords = models.TextField(blank=True, null=True)  # Nuevo campo
     fechacreacion = models.DateTimeField(blank=True, null=True)
     fechamodificacion = models.DateTimeField(blank=True, null=True)
     idproyecto = models.ForeignKey(Proyecto, models.DO_NOTHING, db_column="idproyecto")
@@ -384,9 +386,59 @@ class Salidamodeloestimacionrnn(models.Model):
         db_table = "salidamodeloestimacionrnn"
 
 
+class TipoTarea(models.Model):
+    idtipotarea = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+    fechacreacion = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = "tipotarea"
+        
+    def __str__(self):
+        return self.nombre
+
+
+class Fase(models.Model):
+    idfase = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+    orden = models.IntegerField(default=0)
+    fechacreacion = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = "fase"
+        
+    def __str__(self):
+        return self.nombre
+
+
+class TareaComun(models.Model):
+    idtareacomun = models.AutoField(primary_key=True)
+    nombre = models.TextField()
+    descripcion = models.TextField(blank=True, null=True)
+    idtipotarea = models.ForeignKey(
+        TipoTarea, models.SET_NULL, db_column="idtipotarea", null=True, blank=True
+    )
+    tiempo_promedio = models.FloatField(blank=True, null=True)
+    variabilidad_tiempo = models.FloatField(blank=True, null=True)
+    fechacreacion = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = "tareacomun"
+        
+    def __str__(self):
+        return self.nombre
+
+
 class Tarea(models.Model):
     idtarea = models.AutoField(primary_key=True)
     nombretarea = models.CharField(max_length=255)
+    descripcion = models.TextField(blank=True, null=True)  # Nuevo campo
+    tags = models.TextField(blank=True, null=True)  # Nuevo campo
     fechainicio = models.DateField(blank=True, null=True)
     fechafin = models.DateField(blank=True, null=True)
     duracionestimada = models.IntegerField(blank=True, null=True)
@@ -394,17 +446,24 @@ class Tarea(models.Model):
     dificultad = models.IntegerField(blank=True, null=True)
     estado = models.CharField(max_length=50, blank=True, null=True)
     prioridad = models.IntegerField(blank=True, null=True)
-    tipo_tarea = models.CharField(
-        max_length=20,
-        choices=[
-            ("frontend", "Frontend"),
-            ("backend", "Backend"),
-            ("database", "Database"),
-            ("testing", "testing"),
-            ("deployment", "Deployment"),
-        ],
-        default="media",
+    tipo_tarea = models.ForeignKey(
+        TipoTarea, 
+        models.SET_NULL, 
+        db_column="idtipotarea", 
+        null=True, 
+        blank=True
     )
+    # Relación con la nueva tabla Fase
+    fase = models.ForeignKey(
+        Fase,
+        models.SET_NULL,
+        db_column="idfase",
+        null=True,
+        blank=True
+    )
+    claridad_requisitos = models.FloatField(blank=True, null=True)
+    tamaño_estimado = models.IntegerField(blank=True, null=True)
+    
     costoestimado = models.DecimalField(
         max_digits=15, decimal_places=2, blank=True, null=True
     )
@@ -422,11 +481,30 @@ class Tarea(models.Model):
         db_table = "tarea"
 
 
+class TareaTareaComun(models.Model):
+    idrelacion = models.AutoField(primary_key=True)
+    idtarea = models.ForeignKey(Tarea, models.CASCADE, db_column="idtarea")
+    idtareacomun = models.ForeignKey(TareaComun, models.CASCADE, db_column="idtareacomun")
+    similitud = models.FloatField(default=1.0, blank=True, null=True)
+    
+    class Meta:
+        managed = True
+        db_table = "tareatarea_comun"
+        unique_together = (("idtarea", "idtareacomun"),)
+
+
 class Tarearecurso(models.Model):
     idtarearecurso = models.AutoField(primary_key=True)
     idtarea = models.ForeignKey(Tarea, models.DO_NOTHING, db_column="idtarea")
     idrecurso = models.ForeignKey(Recurso, models.DO_NOTHING, db_column="idrecurso")
     cantidad = models.IntegerField(blank=True, null=True)
+    experiencia = models.IntegerField(blank=True, null=True, choices=[
+        (1, "Novato"),
+        (2, "Principiante"),
+        (3, "Competente"),
+        (4, "Proficiente"),
+        (5, "Experto"),
+    ])  # Nuevo campo
 
     class Meta:
         managed = True
@@ -491,3 +569,15 @@ class Usuariorolmodulo(models.Model):
         managed = True
         db_table = "usuariorolmodulo"
         unique_together = (("idusuario", "idrolmodulo"),)
+
+
+class HistorialEquipo(models.Model):
+    idhistorialequipo = models.AutoField(primary_key=True)
+    idequipo = models.ForeignKey(Equipo, models.DO_NOTHING, db_column="idequipo")
+    completitud_tareas = models.FloatField(blank=True, null=True)
+    tiempo_promedio_tareas = models.FloatField(blank=True, null=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        managed = True
+        db_table = "historialequipo"
