@@ -1073,3 +1073,47 @@ def estimar_tarea(request):
 
     return JsonResponse({'error': 'Método no permitido', 'success': False})
 
+
+@login_required
+def api_tarea_por_id(request, id):
+    """API para obtener detalles de una tarea por ID"""
+    try:
+        tarea = get_object_or_404(Tarea, idtarea=id)
+        
+        # Crear respuesta con datos de la tarea
+        data = {
+            'idtarea': tarea.idtarea,
+            'nombretarea': tarea.nombretarea,
+            'descripcion': tarea.descripcion,
+            'estado': tarea.estado,
+            'prioridad': tarea.prioridad,
+            'dificultad': tarea.dificultad,
+            'fechainicio': tarea.fechainicio.strftime('%Y-%m-%d') if tarea.fechainicio else None,
+            'fechafin': tarea.fechafin.strftime('%Y-%m-%d') if tarea.fechafin else None,
+            'duracionestimada': tarea.duracionestimada,
+            'costoestimado': tarea.costoestimado,
+            'tags': tarea.tags,
+        }
+        
+        # Incluir tipo de tarea si existe
+        if tarea.tipo_tarea:
+            data['tipo_tarea'] = {
+                'id': tarea.tipo_tarea.idtipotarea,
+                'nombre': tarea.tipo_tarea.nombre
+            }
+            
+        # Incluir fase si existe
+        if tarea.fase:
+            data['fase'] = {
+                'id': tarea.fase.idfase,
+                'nombre': tarea.fase.nombre,
+                'orden': tarea.fase.orden
+            }
+            
+        return JsonResponse(data)
+        
+    except Exception as e:
+        return JsonResponse(
+            {'error': f"Error al obtener tarea: {str(e)}"}, 
+            status=500
+        )

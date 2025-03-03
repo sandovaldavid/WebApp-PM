@@ -1,0 +1,875 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Estimación Avanzada de Tiempo{% endblock %}
+
+{% block style %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+    }
+    .bg-network {
+        background-image: url('{% static "img/neural-bg.svg" %}');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        opacity: 0.05;
+    }
+</style>
+{% endblock %}
+
+{% block title_body %}
+<div class="flex justify-between items-center w-full">
+    <div class="flex items-center">
+        <i class="fas fa-brain text-indigo-500 mr-2"></i>
+        <span>Estimación Avanzada con RNN</span>
+    </div>
+    <div class="flex space-x-2">
+        <a href="{% url 'redes_neuronales:dashboard' %}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm flex items-center">
+            <i class="fas fa-chart-line mr-1.5"></i>
+            Panel de Métricas
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-6">
+    <div class="mb-8 text-center relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 p-8 text-white">
+        <div class="absolute inset-0 bg-network"></div>
+        <div class="relative z-10">
+            <h2 class="text-2xl font-bold mb-2">Red Neuronal Recurrente para Estimación de Tiempos</h2>
+            <p class="max-w-2xl mx-auto">Sistema avanzado basado en GRU bidireccionales para estimar con precisión los tiempos de ejecución de tareas en proyectos de desarrollo.</p>
+        </div>
+    </div>
+
+    <!-- Tabs para seleccionar funcionalidad -->
+    <div class="mb-6 border-b border-gray-200">
+        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="estimationTabs" role="tablist">
+            <li class="mr-2" role="presentation">
+                <button class="inline-block p-4 border-b-2 rounded-t-lg border-indigo-500 active-tab" 
+                        id="task-tab" data-tab="task-content" type="button" role="tab">
+                    <i class="fas fa-tasks mr-2"></i>Estimación de Tareas
+                </button>
+            </li>
+            <li class="mr-2" role="presentation">
+                <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:border-gray-300" 
+                        id="reestimation-tab" data-tab="reestimation-content" type="button" role="tab">
+                    <i class="fas fa-sync-alt mr-2"></i>Reestimación
+                </button>
+            </li>
+            <li class="mr-2" role="presentation">
+                <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:border-gray-300" 
+                        id="project-tab" data-tab="project-content" type="button" role="tab">
+                    <i class="fas fa-project-diagram mr-2"></i>Proyectos
+                </button>
+            </li>
+            <li role="presentation">
+                <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:border-gray-300" 
+                        id="analytics-tab" data-tab="analytics-content" type="button" role="tab">
+                    <i class="fas fa-chart-bar mr-2"></i>Análisis
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Contenido de Tabs -->
+    <div class="tab-content bg-white rounded-lg shadow-lg p-6">
+        <!-- 1. Estimación de Tareas -->
+        <div class="tab-pane active" id="task-content">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-calculator text-indigo-500 mr-2"></i>
+                Estimación de Tiempo para Tareas
+            </h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Formulario de selección de tarea -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <h4 class="text-md font-medium mb-4">Seleccionar Tarea</h4>
+                    <form id="taskSelectionForm" class="space-y-4">
+                        {% csrf_token %}
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">ID de Tarea</label>
+                            <div class="mt-1 flex rounded-md shadow-sm">
+                                <input type="number" 
+                                       name="tarea_id" 
+                                       class="flex-1 min-w-0 block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500" 
+                                       required>
+                                <button type="button" 
+                                        id="searchTaskButton"
+                                        class="ml-3 inline-flex items-center rounded-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-search mr-2"></i>
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="taskDetails" class="hidden p-4 bg-gray-50 rounded-md">
+                            <h5 class="font-medium mb-2">Detalles de la Tarea</h5>
+                            <div class="space-y-2">
+                                <p><span class="font-medium">Nombre:</span> <span id="taskName"></span></p>
+                                <p><span class="font-medium">Tipo:</span> <span id="taskType"></span></p>
+                                <p><span class="font-medium">Fase:</span> <span id="taskPhase"></span></p>
+                                <p><span class="font-medium">Complejidad:</span> <span id="taskComplexity"></span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <button type="submit" 
+                                    id="estimateTaskButton"
+                                    class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <i class="fas fa-clock mr-2"></i>
+                                Estimar Tiempo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Resultado de la estimación -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <h4 class="text-md font-medium mb-4">Resultado de la Estimación</h4>
+                    
+                    <!-- Estado inicial -->
+                    <div id="estimationInitial" class="text-center py-12">
+                        <i class="fas fa-hourglass-start text-gray-300 text-5xl mb-3"></i>
+                        <p class="text-gray-500">Seleccione una tarea y presione "Estimar Tiempo" para comenzar</p>
+                    </div>
+                    
+                    <!-- Estado cargando -->
+                    <div id="estimationLoading" class="hidden text-center py-12">
+                        <i class="fas fa-spinner fa-spin text-indigo-500 text-5xl mb-3"></i>
+                        <p class="text-indigo-500">Calculando estimación...</p>
+                    </div>
+                    
+                    <!-- Resultado exitoso -->
+                    <div id="estimationResult" class="hidden">
+                        <div class="text-center py-6">
+                            <i class="fas fa-check-circle text-green-500 text-4xl mb-2"></i>
+                            <h5 class="text-xl font-bold text-green-700">Estimación Completada</h5>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                            <div class="flex justify-between items-center">
+                                <h6 class="font-medium text-gray-700">Tiempo Estimado:</h6>
+                                <div class="text-2xl font-bold text-indigo-700" id="estimationTime">0 horas</div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Precisión:</span>
+                                <span class="font-medium" id="estimationAccuracy">Alta</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Fecha estimada de fin:</span>
+                                <span class="font-medium" id="estimationEndDate">XX/XX/XXXX</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Estado:</span>
+                                <span class="font-medium text-green-600">Guardado en BD</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Resultado con error -->
+                    <div id="estimationError" class="hidden text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-2"></i>
+                        <h5 class="text-xl font-bold text-red-700">Error en Estimación</h5>
+                        <p class="text-red-600 mt-2" id="errorMessage">Mensaje de error</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2. Reestimación de Tareas -->
+        <div class="tab-pane hidden" id="reestimation-content">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-sync-alt text-indigo-500 mr-2"></i>
+                Reestimación Tras Cambios
+            </h3>
+            
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            La reestimación recalcula el tiempo necesario para una tarea después de cambios en sus características o recursos asignados.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Formulario de reestimación -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <form id="reestimationForm" class="space-y-4">
+                        {% csrf_token %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">ID de Tarea</label>
+                            <input type="number" 
+                                   name="reestimate_tarea_id" 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
+                                   required>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <button type="submit" 
+                                    id="reestimateButton"
+                                    class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <i class="fas fa-sync mr-2"></i>
+                                Reestimar Tiempo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Resultado de reestimación -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <h4 class="text-md font-medium mb-4">Resultados de la Reestimación</h4>
+                    
+                    <!-- Estado inicial -->
+                    <div id="reestimationInitial" class="text-center py-12">
+                        <i class="fas fa-history text-gray-300 text-5xl mb-3"></i>
+                        <p class="text-gray-500">Ingrese un ID de tarea para reestimar</p>
+                    </div>
+                    
+                    <!-- Estado cargando -->
+                    <div id="reestimationLoading" class="hidden text-center py-12">
+                        <i class="fas fa-spinner fa-spin text-indigo-500 text-5xl mb-3"></i>
+                        <p class="text-indigo-500">Procesando reestimación...</p>
+                    </div>
+                    
+                    <!-- Resultado de reestimación -->
+                    <div id="reestimationResult" class="hidden">
+                        <div class="flex items-center justify-between mb-4">
+                            <h5 class="font-semibold text-gray-700">Comparación de Estimaciones</h5>
+                            <span class="text-xs text-gray-500" id="reestimationTimestamp">Fecha: 01/01/2023</span>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="text-center">
+                                    <div class="text-sm text-gray-500">Estimación Anterior</div>
+                                    <div class="text-2xl font-bold text-gray-700" id="previousEstimation">0h</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-sm text-gray-500">Nueva Estimación</div>
+                                    <div class="text-2xl font-bold text-indigo-700" id="newEstimation">0h</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Diferencia:</span>
+                                <span class="font-medium" id="estimationDifference">0h (0%)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Tendencia:</span>
+                                <span id="estimationTrend">
+                                    <i class="fas fa-equals text-gray-500"></i> Sin cambios
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Error en reestimación -->
+                    <div id="reestimationError" class="hidden text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-2"></i>
+                        <h5 class="text-xl font-bold text-red-700">Error</h5>
+                        <p class="text-red-600 mt-2" id="reestimationErrorMessage">Mensaje de error</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 3. Estimación de Proyectos -->
+        <div class="tab-pane hidden" id="project-content">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-project-diagram text-indigo-500 mr-2"></i>
+                Estimación de Completitud de Proyectos
+            </h3>
+            
+            <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+                <form id="projectEstimationForm" class="space-y-4">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div class="md:col-span-3">
+                            <label class="block text-sm font-medium text-gray-700">ID del Proyecto</label>
+                            <input type="number" 
+                                   name="project_id" 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
+                                   required>
+                        </div>
+                        <div>
+                            <button type="submit" 
+                                    id="estimateProjectButton"
+                                    class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Estimar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Resultados de estimación de proyecto -->
+            <div id="projectResult" class="hidden">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4">
+                        <h4 class="text-lg font-semibold" id="projectName">Proyecto: [Nombre]</h4>
+                        <div class="flex justify-between mt-1 text-sm">
+                            <span id="projectId">ID: 0</span>
+                            <span id="projectStatus">Estado: Activo</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <!-- Tarjetas de métricas -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <!-- Tareas totales -->
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+                                <div class="text-sm text-gray-500">Tareas Totales</div>
+                                <div class="text-2xl font-bold text-gray-800" id="totalTasks">0</div>
+                            </div>
+                            <!-- Completado -->
+                            <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+                                <div class="text-sm text-green-500">% Completado</div>
+                                <div class="text-2xl font-bold text-green-700" id="completionPercentage">0%</div>
+                            </div>
+                            <!-- Tiempo estimado -->
+                            <div class="bg-blue-50 p-4 rounded-lg shadow-sm">
+                                <div class="text-sm text-blue-500">Tiempo Estimado</div>
+                                <div class="text-2xl font-bold text-blue-700" id="totalEstimatedTime">0h</div>
+                            </div>
+                            <!-- Tiempo actual -->
+                            <div class="bg-purple-50 p-4 rounded-lg shadow-sm">
+                                <div class="text-sm text-purple-500">Tiempo Actual</div>
+                                <div class="text-2xl font-bold text-purple-700" id="totalActualTime">0h</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Barra de progreso -->
+                        <div class="mb-6">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-700">Progreso del Proyecto</span>
+                                <span class="text-gray-700" id="progressPercentText">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-green-500 to-green-400 h-4 rounded-full" id="progressBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fechas estimadas -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h5 class="font-medium text-gray-700 mb-3">Estimación de Fechas</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <div class="text-sm text-gray-500">Fecha de Inicio</div>
+                                    <div class="font-medium text-gray-800" id="startDate">--/--/----</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-500">Fecha de Fin Estimada</div>
+                                    <div class="font-medium text-indigo-800" id="estimatedEndDate">--/--/----</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-500">Días Restantes</div>
+                                    <div class="font-medium text-gray-800" id="remainingDays">--</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Estado inicial -->
+            <div id="projectInitial" class="text-center py-12">
+                <i class="fas fa-project-diagram text-gray-300 text-5xl mb-3"></i>
+                <p class="text-gray-500">Ingrese un ID de proyecto para estimar su completitud</p>
+            </div>
+            
+            <!-- Estado cargando -->
+            <div id="projectLoading" class="hidden text-center py-12">
+                <i class="fas fa-spinner fa-spin text-indigo-500 text-5xl mb-3"></i>
+                <p class="text-indigo-500">Analizando proyecto...</p>
+            </div>
+            
+            <!-- Error en estimación de proyecto -->
+            <div id="projectError" class="hidden text-center py-8">
+                <i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-2"></i>
+                <h5 class="text-xl font-bold text-red-700">Error al Estimar Proyecto</h5>
+                <p class="text-red-600 mt-2" id="projectErrorMessage">Mensaje de error</p>
+            </div>
+        </div>
+        
+        <!-- 4. Análisis y Métricas -->
+        <div class="tab-pane hidden" id="analytics-content">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-pie text-indigo-500 mr-2"></i>
+                Análisis y Métricas del Modelo
+            </h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Métricas del modelo -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <h4 class="text-md font-medium mb-4">Métricas del Modelo RNN</h4>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gray-50 p-3 rounded-md">
+                            <div class="text-xs text-gray-500">MSE</div>
+                            <div class="text-lg font-bold text-gray-800">{{ latest_metrics.metrics.MSE|floatformat:4 }}</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-md">
+                            <div class="text-xs text-gray-500">RMSE</div>
+                            <div class="text-lg font-bold text-gray-800">{{ latest_metrics.metrics.RMSE|floatformat:4 }}</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-md">
+                            <div class="text-xs text-gray-500">MAE</div>
+                            <div class="text-lg font-bold text-gray-800">{{ latest_metrics.metrics.MAE|floatformat:4 }}</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-md">
+                            <div class="text-xs text-gray-500">R²</div>
+                            <div class="text-lg font-bold text-gray-800">{{ latest_metrics.metrics.R2|floatformat:4 }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="text-sm font-medium text-gray-700 mb-2">Precisión Global</h5>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ global_precision|floatformat:2 }}%"></div>
+                        </div>
+                        <div class="text-right text-xs text-gray-500 mt-1">{{ global_precision|floatformat:4 }}</div>
+                    </div>
+                    
+                    <div class="text-sm text-gray-600">
+                        <div class="flex justify-between mb-1">
+                            <span>Versión del modelo:</span>
+                            <span class="font-medium">{{ latest_metrics.model_version|default:"1.0.0" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Última actualización:</span>
+                            <span class="font-medium">{{ latest_metrics.timestamp|default:"N/A" }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Importancia de características -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <h4 class="text-md font-medium mb-4">Importancia de Características</h4>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">Complejidad</span>
+                                <span class="text-sm text-gray-600">0.85</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-indigo-600 h-1.5 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">Tipo de Tarea</span>
+                                <span class="text-sm text-gray-600">0.75</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-indigo-600 h-1.5 rounded-full" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">Fase del Proceso</span>
+                                <span class="text-sm text-gray-600">0.70</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-indigo-600 h-1.5 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">Experiencia del Equipo</span>
+                                <span class="text-sm text-gray-600">0.68</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-indigo-600 h-1.5 rounded-full" style="width: 68%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-gray-600">Tamaño de la Tarea</span>
+                                <span class="text-sm text-gray-600">0.65</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-indigo-600 h-1.5 rounded-full" style="width: 65%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfica de predicciones vs. valores reales -->
+                <div class="col-span-2 bg-white rounded-lg border border-gray-200 p-4 mt-6">
+                    <h4 class="text-md font-medium mb-4">Análisis de Predicciones vs. Valores Reales</h4>
+                    <div class="h-64">
+                        <canvas id="predictionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Configuración de las pestañas
+        const tabs = document.querySelectorAll('[data-tab]');
+        const tabContents = document.querySelectorAll('.tab-pane');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Eliminar clase activa de todas las pestañas
+                tabs.forEach(t => {
+                    t.classList.remove('border-indigo-500', 'active-tab');
+                    t.classList.add('border-transparent');
+                });
+                
+                // Ocultar todos los contenidos
+                tabContents.forEach(content => content.classList.add('hidden'));
+                
+                // Activar pestaña seleccionada
+                this.classList.add('border-indigo-500', 'active-tab');
+                this.classList.remove('border-transparent');
+                
+                // Mostrar contenido correspondiente
+                const contentId = this.getAttribute('data-tab');
+                document.getElementById(contentId).classList.remove('hidden');
+            });
+        });
+        
+        // 2. Funciones para estimación de tareas
+        const taskSelectionForm = document.getElementById('taskSelectionForm');
+        const searchTaskButton = document.getElementById('searchTaskButton');
+        
+        if (searchTaskButton) {
+            searchTaskButton.addEventListener('click', function() {
+                const taskId = document.querySelector('input[name="tarea_id"]').value;
+                if (!taskId) {
+                    alert('Ingrese un ID de tarea válido');
+                    return;
+                }
+                
+                // Buscar detalles de la tarea mediante AJAX
+                fetch(`/gestion-tareas/api/tareas/${taskId}/`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Tarea no encontrada');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Mostrar detalles de la tarea
+                        document.getElementById('taskDetails').classList.remove('hidden');
+                        document.getElementById('taskName').textContent = data.nombretarea;
+                        document.getElementById('taskType').textContent = data.tipo_tarea ? data.tipo_tarea.nombre : 'No especificado';
+                        document.getElementById('taskPhase').textContent = data.fase ? data.fase.nombre : 'No especificado';
+                        document.getElementById('taskComplexity').textContent = data.dificultad || 'No especificado';
+                    })
+                    .catch(error => {
+                        alert('Error: ' + error.message);
+                    });
+            });
+        }
+        
+        // Manejar envío del formulario de estimación
+        if (taskSelectionForm) {
+            taskSelectionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const taskId = document.querySelector('input[name="tarea_id"]').value;
+                
+                // Mostrar estado de carga
+                document.getElementById('estimationInitial').classList.add('hidden');
+                document.getElementById('estimationResult').classList.add('hidden');
+                document.getElementById('estimationError').classList.add('hidden');
+                document.getElementById('estimationLoading').classList.remove('hidden');
+                
+                // Realizar petición a la API de estimación
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                fetch('/redes-neuronales/estimacion/api/estimacion/tarea', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        tarea_id: taskId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Ocultar carga
+                    document.getElementById('estimationLoading').classList.add('hidden');
+                    
+                    if (data.status === 'success') {
+                        // Mostrar resultado exitoso
+                        document.getElementById('estimationResult').classList.remove('hidden');
+                        document.getElementById('estimationTime').textContent = `${data.tiempo_estimado.toFixed(2)} horas`;
+                        
+                        // Calcular fecha estimada de fin
+                        const today = new Date();
+                        const endDate = new Date(today);
+                        // Asumiendo 8 horas de trabajo por día
+                        endDate.setDate(today.getDate() + Math.ceil(data.tiempo_estimado / 8));
+                        
+                        document.getElementById('estimationEndDate').textContent = endDate.toLocaleDateString();
+                        
+                        // Determinar nivel de precisión basado en el tiempo estimado
+                        let accuracyText = 'Alta';
+                        if (data.tiempo_estimado > 40) {
+                            accuracyText = 'Media';
+                        } else if (data.tiempo_estimado > 80) {
+                            accuracyText = 'Baja';
+                        }
+                        document.getElementById('estimationAccuracy').textContent = accuracyText;
+                    } else {
+                        // Mostrar error
+                        document.getElementById('estimationError').classList.remove('hidden');
+                        document.getElementById('errorMessage').textContent = data.message;
+                    }
+                })
+                .catch(error => {
+                    // Manejar error de red
+                    document.getElementById('estimationLoading').classList.add('hidden');
+                    document.getElementById('estimationError').classList.remove('hidden');
+                    document.getElementById('errorMessage').textContent = 'Error de conexión: ' + error.message;
+                });
+            });
+        }
+        
+        // 3. Funciones para reestimación
+        const reestimationForm = document.getElementById('reestimationForm');
+        
+        if (reestimationForm) {
+            reestimationForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const taskId = document.querySelector('input[name="reestimate_tarea_id"]').value;
+                
+                // Mostrar estado de carga
+                document.getElementById('reestimationInitial').classList.add('hidden');
+                document.getElementById('reestimationResult').classList.add('hidden');
+                document.getElementById('reestimationError').classList.add('hidden');
+                document.getElementById('reestimationLoading').classList.remove('hidden');
+                
+                // Realizar petición a la API de reestimación
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                fetch('/redes-neuronales/estimacion/api/estimacion/tarea/reestimar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        tarea_id: taskId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Ocultar carga
+                    document.getElementById('reestimationLoading').classList.add('hidden');
+                    
+                    if (data.status === 'success') {
+                        // Mostrar resultado
+                        document.getElementById('reestimationResult').classList.remove('hidden');
+                        
+                        // Actualizar datos en la interfaz
+                        document.getElementById('previousEstimation').textContent = `${data.data.estimacion_previa.toFixed(2)}h`;
+                        document.getElementById('newEstimation').textContent = `${data.data.nueva_estimacion.toFixed(2)}h`;
+                        
+                        const diffHours = data.data.diferencia_horas.toFixed(2);
+                        const diffPercent = data.data.diferencia_porcentual.toFixed(2);
+                        document.getElementById('estimationDifference').textContent = `${diffHours}h (${diffPercent}%)`;
+                        
+                        // Formatear fecha
+                        const timestamp = new Date(data.data.fecha_estimacion);
+                        document.getElementById('reestimationTimestamp').textContent = `Fecha: ${timestamp.toLocaleDateString()}`;
+                        
+                        // Mostrar tendencia con iconos
+                        const trendElement = document.getElementById('estimationTrend');
+                        if (data.data.diferencia_horas > 0) {
+                            trendElement.innerHTML = '<i class="fas fa-arrow-up text-red-500"></i> Incremento';
+                            trendElement.className = 'text-red-500 font-medium';
+                        } else if (data.data.diferencia_horas < 0) {
+                            trendElement.innerHTML = '<i class="fas fa-arrow-down text-green-500"></i> Reducción';
+                            trendElement.className = 'text-green-500 font-medium';
+                        } else {
+                            trendElement.innerHTML = '<i class="fas fa-equals text-gray-500"></i> Sin cambios';
+                            trendElement.className = 'text-gray-500 font-medium';
+                        }
+                    } else {
+                        // Mostrar error
+                        document.getElementById('reestimationError').classList.remove('hidden');
+                        document.getElementById('reestimationErrorMessage').textContent = data.message;
+                    }
+                })
+                .catch(error => {
+                    // Manejar error de red
+                    document.getElementById('reestimationLoading').classList.add('hidden');
+                    document.getElementById('reestimationError').classList.remove('hidden');
+                    document.getElementById('reestimationErrorMessage').textContent = 'Error de conexión: ' + error.message;
+                });
+            });
+        }
+        
+        // 4. Funciones para estimación de proyectos
+        const projectEstimationForm = document.getElementById('projectEstimationForm');
+        
+        if (projectEstimationForm) {
+            projectEstimationForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const projectId = document.querySelector('input[name="project_id"]').value;
+                
+                // Mostrar estado de carga
+                document.getElementById('projectInitial').classList.add('hidden');
+                document.getElementById('projectResult').classList.add('hidden');
+                document.getElementById('projectError').classList.add('hidden');
+                document.getElementById('projectLoading').classList.remove('hidden');
+                
+                // Realizar petición a la API
+                fetch(`/redes-neuronales/estimacion/api/estimacion/proyecto/${projectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Ocultar carga
+                    document.getElementById('projectLoading').classList.add('hidden');
+                    
+                    if (data.status === 'success') {
+                        // Mostrar resultado
+                        document.getElementById('projectResult').classList.remove('hidden');
+                        
+                        // Actualizar datos del proyecto
+                        document.getElementById('projectId').textContent = `ID: ${data.data.proyecto_id}`;
+                        document.getElementById('projectName').textContent = `Proyecto: ${data.data.nombre_proyecto || "[Sin nombre]"}`;
+                        document.getElementById('totalTasks').textContent = data.data.total_tareas;
+                        
+                        const completionPercent = data.data.porcentaje_completitud.toFixed(2);
+                        document.getElementById('completionPercentage').textContent = `${completionPercent}%`;
+                        document.getElementById('progressPercentText').textContent = `${completionPercent}%`;
+                        document.getElementById('progressBar').style.width = `${completionPercent}%`;
+                        
+                        document.getElementById('totalEstimatedTime').textContent = `${data.data.tiempo_estimado_total.toFixed(2)}h`;
+                        document.getElementById('totalActualTime').textContent = `${data.data.tiempo_actual_total.toFixed(2)}h`;
+                        
+                        // Formatear fechas
+                        if (data.data.fecha_fin_estimada) {
+                            const startDate = new Date(data.data.start_date);
+                            document.getElementById('startDate').textContent = startDate.toLocaleDateString();
+                            
+                            const endDate = new Date(data.data.fecha_fin_estimada);
+                            document.getElementById('estimatedEndDate').textContent = endDate.toLocaleDateString();
+                            
+                            // Calcular días restantes
+                            const today = new Date();
+                            const diffTime = Math.abs(endDate - today);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            document.getElementById('remainingDays').textContent = diffDays;
+                        }
+                    } else {
+                        // Mostrar error
+                        document.getElementById('projectError').classList.remove('hidden');
+                        document.getElementById('projectErrorMessage').textContent = data.message;
+                    }
+                })
+                .catch(error => {
+                    // Manejar error de red
+                    document.getElementById('projectLoading').classList.add('hidden');
+                    document.getElementById('projectError').classList.remove('hidden');
+                    document.getElementById('projectErrorMessage').textContent = 'Error de conexión: ' + error.message;
+                });
+            });
+        }
+        
+        // 5. Gráfica de predicciones vs valores reales para la pestaña de Análisis
+        const predictionCtx = document.getElementById('predictionChart');
+        if (predictionCtx) {
+            new Chart(predictionCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Predicciones vs. Valores Reales',
+                        data: [
+                            { x: 10, y: 12 },
+                            { x: 15, y: 14 },
+                            { x: 20, y: 22 },
+                            { x: 25, y: 23 },
+                            { x: 30, y: 32 },
+                            { x: 35, y: 33 },
+                            { x: 40, y: 38 },
+                            { x: 45, y: 43 },
+                            { x: 50, y: 55 },
+                            { x: 60, y: 62 }
+                        ],
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)'
+                    }, {
+                        type: 'line',
+                        label: 'Línea de Referencia',
+                        data: [
+                            { x: 0, y: 0 },
+                            { x: 100, y: 100 }
+                        ],
+                        borderColor: 'rgba(255, 99, 132, 0.8)',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tiempo Real (horas)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Tiempo Estimado (horas)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Real: ${context.parsed.x}h, Estimado: ${context.parsed.y}h`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

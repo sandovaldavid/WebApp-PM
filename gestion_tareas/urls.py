@@ -56,4 +56,8 @@ urlpatterns = [
     path('configuracion/tareas-comunes/crear/', views_configuracion.crear_tarea_comun, name='crear_tarea_comun'),
     path('configuracion/tareas-comunes/editar/<int:id>/', views_configuracion.editar_tarea_comun, name='editar_tarea_comun'),
     path('configuracion/tareas-comunes/eliminar/<int:id>/', views_configuracion.eliminar_tarea_comun, name='eliminar_tarea_comun'),
+
+    # Agregar esta ruta en urlpatterns
+    path('api/tareas/<int:id>/', views.api_tarea_por_id, name='api_tarea_por_id'),
+
 ]

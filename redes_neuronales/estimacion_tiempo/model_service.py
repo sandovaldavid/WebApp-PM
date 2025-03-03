@@ -302,6 +302,7 @@ class EstimacionTiempoService:
             # Devolver resultados
             resultado = {
                 'proyecto_id': proyecto_id,
+                'nombre_proyecto': proyecto.nombreproyecto if proyecto else "Proyecto sin nombre",
                 'total_tareas': total_tareas,
                 'tareas_estimadas': tareas_estimadas,
                 'tareas_completadas': tareas_completadas,
@@ -309,6 +310,7 @@ class EstimacionTiempoService:
                 'tiempo_actual_total': tiempo_actual_total,
                 'porcentaje_completitud': porcentaje_completitud,
                 'fecha_fin_estimada': fecha_fin_estimada,
+                'start_date': proyecto.fechainicio if proyecto else None,
             }
             
             return resultado
