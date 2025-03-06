@@ -348,7 +348,7 @@ class Resultadosrnn(models.Model):
         "Tarea", models.DO_NOTHING, db_column="idtarea", primary_key=True
     )  # The composite primary key (idtarea, idmodelo) found, that is not supported. The first column is selected.
     idmodelo = models.IntegerField()
-    duracionestimada = models.IntegerField(blank=True, null=True)
+    duracionestimada = models.FloatField(blank=True, null=True)
     costoestimado = models.DecimalField(
         max_digits=15, decimal_places=2, blank=True, null=True
     )
