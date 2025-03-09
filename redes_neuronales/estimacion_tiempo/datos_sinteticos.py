@@ -1591,4 +1591,4 @@ def validar_distribucion_conjunta(df_real, df_sintetico, pares_variables):
 
 # Ejemplo de uso
 if __name__ == "__main__":
-    generar_datos_monte_carlo("estimacion_tiempos_realista.csv", 20000, "datos_sinteticos_mejorados.csv")
+    generar_datos_monte_carlo("estimacion_tiempos_generado.csv", 20000, "datos_sinteticos_mejorados.csv")

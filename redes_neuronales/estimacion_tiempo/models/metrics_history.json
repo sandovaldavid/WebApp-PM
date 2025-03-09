@@ -1,0 +1,276 @@
+[
+    {
+        "timestamp": "2025-03-08 19:16:38",
+        "metrics": {
+            "mse": 7.924548149108887,
+            "rmse": 2.8150573971251256,
+            "mae": 2.0268361568450928,
+            "mape": 0.08650830388069153,
+            "r2": 0.9904944896697998,
+            "accuracy": 982.7935,
+            "precision": 982.7935,
+            "recall": 982.7935,
+            "f1": 982.7935
+        }
+    },
+    {
+        "timestamp": "2025-03-08 19:23:08",
+        "metrics": {
+            "MSE": 7.731928825378418,
+            "RMSE": 2.7806346083903972,
+            "MAE": 1.9593406915664673,
+            "MAPE": 0.07789438217878342,
+            "R2": 0.990725576877594,
+            "Accuracy": 1165.177,
+            "Precision": 1165.177,
+            "Recall": 1165.177,
+            "F1": 1165.177
+        }
+    },
+    {
+        "timestamp": "2025-03-08 19:23:08",
+        "metrics": {
+            "MSE": 7.731928825378418,
+            "RMSE": 2.7806346083903972,
+            "MAE": 1.9593406915664673,
+            "MAPE": 0.07789438217878342,
+            "R2": 0.990725576877594,
+            "Accuracy": 1165.177,
+            "Precision": 1165.177,
+            "Recall": 1165.177,
+            "F1": 1165.177
+        },
+        "training_type": "initial",
+        "model_config": {
+            "rnn_units": 64,
+            "dense_units": [
+                128,
+                64,
+                32
+            ],
+            "dropout_rate": 0.3,
+            "learning_rate": 0.001,
+            "l2_reg": 0.001,
+            "use_bidirectional": false,
+            "rnn_type": "LSTM",
+            "activation": "relu",
+            "batch_size": 32,
+            "epochs": 100
+        },
+        "dataset_stats": {
+            "total_samples": 24000,
+            "training_samples": 16000,
+            "validation_samples": 4000,
+            "test_samples": 4000
+        },
+        "epochs_trained": 100
+    },
+    {
+        "timestamp": "2025-03-08 19:30:32",
+        "metrics": {
+            "MSE": 8.735071182250977,
+            "RMSE": 2.95551538352467,
+            "MAE": 2.2116074562072754,
+            "MAPE": 0.09983430802822113,
+            "R2": 0.9895222783088684,
+            "Accuracy": 0.9065,
+            "Precision": 0.9065,
+            "Recall": 0.9065,
+            "F1": 0.9065
+        }
+    },
+    {
+        "timestamp": "2025-03-08 19:30:32",
+        "metrics": {
+            "MSE": 8.735071182250977,
+            "RMSE": 2.95551538352467,
+            "MAE": 2.2116074562072754,
+            "MAPE": 0.09983430802822113,
+            "R2": 0.9895222783088684,
+            "Accuracy": 0.9065,
+            "Precision": 0.9065,
+            "Recall": 0.9065,
+            "F1": 0.9065
+        },
+        "training_type": "initial",
+        "model_config": {
+            "rnn_units": 64,
+            "dense_units": [
+                128,
+                64,
+                32
+            ],
+            "dropout_rate": 0.3,
+            "learning_rate": 0.001,
+            "l2_reg": 0.001,
+            "use_bidirectional": false,
+            "rnn_type": "LSTM",
+            "activation": "relu",
+            "batch_size": 32,
+            "epochs": 100
+        },
+        "dataset_stats": {
+            "total_samples": 24000,
+            "training_samples": 16000,
+            "validation_samples": 4000,
+            "test_samples": 4000
+        },
+        "epochs_trained": 100
+    },
+    {
+        "timestamp": "2025-03-08 19:43:30",
+        "metrics": {
+            "MSE": 8.545971870422363,
+            "RMSE": 2.9233494266718036,
+            "MAE": 2.1288461685180664,
+            "MAPE": 0.09425130486488342,
+            "R2": 0.9897491335868835,
+            "Accuracy": 0.884,
+            "Precision": 0.884,
+            "Recall": 0.884,
+            "F1": 0.884
+        }
+    },
+    {
+        "timestamp": "2025-03-08 19:43:30",
+        "metrics": {
+            "MSE": 8.545971870422363,
+            "RMSE": 2.9233494266718036,
+            "MAE": 2.1288461685180664,
+            "MAPE": 0.09425130486488342,
+            "R2": 0.9897491335868835,
+            "Accuracy": 0.884,
+            "Precision": 0.884,
+            "Recall": 0.884,
+            "F1": 0.884
+        },
+        "training_type": "initial",
+        "model_config": {
+            "rnn_units": 64,
+            "dense_units": [
+                128,
+                64,
+                32
+            ],
+            "dropout_rate": 0.3,
+            "learning_rate": 0.001,
+            "l2_reg": 0.001,
+            "use_bidirectional": false,
+            "rnn_type": "LSTM",
+            "activation": "relu",
+            "batch_size": 32,
+            "epochs": 100
+        },
+        "dataset_stats": {
+            "total_samples": 24000,
+            "training_samples": 16000,
+            "validation_samples": 4000,
+            "test_samples": 4000
+        },
+        "epochs_trained": 100
+    },
+    {
+        "timestamp": "2025-03-08 19:51:22",
+        "metrics": {
+            "MSE": 8.135366439819336,
+            "RMSE": 2.8522563769442844,
+            "MAE": 2.015745162963867,
+            "MAPE": 0.08257167041301727,
+            "R2": 0.9902416467666626,
+            "Accuracy": 0.91125,
+            "Precision": 0.91125,
+            "Recall": 0.91125,
+            "F1": 0.91125
+        }
+    },
+    {
+        "timestamp": "2025-03-08 19:51:22",
+        "metrics": {
+            "MSE": 8.135366439819336,
+            "RMSE": 2.8522563769442844,
+            "MAE": 2.015745162963867,
+            "MAPE": 0.08257167041301727,
+            "R2": 0.9902416467666626,
+            "Accuracy": 0.91125,
+            "Precision": 0.91125,
+            "Recall": 0.91125,
+            "F1": 0.91125
+        },
+        "training_type": "initial",
+        "model_config": {
+            "rnn_units": 64,
+            "dense_units": [
+                128,
+                64,
+                32
+            ],
+            "dropout_rate": 0.3,
+            "learning_rate": 0.001,
+            "l2_reg": 0.001,
+            "use_bidirectional": false,
+            "rnn_type": "LSTM",
+            "activation": "relu",
+            "batch_size": 32,
+            "epochs": 100
+        },
+        "dataset_stats": {
+            "total_samples": 24000,
+            "training_samples": 16000,
+            "validation_samples": 4000,
+            "test_samples": 4000
+        },
+        "epochs_trained": 100
+    },
+    {
+        "timestamp": "2025-03-08 19:56:07",
+        "metrics": {
+            "MSE": 8.278592109680176,
+            "RMSE": 2.8772542657332485,
+            "MAE": 2.14990234375,
+            "MAPE": 0.10138340294361115,
+            "R2": 0.9900698661804199,
+            "Accuracy": 0.85825,
+            "Precision": 0.85825,
+            "Recall": 0.85825,
+            "F1": 0.85825
+        }
+    },
+    {
+        "timestamp": "2025-03-08 19:56:07",
+        "metrics": {
+            "MSE": 8.278592109680176,
+            "RMSE": 2.8772542657332485,
+            "MAE": 2.14990234375,
+            "MAPE": 0.10138340294361115,
+            "R2": 0.9900698661804199,
+            "Accuracy": 0.85825,
+            "Precision": 0.85825,
+            "Recall": 0.85825,
+            "F1": 0.85825
+        },
+        "training_type": "initial",
+        "model_config": {
+            "rnn_units": 64,
+            "dense_units": [
+                128,
+                64,
+                32
+            ],
+            "dropout_rate": 0.3,
+            "learning_rate": 0.001,
+            "l2_reg": 0.001,
+            "use_bidirectional": false,
+            "rnn_type": "LSTM",
+            "activation": "relu",
+            "batch_size": 32,
+            "epochs": 100
+        },
+        "dataset_stats": {
+            "total_samples": 24000,
+            "training_samples": 16000,
+            "validation_samples": 4000,
+            "test_samples": 4000
+        },
+        "epochs_trained": 100
+    }
+]
