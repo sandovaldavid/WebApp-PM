@@ -118,6 +118,25 @@ def main():
     # Guardar métricas con información de entrenamiento inicial
     metrics_history_path = os.path.join(output_dir, 'metrics_history.json')
     
+
+    # Registrar modelo en la base de datos
+    from dashboard.models import Modeloestimacionrnn
+    from datetime import datetime
+
+    timestamp = datetime.now().strftime("%Y%m%d")
+    modelo, created = Modeloestimacionrnn.objects.update_or_create(
+        nombremodelo='RNN Avanzado',
+        defaults={
+            'descripcionmodelo': 'Modelo de red neuronal recurrente para estimación de tiempo (entrenamiento inicial)',
+            'versionmodelo': f"1.0.{timestamp}",
+            'precision': metrics.get('r2', 0.8),
+            'fechacreacion': datetime.now(),
+            'fechamodificacion': datetime.now()
+        }
+    )
+
+    print(f"Modelo {'creado' if created else 'actualizado'} en la base de datos con ID {modelo.id}")
+
     # Corregir el acceso al historial de entrenamiento
     try:
         # Intentar obtener el número de épocas entrenadas

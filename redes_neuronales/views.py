@@ -57,19 +57,51 @@ def calculate_global_precision(metrics, metrics_history):
 
 @login_required
 def dashboard(request):
+    """Renderiza el dashboard de métricas de la red neuronal"""
     # Cargar historial de métricas
     try:
-        with open('redes_neuronales/models/metrics_history.json', 'r') as f:
+        with open('redes_neuronales\estimacion_tiempo\models\metrics_history.json', 'r') as f:
             metrics_history = json.load(f)
-            latest_metrics = metrics_history[-1] if metrics_history else None
-    except:
+            
+            # Verificar estructura y adaptar según sea necesario
+            if metrics_history and isinstance(metrics_history, list):
+                # Formato antiguo: lista de entradas
+                latest_metrics = metrics_history[-1] if metrics_history else None
+            elif metrics_history and isinstance(metrics_history, dict):
+                # Posible nuevo formato: diccionario con registros
+                if 'entries' in metrics_history:
+                    entries = metrics_history['entries']
+                    metrics_history = entries
+                    latest_metrics = entries[-1] if entries else None
+                else:
+                    # Si es un diccionario con la última entrada directamente
+                    latest_metrics = metrics_history
+                    metrics_history = [metrics_history]  # Convertir a lista para compatibilidad
+            else:
+                metrics_history = []
+                latest_metrics = None
+                print("Formato de metrics_history.json no reconocido")
+    except Exception as e:
+        print(f"Error al cargar metrics_history.json: {e}")
         metrics_history = []
         latest_metrics = None
 
+    # Calcular precisión global
     if latest_metrics:
-        global_precision = calculate_global_precision(
-            latest_metrics['metrics'], metrics_history
-        )
+        try:
+            # Comprobar si las métricas están anidadas en un subcampo 'metrics'
+            metrics_data = latest_metrics.get('metrics', latest_metrics)
+            
+            # Verificar si todas las métricas necesarias están disponibles
+            required_metrics = ['MSE', 'RMSE', 'MAE', 'R2', 'Accuracy']
+            if all(metric in metrics_data for metric in required_metrics):
+                global_precision = calculate_global_precision(metrics_data, metrics_history)
+            else:
+                print("Faltan métricas requeridas en latest_metrics")
+                global_precision = 0
+        except Exception as e:
+            print(f"Error al calcular global_precision: {e}")
+            global_precision = 0
     else:
         global_precision = 0
 
@@ -81,13 +113,32 @@ def dashboard(request):
     global_precision_values = []
 
     for entry in metrics_history:
-        timestamps.append(entry['timestamp'])
-        mse_values.append(entry['metrics']['MSE'])
-        accuracy_values.append(entry['metrics']['Accuracy'])
-        r2_values.append(entry['metrics']['R2'])
-        global_precision_values.append(
-            calculate_global_precision(entry['metrics'], metrics_history)
-        )
+        try:
+            # Adaptación para diferentes estructuras de datos
+            metrics_data = entry.get('metrics', entry)
+            timestamp = entry.get('timestamp', entry.get('date', entry.get('created_at', '')))
+            
+            timestamps.append(timestamp)
+            
+            # Obtener métricas con manejo de excepciones
+            mse = metrics_data.get('MSE', metrics_data.get('mse', 0))
+            mse_values.append(mse)
+            
+            accuracy = metrics_data.get('Accuracy', metrics_data.get('accuracy', 0))
+            accuracy_values.append(accuracy)
+            
+            r2 = metrics_data.get('R2', metrics_data.get('r2', 0))
+            r2_values.append(r2)
+            
+            # Calcular precisión global para cada punto histórico
+            try:
+                gp = calculate_global_precision(metrics_data, metrics_history)
+            except:
+                gp = 0
+            global_precision_values.append(gp)
+        except Exception as e:
+            print(f"Error procesando entrada histórica: {e}")
+            # Continuar con la siguiente entrada
 
     context = {
         'latest_metrics': latest_metrics,
@@ -216,9 +267,11 @@ def estimate_time(request):
 @login_required
 def estimacion_avanzada(request):
     """Vista para la interfaz de estimación avanzada con RNN"""
-    # Cargar métricas del modelo (similar a la función dashboard)
+    context = {}
+    
+    # 1. Cargar métricas del modelo
     try:
-        with open('redes_neuronales/models/metrics_history.json', 'r') as f:
+        with open('redes_neuronales\estimacion_tiempo\models\metrics_history.json', 'r') as f:
             metrics_history = json.load(f)
             latest_metrics = metrics_history[-1] if metrics_history else None
     except:
@@ -241,10 +294,69 @@ def estimacion_avanzada(request):
         )
     else:
         global_precision = 0.85
-
-    context = {
-        'latest_metrics': latest_metrics,
-        'global_precision': global_precision,
-    }
+        
+    context['latest_metrics'] = latest_metrics
+    context['global_precision'] = global_precision
+    
+    # 2. Cargar métricas detalladas de evaluación
+    try:
+        with open('redes_neuronales/estimacion_tiempo/models/evaluation_metrics.json', 'r') as f:
+            evaluation_metrics = json.load(f)
+        context['evaluation_metrics'] = evaluation_metrics
+    except Exception as e:
+        print(f"Error al cargar métricas de evaluación: {e}")
+        context['evaluation_metrics'] = latest_metrics.get('metrics', {}) if latest_metrics else {}
+    
+    # 3. Cargar evaluación por segmentos
+    try:
+        with open('redes_neuronales/estimacion_tiempo/models/segmented_evaluation.json', 'r') as f:
+            segmented_evaluation = json.load(f)
+        context['segmented_evaluation'] = segmented_evaluation
+    except Exception as e:
+        print(f"Error al cargar evaluación por segmentos: {e}")
+        context['segmented_evaluation'] = {}
+    
+    # 4. Cargar importancia de características (todos los tipos)
+    try:
+        import pandas as pd
+        
+        # Función para cargar y procesar los archivos de importancia
+        def load_feature_importance(filepath):
+            df = pd.read_csv(filepath)
+            data = []
+            for _, row in df.iterrows():
+                data.append({
+                    'name': row['Feature'],
+                    'importance': float(row['Importance']),
+                    'importance_normalized': round(float(row['Importance_Normalized']) * 100, 2)
+                })
+            return sorted(data, key=lambda x: x['importance_normalized'], reverse=True)
+        
+        # Diccionario para almacenar todos los datos
+        feature_importance_data = {}
+        
+        # Cargar los diferentes archivos de importancia
+        feature_importance_data['global'] = load_feature_importance(
+            'redes_neuronales/estimacion_tiempo/models/global_feature_importance.csv'
+        )
+        feature_importance_data['recurso_1'] = load_feature_importance(
+            'redes_neuronales/estimacion_tiempo/models/feature_importance_1_Recurso.csv'
+        )
+        feature_importance_data['recurso_2'] = load_feature_importance(
+            'redes_neuronales/estimacion_tiempo/models/feature_importance_2_Recursos.csv'
+        )
+        feature_importance_data['recurso_3'] = load_feature_importance(
+            'redes_neuronales/estimacion_tiempo/models/feature_importance_3_o_más_Recursos.csv'
+        )
+        
+        # Agregar al contexto
+        context['feature_importance_data'] = feature_importance_data
+        
+        # Mantener el feature_importance original para compatibilidad
+        context['feature_importance'] = feature_importance_data['global']
+    except Exception as e:
+        print(f"Error al cargar importancia de características: {e}")
+        context['feature_importance_data'] = {}
+        context['feature_importance'] = []
 
     return render(request, 'redes_neuronales/estimacion_avanzada.html', context)
