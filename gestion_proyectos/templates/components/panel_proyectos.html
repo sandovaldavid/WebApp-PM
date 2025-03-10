@@ -1,189 +1,217 @@
-    <!-- Controles y Filtros -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <!-- Título y Contador -->
-        <div>
-            <h2 class="text-xl font-semibold flex items-center">
-                <i class="fas fa-project-diagram text-blue-500 mr-2"></i>
-                <span>Panel de Proyectos</span>
-            </h2>
-            <p class="text-sm text-gray-500">{{ proyectos_totales|length }} proyectos registrados</p>
+<!-- Parte estática: Encabezado y filtros -->
+<!-- Título y Encabezado -->
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+    <div>
+        <h2 class="text-xl font-semibold flex items-center">
+            <i class="fas fa-project-diagram text-blue-500 mr-2"></i>
+            <span>Panel de Proyectos</span>
+        </h2>
+        <p class="text-sm text-gray-500">{{ proyectos_totales|length }} proyectos registrados</p>
+    </div>
+    
+    <div class="flex flex-col sm:flex-row gap-4">
+        <!-- Selector de Vista con HTMX - CORREGIDO -->
+        <div class="flex bg-gray-100 rounded-lg p-1">
+            <button id="btn-vista-grid"
+                hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?vista=grid{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
+                hx-target="#proyectos-contenido"
+                hx-push-url="true"
+                hx-swap="innerHTML"
+                hx-trigger="click"
+                class="px-3 py-1 rounded-md text-gray-600 hover:bg-gray-200 transition-colors">
+                <i class="fas fa-th-large mr-1"></i> Tarjetas
+            </button>
+            <button id="btn-vista-list"
+                hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?vista=list{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
+                hx-target="#proyectos-contenido"
+                hx-push-url="true"
+                hx-swap="innerHTML"
+                hx-trigger="click"
+                class="px-3 py-1 rounded-md text-gray-600 hover:bg-gray-200 transition-colors">
+                <i class="fas fa-list mr-1"></i> Lista
+            </button>
         </div>
 
-        <!-- Controles y Filtros -->
-        <div class="flex flex-col sm:flex-row gap-4">
-            <!-- Selector de Vista -->
-            <div class="flex bg-gray-100 rounded-lg p-1">
-                <a href="?vista=grid{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}" 
-                   class="px-3 py-1 rounded-md {% if vista == 'grid' %}bg-blue-500 text-white{% else %}text-gray-600 hover:bg-gray-200{% endif %} transition-colors">
-                    <i class="fas fa-th-large mr-1"></i> Tarjetas
-                </a>
-                <a href="?vista=list{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}" 
-                   class="px-3 py-1 rounded-md {% if vista == 'list' %}bg-blue-500 text-white{% else %}text-gray-600 hover:bg-gray-200{% endif %} transition-colors">
-                    <i class="fas fa-list mr-1"></i> Lista
-                </a>
-            </div>
+        <a href="{% url 'gestion_proyectos:crear_proyecto' %}" 
+           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+            <i class="fas fa-plus mr-2"></i>
+            Crear Proyecto
+        </a>
 
-            <!-- Botón Crear Proyecto -->
-            <a href="{% url 'gestion_proyectos:crear_proyecto' %}" 
-               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
-                <i class="fas fa-plus mr-2"></i>
-                Crear Proyecto
-            </a>
+        <a href="{% url 'gestion_proyectos:lista_proyectos' %}" 
+           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+           <i class="fas fa-filter mr-2"></i>
+            Filtros Avanzados
+        </a>
+    </div>
+</div>
 
-            <a href="{% url 'gestion_proyectos:lista_proyectos' %}" 
-                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
-                   <i class="fas fa-filter mr-2"></i>
-                    Filtros Avanzados
-            </a>
+<!-- Filtros Rápidos con HTMX - CON IDS PARA JAVASCRIPT -->
+<div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4">
+    <button id="btn-filtro-todos"
+           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
+           hx-target="#proyectos-contenido"
+           hx-push-url="true"
+           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-200 transition-colors">
+        <i class="fas fa-list-ul mr-2"></i>Todos
+    </button>
+    <button id="btn-filtro-Inicio"
+           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?filtro=Inicio&vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
+           hx-target="#proyectos-contenido"
+           hx-push-url="true"
+           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-yellow-200 transition-colors">
+        <i class="fas fa-clock mr-2"></i>Inicio
+    </button>
+    <button id="btn-filtro-Planificación"
+           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?filtro=Planificación&vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
+           hx-target="#proyectos-contenido"
+           hx-push-url="true"
+           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-200 transition-colors">
+        <i class="fas fa-spinner mr-2"></i>Planificación
+    </button>
+    <button id="btn-filtro-Ejecución"
+           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?filtro=Ejecución&vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
+           hx-target="#proyectos-contenido"
+           hx-push-url="true"
+           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-green-200 transition-colors">
+        <i class="fas fa-play mr-2"></i>Ejecución
+    </button>
+    <button id="btn-filtro-Monitoreo-Control"
+           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?filtro=Monitoreo-Control&vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
+           hx-target="#proyectos-contenido"
+           hx-push-url="true"
+           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-red-200 transition-colors">
+        <i class="fas fa-chart-line mr-2"></i>Monitoreo-Control
+    </button>
+    <button id="btn-filtro-Cierre"
+           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?filtro=Cierre&vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
+           hx-target="#proyectos-contenido"
+           hx-push-url="true"
+           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-200 transition-colors">
+        <i class="fas fa-check-circle mr-2"></i>Cierre
+    </button>
+</div>
+
+<!-- Búsqueda con HTMX -->
+<div class="mb-6 bg-gray-50 p-4 rounded-lg">
+    <form hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}" 
+          hx-target="#proyectos-contenido"
+          hx-push-url="true"
+          class="flex gap-4">
+        <input type="hidden" name="vista" value="{{ vista }}">
+        <input type="hidden" name="filtro" value="{{ request.GET.filtro }}">
+        
+        <div class="flex-1">
+            <input type="text" 
+                   name="busqueda" 
+                   value="{{ filtros.busqueda }}"
+                   placeholder="Buscar proyecto..." 
+                   class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
         </div>
-    </div>
 
-    <!-- Filtros Rápidos -->
-    <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4">
-        <a href="?{% if request.GET.vista %}vista={{ request.GET.vista }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-           class="px-4 py-2 rounded-full {% if not request.GET.filtro %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors">
-            <i class="fas fa-list-ul mr-2"></i>Todos
-        </a>
-        <a href="?filtro=Inicio{% if request.GET.vista %}&vista={{ request.GET.vista }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-           class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Inicio' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-yellow-200 transition-colors">
-            <i class="fas fa-clock mr-2"></i>Inicio
-        </a>
-        <a href="?filtro=Planificación{% if request.GET.vista %}&vista={{ request.GET.vista }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-           class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Planificación' %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors">
-            <i class="fas fa-spinner mr-2"></i>Planificación
-        </a>
-        <a href="?filtro=Ejecución{% if request.GET.vista %}&vista={{ request.GET.vista }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-           class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Ejecución' %}bg-green-100 text-green-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-green-200 transition-colors">
-            <i class="fas fa-play mr-2"></i>Ejecución
-        </a>
-        <a href="?filtro=Monitoreo-Control{% if request.GET.vista %}&vista={{ request.GET.vista }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-           class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Monitoreo-Control' %}bg-red-100 text-red-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-red-200 transition-colors">
-            <i class="fas fa-chart-line mr-2"></i>Monitoreo-Control
-        </a>
-        <a href="?filtro=Cierre{% if request.GET.vista %}&vista={{ request.GET.vista }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-           class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Cierre' %}bg-gray-100 text-gray-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-gray-200 transition-colors">
-            <i class="fas fa-check-circle mr-2"></i>Cierre
-        </a>
-    </div>
-
-    <!-- Búsqueda y Filtros -->
-    <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-        <form method="GET" class="flex gap-4">
-            <input type="hidden" name="vista" value="{{ vista }}">
-            <input type="hidden" name="filtro" value="{{ request.GET.filtro }}">
-            
-            <!-- Búsqueda -->
-            <div class="flex-1">
-                <input type="text" 
-                       name="busqueda" 
-                       value="{{ filtros.busqueda }}"
-                       placeholder="Buscar proyecto..." 
-                       class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-            </div>
-
-            <!-- Botones -->
-            <div class="flex gap-2">
-                <a href="?vista={{ vista }}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}" 
+        <div class="flex gap-2">
+            <button type="button"
+                   hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?vista={{ vista }}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}"
+                   hx-target="#proyectos-contenido"
+                   hx-push-url="true"
                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                    Limpiar
-                </a>
-                <button type="submit" 
-                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                    Buscar
-                </button>
-            </div>
-        </form>
-    </div>
+                Limpiar
+            </button>
+            <button type="submit" 
+                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                Buscar
+            </button>
+        </div>
+    </form>
+</div>
 
-    <!-- Vista de Tarjetas -->
-    {% if vista == 'grid' %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for proyecto in proyectos %}
-            {% include 'components/proyecto_card.html' with proyecto=proyecto %}
-        {% empty %}
-            <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
-                <i class="fas fa-project-diagram text-6xl mb-4"></i>
-                <p class="text-xl font-medium">No hay proyectos disponibles</p>
-                <p class="text-sm mt-2">Los proyectos que crees aparecerán aquí</p>
-            </div>
-        {% endfor %}
-    </div>
+<!-- Contenedor para actualización AJAX - SOLO CONTENIDO DINÁMICO -->
+<div id="proyectos-contenido">
+    {% include 'components/lista_proyectos.html' %}
+</div>
 
-    <!-- Vista de Lista -->
-    {% else %}
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha de Inicio</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha de Fin</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                {% for proyecto in proyectos %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">{{ proyecto.nombreproyecto }}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm text-gray-500">{{ proyecto.descripcion|truncatechars:100 }}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-500">{{ proyecto.estado }}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ proyecto.fechainicio|date:"d/m/Y" }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ proyecto.fechafin|date:"d/m/Y" }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div class="flex justify-end space-x-2">
-                            <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" class="text-blue-600 hover:text-blue-900" title="Ver detalles">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{% url 'gestion_proyectos:editar_proyecto' proyecto.idproyecto %}" class="text-yellow-600 hover:text-yellow-800" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                        No hay proyectos disponibles
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    <!-- Paginación -->
-    {% if proyectos.has_other_pages %}
-    <div class="flex justify-center space-x-2 mt-6">
-        {% if proyectos.has_previous %}
-        <a href="?page={{ proyectos.previous_page_number }}{% if vista %}&vista={{ vista }}{% endif %}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}" 
-           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-            <i class="fas fa-chevron-left"></i>
-        </a>
-        {% endif %}
-
-        <span class="px-4 py-2 bg-blue-500 text-white rounded-lg">
-            {{ proyectos.number }}
-        </span>
-
-        {% if proyectos.has_next %}
-        <a href="?page={{ proyectos.next_page_number }}{% if vista %}&vista={{ vista }}{% endif %}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}" 
-           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-            <i class="fas fa-chevron-right"></i>
-        </a>
-        {% endif %}
-    </div>
-    {% endif %}
-
+<!-- Script actualizado para manejar tanto vista como filtros -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Función para actualizar los botones de vista
+        function updateViewButtons() {
+            const url = new URL(window.location.href);
+            const vista = url.searchParams.get('vista') || 'grid';
+            
+            const btnGrid = document.getElementById('btn-vista-grid');
+            const btnList = document.getElementById('btn-vista-list');
+            
+            // Reset both buttons
+            btnGrid.classList.remove('bg-blue-500', 'text-white');
+            btnList.classList.remove('bg-blue-500', 'text-white');
+            btnGrid.classList.add('text-gray-600');
+            btnList.classList.add('text-gray-600');
+            
+            // Set active button
+            if (vista === 'grid' || !vista) {
+                btnGrid.classList.remove('text-gray-600');
+                btnGrid.classList.add('bg-blue-500', 'text-white');
+            } else if (vista === 'list') {
+                btnList.classList.remove('text-gray-600');
+                btnList.classList.add('bg-blue-500', 'text-white');
+            }
+        }
+        
+        // Función para actualizar los botones de filtro
+        function updateFilterButtons() {
+            const url = new URL(window.location.href);
+            const filtro = url.searchParams.get('filtro');
+            
+            // Reset all filter buttons
+            const filterButtons = [
+                {id: 'btn-filtro-todos', color: 'blue', active: !filtro},
+                {id: 'btn-filtro-Inicio', color: 'yellow', active: filtro === 'Inicio'},
+                {id: 'btn-filtro-Planificación', color: 'blue', active: filtro === 'Planificación'},
+                {id: 'btn-filtro-Ejecución', color: 'green', active: filtro === 'Ejecución'},
+                {id: 'btn-filtro-Monitoreo-Control', color: 'red', active: filtro === 'Monitoreo-Control'},
+                {id: 'btn-filtro-Cierre', color: 'gray', active: filtro === 'Cierre'}
+            ];
+            
+            filterButtons.forEach(button => {
+                const btnElement = document.getElementById(button.id);
+                if (btnElement) {
+                    // Quitar cualquier estilo de botón activo
+                    btnElement.classList.remove(
+                        'bg-blue-100', 'text-blue-800',
+                        'bg-yellow-100', 'text-yellow-800',
+                        'bg-green-100', 'text-green-800',
+                        'bg-red-100', 'text-red-800',
+                        'bg-gray-100', 'text-gray-800'
+                    );
+                    
+                    // Establecer estilo base para botones inactivos
+                    btnElement.classList.add('bg-gray-200', 'text-gray-700');
+                    
+                    // Si este botón debe estar activo, aplicar su estilo específico
+                    if (button.active) {
+                        btnElement.classList.remove('bg-gray-200', 'text-gray-700');
+                        btnElement.classList.add(`bg-${button.color}-100`, `text-${button.color}-800`);
+                    }
+                }
+            });
+        }
+        
+        // Función combinada para actualizar todos los botones
+        function updateAllButtons() {
+            updateViewButtons();
+            updateFilterButtons();
+        }
+        
+        // Actualizar botones al cargar la página
+        updateAllButtons();
+        
+        // Escuchar eventos HTMX
+        document.body.addEventListener('htmx:afterOnLoad', function(event) {
+            updateAllButtons();
+        });
+        
+        document.body.addEventListener('htmx:afterSettle', function(event) {
+            updateAllButtons();
+        });
+    });
+</script>

@@ -19,9 +19,12 @@
         body {
             visibility: hidden;
         }
-
         .preload * {
             transition: none !important;
+        }
+        header {
+            position: relative;
+            z-index: 1000; /* Un z-index muy alto para asegurarnos */
         }
     </style>
 
@@ -74,7 +77,7 @@
     <header
             class="fixed top-0 left-0 w-full flex justify-between items-center p-5 px-14 bg-blue-600 text-white shadow-2xl"
     >
-        <div class="text-2xl font-bold">
+        <div class="text-2xl font-bold ">
             {% block title_body %}{% endblock %}
         </div>
 
