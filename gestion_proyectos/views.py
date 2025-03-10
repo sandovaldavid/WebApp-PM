@@ -627,16 +627,20 @@ def filtrar_proyectos(request):
         {'proyectos': proyectos_paginados, 'filtro_activo': filtro},
     )
 
-
 @login_required
 def panel_proyectos(request):
     vista = request.GET.get("vista", "grid")
     busqueda = request.GET.get("busqueda", "")
-    filtro = request.GET.get("filtro", "todos")
+    filtro = request.GET.get("filtro", "")
     page = request.GET.get("page", 1)
 
+    # Query base
     proyectos = Proyecto.objects.all()
+    
+    # Total para estadísticas
+    proyectos_totales = proyectos
 
+    # Filtros
     if busqueda:
         proyectos = proyectos.filter(
             Q(nombreproyecto__icontains=busqueda) | Q(descripcion__icontains=busqueda)
@@ -655,15 +659,52 @@ def panel_proyectos(request):
     except EmptyPage:
         proyectos_paginados = paginator.page(paginator.num_pages)
 
-    return render(
-        request,
-        'components/panel_proyectos.html',
-        {
-            'proyectos': proyectos_paginados,
-            'vista': vista,
-            'filtros': {"busqueda": busqueda, "filtro": filtro},
-        },
-    )
+    context = {
+        'proyectos': proyectos_paginados,
+        'proyectos_totales': proyectos_totales,
+        'vista': vista,  # Asegurarnos que sea consistente
+        'filtros': {"busqueda": busqueda, "filtro": filtro},  # Pasamos el filtro
+    }
+
+    return render(request, 'components/panel_proyectos.html', context)
+
+@login_required
+def panel_lista_proyectos(request):
+    """Vista que retorna solo el contenido para actualizaciones HTMX"""
+    vista = request.GET.get("vista", "grid")  # Por defecto grid
+    busqueda = request.GET.get("busqueda", "")
+    filtro = request.GET.get("filtro", "")
+    page = request.GET.get("page", 1)
+
+    # Query base
+    proyectos = Proyecto.objects.all()
+    
+    # Filtros
+    if busqueda:
+        proyectos = proyectos.filter(
+            Q(nombreproyecto__icontains=busqueda) | Q(descripcion__icontains=busqueda)
+        )
+
+    if filtro and filtro != "todos":
+        proyectos = proyectos.filter(estado=filtro)
+
+    # Paginación
+    proyectos = proyectos.order_by('idproyecto')
+    paginator = Paginator(proyectos, 9)
+    try:
+        proyectos_paginados = paginator.page(page)
+    except PageNotAnInteger:
+        proyectos_paginados = paginator.page(1)
+    except EmptyPage:
+        proyectos_paginados = paginator.page(paginator.num_pages)
+
+    context = {
+        'proyectos': proyectos_paginados,
+        'vista': vista,  # Aseguramos que se pase el valor de vista
+        'filtros': {"busqueda": busqueda, "filtro": filtro},  # Pasamos el filtro para la selección
+    }
+
+    return render(request, 'components/lista_proyectos.html', context)
 
 
 @login_required

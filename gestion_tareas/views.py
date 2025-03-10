@@ -372,14 +372,43 @@ def detalle_tarea(request, id):
     )
 
     # Calcular progreso y métricas
+    # Opción 1: Progreso basado en estado + tiempo (más preciso)
     progreso = 0
-    if tarea.duracionactual and tarea.duracionestimada:
-        progreso = min(100, (float(tarea.duracionactual) / float(tarea.duracionestimada)) * 100)
+    if tarea.estado == "Completada":
+        progreso = 100
+    elif tarea.estado == "En Progreso":
+        if tarea.duracionactual and tarea.duracionestimada:
+            # Si hay un campo de porcentaje completado manual, usarlo
+            if hasattr(tarea, 'porcentaje_completado') and tarea.porcentaje_completado:
+                progreso = float(tarea.porcentaje_completado)
+            else:
+                # Estimación basada en el tiempo transcurrido respecto al plan
+                fecha_actual = timezone.now().date()
+                dias_totales = (tarea.fechafin - tarea.fechainicio).days or 1  # Evitar div por 0
+                dias_transcurridos = (fecha_actual - tarea.fechainicio).days
+                progreso = min(95, (float(dias_transcurridos) / float(dias_totales)) * 100)
     
     # Calcular desviación de tiempo
+    # Desviación de tiempo (porcentual en lugar de absoluta)
+    # Añadir esta línea antes del bloque condicional (aproximadamente línea 391)
     desviacion_tiempo = 0
-    if tarea.duracionactual and tarea.duracionestimada:
-        desviacion_tiempo = float(tarea.duracionactual) - float(tarea.duracionestimada)
+    evaluacion_tiempo = {"estado": "No disponible", "clase": "text-gray-600"}
+
+    # Calcular desviación de tiempo
+    if tarea.duracionactual and tarea.duracionestimada and float(tarea.duracionestimada) > 0:
+        # Desviación porcentual para mejor interpretación
+        desviacion_tiempo = ((float(tarea.duracionactual) - float(tarea.duracionestimada)) 
+                            / float(tarea.duracionestimada)) * 100
+        
+        # Evaluación cualitativa de la desviación
+        if desviacion_tiempo <= -10:
+            evaluacion_tiempo = {"estado": "Adelantado", "clase": "text-green-600"}
+        elif desviacion_tiempo <= 10:
+            evaluacion_tiempo = {"estado": "En tiempo", "clase": "text-blue-600"}
+        elif desviacion_tiempo <= 25:
+            evaluacion_tiempo = {"estado": "Leve retraso", "clase": "text-yellow-600"}
+        else:
+            evaluacion_tiempo = {"estado": "Retraso significativo", "clase": "text-red-600"}
         
     # Calcular desviación de costos
     desviacion_costos = 0
@@ -421,6 +450,7 @@ def detalle_tarea(request, id):
         "progreso": progreso,
         "desviacion_costos": desviacion_costos,
         "desviacion_tiempo": desviacion_tiempo,
+        "evaluacion_tiempo": evaluacion_tiempo,
         "etiquetas": etiquetas,
         "claridad_porcentaje": claridad_porcentaje,
         "nivel_dificultad": nivel_dificultad,

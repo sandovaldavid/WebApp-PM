@@ -9,6 +9,8 @@ from rnn_model import AdvancedRNNEstimator
 from evaluator import ModelEvaluator
 import matplotlib.pyplot as plt
 import joblib
+import json
+from datetime import datetime
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Entrenar modelo RNN para estimación de tiempos')
@@ -112,6 +114,85 @@ def main():
     
     # Evaluar y obtener métricas
     metrics, y_pred = evaluator.evaluate_model(X_test, y_test)
+    
+    # Guardar métricas con información de entrenamiento inicial
+    metrics_history_path = os.path.join(output_dir, 'metrics_history.json')
+    
+
+    # Registrar modelo en la base de datos
+    from dashboard.models import Modeloestimacionrnn
+    from datetime import datetime
+
+    timestamp = datetime.now().strftime("%Y%m%d")
+    modelo, created = Modeloestimacionrnn.objects.update_or_create(
+        nombremodelo='RNN Avanzado',
+        defaults={
+            'descripcionmodelo': 'Modelo de red neuronal recurrente para estimación de tiempo (entrenamiento inicial)',
+            'versionmodelo': f"1.0.{timestamp}",
+            'precision': metrics.get('r2', 0.8),
+            'fechacreacion': datetime.now(),
+            'fechamodificacion': datetime.now()
+        }
+    )
+
+    print(f"Modelo {'creado' if created else 'actualizado'} en la base de datos con ID {modelo.id}")
+
+    # Corregir el acceso al historial de entrenamiento
+    try:
+        # Intentar obtener el número de épocas entrenadas
+        if hasattr(estimator, 'history') and estimator.history is not None:
+            if hasattr(estimator.history, 'params') and 'epochs' in estimator.history.params:
+                epochs_trained = estimator.history.params['epochs']
+            elif hasattr(estimator.history, 'history') and len(estimator.history.history.get('loss', [])) > 0:
+                epochs_trained = len(estimator.history.history['loss'])
+            else:
+                epochs_trained = args.epochs
+        else:
+            epochs_trained = args.epochs
+    except Exception as e:
+        print(f"No se pudo determinar el número de épocas entrenadas: {e}")
+        epochs_trained = args.epochs
+    
+    # Añadir información extra sobre este entrenamiento
+    dataset_stats = {
+        "total_samples": len(X_train) + len(X_val) + len(X_test),
+        "training_samples": len(X_train),
+        "validation_samples": len(X_val),
+        "test_samples": len(X_test),
+    }
+    
+    training_info = {
+        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'metrics': metrics,
+        'training_type': 'initial',
+        'model_config': model_config,
+        'dataset_stats': dataset_stats,
+        'epochs_trained': epochs_trained
+    }
+    
+    # Cargar historial existente o crear uno nuevo (formato compatible con evaluate_metrics.py)
+    try:
+        if os.path.exists(metrics_history_path):
+            with open(metrics_history_path, 'r') as f:
+                metrics_history = json.load(f)
+                if not isinstance(metrics_history, list):
+                    # Convertir al nuevo formato
+                    if 'evaluations' in metrics_history:
+                        metrics_history = metrics_history['evaluations'] 
+                    else:
+                        metrics_history = []
+        else:
+            metrics_history = []
+    except Exception as e:
+        print(f"Error al cargar historial de métricas: {e}")
+        metrics_history = []
+    
+    # Añadir esta evaluación al historial
+    metrics_history.append(training_info)
+    
+    # Guardar historial actualizado
+    with open(metrics_history_path, 'w') as f:
+        json.dump(metrics_history, f, indent=4)
     
     # Visualizar predicciones
     evaluator.plot_predictions(y_test, y_pred)

@@ -8,6 +8,7 @@ import numpy as np
 from datetime import datetime
 import logging
 import traceback
+import json
 
 # Configurar el path para importar desde el proyecto Django
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
@@ -157,7 +158,50 @@ def retrain_model():
         evaluator = ModelEvaluator(estimator, feature_dims, model_dir)
         metrics, _ = evaluator.evaluate_model(X_val, y_val)
         
-        # 9. Actualizar registro en la base de datos
+        # 9. Guardar historial de métricas (formato compatible con evaluate_metrics.py)
+        history_path = os.path.join(model_dir, 'metrics_history.json')
+        
+        # Dataset stats para el historial
+        dataset_stats = {
+            "total_samples": len(df),
+            "training_samples": len(X_train),
+            "validation_samples": len(X_val),
+        }
+        
+        # Información de reentrenamiento
+        retraining_info = {
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'metrics': metrics,
+            'training_type': 'retraining',
+            'model_config': model_config,
+            'dataset_stats': dataset_stats
+        }
+        
+        # Cargar historial existente o crear nuevo
+        try:
+            if os.path.exists(history_path):
+                with open(history_path, 'r') as f:
+                    metrics_history = json.load(f)
+                    if not isinstance(metrics_history, list):
+                        # Convertir al nuevo formato
+                        if 'evaluations' in metrics_history:
+                            metrics_history = metrics_history['evaluations'] 
+                        else:
+                            metrics_history = []
+            else:
+                metrics_history = []
+        except Exception as e:
+            logger.error(f"Error al cargar historial de métricas: {str(e)}")
+            metrics_history = []
+        
+        # Añadir nueva evaluación al historial
+        metrics_history.append(retraining_info)
+        
+        # Guardar historial actualizado
+        with open(history_path, 'w') as f:
+            json.dump(metrics_history, f, indent=4)
+        
+        # 10. Actualizar registro en la base de datos
         from dashboard.models import Modeloestimacionrnn
         modelo, _ = Modeloestimacionrnn.objects.update_or_create(
             nombremodelo='RNN Avanzado',
