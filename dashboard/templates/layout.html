@@ -14,20 +14,6 @@
 
     <title>{% block title %}Sistema de Gestión{% endblock %} | ProjectManager</title>
 
-    <!-- Estilos críticos inline para evitar FOUC -->
-    <style>
-        body {
-            visibility: hidden;
-        }
-        .preload * {
-            transition: none !important;
-        }
-        header {
-            position: relative;
-            z-index: 1000; /* Un z-index muy alto para asegurarnos */
-        }
-    </style>
-
     <!-- Preload de recursos críticos -->
     <link rel="preload" href="https://fonts.googleapis.com" as="font" crossorigin>
     <link rel="preload" href="https://cdnjs.cloudflare.com" as="style" crossorigin>
@@ -39,6 +25,39 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
           rel="stylesheet">
     <link href="{% static 'css/layout.css' %}" rel="stylesheet">
+
+    <!-- Estilos críticos inline para evitar FOUC -->
+    <style>
+        body {
+            visibility: hidden;
+        }
+        .preload * {
+            transition: none !important;
+        }
+        header {
+            position: relative;
+            z-index: 1000;
+        }
+
+        /* Estilo para el botón de alternar */
+        #toggleSidebar {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 5000;
+            background-color: rgba(30, 64, 175, 0.9); /* Color azul semitransparente */
+            /* Fondo oscuro */
+            color: white;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #toggleSidebar:hover {
+            background-color: rgba(37, 99, 235, 1); /* Azul más brillante al pasar el mouse */
+        }
+    </style>
 
     <!-- Scripts -->
     <script>

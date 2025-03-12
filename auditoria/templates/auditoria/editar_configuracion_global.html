@@ -1,0 +1,116 @@
+{% extends 'layout.html' %}
+
+{% block title %}Editar Configuración Global{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-edit text-blue-500 mr-2"></i>
+    <span>Editar Configuración Global</span>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+        <!-- Encabezado -->
+        <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+            <h2 class="text-xl font-semibold text-white flex items-center">
+                <i class="fas fa-sliders-h mr-2"></i>
+                Editar Configuración Global
+            </h2>
+            <p class="mt-2 text-blue-100">
+                Modifique los valores de la configuración global de auditoría
+            </p>
+        </div>
+
+        <!-- Formulario de edición -->
+        <div class="p-6">
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- Nombre (solo lectura) -->
+                <div>
+                    <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
+                        Nombre
+                    </label>
+                    <input type="text" id="nombre" value="{{ configuracion.nombre }}" readonly
+                           class="bg-gray-100 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none">
+                    <p class="mt-1 text-xs text-gray-500">El nombre de la configuración no puede modificarse</p>
+                </div>
+                
+                <!-- Valor -->
+                <div>
+                    <label for="valor" class="block text-sm font-medium text-gray-700 mb-1">
+                        Valor <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="valor" id="valor" required value="{{ configuracion.valor }}"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <!-- Descripción -->
+                <div>
+                    <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">
+                        Descripción
+                    </label>
+                    <textarea name="descripcion" id="descripcion" rows="3"
+                              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">{{ configuracion.descripcion }}</textarea>
+                </div>
+                
+                <!-- Botones -->
+                <div class="flex justify-end pt-4 space-x-3">
+                    <a href="{% url 'auditoria:configuracion_global_auditoria' %}" 
+                       class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Ayuda contextual -->
+    <div class="max-w-3xl mx-auto mt-6">
+        <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
+            <h4 class="font-semibold text-blue-800 flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                Información sobre esta configuración
+            </h4>
+            
+            {% if configuracion.nombre == 'registrar_navegacion' %}
+                <p class="mt-2 text-sm text-blue-700">
+                    Establece si se deben registrar las actividades de navegación de los usuarios.
+                    Valores válidos: "true" o "false".
+                </p>
+            {% elif configuracion.nombre == 'periodo_retencion_logs' %}
+                <p class="mt-2 text-sm text-blue-700">
+                    Define la cantidad de días que se conservan los logs antes de ser eliminados automáticamente.
+                    Debe ser un número entero positivo.
+                </p>
+            {% elif configuracion.nombre == 'limite_registros_diarios' %}
+                <p class="mt-2 text-sm text-blue-700">
+                    Establece un límite máximo de registros de auditoría por día para prevenir un crecimiento excesivo.
+                    Debe ser un número entero positivo.
+                </p>
+            {% elif configuracion.nombre == 'nivel_detalle_global' %}
+                <p class="mt-2 text-sm text-blue-700">
+                    Define el nivel de detalle predeterminado para las auditorías.
+                    Valores válidos: 1 (básico), 2 (detallado) o 3 (completo).
+                </p>
+            {% elif configuracion.nombre == 'ips_excluidas' %}
+                <p class="mt-2 text-sm text-blue-700">
+                    Lista de direcciones IP que no serán auditadas, separadas por comas.
+                    Por ejemplo: "127.0.0.1,192.168.1.5"
+                </p>
+            {% else %}
+                <p class="mt-2 text-sm text-blue-700">
+                    Modifique el valor de esta configuración según las necesidades del sistema.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

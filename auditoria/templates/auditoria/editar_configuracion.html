@@ -1,0 +1,138 @@
+{% extends 'layout.html' %}
+
+{% block title %}Editar Configuración de Auditoría{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-edit text-blue-500 mr-2"></i>
+    <span>Editar Configuración de Auditoría</span>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Encabezado -->
+            <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+                <h2 class="text-xl font-semibold text-white flex items-center">
+                    <i class="fas fa-cogs mr-2"></i>
+                    Editar Configuración
+                </h2>
+                <p class="mt-2 text-blue-100">
+                    Modelo: {{ configuracion.modelo }} {% if configuracion.campo %}| Campo: {{ configuracion.campo }}{% endif %}
+                </p>
+            </div>
+
+            <!-- Formulario -->
+            <form method="POST" class="p-6 space-y-6">
+                {% csrf_token %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Modelo (readonly) -->
+                <div>
+                    <label for="modelo" class="block text-sm font-medium text-gray-700">
+                        Modelo
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-database text-gray-400"></i>
+                        </div>
+                        <input type="text" 
+                               name="modelo" 
+                               id="modelo"
+                               value="{{ configuracion.modelo }}"
+                               readonly
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 bg-gray-100 rounded-md">
+                    </div>
+                </div>
+
+                <!-- Campo (readonly) -->
+                <div>
+                    <label for="campo" class="block text-sm font-medium text-gray-700">
+                        Campo Específico
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-table-columns text-gray-400"></i>
+                        </div>
+                        <input type="text" 
+                               name="campo" 
+                               id="campo"
+                               value="{{ configuracion.campo|default:'' }}"
+                               readonly
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 bg-gray-100 rounded-md"
+                               placeholder="Todos los campos">
+                    </div>
+                </div>
+
+                <!-- Opciones de Auditoría -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex items-center">
+                        <input type="checkbox" name="auditar_crear" id="auditar_crear" {% if configuracion.auditar_crear %}checked{% endif %} 
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="auditar_crear" class="ml-2 block text-sm text-gray-700">
+                            Auditar Creaciones
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" name="auditar_modificar" id="auditar_modificar" {% if configuracion.auditar_modificar %}checked{% endif %} 
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="auditar_modificar" class="ml-2 block text-sm text-gray-700">
+                            Auditar Modificaciones
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" name="auditar_eliminar" id="auditar_eliminar" {% if configuracion.auditar_eliminar %}checked{% endif %} 
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="auditar_eliminar" class="ml-2 block text-sm text-gray-700">
+                            Auditar Eliminaciones
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Nivel de Detalle -->
+                <div>
+                    <label for="nivel_detalle" class="block text-sm font-medium text-gray-700">
+                        Nivel de Detalle <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-layer-group text-gray-400"></i>
+                        </div>
+                        <select name="nivel_detalle" id="nivel_detalle" required 
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="1" {% if configuracion.nivel_detalle == 1 %}selected{% endif %}>1 - Básico</option>
+                            <option value="2" {% if configuracion.nivel_detalle == 2 %}selected{% endif %}>2 - Detallado</option>
+                            <option value="3" {% if configuracion.nivel_detalle == 3 %}selected{% endif %}>3 - Completo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'auditoria:configuracion_auditoria' %}" 
+                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
