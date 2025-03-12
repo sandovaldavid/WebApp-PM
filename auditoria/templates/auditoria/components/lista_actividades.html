@@ -1,0 +1,83 @@
+{% for actividad in actividades %}
+<tr class="hover:bg-gray-50">
+    <td class="px-3 py-4">
+        {% if actividad.es_automatica %}
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800" title="Registro automático">
+                <i class="fas fa-robot"></i>
+            </span>
+        {% else %}
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800" title="Registro manual">
+                <i class="fas fa-user-edit"></i>
+            </span>
+        {% endif %}
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm font-medium text-gray-900">{{ actividad.idusuario.nombreusuario }}</div>
+    </td>
+    <td class="px-6 py-4">
+        <div class="text-sm text-gray-500">{{ actividad.accion }}</div>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {{ actividad.fechacreacion }}
+    </td>
+    <td class="px-6 py-4">
+        <div class="text-sm text-gray-500">{{ actividad.descripcion|truncatechars:30 }}</div>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <div class="flex justify-end space-x-2">
+            <a href="{% url 'auditoria:detalle_actividad' actividad.idactividad %}" class="text-blue-600 hover:text-blue-800" title="Ver detalles">
+                <i class="fas fa-search-plus"></i>
+            </a>
+            {% if not actividad.es_automatica %}
+            <a href="{% url 'auditoria:editar_actividad' actividad.idactividad %}" class="text-yellow-600 hover:text-yellow-800" title="Editar">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="#" class="text-red-600 hover:text-red-800" title="Eliminar" onclick="eliminarActividad({{ actividad.idactividad }})">
+                <i class="fas fa-trash"></i>
+            </a>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+        <div class="flex flex-col items-center justify-center py-6">
+            <i class="fas fa-search text-4xl mb-3 text-gray-300"></i>
+            <p class="text-lg font-medium">No se encontraron actividades</p>
+            <p class="text-sm mt-1">Intenta con otros filtros de búsqueda</p>
+        </div>
+    </td>
+</tr>
+{% endfor %}
+
+<!-- Paginación -->
+{% if actividades.has_other_pages %}
+<tr>
+    <td colspan="6" class="px-6 py-4">
+        <div class="flex justify-center space-x-2">
+            {% if actividades.has_previous %}
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                        hx-get="{% url 'auditoria:filtrar_actividades' %}?page={{ actividades.previous_page_number }}&filtro={{ filtro_activo }}&busqueda={{ request.GET.busqueda|default:'' }}"
+                        hx-target="#actividades-body"
+                        hx-indicator="#loading">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            {% endif %}
+
+            <span class="px-4 py-2 bg-blue-500 text-white rounded-md">
+                {{ actividades.number }}
+            </span>
+
+            {% if actividades.has_next %}
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                        hx-get="{% url 'auditoria:filtrar_actividades' %}?page={{ actividades.next_page_number }}&filtro={{ filtro_activo }}&busqueda={{ request.GET.busqueda|default:'' }}"
+                        hx-target="#actividades-body"
+                        hx-indicator="#loading">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% endif %}
