@@ -8,6 +8,7 @@ from django.db.models import Case, When, Count, FloatField, F, Sum, DecimalField
 from django.db.models.functions import Coalesce, TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.utils import timezone
 
 from .models import (
     Proyecto,
@@ -161,7 +162,7 @@ def panel_control(request):
     # Filtros de fecha (por defecto, último mes)
     fecha_fin = datetime.datetime.now().date()
     fecha_inicio = fecha_fin - datetime.timedelta(days=30)
-    
+    '''
     if request.GET.get('fecha_inicio') and request.GET.get('fecha_fin'):
         try:
             fecha_inicio = datetime.datetime.strptime(request.GET.get('fecha_inicio'), '%Y-%m-%d').date()
@@ -169,6 +170,9 @@ def panel_control(request):
         except ValueError:
             pass
     
+    # Agregar un día más a fecha_fin para incluir ese día completo en las consultas
+    fecha_fin_consulta = fecha_fin + datetime.timedelta(days=1)
+    '''
     # Filtro de equipo
     equipo_id = request.GET.get('equipo', None)
     
@@ -199,20 +203,20 @@ def panel_control(request):
     
 
     # Obtener el primer día del mes actual y del mes anterior
-    hoy = datetime.datetime.now().date()
-    primer_dia_mes_actual = datetime.datetime(hoy.year, hoy.month, 1).date()
+    hoy = timezone.now().date()
+    primer_dia_mes_actual = timezone.make_aware(datetime.datetime(hoy.year, hoy.month, 1))
 
     # Calcular el primer día del mes anterior
     if hoy.month == 1:  # Si estamos en enero
-        primer_dia_mes_anterior = datetime.datetime(hoy.year - 1, 12, 1).date()
+        primer_dia_mes_anterior = timezone.make_aware(datetime.datetime(hoy.year - 1, 12, 1))
     else:
-        primer_dia_mes_anterior = datetime.datetime(hoy.year, hoy.month - 1, 1).date()
+        primer_dia_mes_anterior = timezone.make_aware(datetime.datetime(hoy.year, hoy.month - 1, 1))
 
-    # Calcular el primer día del mes siguiente (para límite del mes actual)
+    # Calcular el primer día del mes siguiente
     if hoy.month == 12:  # Si estamos en diciembre
-        primer_dia_mes_siguiente = datetime.datetime(hoy.year + 1, 1, 1).date()
+        primer_dia_mes_siguiente = timezone.make_aware(datetime.datetime(hoy.year + 1, 1, 1))
     else:
-        primer_dia_mes_siguiente = datetime.datetime(hoy.year, hoy.month + 1, 1).date()
+        primer_dia_mes_siguiente = timezone.make_aware(datetime.datetime(hoy.year, hoy.month + 1, 1))
 
     # Contar proyectos nuevos en el mes actual y anterior
     proyectos_mes_actual = Proyecto.objects.filter(
@@ -282,9 +286,9 @@ def panel_control(request):
 
     # Definir colores para cada estado
     estados_colores = {
-        'Inicio': 'rgba(75, 192, 192, 0.8)',  # Verde claro
+        'Inicio': 'rgba(255, 206, 86, 0.8)',  # Amarillo
         'Planificación': 'rgba(54, 162, 235, 0.8)',  # Azul
-        'Ejecución': 'rgba(255, 206, 86, 0.8)',  # Amarillo
+        'Ejecución': 'rgba(75, 192, 192, 0.8)',  # Verde claro
         'Monitoreo-Control': 'rgba(153, 102, 255, 0.8)',  # Púrpura
         'Cierre': 'rgba(255, 99, 132, 0.8)'  # Rojo
     }
@@ -579,6 +583,9 @@ def panel_control(request):
         'estado_proyectos': json.dumps(estado_proyectos),
         'estado_tareas': json.dumps(estado_tareas),
         'prioridad_tareas': json.dumps(prioridad_tareas),
+        #'filtro_activo': True,
+        #'fecha_inicio_str': fecha_inicio.strftime('%d/%m/%Y'),
+        #'fecha_fin_str': fecha_fin.strftime('%d/%m/%Y'),
     }
     
     return render(request, 'dashboard/panel_control.html', context)
