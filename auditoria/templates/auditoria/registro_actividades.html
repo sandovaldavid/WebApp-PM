@@ -8,16 +8,25 @@
         <i class="fas fa-shield-alt text-blue-500 mr-2"></i>
         <span>Seguridad y Auditoría</span>
     </div>
-    <a href="{% url 'auditoria:crear_actividad' %}" 
-    class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
-    <i class="fas fa-plus mr-2"></i>
-        Nueva Actividad
-    </a>
+    <div class="flex space-x-4">
+        <a href="{% url 'auditoria:configuracion_auditoria' %}" 
+           class="bg-green-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-green-900 text-base transition-colors flex items-center">
+            <i class="fas fa-cogs mr-2"></i>
+            Configuración
+        </a>
+        <!--
+        <a href="{% url 'auditoria:crear_actividad' %}" 
+           class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
+            <i class="fas fa-plus mr-2"></i>
+            Nueva Actividad
+        </a>-->
+    </div>
 </div>
 {% endblock %}
 
 {% block style %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.3"></script>
 {% endblock %}
 
 {% block body %}
@@ -92,65 +101,92 @@
      <!-- Registro de Actividades -->
     <div id="registro-actividades" class="bg-white p-6 rounded-lg shadow-lg mb-6">
         <h2 class="text-xl font-semibold mb-4">Registro de Actividades</h2>
+        
         <!-- Filtros Rápidos -->
         <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4">
-            <a href="?{% if request.GET.busqueda %}busqueda={{ request.GET.busqueda }}{% endif %}" 
-            class="px-4 py-2 rounded-full {% if not request.GET.filtro %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors">
+            <button type="button" 
+                class="px-4 py-2 rounded-full {% if not filtros.filtro %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors"
+                hx-get="{% url 'auditoria:filtrar_actividades' %}"
+                hx-target="#actividades-body"
+                hx-indicator="#loading"
+                hx-trigger="click">
                 <i class="fas fa-list-ul mr-2"></i>Todos
-            </a>
-            <a href="?filtro=Login{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-            class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Login' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-yellow-200 transition-colors">
-                <i class="fas fa-sign-in-alt mr-2"></i>Login
-            </a>
-            <a href="?filtro=Logout{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-            class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Logout' %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors">
-                <i class="fas fa-sign-out-alt mr-2"></i>Logout
-            </a>
-            <a href="?filtro=Creación{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-            class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Creación' %}bg-green-100 text-green-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-green-200 transition-colors">
-                <i class="fas fa-plus mr-2"></i>Creación
-            </a>
-            <a href="?filtro=Modificación{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-            class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Modificación' %}bg-red-100 text-red-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-red-200 transition-colors">
-                <i class="fas fa-edit mr-2"></i>Modificación
-            </a>
-            <a href="?filtro=Eliminación{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}" 
-            class="px-4 py-2 rounded-full {% if request.GET.filtro == 'Eliminación' %}bg-gray-100 text-gray-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-gray-200 transition-colors">
-                <i class="fas fa-trash mr-2"></i>Eliminación
-            </a>
+            </button>
+            
+            <!-- Botones de filtro dinámicos basados en los tipos de actividades disponibles -->
+            {% for tipo in tipos_actividades %}
+            <button type="button"
+                class="px-4 py-2 rounded-full {% if filtros.filtro == tipo %}bg-yellow-100 text-yellow-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-yellow-200 transition-colors"
+                hx-get="{% url 'auditoria:filtrar_actividades' %}?filtro={{ tipo }}"
+                hx-target="#actividades-body"
+                hx-indicator="#loading"
+                hx-trigger="click">
+                {% if tipo == 'LOGIN' %}
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                {% elif tipo == 'LOGOUT' %}
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                {% elif tipo == 'CREACION' %}
+                    <i class="fas fa-plus mr-2"></i>
+                {% elif tipo == 'MODIFICACION' %}
+                    <i class="fas fa-edit mr-2"></i>
+                {% elif tipo == 'ELIMINACION' %}
+                    <i class="fas fa-trash mr-2"></i>
+                {% elif tipo == 'LOGIN_FALLIDO' %}
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                {% elif tipo == 'NAVEGACION' %}
+                    <i class="fas fa-compass mr-2"></i>
+                {% else %}
+                    <i class="fas fa-circle mr-2"></i>
+                {% endif %}
+                {{ tipo }}
+            </button>
+            {% endfor %}
         </div>
 
-        <!-- Búsqueda y Filtros -->
+        <!-- Búsqueda -->
         <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-            <form method="GET" class="flex gap-4">
-                <input type="hidden" name="filtro" value="{{ request.GET.filtro }}">
-                
+            <form hx-get="{% url 'auditoria:filtrar_actividades' %}" 
+                  hx-target="#actividades-body" 
+                  hx-indicator="#loading" 
+                  class="flex gap-4">
+                <input type="hidden" name="filtro" value="{{ filtros.filtro }}">
                 <!-- Búsqueda -->
                 <div class="flex-1">
                     <input type="text" 
                         name="busqueda" 
                         value="{{ filtros.busqueda }}"
-                        placeholder="Buscar por usuario..." 
+                        placeholder="Buscar por usuario, descripción..." 
                         class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                 </div>
 
                 <!-- Botones -->
                 <div class="flex gap-2">
-                    <a href="?{% if request.GET.filtro %}filtro={{ request.GET.filtro }}{% endif %}" 
-                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                    <button type="button"
+                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                        hx-get="{% url 'auditoria:filtrar_actividades' %}"
+                        hx-target="#actividades-body"
+                        hx-indicator="#loading">
                         Limpiar
-                    </a>
-                    <button type="submit" 
-                            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
                         Buscar
                     </button>
                 </div>
             </form>
         </div>
+        
+        <!-- Indicador de carga -->
+        <div id="loading" class="htmx-indicator flex justify-center p-4">
+            <i class="fas fa-circle-notch fa-spin text-blue-500 text-2xl"></i>
+        </div>
+        
+        <!-- Tabla de actividades -->
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
+                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usuario</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acción</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha y Hora</th>
@@ -158,39 +194,8 @@
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for actividad in actividades %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">{{ actividad.idusuario.nombreusuario }}</div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm text-gray-500">{{ actividad.accion }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ actividad.fechacreacion }}
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm text-gray-500">{{ actividad.descripcion }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div class="flex justify-end space-x-2">
-                                <a href="{% url 'auditoria:editar_actividad' actividad.idactividad %}" class="text-yellow-600 hover:text-yellow-800" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="#" class="text-red-600 hover:text-red-800" title="Eliminar" onclick="eliminarActividad({{ actividad.idactividad }})">
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                            No hay actividades disponibles
-                        </td>
-                    </tr>
-                    {% endfor %}
+                <tbody class="bg-white divide-y divide-gray-200" id="actividades-body">
+                    {% include "auditoria/components/lista_actividades.html" with actividades=actividades filtro_activo=filtros.filtro %}
                 </tbody>
             </table>
         </div>
@@ -200,25 +205,83 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Generar colores dinámicos basados en la cantidad de datos
+    function generateColors(count) {
+        const baseColors = [
+            '#60A5FA', // Azul
+            '#F87171', // Rojo
+            '#34D399', // Verde
+            '#FBBF24', // Amarillo
+            '#A78BFA', // Púrpura
+            '#FB923C', // Naranja
+            '#38BDF8', // Azul claro
+            '#4ADE80', // Verde claro
+            '#F472B6', // Rosa
+            '#94A3B8'  // Gris azulado
+        ];
+        
+        // Si hay más elementos que colores base, generamos colores adicionales
+        let colors = [];
+        for (let i = 0; i < count; i++) {
+            if (i < baseColors.length) {
+                colors.push(baseColors[i]);
+            } else {
+                // Generar color aleatorio en formato HSL para mejor distribución
+                const h = (i * 137) % 360; // Espaciado áureo en el círculo de color
+                const s = 70;
+                const l = 60;
+                colors.push(`hsl(${h}, ${s}%, ${l}%)`);
+            }
+        }
+        return colors;
+    }
+
     // Gráfico de Actividades por Usuario (Barras)
     const actividadesUsuarioCtx = document.getElementById('actividadesUsuarioChart').getContext('2d');
+    const usuariosLabels = {{ datos_actividades_usuario.labels|safe }};
+    const usuariosData = {{ datos_actividades_usuario.data|safe }};
+    
     new Chart(actividadesUsuarioCtx, {
         type: 'bar',
         data: {
-            labels: {{ datos_actividades_usuario.labels|safe }},
+            labels: usuariosLabels,
             datasets: [{
                 label: 'Actividades',
-                data: {{ datos_actividades_usuario.data|safe }},
-                backgroundColor: '#60A5FA',
+                data: usuariosData,
+                backgroundColor: generateColors(usuariosLabels.length),
                 borderWidth: 1
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            indexAxis: usuariosLabels.length > 8 ? 'y' : 'x', // Usar barras horizontales si hay muchos usuarios
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    ticks: {
+                        maxRotation: 0,
+                        minRotation: 0,
+                        autoSkip: false,
+                        callback: function(value, index, values) {
+                            // Acortar nombres largos
+                            const label = usuariosLabels[index];
+                            return label.length > 15 ? label.substring(0, 15) + '...' : label;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItem) {
+                            // Mostrar el nombre completo en el tooltip
+                            return usuariosLabels[tooltipItem[0].dataIndex];
+                        }
+                    }
+                },
+                legend: {
+                    display: false
                 }
             }
         }
@@ -226,13 +289,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Gráfico de Tipos de Actividades (Donut)
     const tiposActividadesCtx = document.getElementById('tiposActividadesChart').getContext('2d');
+    const tiposLabels = {{ datos_tipos_actividades.labels|safe }};
+    const tiposData = {{ datos_tipos_actividades.data|safe }};
+    
     new Chart(tiposActividadesCtx, {
         type: 'doughnut',
         data: {
-            labels: {{ datos_tipos_actividades.labels|safe }},
+            labels: tiposLabels,
             datasets: [{
-                data: {{ datos_tipos_actividades.data|safe }},
-                backgroundColor: ['#FCD34D', '#34D399', '#F87171', '#A78BFA'],
+                data: tiposData,
+                backgroundColor: generateColors(tiposLabels.length),
                 borderWidth: 1
             }]
         },
@@ -241,36 +307,80 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15,
+                        // Limitar el tamaño del texto para no saturar la leyenda
+                        generateLabels: function(chart) {
+                            const original = Chart.overrides.doughnut.plugins.legend.labels.generateLabels;
+                            const labels = original.call(this, chart);
+                            
+                            labels.forEach(label => {
+                                label.text = label.text.length > 20 
+                                    ? label.text.substring(0, 20) + '...' 
+                                    : label.text;
+                            });
+                            
+                            return labels;
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItem) {
+                            // Mostrar el tipo completo en el tooltip
+                            return tiposLabels[tooltipItem[0].dataIndex];
+                        }
+                    }
                 }
             }
         }
     });
-});
 
-function eliminarActividad(id) {
-    if (confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
-        fetch("{% url 'auditoria:eliminar_actividad' 0 %}".replace("0", id), {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-                "Content-Type": "application/json"
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert("Error al eliminar la actividad.");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("Error al eliminar la actividad.");
-        });
+    // Función para eliminar actividad
+    window.eliminarActividad = function(id) {
+        if (confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
+            fetch(`{% url 'auditoria:eliminar_actividad' 0 %}`.replace('0', id), {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Recargar la lista de actividades
+                    htmx.trigger("#actividades-body", "htmx:load", {});
+                    
+                    // Mostrar mensaje de éxito
+                    const alertContainer = document.createElement('div');
+                    alertContainer.className = 'bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded fixed top-20 right-4 shadow-lg z-50';
+                    alertContainer.innerHTML = `
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <span>Actividad eliminada correctamente</span>
+                            <button class="ml-4 font-bold" onclick="this.parentElement.parentElement.remove()">&times;</button>
+                        </div>
+                    `;
+                    document.body.appendChild(alertContainer);
+                    
+                    // Eliminar la alerta después de 3 segundos
+                    setTimeout(() => {
+                        alertContainer.remove();
+                    }, 3000);
+                } else {
+                    alert("Error al eliminar la actividad: " + (data.error || "Error desconocido"));
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Error al eliminar la actividad: " + error);
+            });
+        }
     }
-}
+});
 </script>
 {% endblock %}
 {% endblock %}

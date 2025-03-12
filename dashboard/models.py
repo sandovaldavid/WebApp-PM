@@ -13,13 +13,62 @@ class Actividad(models.Model):
     idactividad = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=255)
     descripcion = models.TextField(blank=True, null=True)
-    fechacreacion = models.DateTimeField(blank=True, null=True)
+    fechacreacion = models.DateTimeField(auto_now_add=True)  # Cambiar a auto_now_add
     idusuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="idusuario")
     accion = models.CharField(max_length=255)
-
+    
+    # Nuevos campos necesarios
+    entidad_tipo = models.CharField(max_length=50, blank=True, null=True)  # Proyecto, Tarea, etc.
+    entidad_id = models.IntegerField(blank=True, null=True)  # ID del objeto modificado
+    ip_address = models.GenericIPAddressField(blank=True, null=True)  # IP desde donde se realizó
+    es_automatica = models.BooleanField(default=True)  # Si fue registrada automáticamente
+    
     class Meta:
         managed = True
         db_table = "actividad"
+
+class DetalleActividad(models.Model):
+    """Almacena cambios detallados de cada campo modificado"""
+    iddetalle = models.AutoField(primary_key=True)
+    idactividad = models.ForeignKey(Actividad, on_delete=models.CASCADE)
+    nombre_campo = models.CharField(max_length=100)
+    valor_anterior = models.TextField(blank=True, null=True)
+    valor_nuevo = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        managed = True
+        db_table = "detalle_actividad"
+
+class ConfiguracionAuditoria(models.Model):
+    """Configuración de qué entidades y campos auditar"""
+    idconfiguracion = models.AutoField(primary_key=True)
+    modelo = models.CharField(max_length=100)  # Nombre del modelo a auditar
+    campo = models.CharField(max_length=100, blank=True, null=True)  # Campo específico o null para todos
+    auditar_crear = models.BooleanField(default=True)
+    auditar_modificar = models.BooleanField(default=True)
+    auditar_eliminar = models.BooleanField(default=True)
+    nivel_detalle = models.IntegerField(default=1)  # 1=básico, 2=detallado, 3=completo
+    
+    class Meta:
+        managed = True
+        db_table = "configuracion_auditoria"
+        unique_together = (('modelo', 'campo'),)
+
+class ConfiguracionGeneralAuditoria(models.Model):
+    """Configuraciones generales del sistema de auditoría"""
+    idconfiguracion = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=100, unique=True)
+    valor = models.CharField(max_length=255)
+    descripcion = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        managed = True
+        db_table = "configuracion_general_auditoria"
+        verbose_name = "Configuración General de Auditoría"
+        verbose_name_plural = "Configuraciones Generales de Auditoría"
+    
+    def __str__(self):
+        return f"{self.nombre}: {self.valor}"
 
 
 class Administrador(models.Model):
@@ -112,7 +161,7 @@ class Historialnotificacion(models.Model):
         managed = True
         db_table = "historialnotificacion"
 
-
+# reemplazada pro actividad
 class Historialreporte(models.Model):
     idhistorialreporte = models.AutoField(primary_key=True)
     idreporte = models.ForeignKey("Reporte", models.DO_NOTHING, db_column="idreporte")
@@ -123,7 +172,7 @@ class Historialreporte(models.Model):
         managed = True
         db_table = "historialreporte"
 
-
+# reemplazada pro actividad
 class Historialreporteusuario(models.Model):
     idhistorialreporteusuario = models.AutoField(primary_key=True)
     idreporteusuario = models.ForeignKey(
@@ -136,7 +185,7 @@ class Historialreporteusuario(models.Model):
         managed = True
         db_table = "historialreporteusuario"
 
-
+# podria ser reemplazada pro actividad
 class Historialtarea(models.Model):
     idhistorialtarea = models.AutoField(primary_key=True)
     idtarea = models.ForeignKey("Tarea", models.DO_NOTHING, db_column="idtarea")

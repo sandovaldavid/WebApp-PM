@@ -1,0 +1,505 @@
+{% extends 'layout.html' %}
+
+{% block title %}Detalle de Actividad{% endblock %}
+
+{% block title_body %}
+<div class="flex items-center">
+    <i class="fas fa-search-plus text-blue-500 mr-2"></i>
+    <span>Detalle de Actividad: {{ actividad.nombre }}</span>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+            <!-- Encabezado -->
+            <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
+                <h2 class="text-xl font-semibold text-white flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Información de la Actividad
+                </h2>
+                <p class="mt-2 text-blue-100">
+                    ID: {{ actividad.idactividad }} | Fecha: {{ actividad.fechacreacion|date:"d/m/Y H:i:s" }}
+                </p>
+                {% if nivel_detalle %}
+                <div class="mt-2">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if nivel_detalle == 1 %}bg-blue-200 text-blue-800{% elif nivel_detalle == 2 %}bg-green-200 text-green-800{% else %}bg-purple-200 text-purple-800{% endif %}">
+                        <i class="fas fa-layer-group mr-1"></i>
+                        Nivel de detalle {{ nivel_detalle }}: 
+                        {% if nivel_detalle == 1 %}Básico{% elif nivel_detalle == 2 %}Detallado{% else %}Completo{% endif %}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Información General -->
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold mb-4">Información General</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Columna 1 - Información básica (visible en todos los niveles) -->
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Nombre de la Actividad:</p>
+                            <p class="font-medium">{{ actividad.nombre }}</p>
+                        </div>
+                        
+                        <div>
+                            <p class="text-sm text-gray-500">Usuario:</p>
+                            <p class="font-medium">{{ actividad.idusuario.nombreusuario }}</p>
+                        </div>
+                        
+                        <div>
+                            <p class="text-sm text-gray-500">Tipo de Acción:</p>
+                            <p class="font-medium">
+                                {% if actividad.accion == 'CREACION' %}
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                                    <i class="fas fa-plus-circle mr-1"></i> Creación
+                                </span>
+                                {% elif actividad.accion == 'MODIFICACION' %}
+                                <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                                    <i class="fas fa-edit mr-1"></i> Modificación
+                                </span>
+                                {% elif actividad.accion == 'ELIMINACION' %}
+                                <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+                                    <i class="fas fa-trash mr-1"></i> Eliminación
+                                </span>
+                                {% elif actividad.accion == 'LOGIN' %}
+                                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                    <i class="fas fa-sign-in-alt mr-1"></i> Login
+                                </span>
+                                {% elif actividad.accion == 'LOGOUT' %}
+                                <span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">
+                                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                                </span>
+                                {% else %}
+                                <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                                    <i class="fas fa-cog mr-1"></i> {{ actividad.accion }}
+                                </span>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-gray-500">Tipo de registro:</p>
+                            <p class="font-medium">
+                                {% if actividad.es_automatica %}
+                                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                    <i class="fas fa-robot mr-1"></i> Automático
+                                </span>
+                                {% else %}
+                                <span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">
+                                    <i class="fas fa-user mr-1"></i> Manual
+                                </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Columna 2 - Información adicional (según el nivel) -->
+                    <div class="space-y-4">
+                        <!-- Nivel 2 y 3: Mostrar información sobre la entidad -->
+                        {% if nivel_detalle >= 2 %}
+                        <div>
+                            <p class="text-sm text-gray-500">Entidad Tipo:</p>
+                            <p class="font-medium">{{ actividad.entidad_tipo|default:"No especificado" }}</p>
+                        </div>
+                        
+                        <div>
+                            <p class="text-sm text-gray-500">ID de Entidad:</p>
+                            <p class="font-medium">{{ actividad.entidad_id|default:"No especificado" }}</p>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-gray-500">IP del usuario:</p>
+                            <p class="font-medium">{{ actividad.ip_address|default:"No registrado" }}</p>
+                        </div>                        
+                        
+                        {% endif %}
+                        
+                        <!-- Solo nivel 3: Información técnica adicional -->
+                        <!--{% if nivel_detalle >= 3 %}-->
+                        
+                        <!--{% endif %}-->
+                    </div>
+                </div>
+                
+                <!-- Descripción (en todos los niveles pero con diferente detalle según el nivel) -->
+                <div class="mt-6">
+                    <p class="text-sm text-gray-500">Descripción:</p>
+                    <div class="mt-2 p-4 bg-gray-50 rounded-md">
+                        {{ actividad.descripcion|default:"Sin descripción"|safe }}
+                    </div>
+                </div>
+                
+                <!-- Indicadores según el nivel de detalle -->
+                {% if nivel_detalle == 1 %}
+                <div class="mt-4 p-3 bg-blue-50 rounded-md border border-blue-200">
+                    <p class="text-sm text-blue-700">
+                        <i class="fas fa-info-circle mr-1"></i> Esta actividad usa el nivel de auditoría básico. 
+                        Solo muestra información general sin detalles de cambios.
+                    </p>
+                </div>
+                {% elif nivel_detalle == 2 %}
+                <div class="mt-4 p-3 bg-green-50 rounded-md border border-green-200">
+                    <p class="text-sm text-green-700">
+                        <i class="fas fa-info-circle mr-1"></i> Esta actividad usa el nivel de auditoría detallado. 
+                        Muestra todos los campos modificados con sus valores anteriores y nuevos.
+                    </p>
+                </div>
+                {% elif nivel_detalle == 3 %}
+                <div class="mt-4 p-3 bg-purple-50 rounded-md border border-purple-200">
+                    <p class="text-sm text-purple-700">
+                        <i class="fas fa-info-circle mr-1"></i> Esta actividad usa el nivel de auditoría completo. 
+                        Muestra información técnica extendida sobre la entidad y todos sus cambios.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Información de la entidad (Solo nivel 3) -->
+            {% if nivel_detalle == 3 and entidad_relacionada %}
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-database text-purple-500 mr-2"></i>
+                    Entidad Relacionada: {{ actividad.entidad_tipo }}
+                </h3>
+                
+                <div class="bg-purple-50 rounded-lg p-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% if actividad.entidad_tipo == 'Proyecto' %}
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Nombre del Proyecto:</span>
+                                <span class="font-medium">{{ entidad_relacionada.nombreproyecto }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Estado:</span>
+                                <span class="font-medium">{{ entidad_relacionada.estado|default:"No especificado" }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Fechas:</span>
+                                <span class="font-medium">
+                                    {{ entidad_relacionada.fechainicio|date:"d/m/Y"|default:"?" }} - 
+                                    {{ entidad_relacionada.fechafin|date:"d/m/Y"|default:"?" }}
+                                </span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Presupuesto:</span>
+                                <span class="font-medium">{{ entidad_relacionada.presupuesto|default:"No especificado" }}</span>
+                            </div>
+                            {% if entidad_relacionada.descripcion %}
+                            <div class="flex flex-col col-span-2">
+                                <span class="text-sm text-gray-500">Descripción:</span>
+                                <span class="font-medium">{{ entidad_relacionada.descripcion }}</span>
+                            </div>
+                            {% endif %}
+                            
+                        {% elif actividad.entidad_tipo == 'Tarea' %}
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Nombre de la Tarea:</span>
+                                <span class="font-medium">{{ entidad_relacionada.nombretarea }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Estado:</span>
+                                <span class="font-medium">{{ entidad_relacionada.estado|default:"No especificado" }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Prioridad:</span>
+                                <span class="font-medium">{{ entidad_relacionada.prioridad|default:"No especificada" }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Duración estimada:</span>
+                                <span class="font-medium">{{ entidad_relacionada.duracionestimada|default:"No especificada" }} horas</span>
+                            </div>
+                            
+                        {% elif actividad.entidad_tipo == 'Usuario' %}
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Nombre de Usuario:</span>
+                                <span class="font-medium">{{ entidad_relacionada.nombreusuario }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Email:</span>
+                                <span class="font-medium">{{ entidad_relacionada.email|default:"No especificado" }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Rol:</span>
+                                <span class="font-medium">{{ entidad_relacionada.rol|default:"No especificado" }}</span>
+                            </div>
+                            
+                        {% elif actividad.entidad_tipo == 'Recurso' %}
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Nombre del Recurso:</span>
+                                <span class="font-medium">{{ entidad_relacionada.nombrerecurso }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Disponibilidad:</span>
+                                <span class="font-medium">
+                                    {% if entidad_relacionada.disponibilidad %}
+                                        <span class="text-green-600">Disponible</span>
+                                    {% else %}
+                                        <span class="text-red-600">No disponible</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Carga de trabajo:</span>
+                                <span class="font-medium">{{ entidad_relacionada.carga_trabajo|default:"0" }}%</span>
+                            </div>
+
+                        {% elif actividad.entidad_tipo == 'Alerta' %}
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">ID Alerta:</span>
+                                <span class="font-medium">{{ entidad_relacionada.idalerta }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Tipo de alerta:</span>
+                                <span class="font-medium">{{ entidad_relacionada.tipoalerta|default:"No especificado" }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Mensaje:</span>
+                                <span class="font-medium">{{ entidad_relacionada.mensaje }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Estado:</span>
+                                <span class="font-medium">
+                                    {% if entidad_relacionada.activa %}
+                                        <span class="text-red-600 px-2 py-1 bg-red-100 rounded-full text-xs">Activa</span>
+                                    {% else %}
+                                        <span class="text-green-600 px-2 py-1 bg-green-100 rounded-full text-xs">Inactiva</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Fecha de creación:</span>
+                                <span class="font-medium">{{ entidad_relacionada.fechacreacion|date:"d/m/Y H:i"|default:"No especificada" }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Tarea relacionada:</span>
+                                <span class="font-medium">
+                                    {% if entidad_relacionada.idtarea %}
+                                        {{ entidad_relacionada.idtarea.nombretarea }}
+                                    {% else %}
+                                        No especificada
+                                    {% endif %}
+                                </span>
+                            </div>
+                        
+                        {% elif actividad.entidad_tipo == 'Notificacion' %}
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">ID Notificación:</span>
+                                <span class="font-medium">{{ entidad_relacionada.idnotificacion }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Mensaje:</span>
+                                <span class="font-medium">{{ entidad_relacionada.mensaje }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Estado:</span>
+                                <span class="font-medium">
+                                    {% if entidad_relacionada.leido %}
+                                        <span class="text-green-600 px-2 py-1 bg-green-100 rounded-full text-xs">Leído</span>
+                                    {% else %}
+                                        <span class="text-blue-600 px-2 py-1 bg-blue-100 rounded-full text-xs">No leído</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Prioridad:</span>
+                                <span class="font-medium">
+                                    {% if entidad_relacionada.prioridad == 'alta' %}
+                                        <span class="text-red-600 font-medium">Alta</span>
+                                    {% elif entidad_relacionada.prioridad == 'media' %}
+                                        <span class="text-yellow-600 font-medium">Media</span>
+                                    {% else %}
+                                        <span class="text-green-600 font-medium">Baja</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Categoría:</span>
+                                <span class="font-medium">{{ entidad_relacionada.categoria|default:"No especificada" }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Fecha de creación:</span>
+                                <span class="font-medium">{{ entidad_relacionada.fechacreacion|date:"d/m/Y H:i"|default:"No especificada" }}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Archivada:</span>
+                                <span class="font-medium">
+                                    {% if entidad_relacionada.archivada %}
+                                        <span class="text-gray-600">Sí</span>
+                                    {% else %}
+                                        <span class="text-blue-600">No</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Usuario:</span>
+                                <span class="font-medium">
+                                    {% if entidad_relacionada.idusuario %}
+                                        {{ entidad_relacionada.idusuario.nombreusuario }}
+                                    {% else %}
+                                        No especificado
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% if entidad_relacionada.fecha_recordatorio %}
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500">Fecha recordatorio:</span>
+                                <span class="font-medium">{{ entidad_relacionada.fecha_recordatorio|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            {% endif %}                       
+
+                        {% else %}
+                            <!-- Para otros tipos de entidades -->
+                            <div class="col-span-2">
+                                <span class="italic text-gray-500">Información detallada no disponible para este tipo de entidad.</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Información técnica adicional -->
+                    <div class="mt-4 pt-4 border-t border-purple-200">
+                        <span class="text-xs text-purple-700">ID interno: {{ entidad_relacionada.pk }} | Última modificación: {{ entidad_relacionada.fechamodificacion|date:"d/m/Y H:i:s"|default:"Desconocida" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Detalles de Cambios -->
+            {% if detalles %}
+            <div class="p-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    Detalles de los Cambios
+                    {% if nivel_detalle == 2 %}
+                    <span class="ml-2 px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">
+                        <i class="fas fa-list-ul mr-1"></i> Todos los campos
+                    </span>
+                    {% elif nivel_detalle == 3 %}
+                    <span class="ml-2 px-2 py-1 text-xs font-medium rounded bg-purple-100 text-purple-800">
+                        <i class="fas fa-search-plus mr-1"></i> Modo extendido
+                    </span>
+                    {% endif %}
+                </h3>
+                
+                <!-- Tabla de cambios - Se mantiene igual para nivel 2 y 3 -->
+                <div class="overflow-x-auto mb-4">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Campo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor Anterior</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor Nuevo</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for detalle in detalles %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ detalle.nombre_campo }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">
+                                    {% if detalle.valor_anterior %}
+                                        <div class="bg-red-50 p-2 rounded">
+                                            {{ detalle.valor_anterior }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-400 italic">Vacío</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">
+                                    {% if detalle.valor_nuevo %}
+                                        <div class="bg-green-50 p-2 rounded">
+                                            {{ detalle.valor_nuevo }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-400 italic">Vacío</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Mensajes explicativos según nivel de detalle -->
+                {% if nivel_detalle == 2 %}
+                <div class="mt-4 text-sm text-gray-500 bg-green-50 p-3 rounded-md border border-green-200">
+                    <p><i class="fas fa-info-circle text-green-800 mr-1"></i> En este nivel se muestran <strong>todos los campos modificados</strong> con sus valores anteriores y nuevos.</p>
+                </div>
+                {% elif nivel_detalle == 3 %}
+                <div class="mt-4 text-sm text-gray-500 bg-purple-50 p-3 rounded-md border border-purple-200">
+                    <p><i class="fas fa-info-circle text-purple-800 mr-1"></i> En este nivel se muestra <strong>información extendida de la entidad</strong> además de todos los campos modificados.</p>
+                </div>
+                {% endif %}
+            </div>
+            {% elif nivel_detalle == 1 %}
+            <div class="p-6 text-center">
+                <div class="p-4 border border-blue-100 rounded-lg bg-blue-50 inline-flex items-center">
+                    <i class="fas fa-info-circle text-blue-500 text-xl mr-2"></i>
+                    <p class="text-blue-700">
+                        El nivel de auditoría para esta actividad está configurado como básico (nivel 1). 
+                        <br>No se registran detalles específicos de los cambios en este nivel.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Botones de acción -->
+        <div class="flex justify-between">
+            <a href="{% url 'auditoria:registro_actividades' %}" 
+               class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Volver al Registro
+            </a>
+            
+            {% if not actividad.es_automatica %}
+            <div class="flex space-x-3">
+                <a href="{% url 'auditoria:editar_actividad' actividad.idactividad %}" 
+                class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors flex items-center">
+                    <i class="fas fa-edit mr-2"></i>
+                    Editar
+                </a>
+                
+                <button onclick="eliminarActividad({{ actividad.idactividad }})"
+                        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center">
+                    <i class="fas fa-trash mr-2"></i>
+                    Eliminar
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function eliminarActividad(id) {
+    if (confirm("¿Estás seguro de que deseas eliminar esta actividad?")) {
+        fetch("{% url 'auditoria:eliminar_actividad' 0 %}".replace("0", id), {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = "{% url 'auditoria:registro_actividades' %}";
+            } else {
+                alert("Error al eliminar la actividad: " + data.error);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Error al eliminar la actividad.");
+        });
+    }
+}
+</script>
+{% endblock %}
+{% endblock %}
