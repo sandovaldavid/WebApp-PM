@@ -6,6 +6,7 @@
 #   * Remove `managed = True` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import UserManager as BaseUserManager
 from django.db import models
 
 
@@ -581,6 +582,36 @@ class Tiporecurso(models.Model):
         db_table = "tiporecurso"
 
 
+class CustomUserManager(BaseUserManager):
+    def _create_user(self, nombreusuario, email, password, **extra_fields):
+        """Crear y guardar un usuario con el nombreusuario, email y password dados."""
+        if not nombreusuario:
+            raise ValueError('El nombre de usuario es obligatorio')
+        email = self.normalize_email(email)
+        username = nombreusuario  # Usar nombreusuario como username para compatibilidad
+        user = self.model(nombreusuario=nombreusuario, username=username, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, nombreusuario, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(nombreusuario, email, password, **extra_fields)
+
+    def create_superuser(self, nombreusuario, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('rol', 'Administrador')
+        extra_fields.setdefault('confirmado', True)
+        
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superusuario debe tener is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superusuario debe tener is_superuser=True.')
+            
+        return self._create_user(nombreusuario, email, password, **extra_fields)
+
 class Usuario(AbstractUser):
     idusuario = models.AutoField(primary_key=True)
     nombreusuario = models.CharField(max_length=255, unique=True)
@@ -591,6 +622,8 @@ class Usuario(AbstractUser):
     fechamodificacion = models.DateTimeField(blank=True, null=True)
     token = models.CharField(max_length=255, blank=True, null=True)
     confirmado = models.BooleanField(blank=True, null=True)
+
+    objects = CustomUserManager()
 
     # Obligatorio para modelos de usuario personalizados
     USERNAME_FIELD = "nombreusuario"  # Este campo debe ser un string
