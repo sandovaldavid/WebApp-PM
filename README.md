@@ -1,6 +1,6 @@
 # WebApp-PM: Gestión Inteligente de Proyectos 🚀
 
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Django](https://img.shields.io/badge/Django-4.2+-green.svg)](https://www.djangoproject.com/)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.0+-orange.svg)](https://tensorflow.org/)
 [![License](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
@@ -78,7 +78,15 @@ cp .env.example .env
 2. Inicializar la base de datos:
 
 ```sh
+# 1. Primero creamos solo las tablas necesarias:
+python manage.py migrate contenttypes
+python manage.py migrate auth
+python manage.py migrate dashboard 0001_initial
+
+# 2. Luego ejecutamos el resto de las migraciones:
 python manage.py migrate
+
+# crear super usuario para panel admin de Django
 python manage.py createsuperuser
 ```
 

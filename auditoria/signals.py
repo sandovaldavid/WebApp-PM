@@ -43,6 +43,20 @@ def get_model_config(model_instance):
         return None
     
     try:
+        # Verificar primero si estamos en migración
+        import sys
+        if 'migrate' in sys.argv:
+            return None
+            
+        # Verificar si la tabla existe antes de consultarla
+        from django.db import connection
+        with connection.cursor() as cursor:
+            table_names = connection.introspection.table_names(cursor)
+            if 'configuracion_auditoria' not in table_names:
+                print("Tabla configuracion_auditoria no existe todavía, saltando configuración de auditoría")
+                return None
+        
+        
         # Primero intentar encontrar una configuración existente
         configs = list(ConfiguracionAuditoria.objects.filter(modelo=model_name, campo__isnull=True))
         
@@ -50,11 +64,6 @@ def get_model_config(model_instance):
         if configs:
             if len(configs) > 1:
                 # Si hay duplicados, usar la primera y programar una limpieza
-                print(f"Encontradas {len(configs)} configuraciones para {model_name}. Usando la primera y programando limpieza.")
-                # Programar la limpieza en segundo plano (para no afectar esta operación)
-                from django.core.management import call_command
-                import threading
-                threading.Thread(target=lambda: call_command('cleanup_audit_configs')).start()
                 return configs[0]
             else:
                 # Solo hay una configuración, perfecto
