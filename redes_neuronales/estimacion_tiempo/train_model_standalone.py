@@ -36,8 +36,16 @@ class StandaloneDataProcessor:
             print(f"Error al cargar datos: {e}")
             return None
     
-    def preprocess_data(self):
-        """Procesa los datos para entrenar el modelo"""
+    def preprocess_data(self, test_size=0.2, val_size=0.0):
+        """Procesa los datos para entrenar el modelo
+        
+        Args:
+            test_size: Proporción del conjunto de datos a usar como prueba/validación (0.0-1.0)
+            val_size: No usado en esta versión, para compatibilidad con DataProcessor
+            
+        Returns:
+            Tupla de (X_train, X_val, y_train, y_val, feature_dims)
+        """
         if hasattr(self, 'data') and self.data is not None:
             df = self.data.copy()
             
@@ -138,7 +146,7 @@ class StandaloneDataProcessor:
             
             # Dividir en conjuntos de entrenamiento y validación
             X_train, X_val, y_train, y_val = train_test_split(
-                X, y, test_size=0.2, random_state=42
+                X, y, test_size=test_size, random_state=42
             )
             
             print("Preprocesamiento completo.")

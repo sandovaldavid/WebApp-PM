@@ -128,7 +128,7 @@ class ModelEvaluator:
                 print(f"  {metric_name}: {value:.4f}")
             
         return metrics, y_pred.flatten()
-    
+
     def save_to_metrics_history(self, metrics):
         """Guarda las métricas actuales en un historial
         
@@ -550,3 +550,99 @@ class ModelEvaluator:
                     print(f"  {metric_name.upper()}: {value:.4f}")
         
         return results
+    
+    def _calculate_metrics(self, X_val, y_val):
+        """Calcula las métricas básicas de evaluación
+        
+        Args:
+            X_val: Datos de validación
+            y_val: Valores reales
+            
+        Returns:
+            dict: Diccionario con métricas calculadas
+        """
+        # Realizar predicciones
+        y_pred = self.model.predict(X_val, self.feature_dims)
+        
+        # Calcular métricas de regresión
+        mse = mean_squared_error(y_val, y_pred)
+        rmse = np.sqrt(mse)
+        mae = mean_absolute_error(y_val, y_pred)
+        r2 = r2_score(y_val, y_pred)
+        
+        try:
+            mape = mean_absolute_percentage_error(y_val, y_pred)
+        except:
+            mape = np.mean(np.abs((y_val - y_pred) / np.maximum(np.abs(y_val), 0.1))) * 100
+        
+        # Calcular métricas de clasificación adaptadas
+        classification_metrics = self.calculate_classification_metrics(y_val, y_pred)
+        
+        # Combinar todas las métricas
+        metrics = {
+            'MSE': float(mse),
+            'RMSE': float(rmse),
+            'MAE': float(mae),
+            'MAPE': float(mape),
+            'R2': float(r2),
+            'Accuracy': float(classification_metrics['accuracy']),
+            'Precision': float(classification_metrics['precision']),
+            'Recall': float(classification_metrics['recall']),
+            'F1': float(classification_metrics['f1'])
+        }
+        
+        return metrics
+    
+    def _calculate_feature_importance(self, X_val, y_val):
+        """Calcula la importancia de las características
+        
+        Args:
+            X_val: Datos de validación
+            y_val: Valores reales
+        
+        Returns:
+            Tuple: Importancia de características global y segmentada
+        """
+        # Utilizamos el método que ya está implementado
+        feature_names = [f"Feature_{i}" for i in range(X_val.shape[1])]
+        return self.analyze_feature_importance(X_val, y_val, feature_names)
+
+    def _perform_segmented_evaluation(self, X_val, y_val):
+        """Realiza una evaluación segmentada
+        
+        Args:
+            X_val: Datos de validación
+            y_val: Valores reales
+        """
+        # Definir segmentos por tiempo real
+        segments = {
+            'Tareas pequeñas (<= 5h)': lambda y: y <= 5,
+            'Tareas medianas (5-20h)': lambda y: (y > 5) & (y <= 20),
+            'Tareas grandes (20-40h)': lambda y: (y > 20) & (y <= 40),
+            'Tareas muy grandes (>40h)': lambda y: y > 40
+        }
+        
+        # Utilizar el método que ya está implementado
+        return self.segmented_evaluation(X_val, y_val, segments)
+
+    def _save_metrics_history(self, metrics):
+        """Guarda las métricas en el historial
+        
+        Args:
+            metrics: Diccionario con métricas calculadas
+        """
+        # Utilizar el método que ya está implementado
+        return self.save_to_metrics_history(metrics)
+
+    def _generate_evaluation_plots(self, X_val, y_val):
+        """Genera gráficas de evaluación
+        
+        Args:
+            X_val: Datos de validación
+            y_val: Valores reales
+        """
+        # Realizar predicciones
+        y_pred = self.model.predict(X_val, self.feature_dims)
+        
+        # Utilizar el método que ya está implementado
+        return self.plot_predictions(y_val, y_pred, save_fig=True)

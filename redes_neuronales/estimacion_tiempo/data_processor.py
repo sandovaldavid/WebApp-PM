@@ -72,8 +72,16 @@ class DataProcessor:
                   ['Inicio/Conceptualización', 'Elaboración/Requisitos', 
                    'Construcción/Desarrollo', 'Transición/Implementación', 'Mantenimiento']
     
-    def preprocess_data(self):
-        """Procesa los datos para entrenar el modelo"""
+    def preprocess_data(self, test_size=0.2, val_size=0.15):
+        """Procesa los datos para entrenar el modelo con control del tamaño de conjuntos
+        
+        Args:
+            test_size: Proporción del conjunto de datos a usar como prueba (0.0-1.0)
+            val_size: Proporción del conjunto de datos a usar como validación (0.0-1.0)
+            
+        Returns:
+            Tupla de (X_train, X_val, y_train, y_val, feature_dims)
+        """
         if hasattr(self, 'data') and self.data is not None:
             df = self.data.copy()
 
@@ -163,20 +171,36 @@ class DataProcessor:
                 'fase': fase_encoded.shape[1]
             }
             
-            # Dividir en conjuntos de entrenamiento y validación
-            X_train, X_val, y_train, y_val = train_test_split(
-                X, y, test_size=0.2, random_state=42
+            # Dividir en conjunto de entrenamiento y conjunto restante
+            X_train, X_temp, y_train, y_temp = train_test_split(
+                X, y, test_size=test_size, random_state=42
             )
             
+            # Dividir el conjunto restante en validación y prueba
+            # Si val_size es 0, usar todo como validación
+            if val_size <= 0:
+                X_val, X_test, y_val, y_test = X_temp, [], y_temp, []
+            else:
+                # val_size relativo al tamaño de X_temp
+                val_ratio = val_size / test_size if test_size > 0 else 0.5
+                X_val, X_test, y_val, y_test = train_test_split(
+                    X_temp, y_temp, test_size=val_ratio, random_state=42
+                )
+            
+            # Almacenar también los datos de prueba por si se necesitan
             self.X_train = X_train
             self.X_val = X_val
             self.y_train = y_train
             self.y_val = y_val
+            self.X_test = X_test if 'X_test' in locals() else None
+            self.y_test = y_test if 'y_test' in locals() else None
             
             print("Preprocesamiento completo.")
             print(f"Dimensiones de features: {self.feature_dims}")
             print(f"X_train: {X_train.shape}, y_train: {y_train.shape}")
             print(f"X_val: {X_val.shape}, y_val: {y_val.shape}")
+            if len(X_test) > 0:
+                print(f"X_test: {X_test.shape}, y_test: {y_test.shape}")
             
             return X_train, X_val, y_train, y_val, self.feature_dims
         else:
