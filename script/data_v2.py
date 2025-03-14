@@ -1,3 +1,11 @@
+from django.db.models.signals import pre_save, post_save, post_delete
+from auditoria.signals import audit_post_save, audit_post_delete, pre_save_handler
+
+# Desconectar señales de auditoría
+pre_save.disconnect(pre_save_handler)
+post_save.disconnect(audit_post_save)
+post_delete.disconnect(audit_post_delete)
+
 from django.utils.timezone import now
 from dashboard.models import (
     Administrador,
@@ -3732,6 +3740,12 @@ Historialalerta.objects.create(
     fecharesolucion="2025-04-15T13:00:00Z",
 )
 
+pre_save.connect(pre_save_handler)
+post_save.connect(audit_post_save)
+post_delete.connect(audit_post_delete)
+
 print("Historial de alertas adicional completado")
 
 print("Proceso finalizado")
+
+
