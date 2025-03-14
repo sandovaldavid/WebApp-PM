@@ -591,6 +591,7 @@ class CustomUserManager(BaseUserManager):
         username = nombreusuario  # Usar nombreusuario como username para compatibilidad
         user = self.model(nombreusuario=nombreusuario, username=username, email=email, **extra_fields)
         user.set_password(password)
+        user.contrasena = user.password
         user.save(using=self._db)
         return user
 
