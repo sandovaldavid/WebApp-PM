@@ -43,3 +43,16 @@ def generar_usuarios(num_usuarios, rol_user):
             continue
 
     return usuarios_creados
+
+
+if __name__ == "__main__":
+    print("Iniciando generación de usuarios aleatorios...")
+
+    # Generar 3 usuarios de cada rol
+    roles = ["administrador", "jefeproyecto", "desarrollador", "tester", "cliente"]
+    for rol in roles:
+        print(f"\nGenerando usuarios con rol: {rol}")
+        usuarios = generar_usuarios(3, rol)
+        print(f"Se crearon {len(usuarios)} usuarios con rol {rol}")
+
+    print("\nProceso de generación de usuarios completado.")
