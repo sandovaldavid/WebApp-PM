@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+import sys
 
 class AuditoriaConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
@@ -6,5 +7,7 @@ class AuditoriaConfig(AppConfig):
     
     def ready(self):
         """Importar las señales cuando se inicialice la app"""
-        from . import signals
-        signals.register_signals()
+        # No registrar señales durante las migraciones
+        if 'migrate' not in sys.argv:
+            from . import signals
+            signals.register_signals()
