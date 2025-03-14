@@ -10,7 +10,8 @@ from evaluator import ModelEvaluator
 import matplotlib.pyplot as plt
 import joblib
 import json
-from datetime import datetime
+# from datetime import datetime
+from django.utils import timezone
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Entrenar modelo RNN para estimación de tiempos')
@@ -91,6 +92,32 @@ def main():
     # 4. Entrenar el modelo
     print("\n[4/5] Entrenando modelo...")
     history = estimator.train(X_train, y_train, X_val, y_val, feature_dims)
+
+    # División final de datos de prueba
+    X_train_full, X_test, y_train_full, y_test = train_test_split(
+        np.concatenate([X_train, X_val]),
+        np.concatenate([y_train, y_val]),
+        test_size=args.test_size,
+        random_state=42
+    )
+
+    print("[4/5] Guardando datos de validación...")
+    validation_data = {
+        'X_val': X_val,
+        'y_val': y_val,
+        'X_test': X_test,
+        'y_test': y_test
+    }
+    validation_path = os.path.join(output_dir, 'validation_data.joblib')
+    joblib.dump(validation_data, validation_path)
+    
+    # También guardar como archivos individuales para compatibilidad
+    np.save(os.path.join(output_dir, 'X_val.npy'), X_val)
+    np.save(os.path.join(output_dir, 'y_val.npy'), y_val)
+    np.save(os.path.join(output_dir, 'X_test.npy'), X_test)
+    np.save(os.path.join(output_dir, 'y_test.npy'), y_test)
+    
+    print(f"Datos de validación guardados en {validation_path}")
     
     # Guardar el modelo
     estimator.save(model_dir=output_dir, name='tiempo_estimator')
@@ -100,14 +127,6 @@ def main():
     
     # 5. Evaluar el modelo
     print("\n[5/5] Evaluando modelo...")
-    
-    # División final de datos de prueba
-    X_train_full, X_test, y_train_full, y_test = train_test_split(
-        np.concatenate([X_train, X_val]),
-        np.concatenate([y_train, y_val]),
-        test_size=args.test_size,
-        random_state=42
-    )
     
     # Crear evaluador
     evaluator = ModelEvaluator(estimator, feature_dims, output_dir)
@@ -130,12 +149,12 @@ def main():
             'descripcionmodelo': 'Modelo de red neuronal recurrente para estimación de tiempo (entrenamiento inicial)',
             'versionmodelo': f"1.0.{timestamp}",
             'precision': metrics.get('r2', 0.8),
-            'fechacreacion': datetime.now(),
-            'fechamodificacion': datetime.now()
+            'fechacreacion': timezone.now(),
+            'fechamodificacion': timezone.now()
         }
     )
 
-    print(f"Modelo {'creado' if created else 'actualizado'} en la base de datos con ID {modelo.id}")
+    print(f"Modelo {'creado' if created else 'actualizado'} en la base de datos con ID {modelo.idmodelo}")
 
     # Corregir el acceso al historial de entrenamiento
     try:

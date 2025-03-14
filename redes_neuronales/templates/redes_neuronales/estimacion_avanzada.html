@@ -422,251 +422,255 @@
                 Análisis y Métricas del Modelo
             </h3>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Métricas del modelo -->
-                <div class="bg-white rounded-lg border border-gray-200 p-4">
-                    <h4 class="text-md font-medium mb-4">Métricas del Modelo RNN</h4>
-                    
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        {% if evaluation_metrics %}
-                        <!-- Mostrar métricas de error -->
-                        <div>
-                            <div class="bg-blue-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-700">Error Cuadrático Medio (MSE)</p>
-                                <p class="text-xl font-bold text-blue-700">{{ evaluation_metrics.MSE|floatformat:2 }}</p>
-                            </div>
-                        </div>
+            <div class="flex flex-col gap-6">
+                <!-- Contenedor responsivo para los dos paneles principales -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Métricas del modelo -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 h-full">
+                        <h4 class="text-md font-medium mb-4">Métricas del Modelo RNN</h4>
                         
-                        <div>
-                            <div class="bg-blue-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-700">Error Absoluto Medio (MAE)</p>
-                                <p class="text-xl font-bold text-blue-700">{{ evaluation_metrics.MAE|floatformat:2 }}</p>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <div class="bg-green-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-700">Coeficiente de Determinación (R²)</p>
-                                <p class="text-xl font-bold text-green-700">{{ evaluation_metrics.R2|floatformat:2 }}</p>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <div class="bg-purple-50 p-3 rounded-lg">
-                                <p class="text-sm text-gray-700">Precisión</p>
-                                <p class="text-xl font-bold text-purple-700">{{ evaluation_metrics.Accuracy|floatformat:2 }}</p>
-                            </div>
-                        </div>
-                        {% else %}
-                        <div class="col-span-2 text-center py-4">
-                            <p class="text-gray-500">No hay métricas de evaluación disponibles</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-4">
-                        <div class="bg-indigo-100 p-3 rounded-lg">
-                            <p class="text-sm text-gray-700">Precisión Global del Modelo</p>
-                            <p class="text-2xl font-bold text-indigo-700">{{ global_precision|floatformat:2 }}</p>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                                <div class="bg-indigo-600 h-2.5 rounded-full" 
-                                    style="width: {% widthratio global_precision 1 100 %}%"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="text-sm text-gray-600">
-                        {% if latest_metrics.timestamp %}
-                        <p>Última actualización: {{ latest_metrics.timestamp }}</p>
-                        {% endif %}
-                        {% if latest_metrics.model_version %}
-                        <p>Versión del modelo: {{ latest_metrics.model_version }}</p>
-                        {% endif %}
-                    </div>
-
-                    <!-- Evaluación por segmentos -->
-                    <div class="col-span-2 mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <h4 class="text-md font-medium mb-2 col-span-3">Evaluación por Segmentos</h4>
-                        
-                        {% if segmented_evaluation %}
-                            {% for segment_name, segment_data in segmented_evaluation.items %}
-                                <div class="bg-white rounded-lg border border-gray-200 p-4">
-                                    <h5 class="font-medium text-gray-800 mb-2">{{ segment_name }}</h5>
-                                    <div class="grid grid-cols-2 gap-2 text-sm">
-                                        <div>MAE:</div>
-                                        <div class="font-semibold">{{ segment_data.mae|floatformat:2 }}</div>
-                                        
-                                        <div>RMSE:</div>
-                                        <div class="font-semibold">{{ segment_data.rmse|floatformat:2 }}</div>
-                                        
-                                        <div>R²:</div>
-                                        <div class="font-semibold">{{ segment_data.r2|floatformat:2 }}</div>
-                                        
-                                        <div>Tareas:</div>
-                                        <div class="font-semibold">{{ segment_data.count }}</div>
-                                    </div>
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            {% if evaluation_metrics %}
+                            <!-- Mostrar métricas de error -->
+                            <div>
+                                <div class="bg-blue-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-700">Error Cuadrático Medio (MSE)</p>
+                                    <p class="text-xl font-bold text-blue-700">{{ evaluation_metrics.MSE|floatformat:2 }}</p>
                                 </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="col-span-3 text-center py-4 text-gray-500">
-                                <p>No hay evaluaciones por segmentos disponibles</p>
                             </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Importancia de características -->
-                <div class="bg-white rounded-lg border border-gray-200 p-4">
-                    <h4 class="text-md font-medium mb-4">Importancia de Características</h4>
-                    
-                    <!-- Tabs para seleccionar tipo de importancia -->
-                    <div class="mb-4 border-b border-gray-200">
-                        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="importanceFeatureTabs" role="tablist">
-                            <li class="mr-2" role="presentation">
-                                <button class="inline-block p-2 border-b-2 rounded-t-lg border-indigo-500 active" 
-                                        id="global-tab" data-tab="global-content" type="button" role="tab">
-                                    <i class="fas fa-globe mr-1"></i>Global
-                                </button>
-                            </li>
-                            <li class="mr-2" role="presentation">
-                                <button class="inline-block p-2 border-b-2 border-transparent rounded-t-lg hover:border-gray-300" 
-                                        id="recurso1-tab" data-tab="recurso1-content" type="button" role="tab">
-                                    <i class="fas fa-user mr-1"></i>1 Recurso
-                                </button>
-                            </li>
-                            <li class="mr-2" role="presentation">
-                                <button class="inline-block p-2 border-b-2 border-transparent rounded-t-lg hover:border-gray-300" 
-                                        id="recurso2-tab" data-tab="recurso2-content" type="button" role="tab">
-                                    <i class="fas fa-users mr-1"></i>2 Recursos
-                                </button>
-                            </li>
-                            <li role="presentation">
-                                <button class="inline-block p-2 border-b-2 border-transparent rounded-t-lg hover:border-gray-300" 
-                                        id="recurso3-tab" data-tab="recurso3-content" type="button" role="tab">
-                                    <i class="fas fa-user-friends mr-1"></i>3+ Recursos
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Contenido de las pestañas -->
-                    <div class="tab-content">
-                        <!-- Global -->
-                        <div class="feature-tab-pane active" id="global-content">
-                            <div class="space-y-3">
-                                {% if feature_importance_data.global %}
-                                    {% for feature in feature_importance_data.global|slice:":8" %}
-                                        <div>
-                                            <div class="flex justify-between mb-1">
-                                                <span class="text-sm font-medium text-gray-700">{{ feature.name }}</span>
-                                                <span class="text-sm font-medium text-gray-700">{{ feature.importance_normalized }}%</span>
-                                            </div>
-                                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" 
-                                                    style="width: {{ feature.importance_normalized }}%"></div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="text-center py-4 text-gray-500">No hay datos globales disponibles</p>
-                                {% endif %}
+                            
+                            <div>
+                                <div class="bg-blue-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-700">Error Absoluto Medio (MAE)</p>
+                                    <p class="text-xl font-bold text-blue-700">{{ evaluation_metrics.MAE|floatformat:2 }}</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="bg-green-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-700">Coeficiente de Determinación (R²)</p>
+                                    <p class="text-xl font-bold text-green-700">{{ evaluation_metrics.R2|floatformat:2 }}</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="bg-purple-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-700">Precisión</p>
+                                    <p class="text-xl font-bold text-purple-700">{{ evaluation_metrics.Accuracy|floatformat:2 }}</p>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="col-span-2 text-center py-4">
+                                <p class="text-gray-500">No hay métricas de evaluación disponibles</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="bg-indigo-100 p-3 rounded-lg">
+                                <p class="text-sm text-gray-700">Precisión Global del Modelo</p>
+                                <p class="text-2xl font-bold text-indigo-700">{{ global_precision|floatformat:2 }}</p>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                                    <div class="bg-indigo-600 h-2.5 rounded-full" 
+                                        style="width: {% widthratio global_precision 1 100 %}%"></div>
+                                </div>
                             </div>
                         </div>
                         
-                        <!-- 1 Recurso -->
-                        <div class="feature-tab-pane hidden" id="recurso1-content">
-                            <div class="space-y-3">
-                                {% if feature_importance_data.recurso_1 %}
-                                    {% for feature in feature_importance_data.recurso_1|slice:":8" %}
-                                        <div>
-                                            <div class="flex justify-between mb-1">
-                                                <span class="text-sm font-medium text-gray-700">{{ feature.name }}</span>
-                                                <span class="text-sm font-medium text-gray-700">{{ feature.importance_normalized }}%</span>
-                                            </div>
-                                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                                <div class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" 
-                                                    style="width: {{ feature.importance_normalized }}%"></div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="text-center py-4 text-gray-500">No hay datos para 1 recurso disponibles</p>
-                                {% endif %}
-                            </div>
+                        <div class="text-sm text-gray-600">
+                            {% if latest_metrics.timestamp %}
+                            <p>Última actualización: {{ latest_metrics.timestamp }}</p>
+                            {% endif %}
+                            {% if latest_metrics.model_version %}
+                            <p>Versión del modelo: {{ latest_metrics.model_version }}</p>
+                            {% endif %}
                         </div>
-                        
-                        <!-- 2 Recursos -->
-                        <div class="feature-tab-pane hidden" id="recurso2-content">
-                            <div class="space-y-3">
-                                {% if feature_importance_data.recurso_2 %}
-                                    {% for feature in feature_importance_data.recurso_2|slice:":8" %}
-                                        <div>
-                                            <div class="flex justify-between mb-1">
-                                                <span class="text-sm font-medium text-gray-700">{{ feature.name }}</span>
-                                                <span class="text-sm font-medium text-gray-700">{{ feature.importance_normalized }}%</span>
-                                            </div>
-                                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                                <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 h-2 rounded-full" 
-                                                    style="width: {{ feature.importance_normalized }}%"></div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="text-center py-4 text-gray-500">No hay datos para 2 recursos disponibles</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- 3+ Recursos -->
-                        <div class="feature-tab-pane hidden" id="recurso3-content">
-                            <div class="space-y-3">
-                                {% if feature_importance_data.recurso_3 %}
-                                    {% for feature in feature_importance_data.recurso_3|slice:":8" %}
-                                        <div>
-                                            <div class="flex justify-between mb-1">
-                                                <span class="text-sm font-medium text-gray-700">{{ feature.name }}</span>
-                                                <span class="text-sm font-medium text-gray-700">{{ feature.importance_normalized }}%</span>
-                                            </div>
-                                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                                <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full" 
-                                                    style="width: {{ feature.importance_normalized }}%"></div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="text-center py-4 text-gray-500">No hay datos para 3+ recursos disponibles</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Leyenda explicativa -->
-                    <div class="mt-4 p-3 bg-gray-50 rounded-md text-sm">
-                        <p class="font-medium text-gray-700 mb-2"><i class="fas fa-info-circle mr-1"></i> ¿Qué significa esto?</p>
-                        <p class="text-gray-600 mb-2">La importancia de las características muestra qué factores tienen mayor influencia en la estimación de tiempo según la cantidad de recursos asignados.</p>
-                        <div class="flex flex-wrap gap-4 mt-2">
-                            <div class="flex items-center">
-                                <div class="h-3 w-3 bg-blue-500 rounded-full mr-1"></div>
-                                <span>Global: Todos los casos</span>
+                        <!-- Evaluación por segmentos -->
+                        <div class="mt-6">
+                            <h4 class="text-md font-medium mb-3">Evaluación por Segmentos</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {% if segmented_evaluation %}
+                                    {% for segment_name, segment_data in segmented_evaluation.items %}
+                                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                                            <h5 class="font-medium text-gray-800 mb-2">{{ segment_name }}</h5>
+                                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                                <div>MAE:</div>
+                                                <div class="font-semibold">{{ segment_data.mae|floatformat:2 }}</div>
+                                                
+                                                <div>RMSE:</div>
+                                                <div class="font-semibold">{{ segment_data.rmse|floatformat:2 }}</div>
+                                                
+                                                <div>R²:</div>
+                                                <div class="font-semibold">{{ segment_data.r2|floatformat:2 }}</div>
+                                                
+                                                <div>Tareas:</div>
+                                                <div class="font-semibold">{{ segment_data.count }}</div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="col-span-3 text-center py-4 text-gray-500">
+                                        <p>No hay evaluaciones por segmentos disponibles</p>
+                                    </div>
+                                {% endif %}
                             </div>
-                            <div class="flex items-center">
-                                <div class="h-3 w-3 bg-green-500 rounded-full mr-1"></div>
-                                <span>1 Recurso</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Importancia de características -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-4 h-full">
+                        <h4 class="text-md font-medium mb-4">Importancia de Características</h4>
+                        
+                        <!-- Tabs para seleccionar tipo de importancia -->
+                        <div class="mb-4 border-b border-gray-200">
+                            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="importanceFeatureTabs" role="tablist">
+                                <li class="mr-2" role="presentation">
+                                    <button class="inline-block p-2 border-b-2 rounded-t-lg border-indigo-500 active" 
+                                            id="global-tab" data-tab="global-content" type="button" role="tab">
+                                        <i class="fas fa-globe mr-1"></i>Global
+                                    </button>
+                                </li>
+                                <li class="mr-2" role="presentation">
+                                    <button class="inline-block p-2 border-b-2 border-transparent rounded-t-lg hover:border-gray-300" 
+                                            id="recurso1-tab" data-tab="recurso1-content" type="button" role="tab">
+                                        <i class="fas fa-user mr-1"></i>1 Recurso
+                                    </button>
+                                </li>
+                                <li class="mr-2" role="presentation">
+                                    <button class="inline-block p-2 border-b-2 border-transparent rounded-t-lg hover:border-gray-300" 
+                                            id="recurso2-tab" data-tab="recurso2-content" type="button" role="tab">
+                                        <i class="fas fa-users mr-1"></i>2 Recursos
+                                    </button>
+                                </li>
+                                <li role="presentation">
+                                    <button class="inline-block p-2 border-b-2 border-transparent rounded-t-lg hover:border-gray-300" 
+                                            id="recurso3-tab" data-tab="recurso3-content" type="button" role="tab">
+                                        <i class="fas fa-user-friends mr-1"></i>3+ Recursos
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Contenido de las pestañas -->
+                        <div class="tab-content min-h-[300px]">
+                            <!-- Global -->
+                            <div class="feature-tab-pane active" id="global-content">
+                                <div class="space-y-3">
+                                    {% if feature_importance_data.global %}
+                                        {% for feature in feature_importance_data.global|slice:":8" %}
+                                            <div>
+                                                <div class="flex justify-between mb-1">
+                                                    <span class="text-sm font-medium text-gray-700">{{ feature.name }}</span>
+                                                    <span class="text-sm font-medium text-gray-700">{{ feature.importance_normalized }}%</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" 
+                                                        style="width: {{ feature.importance_normalized }}%"></div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-center py-4 text-gray-500">No hay datos globales disponibles</p>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="flex items-center">
-                                <div class="h-3 w-3 bg-yellow-500 rounded-full mr-1"></div>
-                                <span>2 Recursos</span>
+                            
+                            <!-- 1 Recurso -->
+                            <div class="feature-tab-pane hidden" id="recurso1-content">
+                                <div class="space-y-3">
+                                    {% if feature_importance_data.recurso_1 %}
+                                        {% for feature in feature_importance_data.recurso_1|slice:":8" %}
+                                            <div>
+                                                <div class="flex justify-between mb-1">
+                                                    <span class="text-sm font-medium text-gray-700">{{ feature.name }}</span>
+                                                    <span class="text-sm font-medium text-gray-700">{{ feature.importance_normalized }}%</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" 
+                                                        style="width: {{ feature.importance_normalized }}%"></div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-center py-4 text-gray-500">No hay datos para 1 recurso disponibles</p>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="flex items-center">
-                                <div class="h-3 w-3 bg-purple-500 rounded-full mr-1"></div>
-                                <span>3 o más Recursos</span>
+                            
+                            <!-- 2 Recursos -->
+                            <div class="feature-tab-pane hidden" id="recurso2-content">
+                                <div class="space-y-3">
+                                    {% if feature_importance_data.recurso_2 %}
+                                        {% for feature in feature_importance_data.recurso_2|slice:":8" %}
+                                            <div>
+                                                <div class="flex justify-between mb-1">
+                                                    <span class="text-sm font-medium text-gray-700">{{ feature.name }}</span>
+                                                    <span class="text-sm font-medium text-gray-700">{{ feature.importance_normalized }}%</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 h-2 rounded-full" 
+                                                        style="width: {{ feature.importance_normalized }}%"></div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-center py-4 text-gray-500">No hay datos para 2 recursos disponibles</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- 3+ Recursos -->
+                            <div class="feature-tab-pane hidden" id="recurso3-content">
+                                <div class="space-y-3">
+                                    {% if feature_importance_data.recurso_3 %}
+                                        {% for feature in feature_importance_data.recurso_3|slice:":8" %}
+                                            <div>
+                                                <div class="flex justify-between mb-1">
+                                                    <span class="text-sm font-medium text-gray-700">{{ feature.name }}</span>
+                                                    <span class="text-sm font-medium text-gray-700">{{ feature.importance_normalized }}%</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full" 
+                                                        style="width: {{ feature.importance_normalized }}%"></div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-center py-4 text-gray-500">No hay datos para 3+ recursos disponibles</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Leyenda explicativa -->
+                        <div class="mt-4 p-3 bg-gray-50 rounded-md text-sm">
+                            <p class="font-medium text-gray-700 mb-2"><i class="fas fa-info-circle mr-1"></i> ¿Qué significa esto?</p>
+                            <p class="text-gray-600 mb-2">La importancia de las características muestra qué factores tienen mayor influencia en la estimación de tiempo según la cantidad de recursos asignados.</p>
+                            <div class="flex flex-wrap gap-4 mt-2">
+                                <div class="flex items-center">
+                                    <div class="h-3 w-3 bg-blue-500 rounded-full mr-1"></div>
+                                    <span>Global: Todos los casos</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="h-3 w-3 bg-green-500 rounded-full mr-1"></div>
+                                    <span>1 Recurso</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="h-3 w-3 bg-yellow-500 rounded-full mr-1"></div>
+                                    <span>2 Recursos</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="h-3 w-3 bg-purple-500 rounded-full mr-1"></div>
+                                    <span>3 o más Recursos</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>           
 
                 <!-- Gráfica de predicciones vs. valores reales -->
-                <div class="col-span-2 bg-white rounded-lg border border-gray-200 p-4 mt-6">
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
                     <h4 class="text-md font-medium mb-4">Análisis de Predicciones vs. Valores Reales</h4>
                     <div class="h-64">
                         <canvas id="predictionChart"></canvas>

@@ -1,0 +1,100 @@
+<!-- Versión compacta para panel de control avanzado -->
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2 p-3 bg-gray-100 rounded-lg shadow-inner mb-8">
+    <!-- Primera fila - Acciones primarias -->
+    <a href="{% url 'gestion_proyectos:crear_proyecto' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-blue-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-project-diagram text-blue-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Nuevo Proyecto</span>
+    </a>
+    
+    <a href="{% url 'gestion_tareas:crear_tarea' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-green-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-tasks text-green-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Nueva Tarea</span>
+    </a>
+    
+    <a href="{% url 'reportes:index' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-amber-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-file-alt text-amber-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Reportes</span>
+    </a>
+    
+    <a href="{% url 'gestionRecursos:lista_recursos' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-purple-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-users text-purple-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Recursos</span>
+    </a>
+    
+    <a href="{% url 'notificaciones:lista_alertas' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-red-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-exclamation-triangle text-red-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Alertas</span>
+    </a>
+    
+    <a href="{% url 'gestion_equipos:index' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-indigo-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-users-cog text-indigo-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Equipos</span>
+    </a>
+    
+    <a href="{% url 'redes_neuronales:estimate_time' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-teal-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-brain text-teal-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Estimación</span>
+    </a>
+    
+    <a href="{% url 'gestion_tareas:crear_tarea_programada' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-gray-200 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-clock text-gray-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Programar</span>
+    </a>
+
+    <!-- Segunda fila - Analítica y herramientas -->
+    <a href="{% url 'gestion_tareas:estimar_tarea' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-pink-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-chart-line text-pink-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Estimar Tarea</span>
+    </a>
+    
+    <a href="{% url 'gestionUsuarios:lista_usuarios' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-cyan-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-user-cog text-cyan-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Usuarios</span>
+    </a>
+    
+    <a href="{% url 'auditoria:registro_actividades' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-orange-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-clipboard-list text-orange-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Auditoría</span>
+    </a>
+    
+    <a href="{% url 'reportes:exportar_pdf' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-red-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-file-pdf text-red-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Exportar PDF</span>
+    </a>
+    
+    <a href="{% url 'reportes:exportar_csv' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-green-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-file-csv text-green-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Exportar CSV</span>
+    </a>
+    
+    <a href="{% url 'redes_neuronales:estimacion_avanzada' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-blue-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-robot text-blue-600 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">IA Avanzada</span>
+    </a>
+    
+    <a href="{% url 'notificaciones:estadisticas_notificaciones' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-yellow-50 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-bell text-yellow-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Notificaciones</span>
+    </a>
+    
+    <a href="{% url 'gestionUsuarios:configuracion' %}" 
+       class="flex flex-col items-center justify-center p-2 bg-white rounded-md hover:bg-gray-200 transition-colors shadow-sm hover:shadow-md text-center">
+        <i class="fas fa-cog text-gray-500 text-xl mb-1"></i>
+        <span class="text-xs text-gray-700">Configuración</span>
+    </a>
+</div>

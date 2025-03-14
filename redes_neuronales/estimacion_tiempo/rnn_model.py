@@ -152,79 +152,71 @@ class AdvancedRNNEstimator:
         
         return [numeric_data, tipo_tarea_data, fase_data]
     
-    def train(self, X_train, y_train, X_val=None, y_val=None, feature_dims=None):
+    def train(self, X_train, y_train, X_val=None, y_val=None, feature_dims=None, callbacks=None):
         """Entrena el modelo con los datos proporcionados
         
         Args:
             X_train: Datos de entrenamiento
-            y_train: Valores objetivo de entrenamiento
-            X_val: Datos de validación (opcional)
-            y_val: Valores objetivo de validación (opcional)
-            feature_dims: Diccionario con dimensiones de features
-        
-        Returns:
-            Historia del entrenamiento
-        """
-        if not feature_dims:
-            raise ValueError("Se requiere feature_dims para preparar los inputs")
+            y_train: Etiquetas de entrenamiento
+            X_val: Datos de validación
+            y_val: Etiquetas de validación
+            feature_dims: Diccionario con dimensiones de características
+            callbacks: Lista de callbacks para usar durante el entrenamiento
             
-        # Preparar inputs
+        Returns:
+            History object con datos de entrenamiento
+        """
+        if self.model is None:
+            self.build_model(feature_dims)
+        
+        # Preparar los inputs
         train_inputs = self.prepare_inputs(X_train, feature_dims)
         
-        # Preparar inputs de validación si existen
+        # Configurar los datos de validación si se proporcionan
         validation_data = None
         if X_val is not None and y_val is not None:
             val_inputs = self.prepare_inputs(X_val, feature_dims)
             validation_data = (val_inputs, y_val)
         
-        # Callbacks para el entrenamiento
-        callbacks = [
-            EarlyStopping(
+        # Definir callbacks por defecto con mayor patience para EarlyStopping
+        default_callbacks = [
+            tf.keras.callbacks.EarlyStopping(
                 monitor='val_loss' if validation_data else 'loss',
-                patience=20,
+                patience=30,  # Aumentado de 15 a 30 para permitir más épocas
                 restore_best_weights=True,
-                verbose=1
+                verbose=1  # Añadido para ver cuando se activa
             ),
-            ReduceLROnPlateau(
+            # Añadir más callbacks por defecto para mejor monitoreo
+            tf.keras.callbacks.ReduceLROnPlateau(
                 monitor='val_loss' if validation_data else 'loss',
                 factor=0.5,
                 patience=10,
-                min_lr=0.00001,
+                min_lr=1e-6,
                 verbose=1
             )
         ]
         
-        # Crear directorio para modelos si no existe
-        model_dir = os.path.join(os.path.dirname(__file__), 'models')
-        if not os.path.exists(model_dir):
-            os.makedirs(model_dir)
-            
-        model_path = os.path.join(model_dir, 'best_rnn_estimator.keras')
+        # Combinar con callbacks proporcionados por el usuario, priorizando estos últimos
+        all_callbacks = default_callbacks.copy()
+        if callbacks:
+            # Asegurarnos que los callbacks del usuario se ejecutan después
+            all_callbacks.extend(callbacks)
         
-        callbacks.append(
-            ModelCheckpoint(
-                model_path,
-                monitor='val_loss' if validation_data else 'loss',
-                save_best_only=True,
-                verbose=1
-            )
-        )
-        
-        # Entrenar el modelo
-        self.history = self.model.fit(
+        # Entrenar modelo
+        history = self.model.fit(
             train_inputs,
             y_train,
-            epochs=self.config['epochs'],
-            batch_size=self.config['batch_size'],
+            epochs=self.config.get('epochs', 100),
+            batch_size=self.config.get('batch_size', 32),
             validation_data=validation_data,
-            callbacks=callbacks,
-            verbose=1
+            verbose=1,
+            callbacks=all_callbacks
         )
         
-        # Guardar modelo entrenado
-        self.model.save(os.path.join(model_dir, 'final_rnn_estimator.keras'))
+        # Guardar historia para análisis posterior
+        self.history = history
         
-        return self.history
+        return history
     
     def predict(self, X, feature_dims):
         """Realiza predicciones con el modelo entrenado

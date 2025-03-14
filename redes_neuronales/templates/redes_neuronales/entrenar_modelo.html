@@ -1,0 +1,1005 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Entrenamiento de Red Neural{% endblock %}
+
+{% block style %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .bg-network {
+        background-image: url('{% static "img/neural-bg.svg" %}');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        opacity: 0.05;
+    }
+    .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border-left-color: #4f46e5;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .progress-container {
+        height: 8px;
+        width: 100%;
+        background-color: #f3f4f6;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    .progress-bar {
+        height: 100%;
+        border-radius: 0.5rem;
+        background-color: #4f46e5;
+        transition: width 0.3s ease;
+    }
+    .log-container {
+        background-color: #1a1a1a;
+        color: #00ff00;
+        font-family: 'Courier New', monospace;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .log-line {
+        margin: 0;
+        padding: 2px 0;
+    }
+
+    .text-update {
+        animation: pulse 0.3s ease-in-out;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 0.5; }
+        50% { opacity: 1; }
+        100% { opacity: 0.5; }
+    }
+</style>
+{% endblock %}
+
+{% block title_body %}
+<div class="flex justify-between items-center w-full">
+    <div class="flex items-center">
+        <i class="fas fa-brain text-indigo-500 mr-2"></i>
+        <span>Entrenamiento de Red Neural</span>
+    </div>
+    <div class="flex space-x-2">
+        <a href="{% url 'redes_neuronales:dashboard' %}" class="px-3 py-1.5 ml-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm flex items-center">
+            <i class="fas fa-chart-line mr-1.5"></i>
+            Panel de Métricas
+        </a>
+        <a href="{% url 'redes_neuronales:estimacion_avanzada' %}" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm flex items-center">
+            <i class="fas fa-clock mr-1.5"></i>
+            Estimación
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-6">
+    <div class="mb-8 text-center relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 p-8 text-white">
+        <div class="absolute inset-0 bg-network"></div>
+        <div class="relative z-10">
+            <h2 class="text-2xl font-bold mb-2">Entrenamiento de Red Neuronal Recurrente</h2>
+            <p class="max-w-2xl mx-auto">Sube tu conjunto de datos, configura los parámetros y entrena tu modelo para estimar con precisión los tiempos de ejecución de tareas.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Panel de configuración -->
+        <div class="md:col-span-2">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Configuración de Entrenamiento</h3>
+                
+                <form id="trainingForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Selección de datos -->
+                    <div class="mb-6 border p-4 rounded-lg bg-gray-50">
+                        <h4 class="font-semibold text-lg mb-3">Datos de Entrenamiento</h4>
+                        
+                        <div class="mb-3">
+                            <label for="training_method" class="block text-sm font-medium text-gray-700 mb-1">Método de entrenamiento</label>
+                            <select id="training_method" name="training_method" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option value="csv">Subir archivo CSV</option>
+                                <option value="db">Usar datos de la base de datos</option>
+                            </select>
+                        </div>
+                        
+                        <div id="csv_upload_section" class="mb-3">
+                            <label for="csv_file" class="block text-sm font-medium text-gray-700 mb-1">Archivo CSV</label>
+                            <input type="file" id="csv_file" name="csv_file" accept=".csv" 
+                                   class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                            <p class="mt-1 text-xs text-gray-500">
+                                El archivo CSV debe contener columnas como: Complejidad, Tipo_Tarea, Fase_Tarea, Cantidad_Recursos, etc.
+                            </p>
+                        </div>
+                        
+                        <div id="db_options_section" class="hidden">
+                            <div class="flex items-center mb-3">
+                                <input type="checkbox" name="use_synthetic" id="use_synthetic" class="rounded text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" checked>
+                                <label for="use_synthetic" class="ml-2 text-sm text-gray-700">Aumentar con datos sintéticos</label>
+                            </div>
+                            
+                            <p class="text-sm text-gray-600 mb-2">
+                                Se recopilarán datos de todas las tareas completadas en la base de datos para entrenar el modelo.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Configuración del modelo -->
+                    <div class="mb-6 border p-4 rounded-lg bg-gray-50">
+                        <h4 class="font-semibold text-lg mb-3">Arquitectura del Modelo</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="rnn_type" class="block text-sm font-medium text-gray-700 mb-1">Tipo de capa recurrente</label>
+                                <select id="rnn_type" name="rnn_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <option value="GRU" selected>GRU (Gated Recurrent Unit)</option>
+                                    <option value="LSTM">LSTM (Long Short-Term Memory)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="bidirectional" class="block text-sm font-medium text-gray-700 mb-1">Tipo de red</label>
+                                <select id="bidirectional" name="bidirectional" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <option value="1" selected>Bidireccional</option>
+                                    <option value="0">Unidireccional</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="rnn_units" class="block text-sm font-medium text-gray-700 mb-1">Unidades RNN</label>
+                                <input type="number" id="rnn_units" name="rnn_units" min="16" max="256" value="64"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="dropout_rate" class="block text-sm font-medium text-gray-700 mb-1">Tasa de dropout</label>
+                                <input type="number" id="dropout_rate" name="dropout_rate" min="0.1" max="0.7" step="0.05" value="0.3"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="learning_rate" class="block text-sm font-medium text-gray-700 mb-1">Tasa de aprendizaje</label>
+                                <input type="number" id="learning_rate" name="learning_rate" min="0.0001" max="0.01" step="0.0001" value="0.001"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Parámetros de entrenamiento -->
+                    <div class="mb-6 border p-4 rounded-lg bg-gray-50">
+                        <h4 class="font-semibold text-lg mb-3">Parámetros de Entrenamiento</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="epochs" class="block text-sm font-medium text-gray-700 mb-1">Número de épocas</label>
+                                <input type="number" id="epochs" name="epochs" min="10" max="500" value="100"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="batch_size" class="block text-sm font-medium text-gray-700 mb-1">Tamaño de batch</label>
+                                <input type="number" id="batch_size" name="batch_size" min="8" max="128" value="32"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="test_size" class="block text-sm font-medium text-gray-700 mb-1">Porcentaje de datos de prueba</label>
+                                <input type="number" id="test_size" name="test_size" min="10" max="40" value="20"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            </div>
+                            
+                            <div>
+                                <label for="validation_size" class="block text-sm font-medium text-gray-700 mb-1">Porcentaje de validación</label>
+                                <input type="number" id="validation_size" name="validation_size" min="10" max="30" value="15"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Opciones de salida -->
+                    <div class="mb-6 border p-4 rounded-lg bg-gray-50">
+                        <h4 class="font-semibold text-lg mb-3">Opciones de Salida</h4>
+                        
+                        <div class="mb-3">
+                            <label for="model_name" class="block text-sm font-medium text-gray-700 mb-1">Nombre del modelo</label>
+                            <input type="text" id="model_name" name="model_name" value="tiempo_estimator"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="save_as_main" name="save_as_main" class="rounded text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" checked>
+                            <label for="save_as_main" class="ml-2 text-sm text-gray-700">Establecer como modelo principal</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="flex items-center justify-end">
+                        <button type="button" id="startTrainingBtn" class="px-6 py-2.5 bg-indigo-600 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-0 active:bg-indigo-800 transition duration-150 ease-in-out">
+                            <i class="fas fa-cogs mr-1"></i> Iniciar Entrenamiento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Panel de información -->
+        <div class="md:col-span-1">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Información</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-medium text-gray-700 mb-1">Estado del Modelo</h4>
+                        <p class="text-sm text-gray-600">
+                            <span id="modelStatus" class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                Modelo activo
+                            </span>
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-medium text-gray-700 mb-1">Última Actualización</h4>
+                        <p id="lastUpdate" class="text-sm text-gray-600">{% now "j F Y, H:i" %}</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-medium text-gray-700 mb-1">Precisión Actual</h4>
+                        <p id="currentPrecision" class="text-sm text-gray-600">R²: {{ global_precision|floatformat:4 }}</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t">
+                    <h4 class="font-medium text-gray-700 mb-2">Recomendaciones</h4>
+                    <ul class="text-sm text-gray-600 space-y-1 list-disc list-inside">
+                        <li>Use GRU para mejor rendimiento en series temporales más cortas</li>
+                        <li>Use LSTM para capturar dependencias a largo plazo</li>
+                        <li>Valores altos de dropout (>0.5) pueden afectar el rendimiento</li>
+                        <li>Para datasets pequeños, reduzca el número de unidades RNN</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Panel de requisitos -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Requisitos de Datos</h3>
+                
+                <div class="space-y-1 mb-4 text-sm text-gray-600">
+                    <p>El archivo CSV debe contener las siguientes columnas:</p>
+                    <ul class="list-disc list-inside space-y-1 mt-2">
+                        <li>Complejidad</li>
+                        <li>Tipo_Tarea</li>
+                        <li>Fase_Tarea</li>
+                        <li>Cantidad_Recursos</li>
+                        <li>Carga_Trabajo_R1</li>
+                        <li>Experiencia_R1</li>
+                        <li>Experiencia_Equipo</li>
+                        <li>Claridad_Requisitos</li>
+                        <li>Tamaño_Tarea</li>
+                        <li>Tiempo_Ejecucion</li>
+                    </ul>
+                </div>
+                
+                <a href="{% static 'files/plantilla_entrenamiento.csv' %}" download class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="fas fa-download mr-2"></i> Descargar Plantilla
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados del entrenamiento (inicialmente oculto) -->
+    <div id="trainingResults" class="mt-8 hidden">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Progreso del Entrenamiento</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Panel de estado -->
+                <div class="md:col-span-4">
+                    <div class="flex items-center mb-4">
+                        <div class="spinner mr-3" id="trainingSpinner"></div>
+                        <span id="trainingStatus" class="text-sm font-medium">Preparando entrenamiento...</span>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div id="trainingProgress" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="mt-4 grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <div class="text-sm text-gray-500">Época actual</div>
+                            <div id="currentEpoch" class="text-xl font-semibold text-indigo-700">0/100</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <div class="text-sm text-gray-500">Tiempo restante</div>
+                            <div id="remainingTime" class="text-xl font-semibold text-indigo-700">--:--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="font-medium text-gray-700 mb-2">Pérdida actual</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <div class="text-sm text-gray-500">Entrenamiento</div>
+                                <div id="trainLoss" class="text-xl font-semibold text-indigo-700">0.000</div>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <div class="text-sm text-gray-500">Validación</div>
+                                <div id="valLoss" class="text-xl font-semibold text-indigo-700">0.000</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Log del entrenamiento -->
+                <div class="md:col-span-8">
+                    <h4 class="font-medium text-gray-700 mb-2">Registro de entrenamiento</h4>
+                    <div id="trainingLog" class="log-container">
+                        <p class="log-line">Iniciando proceso de entrenamiento...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Resultados finales (se mostrarán al completar) -->
+            <div id="finalMetrics" class="mt-6 hidden">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 pt-4 border-t">Resultados del Entrenamiento</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white border rounded-lg p-4 shadow-sm">
+                        <p class="text-sm text-gray-500">Error Cuadrático Medio</p>
+                        <p id="metricMSE" class="text-xl font-bold text-indigo-600">--</p>
+                    </div>
+                    <div class="bg-white border rounded-lg p-4 shadow-sm">
+                        <p class="text-sm text-gray-500">Error Absoluto Medio</p>
+                        <p id="metricMAE" class="text-xl font-bold text-indigo-600">--</p>
+                    </div>
+                    <div class="bg-white border rounded-lg p-4 shadow-sm">
+                        <p class="text-sm text-gray-500">Raíz del Error Cuadrático Medio</p>
+                        <p id="metricRMSE" class="text-xl font-bold text-indigo-600">--</p>
+                    </div>
+                    <div class="bg-white border rounded-lg p-4 shadow-sm">
+                        <p class="text-sm text-gray-500">Coeficiente de Determinación R²</p>
+                        <p id="metricR2" class="text-xl font-bold text-indigo-600">--</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Gráfico de pérdida -->
+                    <div class="bg-white border rounded-lg p-4 shadow-sm">
+                        <h4 class="font-medium text-gray-700 mb-3">Historial de Pérdida</h4>
+                        <canvas id="lossChart" height="250"></canvas>
+                    </div>
+                    
+                    <!-- Gráfico de predicciones -->
+                    <div class="bg-white border rounded-lg p-4 shadow-sm">
+                        <h4 class="font-medium text-gray-700 mb-3">Predicciones vs. Valores Reales</h4>
+                        <canvas id="predictionsChart" height="250"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Más información y acciones -->
+                <div class="mt-6 pt-4 border-t flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-600">El modelo ha sido guardado correctamente como <span id="savedModelName" class="font-semibold">tiempo_estimator</span>.</p>
+                        <p id="setAsMainModel" class="text-sm text-green-600 hidden">
+                            <i class="fas fa-check-circle mr-1"></i> Establecido como modelo principal
+                        </p>
+                    </div>
+                    <div>
+                        <a href="{% url 'redes_neuronales:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Ver Dashboard
+                        </a>
+                        <a href="{% url 'redes_neuronales:estimacion_avanzada' %}" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Ir a Estimación
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h5 class="text-sm font-medium text-gray-700 mb-2">Herramientas de administración</h5>
+                <button id="generar-archivos-btn" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm flex items-center border border-indigo-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Regenerar archivos de evaluación
+                </button>
+                <small class="text-xs text-gray-500 ml-2">Usar solo si faltan archivos de evaluación</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Después de la sección de "Resultados del Entrenamiento" -->
+    <div id="evaluationSection" class="mt-6 hidden">
+        <h3 class="text-xl font-bold text-gray-800 mb-4 pt-4 border-t">Evaluación del Modelo</h3>
+        
+        <div id="evaluationProgress" class="mb-6">
+            <div class="flex items-center mb-2">
+                <div class="mr-3">
+                    <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+                <span class="text-sm text-gray-700">Realizando evaluación completa del modelo...</span>
+            </div>
+        </div>
+        
+        <div id="evaluationResults" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h4 class="font-medium text-gray-700 mb-4">Métricas de rendimiento</h4>
+                    <div id="metricsDisplay" class="text-sm"></div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h4 class="font-medium text-gray-700 mb-4">Importancia de características</h4>
+                    <div id="featureImportanceDisplay" class="text-sm">
+                        <img id="featureImportanceImg" class="w-full" src="" alt="Importancia de características">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 grid grid-cols-1 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h4 class="font-medium text-gray-700 mb-4">Gráficos de evaluación</h4>
+                    <img id="evaluationPlotsImg" class="w-full" src="" alt="Gráficos de evaluación">
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar/ocultar secciones según método de entrenamiento
+    const trainingMethod = document.getElementById('training_method');
+    const csvSection = document.getElementById('csv_upload_section');
+    const dbSection = document.getElementById('db_options_section');
+    
+    trainingMethod.addEventListener('change', function() {
+        if (this.value === 'csv') {
+            csvSection.classList.remove('hidden');
+            dbSection.classList.add('hidden');
+        } else {
+            csvSection.classList.add('hidden');
+            dbSection.classList.remove('hidden');
+        }
+    });
+    
+    // Evento para iniciar entrenamiento
+    const startTrainingBtn = document.getElementById('startTrainingBtn');
+    const trainingForm = document.getElementById('trainingForm');
+    const trainingResults = document.getElementById('trainingResults');
+    const trainingLog = document.getElementById('trainingLog');
+    const trainingProgress = document.getElementById('trainingProgress');
+    const trainingStatus = document.getElementById('trainingStatus');
+    const trainLoss = document.getElementById('trainLoss');
+    const valLoss = document.getElementById('valLoss');
+    const currentEpoch = document.getElementById('currentEpoch');
+    
+    startTrainingBtn.addEventListener('click', function() {
+        // Validar formulario
+        const csvFile = document.getElementById('csv_file');
+        if (trainingMethod.value === 'csv' && !csvFile.files.length) {
+            alert('Por favor, seleccione un archivo CSV.');
+            return;
+        }
+        
+        // Mostrar sección de resultados
+        trainingResults.classList.remove('hidden');
+        window.scrollTo({
+            top: trainingResults.offsetTop - 20,
+            behavior: 'smooth'
+        });
+        
+        // Preparar datos del formulario
+        const formData = new FormData(trainingForm);
+        
+        // Iniciar proceso de entrenamiento mediante AJAX
+        addLogEntry("Iniciando conexión con el servidor...");
+        updateTrainingStatus("Conectando...", 0);
+        
+        // Crear request
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "redes_neuronales:iniciar_entrenamiento" %}', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        // Manejar eventos de la solicitud
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            // Entrenar usando Server-Sent Events (SSE) para actualizaciones en tiempo real
+                            startTrainingMonitor(response.training_id);
+                        } else {
+                            addLogEntry("ERROR: " + response.error, "error");
+                            updateTrainingStatus("Error", 0);
+                        }
+                    } catch (e) {
+                        addLogEntry("ERROR: Problema al procesar la respuesta del servidor", "error");
+                        updateTrainingStatus("Error", 0);
+                    }
+                } else {
+                    addLogEntry("ERROR: Error en la comunicación con el servidor (código " + xhr.status + ")", "error");
+                    updateTrainingStatus("Error", 0);
+                }
+            }
+        };
+        
+        // Enviar solicitud
+        xhr.send(formData);
+        startTrainingBtn.disabled = true;
+        startTrainingBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    });
+    
+    // Función para monitorear el entrenamiento usando SSE
+    function startTrainingMonitor(trainingId) {
+        const source = new EventSource(`{% url "redes_neuronales:monitor_entrenamiento" %}?training_id=${trainingId}`);
+        
+        // Añadir mensaje para confirmar conexión
+        addLogEntry("Conexión establecida con el servidor. Iniciando entrenamiento...", "info");
+        
+        source.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                console.log("Mensaje recibido:", data.type, data);
+                
+                // Manejar diferentes tipos de mensajes
+                switch (data.type) {
+                    case 'log':
+                        addLogEntry(data.message, data.level || 'info');
+                        break;
+                    case 'progress':
+                        updateTrainingProgress(data);
+                        break;
+                    case 'batch_progress':
+                        // Actualizaciones más frecuentes para mantener la interfaz respondiendo
+                        if (data.loss !== undefined) {
+                            trainLoss.textContent = data.loss.toFixed(4);
+                        }
+                        // Actualizar también la época y progreso si está disponible
+                        if (data.epoch !== undefined && data.total_epochs !== undefined) {
+                            currentEpoch.textContent = `${data.epoch}/${data.total_epochs}`;
+                            const progress = Math.max(1, (data.epoch / data.total_epochs) * 100);
+                            trainingProgress.style.width = `${progress}%`;
+                        }
+                        // Añadir la clase de animación para feedback visual
+                        trainLoss.classList.add('text-update');
+                        setTimeout(() => trainLoss.classList.remove('text-update'), 300);
+                        break;
+                    case 'complete':
+                        handleTrainingComplete(data);
+                        break;
+                    case 'error':
+                        addLogEntry("ERROR: " + data.message, "error");
+                        updateTrainingStatus("Error", 0);
+                        source.close();
+                        break;
+                    default:
+                        console.log("Mensaje de tipo desconocido:", data.type);
+                }
+            } catch (e) {
+                console.error("Error procesando mensaje:", e);
+                addLogEntry("ERROR: Formato de mensaje inválido", "error");
+            }
+        };
+                
+        // Manejar eventos especiales
+        source.addEventListener('complete', function(event) {
+            const data = JSON.parse(event.data);
+            handleTrainingComplete(data);
+            // No cerramos el source aquí
+        });
+        
+        source.addEventListener('error', function(event) {
+            // Verificar si ya se completó el entrenamiento antes de mostrar un mensaje de error
+            if (document.getElementById('finalMetrics').classList.contains('hidden')) {
+                // Solo mostrar error si aún no se han mostrado las métricas finales
+                addLogEntry("ERROR: Se perdió la conexión con el servidor", "error");
+                updateTrainingStatus("Error de conexión", 0);
+            }
+        });
+        
+        // NUEVO: Manejar eventos de post-procesamiento
+        source.addEventListener('post_processing_complete', function(event) {
+            const data = JSON.parse(event.data);
+            addLogEntry("✅ " + (data.message || "Procesamiento posterior completado con éxito"), "success");
+            source.close();
+        });
+        
+        // NUEVO: Manejar cierre explícito
+        source.addEventListener('close', function(event) {
+            const data = JSON.parse(event.data);
+            console.log("Conexión cerrada por el servidor: ", data.message);
+            source.close();
+        });
+        
+        // NUEVO: Manejar heartbeats
+        source.addEventListener('heartbeat', function(event) {
+            console.log("Heartbeat recibido:", new Date().toLocaleTimeString());
+        });
+    }
+    
+    // Funciones de utilidad para actualizar la interfaz
+    function addLogEntry(message, level = 'info') {
+        const logLine = document.createElement('p');
+        logLine.className = 'log-line';
+        
+        if (level === 'error') {
+            logLine.style.color = '#ff6b6b';
+        } else if (level === 'warning') {
+            logLine.style.color = '#ffd166';
+        } else if (level === 'success') {
+            logLine.style.color = '#06d6a0';
+        }
+        
+        logLine.textContent = message;
+        trainingLog.appendChild(logLine);
+        trainingLog.scrollTop = trainingLog.scrollHeight;
+    }
+    
+    function updateTrainingStatus(status, progress) {
+        trainingStatus.textContent = status;
+        trainingProgress.style.width = `${progress}%`;
+    }
+    
+    function updateTrainingProgress(data) {
+        // Verificar que tenemos los datos necesarios y mostrar en consola para debug
+        console.log("Datos de progreso recibidos:", data);
+        
+        // Actualizar barra de progreso
+        if (data.epoch !== undefined && data.total_epochs !== undefined) {
+            const progress = (data.epoch / data.total_epochs) * 100;
+            updateTrainingStatus(`Entrenando [Época ${data.epoch}/${data.total_epochs}]`, progress);
+            
+            // Actualizar contador de época
+            currentEpoch.textContent = `${data.epoch}/${data.total_epochs}`;
+        }
+        
+        // Actualizar métricas actuales con validación
+        if (data.train_loss !== undefined) {
+            trainLoss.textContent = data.train_loss.toFixed(4);
+        }
+        
+        if (data.val_loss !== undefined) {
+            valLoss.textContent = data.val_loss.toFixed(4);
+        }
+        
+        // Actualizar tiempo restante estimado
+        if (data.remaining_time) {
+            document.getElementById('remainingTime').textContent = data.remaining_time;
+        }
+        
+        // Actualizar detalles adicionales si están disponibles
+        if (data.train_mae !== undefined) {
+            const trainMaeElement = document.getElementById('trainMAE');
+            if (trainMaeElement) {
+                trainMaeElement.textContent = data.train_mae.toFixed(4);
+            }
+        }
+        
+        if (data.val_mae !== undefined) {
+            const valMaeElement = document.getElementById('valMAE');
+            if (valMaeElement) {
+                valMaeElement.textContent = data.val_mae.toFixed(4);
+            }
+        }
+        
+        // Opcional: Actualizar con animación para mejor feedback visual
+        const elementsToAnimate = [trainLoss, valLoss, document.getElementById('remainingTime'), currentEpoch];
+        elementsToAnimate.forEach(el => {
+            if (el) {
+                el.classList.add('text-update');
+                setTimeout(() => el.classList.remove('text-update'), 300);
+            }
+        });
+    }
+    
+    function handleTrainingComplete(data) {
+        // Actualizar estado final
+        updateTrainingStatus("Completado", 100);
+        addLogEntry("Entrenamiento completado con éxito!", "success");
+        
+        // Mostrar sección de métricas finales
+        const finalMetrics = document.getElementById('finalMetrics');
+        finalMetrics.classList.remove('hidden');
+
+        // Añadir mensaje de éxito permanente
+        const successMessage = document.createElement('div');
+        successMessage.className = 'mt-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-800';
+        successMessage.innerHTML = `
+            <div class="flex items-center">
+                <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium">¡Entrenamiento completado con éxito!</span>
+            </div>
+        `;
+        
+        // Insertar mensaje antes de la sección de métricas finales
+        if (!document.querySelector('.bg-green-50')) { // Evitar duplicados
+            finalMetrics.parentNode.insertBefore(successMessage, finalMetrics);
+        }
+        
+        try {
+            // Verificar que data.metrics contenga los datos necesarios
+            const metrics = data.metrics || {};
+            
+            if (typeof metrics === 'object') {
+                // Actualizar métricas de forma segura
+                document.getElementById('metricMSE').textContent = (metrics.MSE || 0).toFixed(2);
+                document.getElementById('metricMAE').textContent = (metrics.MAE || 0).toFixed(2);
+                document.getElementById('metricRMSE').textContent = (metrics.RMSE || 0).toFixed(2);
+                document.getElementById('metricR2').textContent = (metrics.R2 || 0).toFixed(4);
+                
+                // Mostrar nombre del modelo guardado
+                document.getElementById('savedModelName').textContent = data.model_name || 'tiempo_estimator';
+                
+                // Si se guardó como modelo principal
+                if (data.is_main_model) {
+                    document.getElementById('setAsMainModel').classList.remove('hidden');
+                }
+                
+                // Generar gráficas si hay datos disponibles
+                if (data.history && Array.isArray(data.history.loss)) {
+                    generateLossChart(data.history);
+                } else {
+                    console.warn("Datos de historial no disponibles para gráfico de pérdida");
+                    document.querySelector('#lossChart').closest('.bg-white').innerHTML = 
+                        '<p class="text-center text-gray-500 my-5">Gráfico no disponible. Visite el Panel de Métricas.</p>';
+                }
+                
+                if (Array.isArray(data.predictions) && data.predictions.length > 0 &&
+                    Array.isArray(data.actual) && data.actual.length > 0) {
+                    generatePredictionsChart(data.predictions, data.actual);
+                } else {
+                    console.warn("Datos de predicciones no disponibles para gráfico");
+                    document.querySelector('#predictionsChart').closest('.bg-white').innerHTML = 
+                        '<p class="text-center text-gray-500 my-5">Gráfico no disponible. Visite el Panel de Métricas.</p>';
+                }
+            } else {
+                console.error("Formato de métricas incorrecto:", metrics);
+                addLogEntry("Error: Formato de métricas incorrecto", "error");
+                document.getElementById('metricMSE').textContent = "Error";
+                document.getElementById('metricMAE').textContent = "Error";
+                document.getElementById('metricRMSE').textContent = "Error";
+                document.getElementById('metricR2').textContent = "Error";
+            }
+        } catch (e) {
+            console.error("Error al procesar resultados:", e);
+            addLogEntry(`Error al procesar resultados: ${e.message}`, "error");
+        }
+        
+        // Habilitar botón de nuevo
+        startTrainingBtn.disabled = false;
+        startTrainingBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+         // Mostrar sección de evaluación después de un breve retraso
+        setTimeout(() => {
+            // Mostrar la sección de evaluación
+            const evaluationSection = document.getElementById('evaluationSection');
+            evaluationSection.classList.remove('hidden');
+            
+            // Iniciar el proceso de evaluación
+            requestModelEvaluation(data.model_id || data.training_id);
+        }, 1500); // Esperar 1.5 segundos para mostrar la sección de evaluación
+    }
+
+    // Nueva función para solicitar evaluación
+    function requestModelEvaluation(modelId) {
+        // Mostrar progreso de evaluación
+        document.getElementById('evaluationProgress').classList.remove('hidden');
+        document.getElementById('evaluationResults').classList.add('hidden');
+        
+        // Solicitar evaluación al servidor
+        fetch('/redes-neuronales/evaluar-modelo/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                model_id: modelId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // La evaluación se ha completado con éxito
+                updateEvaluationResults(data);
+            } else {
+                // Error en la evaluación
+                addLogEntry(`Error en la evaluación: ${data.message}`, "error");
+            }
+        })
+        .catch(error => {
+            addLogEntry(`Error de conexión: ${error}`, "error");
+        })
+        .finally(() => {
+            // Ocultar el indicador de progreso
+            document.getElementById('evaluationProgress').classList.add('hidden');
+        });
+    }
+    
+    // Función para actualizar resultados de evaluación
+    function updateEvaluationResults(data) {
+        // Mostrar la sección de resultados
+        document.getElementById('evaluationResults').classList.remove('hidden');
+        
+        // Actualizar métricas
+        const metricsHTML = `
+            <div class="grid grid-cols-2 gap-3">
+                <div><strong>MSE:</strong> ${data.metrics.MSE.toFixed(2)}</div>
+                <div><strong>RMSE:</strong> ${data.metrics.RMSE.toFixed(2)}</div>
+                <div><strong>MAE:</strong> ${data.metrics.MAE.toFixed(2)}</div>
+                <div><strong>R²:</strong> ${data.metrics.R2.toFixed(4)}</div>
+                <div><strong>Precisión:</strong> ${(data.metrics.Accuracy * 100).toFixed(1)}%</div>
+                <div><strong>F1:</strong> ${(data.metrics.F1 * 100).toFixed(1)}%</div>
+            </div>
+        `;
+        document.getElementById('metricsDisplay').innerHTML = metricsHTML;
+        
+        // Actualizar imágenes
+        const timestamp = new Date().getTime(); // Evitar caché
+        document.getElementById('featureImportanceImg').src = `/static/redes_neuronales/models/global_feature_importance.png?t=${timestamp}`;
+        document.getElementById('evaluationPlotsImg').src = `/static/redes_neuronales/models/evaluation_plots.png?t=${timestamp}`;
+        
+        // Añadir mensaje de log
+        addLogEntry("Evaluación del modelo completada con éxito", "success");
+    }
+
+    // Función para crear el gráfico de pérdida
+    function generateLossChart(history) {
+        const ctx = document.getElementById('lossChart').getContext('2d');
+        
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: history.loss.length}, (_, i) => i + 1),
+                datasets: [
+                    {
+                        label: 'Pérdida de entrenamiento',
+                        data: history.loss,
+                        borderColor: 'rgb(79, 70, 229)',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Pérdida de validación',
+                        data: history.val_loss,
+                        borderColor: 'rgb(249, 115, 22)',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    }
+    
+    // Función para crear el gráfico de predicciones vs valores reales
+    function generatePredictionsChart(predictions, actual) {
+        const ctx = document.getElementById('predictionsChart').getContext('2d');
+        
+        const chart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Predicciones',
+                        data: predictions.map((pred, i) => ({x: actual[i], y: pred})),
+                        backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                        pointRadius: 4,
+                    },
+                    {
+                        label: 'Línea ideal',
+                        data: (() => {
+                            const min = Math.min(...actual);
+                            const max = Math.max(...actual);
+                            return [{x: min, y: min}, {x: max, y: max}];
+                        })(),
+                        type: 'line',
+                        borderColor: 'rgba(249, 115, 22, 0.8)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Valores Reales'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Predicciones'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    }
+});
+
+// En el mismo archivo HTML
+document.getElementById('generar-archivos-btn')?.addEventListener('click', function() {
+    const btn = this;
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<svg class="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Procesando...`;
+    
+    fetch('/redes-neuronales/generar-archivos-evaluacion/', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + data.message);
+            location.reload();
+        } else {
+            alert('❌ ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud.');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    });
+});
+
+</script>
+{% endblock %}

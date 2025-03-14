@@ -1,0 +1,1227 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Panel de Control Avanzado{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/dashboard/index.css' %}" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<style>
+    .dashboard-card {
+        transition: all 0.3s ease;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .card-metric {
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+    .tab-active {
+        border-bottom: 3px solid #3b82f6;
+        color: #3b82f6;
+    }
+    .progress-bar {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e5e7eb;
+        overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+    }
+    .card-header {
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    .scrollable-area {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .scrollable-area::-webkit-scrollbar {
+        width: 4px;
+    }
+    .scrollable-area::-webkit-scrollbar-thumb {
+        background-color: rgba(156, 163, 175, 0.5);
+        border-radius: 2px;
+    }
+    .hover-trigger .hover-target {
+        display: none;
+    }
+    .hover-trigger:hover .hover-target {
+        display: flex;
+    }
+    .dot {
+        height: 10px;
+        width: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block title_body %}
+<div class="flex justify-between items-center space-x-3">
+    <div class="flex items-center mr-2">
+        <i class="fas fa-tachometer-alt text-blue-500 mr-2"></i>
+        <span>Panel de Control Avanzado</span>
+        <!--{% if filtro_activo %}
+            <span class="ml-3 px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                <i class="fas fa-filter mr-1"></i>Filtro: {{ fecha_inicio_str }} - {{ fecha_fin_str }}
+            </span>
+        {% endif %}-->
+    </div>
+    <!--<div class="flex items-center space-x-3">
+        <div class="relative" id="date-filter-container">
+            <input type="text" id="date-range" class="py-1 px-3 border border-gray-300 rounded-lg text-sm" placeholder="Filtrar por fecha" readonly>
+        </div>
+        <select id="equipo-filter" class="py-1 px-3 border border-gray-300 rounded-lg text-sm">
+            <option value="">Todos los equipos</option>
+            {% for equipo in equipos %}
+                <option value="{{ equipo.idequipo }}">{{ equipo.nombreequipo }}</option>
+            {% endfor %}
+        </select>
+        <button id="refresh-dashboard" class="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+    </div>-->
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-4 space-y-6">
+    <!-- KPIs principales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg shadow p-4 dashboard-card">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p class="text-sm text-gray-500">Proyectos activos</p>
+                    <p class="card-metric text-blue-600">{{ stats.proyectos_activos }}</p>
+                </div>
+                <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 flex items-center">
+                <span class="{% if stats.proyectos_tendencia > 0 %}text-green-500{% else %}text-red-500{% endif %}">
+                    <i class="fas fa-arrow-{% if stats.proyectos_tendencia > 0 %}up{% else %}down{% endif %} mr-1"></i>
+                    {% if stats.proyectos_tendencia < 0 %}
+                        {{ stats.proyectos_tendencia|cut:"-" }}
+                    {% else %}
+                        {{ stats.proyectos_tendencia }}
+                    {% endif %}%
+                </span>
+                <span class="ml-1">vs mes anterior</span>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-4 dashboard-card">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p class="text-sm text-gray-500">Tareas pendientes</p>
+                    <p class="card-metric text-yellow-600">{{ stats.tareas_pendientes }}</p>
+                </div>
+                <div class="p-2 bg-yellow-100 text-yellow-600 rounded-lg">
+                    <i class="fas fa-tasks"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 flex items-center">
+                <span>{{ stats.tareas_vencidas }} tareas vencidas</span>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-4 dashboard-card">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p class="text-sm text-gray-500">Presupuesto utilizado</p>
+                    <p class="card-metric text-green-600">{{ stats.presupuesto_utilizado_porcentaje }}%</p>
+                </div>
+                <div class="p-2 bg-green-100 text-green-600 rounded-lg">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+            <div class="progress-bar mt-2">
+                <div class="progress-bar-fill bg-green-500" style="width: {{ stats.presupuesto_utilizado_porcentaje }}%"></div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-4 dashboard-card">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p class="text-sm text-gray-500">Equipos</p>
+                    <p class="card-metric text-purple-600">{{ stats.total_equipos }}</p>
+                </div>
+                <div class="p-2 bg-purple-100 text-purple-600 rounded-lg">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 flex items-center">
+                <span>{{ stats.total_recursos }} recursos activos</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos Directos -->
+    <div class="mb-8">
+        {% include 'components/accesos_directos.html' %}
+    </div>
+    
+    <!-- Tabs de navegación -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="border-b border-gray-200">
+            <nav class="flex -mb-px">
+                <button class="tab-button px-6 py-3 font-medium text-sm tab-active" data-tab="tab-proyectos">Proyectos</button>
+                <button class="tab-button px-6 py-3 font-medium text-sm text-gray-500" data-tab="tab-tareas">Tareas</button>
+                <button class="tab-button px-6 py-3 font-medium text-sm text-gray-500" data-tab="tab-recursos">Recursos</button>
+                <button class="tab-button px-6 py-3 font-medium text-sm text-gray-500" data-tab="tab-finanzas">Finanzas</button>
+            </nav>
+        </div>
+        
+        <!-- Contenido de las tabs -->
+        <div class="p-4">
+            <!-- Tab Proyectos -->
+            <div id="tab-proyectos" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <!-- Gráfico de estado de proyectos -->
+                    <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-4 h-80">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Estado de Proyectos</h3>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="proyectosEstadoChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Progreso de proyectos -->
+                    <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-4">
+                        <div class="flex justify-between items-center card-header">
+                            <h3 class="font-semibold">Progreso de Proyectos</h3>
+                            <a href="{% url 'gestion_proyectos:lista_proyectos' %}" class="text-blue-600 hover:text-blue-800 text-sm">Ver todos</a>
+                        </div>
+                        <div class="scrollable-area">
+                            {% for proyecto in proyectos %}
+                            <div class="mb-4 p-3 rounded-lg hover-trigger hover:bg-gray-50">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center">
+                                        <span class="dot" style="background-color: 
+                                            {% if proyecto.porcentaje_progreso > 75 %}#10B981
+                                            {% elif proyecto.porcentaje_progreso > 50 %}#3B82F6
+                                            {% elif proyecto.porcentaje_progreso > 25 %}#F59E0B
+                                            {% else %}#EF4444{% endif %}"></span>
+                                        <span class="font-medium">{{ proyecto.nombreproyecto }}</span>
+                                    </div>
+                                    <div class="flex items-center hover-target">
+                                        <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" class="text-sm text-blue-600 hover:text-blue-800 mr-4">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <span class="text-sm text-gray-500">{{ proyecto.estado }}</span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar-alt text-blue-500 mr-1"></i>
+                                        <span class="text-gray-600">Inicio:</span>
+                                        <span class="ml-1">{{ proyecto.fechainicio|date:"d/m/Y" }}</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-flag-checkered text-red-500 mr-1"></i>
+                                        <span class="text-gray-600">Fin:</span>
+                                        <span class="ml-1">{{ proyecto.fechafin|date:"d/m/Y"|default:"No definido" }}</span>
+                                    </div>
+                                </div>
+                                <div class="relative pt-1">
+                                    <div class="progress-bar">
+                                        <div class="progress-bar-fill" 
+                                            style="width: {{ proyecto.porcentaje_progreso }}%; background-color: 
+                                            {% if proyecto.porcentaje_progreso > 75 %}#10B981
+                                            {% elif proyecto.porcentaje_progreso > 50 %}#3B82F6
+                                            {% elif proyecto.porcentaje_progreso > 25 %}#F59E0B
+                                            {% else %}#EF4444{% endif %}"></div>
+                                    </div>
+                                    <div class="flex justify-between mt-1 text-xs text-gray-600">
+                                        <span>{{ proyecto.tareas_completadas }} / {{ proyecto.total_tareas }} tareas</span>
+                                        <span>{{ proyecto.porcentaje_progreso }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Proyectos por equipo -->
+                    <div class="lg:col-span-3 bg-white rounded-lg border border-gray-200 p-4 h-80">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Proyectos por Equipo</h3>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="proyectosEquipoChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Tareas -->
+            <div id="tab-tareas" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <!-- Gráfico de distribución de tareas -->
+                    <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-4 h-80">
+                        <div class="card-header">
+                            <h3 class="font-semibold flex items-center">
+                                <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+                                Distribución por estado
+                            </h3>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="tareasEstadoChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Tareas recientes -->
+                    <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-4">
+                        <div class="flex justify-between items-center card-header">
+                            <h3 class="font-semibold flex items-center">
+                                <i class="fas fa-tasks text-blue-500 mr-2"></i>
+                                Tareas recientes
+                            </h3>
+                            <!-- Añadir el selector de filtro aquí -->
+                            <select id="tareas-filter" class="text-sm border border-gray-300 rounded-md p-1">
+                                <option value="todas">Todas</option>
+                                <option value="pendientes">Pendientes</option>
+                                <option value="en_progreso">En Progreso</option>
+                                <option value="completadas">Completadas</option>
+                                <option value="vencidas">Vencidas</option>
+                            </select>
+                        </div>
+                        <div class="scrollable-area">
+                            {% for tarea in tareas %}
+                            <div class="mb-3 p-3 border-l-4 rounded-r-lg hover:bg-gray-50 
+                                {% if tarea.estado == 'Completada' %}border-green-500 bg-green-50
+                                {% elif tarea.estado == 'En Progreso' %}border-blue-500 bg-blue-50
+                                {% elif tarea.estado == 'Atrasada' %}border-red-500 bg-red-50
+                                {% else %}border-yellow-500 bg-yellow-50{% endif %}">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <div class="font-medium">{{ tarea.nombretarea }}</div>
+                                        <div class="text-xs text-gray-500">Proyecto: {{ tarea.proyecto_nombre }}</div>
+                                    </div>
+                                    <div class="text-xs px-2 py-1 rounded-full
+                                        {% if tarea.estado == 'Completada' %}bg-green-200 text-green-800
+                                        {% elif tarea.estado == 'En Progreso' %}bg-blue-200 text-blue-800
+                                        {% elif tarea.estado == 'Atrasada' %}bg-red-200 text-red-800
+                                        {% else %}bg-yellow-200 text-yellow-800{% endif %}">
+                                        {{ tarea.estado }}
+                                    </div>
+                                </div>
+                                <div class="flex justify-between mt-2 text-xs text-gray-600">
+                                    <div>
+                                        <i class="far fa-calendar mr-1"></i> 
+                                        Vence: {{ tarea.fechafin|date:"d/m/Y"|default:"No definido" }}
+                                    </div>
+                                    <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}" class="text-blue-600 hover:text-blue-800">
+                                        Ver detalle
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Distribución por prioridad y tipo -->
+                    <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-4 h-80">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Tareas por Prioridad</h3>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="tareasPrioridadChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Completitud de tareas por tiempo -->
+                    <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-4 h-80">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Completitud de Tareas por Tiempo</h3>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="tareasCompletitudChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Recursos -->
+            <div id="tab-recursos" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <!-- Gráfico de distribución de recursos -->
+                    <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-4 h-80">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Distribución de Usuarios</h3>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="recursosDistribucionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Carga de trabajo por recurso -->
+                    <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-4">
+                        <div class="flex justify-between items-center card-header">
+                            <h3 class="font-semibold">Carga de Trabajo</h3>
+                            <a href="{% url 'gestionRecursos:lista_recursos' %}" class="text-blue-600 hover:text-blue-800 text-sm">Ver todos</a>
+                        </div>
+                        <div class="scrollable-area">
+                            {% for recurso in recursos %}
+                            <div class="mb-3 p-3 rounded-lg hover:bg-gray-50">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-700 mr-3">
+                                            {{ recurso.nombrerecurso|first }}
+                                        </div>
+                                        <div>
+                                            <div class="font-medium">{{ recurso.nombrerecurso }}</div>
+                                            <div class="text-xs text-gray-500">{{ recurso.idtiporecurso.nametiporecurso }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm">
+                                        <span class="font-semibold">{{ recurso.total_tareas }}</span> tareas
+                                    </div>
+                                </div>
+                                <div class="relative pt-1">
+                                    <div class="progress-bar">
+                                        <div class="progress-bar-fill" 
+                                            style="width: {{ recurso.carga_trabajo_porcentaje }}%; background-color: 
+                                            {% if recurso.carga_trabajo_porcentaje > 80 %}#EF4444
+                                            {% elif recurso.carga_trabajo_porcentaje > 60 %}#F59E0B
+                                            {% else %}#10B981{% endif %}"></div>
+                                    </div>
+                                    <div class="flex justify-between mt-1 text-xs text-gray-600">
+                                        <span>Carga: {{ recurso.carga_trabajo_porcentaje }}%</span>
+                                        <span>{% if recurso.disponibilidad %}Disponible{% else %}No disponible{% endif %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Rendimiento del equipo -->
+                    <div class="lg:col-span-3 bg-white rounded-lg border border-gray-200 p-4 h-[500px]">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Rendimiento de Equipos</h3>
+                        </div>
+                        <div class="h-96">
+                            <canvas id="equiposRendimientoChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Finanzas (continuación) -->
+            <div id="tab-finanzas" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <!-- Gráfico de presupuesto vs utilizado -->
+                    <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-4 h-80">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Presupuesto Global</h3>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="presupuestoChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Utilización de presupuesto por proyecto -->
+                    <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-4">
+                        <div class="flex justify-between items-center card-header">
+                            <h3 class="font-semibold">Utilización de Presupuesto por Proyecto</h3>
+                            <select id="presupuesto-sort" class="text-sm border border-gray-300 rounded p-1">
+                                <option value="mayor">Mayor utilización</option>
+                                <option value="menor">Menor utilización</option>
+                            </select>
+                        </div>
+                        <div class="scrollable-area">
+                            {% for proyecto in proyectos_presupuesto %}
+                            <div class="mb-3 p-3 rounded-lg hover:bg-gray-50">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="font-medium">{{ proyecto.nombreproyecto }}</div>
+                                    <div class="text-sm">
+                                        <span class="font-semibold">{{ proyecto.presupuestoutilizado|floatformat:2 }}</span> 
+                                        / {{ proyecto.presupuesto|floatformat:2 }}
+                                    </div>
+                                </div>
+                                <div class="relative pt-1">
+                                    <div class="progress-bar">
+                                        <div class="progress-bar-fill" 
+                                            style="width: {{ proyecto.porcentaje_presupuesto }}%; background-color: 
+                                            {% if proyecto.porcentaje_presupuesto > 90 %}#EF4444
+                                            {% elif proyecto.porcentaje_presupuesto > 75 %}#F59E0B
+                                            {% else %}#10B981{% endif %}"></div>
+                                    </div>
+                                    <div class="flex justify-between mt-1 text-xs text-gray-600">
+                                        <span>{{ proyecto.porcentaje_presupuesto|floatformat:1 }}% utilizado</span>
+                                        <span>Restante: {{ proyecto.presupuesto_restante|floatformat:2 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Gastos por categoría -->
+                    <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 p-4 h-80">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Gastos por Tipo de Recurso</h3>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="gastosCategoriaChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Tendencia de gastos -->
+                    <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-4 h-80">
+                        <div class="card-header">
+                            <h3 class="font-semibold">Tendencia de Gastos</h3>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="gastosTendenciaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tarjetas inferiores: Notificaciones y Alertas -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Notificaciones -->
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex justify-between items-center card-header">
+                <h3 class="font-semibold flex items-center">
+                    <i class="fas fa-bell text-blue-500 mr-2"></i>
+                    Notificaciones recientes
+                </h3>
+                <a href="#" class="text-blue-600 hover:text-blue-800 text-sm">Ver todas</a>
+            </div>
+            <div class="scrollable-area">
+                {% if notificaciones %}
+                    {% for notificacion in notificaciones %}
+                        <div class="flex items-start p-3 rounded-lg mb-2 
+                            {% if not notificacion.leido %}bg-blue-50 border-l-4 border-blue-400{% else %}hover:bg-gray-50{% endif %}">
+                            <div class="flex-shrink-0">
+                                <i class="fas {% if notificacion.prioridad == 'alta' %}fa-exclamation-circle text-red-500
+                                    {% elif notificacion.prioridad == 'media' %}fa-info-circle text-blue-500
+                                    {% else %}fa-check-circle text-green-500{% endif %} text-lg"></i>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <div class="text-sm font-medium">{{ notificacion.mensaje }}</div>
+                                <div class="text-xs text-gray-500 mt-1 flex justify-between">
+                                    <span>{{ notificacion.fechacreacion|date:"d/m/Y H:i" }}</span>
+                                    {% if not notificacion.leido %}
+                                    <button data-id="{{ notificacion.idnotificacion }}" class="mark-read text-blue-600 hover:text-blue-800">
+                                        Marcar como leída
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-check-circle text-3xl mb-2"></i>
+                        <p>No tienes notificaciones pendientes</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Alertas -->
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex justify-between items-center card-header">
+                <h3 class="font-semibold flex items-center">
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                    Alertas activas
+                </h3>
+                <a href="#" class="text-red-600 hover:text-red-800 text-sm">Ver todas</a>
+            </div>
+            <div class="scrollable-area">
+                {% if alertas %}
+                    {% for alerta in alertas %}
+                        <div class="flex items-start p-3 bg-red-50 border-l-4 border-red-400 rounded-lg mb-2">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-circle text-red-500 text-lg"></i>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <div class="text-sm font-medium">{{ alerta.mensaje }}</div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <span>{{ alerta.fechacreacion|date:"d/m/Y H:i" }}</span>
+                                    <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-800 rounded-full">{{ alerta.tipoalerta }}</span>
+                                </div>
+                            </div>
+                            <button data-id="{{ alerta.idalerta }}" class="resolve-alert ml-2 text-sm p-1 text-red-600 hover:text-red-800">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 bg-gray-50 rounded-lg">
+                        <i class="fas fa-check-circle text-green-500 text-3xl mb-2"></i>
+                        <p class="text-gray-600">No hay alertas activas en este momento</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Comprobamos que el elemento existe
+    const dateRangeInput = document.getElementById('date-range');
+    
+    if (dateRangeInput) {
+        try {
+            // Configurar Flatpickr con opciones en español
+            const flatpickrInstance = flatpickr("#date-range", {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                locale: {
+                    firstDayOfWeek: 1,
+                    weekdays: {
+                        shorthand: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
+                        longhand: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+                    },
+                    months: {
+                        shorthand: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                        longhand: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+                    },
+                    rangeSeparator: ' a '
+                },
+                defaultDate: [
+                    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 
+                    new Date()
+                ],
+                onClose: function(selectedDates, dateStr) {
+                    if (selectedDates.length === 2) {
+                        // Implementar filtrado por fecha
+                        const inicio = selectedDates[0].toISOString().split('T')[0];
+                        const fin = selectedDates[1].toISOString().split('T')[0];
+                        
+                        console.log(`Filtrando desde ${inicio} hasta ${fin}`);
+                        
+                        // Recargar la página con los nuevos filtros
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.set('fecha_inicio', inicio);
+                        currentUrl.searchParams.set('fecha_fin', fin);
+                        window.location.href = currentUrl.toString();
+                    }
+                }
+            });
+            
+            // Mostrar fechas actuales si las hay en la URL o por defecto
+            const urlParams = new URLSearchParams(window.location.search);
+            const fechaInicio = urlParams.get('fecha_inicio');
+            const fechaFin = urlParams.get('fecha_fin');
+            
+            if (fechaInicio && fechaFin) {
+                flatpickrInstance.setDate([fechaInicio, fechaFin]);
+            }
+            
+            // Añadir un botón de refresco al selector de fecha
+            const container = document.getElementById('date-filter-container');
+            const clearButton = document.createElement('button');
+            clearButton.className = 'absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600';
+            clearButton.innerHTML = '<i class="fas fa-times"></i>';
+            clearButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Remover los parámetros de fecha y recargar
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.delete('fecha_inicio');
+                currentUrl.searchParams.delete('fecha_fin');
+                window.location.href = currentUrl.toString();
+            });
+            
+            container.appendChild(clearButton);
+        } catch (error) {
+            console.error("Error al inicializar el selector de fecha:", error);
+        }
+    } else {
+        console.error("No se encontró el elemento #date-range");
+    }
+    
+    // Manejo de tabs
+    const tabs = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.tab;
+            
+            // Actualizar estados de pestañas
+            tabs.forEach(t => t.classList.remove('tab-active'));
+            tab.classList.add('tab-active');
+            
+            // Mostrar/ocultar contenido
+            tabContents.forEach(content => {
+                if (content.id === target) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+        });
+    });
+    
+    // Filtro de equipo
+    const equipoFilter = document.getElementById('equipo-filter');
+    if (equipoFilter) {
+        equipoFilter.addEventListener('change', function() {
+            const currentUrl = new URL(window.location.href);
+            if (this.value) {
+                currentUrl.searchParams.set('equipo', this.value);
+            } else {
+                currentUrl.searchParams.delete('equipo');
+            }
+            window.location.href = currentUrl.toString();
+        });
+    }
+    
+    // Botón de actualizar
+    const refreshBtn = document.getElementById('refresh-dashboard');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            window.location.reload();
+        });
+    }
+    
+    // Filtro de tareas
+    const tareasFilter = document.getElementById('tareas-filter');
+    if (tareasFilter) {
+        tareasFilter.addEventListener('change', function() {
+            const filtro = this.value;
+            const tareaItems = document.querySelectorAll('#tab-tareas .scrollable-area > div');
+            let tareasVisibles = 0;
+            
+            tareaItems.forEach(tarea => {
+                const estadoTarea = tarea.querySelector('.text-xs.px-2.py-1.rounded-full').textContent.trim();
+                
+                // Ocultar todas inicialmente
+                tarea.style.display = 'none';
+                
+                // Mostrar según el filtro seleccionado
+                if (filtro === 'todas' || 
+                    (filtro === 'pendientes' && estadoTarea === 'Pendiente') ||
+                    (filtro === 'vencidas' && estadoTarea === 'Atrasada') ||
+                    (filtro === 'completadas' && estadoTarea === 'Completada') ||
+                    (filtro === 'en_progreso' && estadoTarea === 'En Progreso')) {
+                    tarea.style.display = 'block';
+                    tareasVisibles++;
+                }
+            });
+            
+            // Si no hay tareas que coincidan con el filtro, mostrar mensaje
+            const contenedorTareas = document.querySelector('#tab-tareas .scrollable-area');
+            const mensajeNoTareas = contenedorTareas.querySelector('.sin-tareas');
+            
+            if (tareasVisibles === 0) {
+                // Si ya existe un mensaje, no crear otro
+                if (!mensajeNoTareas) {
+                    const mensaje = document.createElement('div');
+                    mensaje.className = 'sin-tareas text-center py-8 text-gray-500';
+                    mensaje.innerHTML = `
+                        <i class="fas fa-search text-3xl mb-2"></i>
+                        <p>No hay tareas con el filtro seleccionado</p>
+                    `;
+                    contenedorTareas.appendChild(mensaje);
+                } else {
+                    mensajeNoTareas.style.display = 'block';
+                }
+            } else if (mensajeNoTareas) {
+                mensajeNoTareas.style.display = 'none';
+            }
+        });
+    }
+    
+    // Ordenamiento de utilización de presupuesto
+    const presupuestoSort = document.getElementById('presupuesto-sort');
+    if (presupuestoSort) {
+        presupuestoSort.addEventListener('change', function() {
+            const contenedor = document.querySelector('#tab-finanzas .scrollable-area');
+            // Usar el selector correcto para los elementos de proyecto
+            const items = Array.from(contenedor.querySelectorAll('.mb-3.p-3.rounded-lg'));
+            
+            // Determinar el orden basado en la selección
+            const orden = this.value === 'mayor' ? -1 : 1;
+            
+            // Ordenar los elementos por porcentaje de utilización
+            items.sort((a, b) => {
+                // Extraer el porcentaje de utilización correctamente
+                const porcentajeA = parseFloat(a.querySelector('.text-xs.text-gray-600 span:first-child').textContent);
+                const porcentajeB = parseFloat(b.querySelector('.text-xs.text-gray-600 span:first-child').textContent);
+                
+                return (porcentajeA - porcentajeB) * orden;
+            });
+            
+            // Limpiar el contenedor
+            contenedor.innerHTML = '';
+            
+            // Volver a añadir los elementos ordenados
+            items.forEach(item => {
+                contenedor.appendChild(item);
+            });
+            
+            // Mostrar mensaje de ordenamiento
+            const mensaje = document.createElement('div');
+            mensaje.className = 'text-sm text-gray-500 my-2 text-center';
+            mensaje.textContent = `Proyectos ordenados por ${this.value === 'mayor' ? 'mayor' : 'menor'} utilización de presupuesto`;
+            
+            // Remover mensaje anterior si existe
+            const mensajeAnterior = contenedor.querySelector('.text-sm.text-gray-500.my-2');
+            if (mensajeAnterior) {
+                mensajeAnterior.remove();
+            }
+            
+            // Insertar mensaje al principio del contenedor
+            contenedor.insertBefore(mensaje, contenedor.firstChild);
+        });
+    }
+    
+    // Marcar notificaciones como leídas
+    const markReadBtns = document.querySelectorAll('.mark-read');
+    markReadBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const notificacionId = this.dataset.id;
+            const notificacionElement = this.closest('.flex.items-start');
+            notificacionElement.classList.remove('bg-blue-50', 'border-l-4', 'border-blue-400');
+            this.parentNode.removeChild(this);
+            
+            // Llamada AJAX para marcar como leída usando la URL existente
+            fetch(`/notificaciones/notificacion/marcar-leida/${notificacionId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar la UI
+                    notificacionElement.classList.remove('bg-blue-50', 'border-l-4', 'border-blue-400');
+                    this.parentNode.removeChild(this);
+                } else {
+                    console.error('Error al marcar notificación:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error en la petición:', error);
+            });
+        });
+    });
+
+    // Función auxiliar para obtener el token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Resolver alertas
+    const resolveAlertBtns = document.querySelectorAll('.resolve-alert');
+    resolveAlertBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const alertaId = this.dataset.id;
+            // Implementar llamada AJAX para resolver alerta
+            const alertaElement = this.closest('.flex.items-start');
+            alertaElement.style.height = alertaElement.offsetHeight + 'px';
+            alertaElement.classList.add('opacity-0');
+            setTimeout(() => {
+                alertaElement.style.display = 'none';
+            }, 300);
+        });
+    });
+    
+    // Inicializar gráficos
+    inicializarGraficos();
+});
+
+function inicializarGraficos() {
+    const colores = {
+        azul: '#3b82f6',
+        verde: '#10b981',
+        rojo: '#ef4444',
+        amarillo: '#f59e0b',
+        morado: '#8b5cf6',
+        naranja: '#f97316',
+        cian: '#06b6d4',
+        rosa: '#ec4899',
+        gris: '#6b7280'
+    };
+    
+    // Datos de proyectos por estado
+    const estadoProyectosData = {{ estado_proyectos|safe }};
+    const estadoProyectosCTX = document.getElementById('proyectosEstadoChart').getContext('2d');
+    new Chart(estadoProyectosCTX, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(estadoProyectosData),
+            datasets: [{
+                data: Object.values(estadoProyectosData),
+                backgroundColor: [
+                    colores.amarillo,
+                    colores.azul,
+                    colores.verde,
+                    colores.morado,
+                    colores.rosa
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Proyectos por equipo
+    const proyectosEquipoCTX = document.getElementById('proyectosEquipoChart').getContext('2d');
+    const proyectosEquipoDatos = JSON.parse('{{ proyectos_equipo_datos|safe }}');
+
+    new Chart(proyectosEquipoCTX, {
+        type: 'bar',
+        data: proyectosEquipoDatos,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Tareas por estado
+    const estadoTareasData = {{ estado_tareas|safe }};
+    const estadoTareasCTX = document.getElementById('tareasEstadoChart').getContext('2d');
+    new Chart(estadoTareasCTX, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(estadoTareasData),
+            datasets: [{
+                data: Object.values(estadoTareasData),
+                backgroundColor: [
+                    colores.amarillo,
+                    colores.azul,
+                    colores.verde,
+                    colores.rojo,
+                    colores.gris
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Tareas por prioridad
+    const prioridadTareasData = {{ prioridad_tareas|safe }};
+    const prioridadTareasCTX = document.getElementById('tareasPrioridadChart').getContext('2d');
+    new Chart(prioridadTareasCTX, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(prioridadTareasData),
+            datasets: [{
+                label: 'Número de tareas',
+                data: Object.values(prioridadTareasData),
+                backgroundColor: [
+                    colores.verde,
+                    colores.amarillo,
+                    colores.rojo
+                ]
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Completitud de tareas por tiempo (datos reales)
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const tareasCompletasPorMes = {{ tareas_completadas_data|safe }};
+        
+    const tareasCompletitudCTX = document.getElementById('tareasCompletitudChart').getContext('2d');
+    new Chart(tareasCompletitudCTX, {
+        // El resto del código se mantiene igual
+        type: 'line',
+        data: {
+            labels: meses,
+            datasets: [{
+                label: 'Tareas completadas',
+                data: tareasCompletasPorMes,
+                borderColor: colores.azul,
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Distribución de usuarios
+    const usuariosPorTipo = {{ usuarios_por_tipo|safe }};
+    const recursosDistribucionCTX = document.getElementById('recursosDistribucionChart').getContext('2d');
+    new Chart(recursosDistribucionCTX, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(usuariosPorTipo),
+            datasets: [{
+                data: Object.values(usuariosPorTipo),
+                backgroundColor: [
+                    colores.verde,
+                    colores.morado,
+                    colores.rojo,
+                    colores.amarillo,
+                    colores.azul  // Color para Jefes de proyecto
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Rendimiento de equipos (datos reales)
+    const equiposRendimientoCTX = document.getElementById('equiposRendimientoChart').getContext('2d');
+    const equiposRendimientoDatos = {{ equipos_rendimiento_datos|safe }};
+
+    new Chart(equiposRendimientoCTX, {
+        type: 'radar',
+        data: equiposRendimientoDatos,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'right',
+                    align: 'center',
+                    labels: {
+                        boxWidth: 15,
+                        padding: 20,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.raw + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Presupuesto global
+    const presupuestoCTX = document.getElementById('presupuestoChart').getContext('2d');
+    const presupuestoGlobalDatos = {{ presupuesto_global_datos|safe }};
+
+    new Chart(presupuestoCTX, {
+        type: 'doughnut',
+        data: {
+            labels: ['Utilizado', 'Restante'],
+            datasets: [{
+                data: presupuestoGlobalDatos,
+                backgroundColor: [colores.rojo, colores.verde]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Gastos por categoría
+    const gastosCategoriasCTX = document.getElementById('gastosCategoriaChart').getContext('2d');
+    const gastosPorCategoria = {{ gastos_por_categoria|safe }};
+
+    new Chart(gastosCategoriasCTX, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(gastosPorCategoria),
+            datasets: [{
+                data: Object.values(gastosPorCategoria),
+                backgroundColor: [
+                    colores.azul,
+                    colores.verde,
+                    colores.amarillo,
+                    colores.morado,
+                    colores.gris,
+                    colores.naranja,
+                    colores.cian,
+                    colores.rosa
+                ].slice(0, Object.keys(gastosPorCategoria).length)
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: $${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Tendencia de gastos
+    const gastosTendenciaCTX = document.getElementById('gastosTendenciaChart').getContext('2d');
+    const gastosActualesPorMes = {{ gastos_mensuales_actuales|safe }};
+    const gastosEstimadosPorMes = {{ gastos_mensuales_estimados|safe }};
+
+    new Chart(gastosTendenciaCTX, {
+        type: 'line',
+        data: {
+            labels: meses,
+            datasets: [{
+                label: 'Gastos Mensuales',
+                data: gastosActualesPorMes,
+                borderColor: colores.rojo,
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.3,
+                fill: true
+            }, {
+                label: 'Presupuesto Planificado',
+                data: gastosEstimadosPorMes,
+                borderColor: colores.azul,
+                borderDash: [5, 5],
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += '$' + context.parsed.y.toLocaleString();
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

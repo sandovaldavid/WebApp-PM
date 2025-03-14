@@ -11,43 +11,46 @@
 {% block title_body %}
 <div class="flex justify-between items-center">
     <div class="flex items-center">
-        <i class="fas fa-tasks text-blue-500 mr-2"></i>
-        <span>Proyect Management</span>
+        <i class="fas fa-tachometer-alt text-blue-500 mr-2"></i>
+        <span>Panel de Control</span>
     </div>
+    <div>
+        <a href="{% url 'dashboard:panel_control' %}" 
+           class="bg-green-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-green-900 text-base transition-colors flex items-center">
+            <i class="fas fa-list-alt mr-2"></i>
+            Panel Avanzado
+        </a>  
+    </div>
+
+    
 </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8 space-y-8">
+<div class="p-6 space-y-8">
+    <!-- Accesos Directos -->
+    <div class="mb-8">
+        {% include 'components/accesos_directos.html' %}
+    </div>
+    
     <!-- Resumen de Proyectos Activos y Resumen Financiero -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Resumen de Proyectos Activos -->
         <div class="bg-white p-6 rounded-lg shadow-lg">
             <h3 class="text-lg font-semibold mb-4 flex items-center">
                 <i class="fas fa-project-diagram text-blue-500 mr-2"></i>
-                Ultimos Proyectos Activos
+                Últimos Proyectos Activos
             </h3>
-            <ul>
+            <div class="grid grid-cols-1 gap-4">
                 {% for proyecto in proyectos %}
-                <li class="mb-4">
-                    <div class="font-bold">{{ proyecto.nombreproyecto }}</div>
-                    <div>Fecha de inicio: {{ proyecto.fechainicio }}</div>
-                    <div>Estado: {{ proyecto.estado }}</div>
-                    <div>Progreso:</div>
-                    <div class="mt-2">
-                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ proyecto.porcentaje_progreso }}%;"></div>
-                        </div>
-                        <span class="text-sm text-gray-600">{{ proyecto.porcentaje_progreso }}%</span>
-                    </div>
-                </li>
+                    {% include 'components/proyecto_item.html' with proyecto=proyecto %}
                 {% endfor %}
-            </ul>
+            </div>
         </div>
 
-        <div class="flex flex-col">
+        <div class="flex flex-col gap-6">
             <!-- Estadísticas de Tareas -->
-            <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
                 <h3 class="text-lg font-semibold mb-4 flex items-center">
                     <i class="fas fa-chart-bar text-green-500 mr-2"></i>
                     Estadísticas de Tareas
@@ -57,127 +60,114 @@
                 </div>
             </div>
             
-
-            <!-- Notificaciones Recientes y Alertas Activas -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Notificaciones Recientes -->
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <h3 class="text-lg font-semibold mb-4 flex items-center">
-                        <i class="fas fa-bell text-red-500 mr-2"></i>
-                        Notificaciones Recientes
-                    </h3>
-                    <ul>
-                        {% for notificacion in notificaciones %}
-                        <li class="mb-4">
-                            <div class="font-bold">{{ notificacion.mensaje }}</div>
-                            <div>Fecha: {{ notificacion.fechacreacion }}</div>
-                            <div>Prioridad: {{ notificacion.prioridad }}</div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <!-- Alertas Activas -->
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <h3 class="text-lg font-semibold mb-4 flex items-center">
-                        <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
-                        Alertas Activas
-                    </h3>
-                    <ul>
-                        {% for alerta in alertas %}
-                        <li class="mb-4">
-                            <div class="font-bold">{{ alerta.mensaje }}</div>
-                            <div>Fecha: {{ alerta.fechacreacion }}</div>
-                            <div>Tipo: {{ alerta.tipoalerta }}</div>
-                        </li>
-                        {% endfor %}
-                    </ul>
+            <!-- Resumen Financiero -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-dollar-sign text-red-500 mr-2"></i>
+                    Resumen Financiero
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <div class="flex flex-col space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Presupuesto Total</span>
+                            <span class="text-lg font-semibold text-gray-900">{{ resumen_financiero.presupuesto_total }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Presupuesto Utilizado</span>
+                            <span class="text-lg font-semibold text-gray-900">{{ resumen_financiero.presupuesto_utilizado }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Presupuesto Restante</span>
+                            <span class="text-lg font-semibold text-gray-900">{{ resumen_financiero.presupuesto_restante }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <canvas id="financialChart"></canvas>
+                    </div>
                 </div>
             </div>
-        </div>        
+            <!-- Proyectos por Equipo -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-users-cog text-indigo-500 mr-2"></i>
+                    Proyectos por Equipo
+                </h3>
+                <div class="h-80 flex justify-center items-center">
+                    <canvas id="teamProjectsChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Gráficos de Tareas y Recursos -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Notificaciones y Alertas -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-6">
+            <!-- Notificaciones Recientes -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-bell text-blue-500 mr-2"></i>
+                    Notificaciones Recientes
+                </h3>
+                <div id="lista-notificaciones" class="space-y-4">
+                    {% if notificaciones %}
+                        {% for notificacion in notificaciones %}
+                            {% include 'components/notificacion.html' with notificacion=notificacion %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-check-circle text-4xl mb-2"></i>
+                            <p>No tienes notificaciones pendientes</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'notificaciones:estadisticas_notificaciones' %}" class="text-blue-500 hover:text-blue-700">
+                        Ver todas las notificaciones
+                    </a>
+                </div>            
+            </div>
+            <!-- Distribución de Recursos -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">            
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-users text-blue-500 mr-2"></i>
+                    Estadísticas de Usuarios
+                </h3>
+                <div class="h-80 flex justify-center items-center">
+                    <canvas id="resourceChart"></canvas>
+                </div>
+            </div>
+        </div>
         
-        <!-- Resumen Financiero -->
+
+        <!-- Alertas Activas -->
         <div class="bg-white p-6 rounded-lg shadow-lg">
             <h3 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-dollar-sign text-red-500 mr-2"></i>
-                Resumen Financiero
+                <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                Alertas Activas
             </h3>
-            <div class="grid grid-cols-1 lg:grid-cols-2 items-center gap-8">
-                <div class="flex flex-col space-y-4 ">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600">Presupuesto Total</span>
-                        <span class="text-lg font-semibold text-gray-900">{{ resumen_financiero.presupuesto_total }}</span>
+            <div id="lista-alertas" class="space-y-4">
+                {% if alertas %}
+                    {% for alerta in alertas %}
+                        {% include 'components/alerta.html' with alerta=alerta %}
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 bg-gray-50 rounded-lg">
+                        <i class="fas fa-check-circle text-green-500 text-4xl mb-2"></i>
+                        <p class="text-gray-600">No hay alertas activas en este momento</p>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600">Presupuesto Utilizado</span>
-                        <span class="text-lg font-semibold text-gray-900">{{ resumen_financiero.presupuesto_utilizado }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600">Presupuesto Restante</span>
-                        <span class="text-lg font-semibold text-gray-900">{{ resumen_financiero.presupuesto_restante }}</span>
-                    </div>
-                </div>
-                <div class="ml-8">
-                    <canvas id="financialChart"></canvas>
-                </div>
+                {% endif %}
+            </div>
+            <div class="mt-4 text-center">
+                <a href="{% url 'notificaciones:lista_alertas' %}" class="text-red-500 hover:text-red-700">
+                    Ver todas las alertas
+                </a>
             </div>
         </div>
-
-
-        <!-- Distribución de Recursos -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">            
-            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-users text-blue-500 mr-2"></i>
-                Estadísticas de Usuarios
-            </h3>
-            <div class="h-80 flex justify-center items-center">
-                <canvas id="resourceChart"></canvas>
-            </div>
-        </div>
-        
     </div>
-
-    
 
     <!-- Estadísticas de Usuarios y Proyectos por Equipo -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">            
-        <!-- Proyectos por Equipo -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-users text-indigo-500 mr-2"></i>
-                Proyectos por Equipo
-            </h3>
-            <div class="h-64 flex justify-center items-center">
-                <canvas id="teamProjectsChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Accesos Directos -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-link text-indigo-500 mr-2"></i>
-                Accesos Directos
-            </h3>
-            <div class="space-y-2">
-                <a href="{% url 'gestion_proyectos:crear_proyecto' %}" class="w-full py-2 px-4 bg-blue-500 text-white rounded block text-center">
-                    <i class="fas fa-plus"></i> Crear Proyecto
-                </a>
-                <a href="{% url 'gestion_tareas:crear_tarea' %}" class="w-full py-2 px-4 bg-green-500 text-white rounded block text-center">
-                    <i class="fas fa-tasks"></i> Crear Tarea
-                </a>
-                <a href="{% url 'gestionRecursos:lista_recursos' %}" class="w-full py-2 px-4 bg-yellow-500 text-white rounded block text-center">
-                    <i class="fas fa-users"></i> Gestionar Recursos
-                </a>
-            </div>
-        </div>
-
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">         
     </div>
-
-    
 </div>
 {% endblock %}
 
