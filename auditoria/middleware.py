@@ -20,11 +20,11 @@ class AuditoriaMiddleware:
 
     def __call__(self, request):
         # Establecer el usuario actual para este request
-        if hasattr(request, 'user') and request.user.is_authenticated:
+        if hasattr(request, "user") and request.user.is_authenticated:
             set_current_user(request.user)
             # Guardar el ID del usuario en la sesión para uso futuro (e.g., logout)
-            if hasattr(request, 'session'):
-                request.session['last_user_id'] = request.user.pk
+            if hasattr(request, "session"):
+                request.session["last_user_id"] = request.user.pk
 
         # Captura información antes de procesar la solicitud
         tiempo_inicio = timezone.now()
@@ -44,7 +44,7 @@ class AuditoriaMiddleware:
 
         # Verificar si el usuario está autenticado
         usuario = None
-        if hasattr(request, 'user') and request.user.is_authenticated:
+        if hasattr(request, "user") and request.user.is_authenticated:
             usuario = request.user
 
             # Registrar la actividad de navegación solo para rutas importantes
@@ -66,18 +66,18 @@ class AuditoriaMiddleware:
     def get_client_ip(self, request):
         """Obtener la IP del cliente desde la solicitud con mejor manejo para desarrollo local"""
         # Primero intentar obtener la IP desde proxies y headers comunes
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
+            ip = x_forwarded_for.split(",")[0].strip()
         else:
             # Headers alternativos comunes usados por proxies
-            for header in ['HTTP_X_REAL_IP', 'HTTP_CLIENT_IP', 'REMOTE_ADDR']:
+            for header in ["HTTP_X_REAL_IP", "HTTP_CLIENT_IP", "REMOTE_ADDR"]:
                 ip = request.META.get(header)
                 if ip:
                     break
 
             # Si no se encuentra ninguna IP o es localhost
-            if not ip or ip == '127.0.0.1' or ip == 'localhost':
+            if not ip or ip == "127.0.0.1" or ip == "localhost":
                 # Intentar obtener la IP local real de la máquina
                 try:
                     # Obtener el nombre del host
@@ -87,7 +87,7 @@ class AuditoriaMiddleware:
                     return local_ip
                 except Exception:
                     # Si todo falla, devolver una IP válida
-                    return '127.0.0.1'
+                    return "127.0.0.1"
 
         return ip
 
@@ -102,11 +102,11 @@ class AuditoriaMiddleware:
     def should_skip_audit(self, request):
         """Determinar si se debe omitir la auditoría para esta solicitud"""
         # No auditar solicitudes a archivos estáticos o admin
-        if request.path.startswith('/static/') or request.path.startswith('/media/'):
+        if request.path.startswith("/static/") or request.path.startswith("/media/"):
             return True
 
         # No auditar favicon, robots.txt y similares
-        if request.path in ['/favicon.ico', '/robots.txt', '/sitemap.xml']:
+        if request.path in ["/favicon.ico", "/robots.txt", "/sitemap.xml"]:
             return True
 
         return False
@@ -115,17 +115,17 @@ class AuditoriaMiddleware:
         """Determinar si se debe auditar esta navegación específica"""
         # Rutas importantes a auditar (operaciones principales)
         important_prefixes = [
-            '/gestion-proyectos/',
-            '/gestion-tareas/',
-            '/gestion-recursos/',
-            '/gestion-equipos/',
-            '/gestion-auditoria/',
-            '/gestion-usuarios/',
-            '/gestion-reportes/',
-            '/dashboard/',
-            '/integracion/',
-            '/redes-neuronales/',
-            '/gestion-notificaciones/',
+            "/gestion-proyectos/",
+            "/gestion-tareas/",
+            "/gestion-recursos/",
+            "/gestion-equipos/",
+            "/gestion-auditoria/",
+            "/gestion-usuarios/",
+            "/gestion-reportes/",
+            "/dashboard/",
+            "/integracion/",
+            "/redes-neuronales/",
+            "/gestion-notificaciones/",
         ]
 
         # Verificar si la ruta actual coincide con alguna importante
@@ -173,7 +173,7 @@ class AuditoriaMiddleware:
                 nombre="registrar_navegacion"
             ).first()
             if config:
-                return config.valor.lower() in ('true', '1', 'yes', 'si')
+                return config.valor.lower() in ("true", "1", "yes", "si")
             return True  # Por defecto habilitado si no existe configuración
         except:
             return True  # En caso de error, habilitarlo por defecto
@@ -209,8 +209,8 @@ def usuario_logout(sender, request, user, **kwargs):
         # Verificar si el cierre de sesión ya fue registrado manualmente
         if (
             request
-            and hasattr(request, 'session')
-            and request.session.get('logout_registered')
+            and hasattr(request, "session")
+            and request.session.get("logout_registered")
         ):
             # Si ya fue registrado, no hacemos nada
             return
@@ -223,11 +223,11 @@ def usuario_logout(sender, request, user, **kwargs):
         if (
             not user
             and request
-            and hasattr(request, 'session')
-            and 'last_user_id' in request.session
+            and hasattr(request, "session")
+            and "last_user_id" in request.session
         ):
             try:
-                user_id = request.session.get('last_user_id')
+                user_id = request.session.get("last_user_id")
                 user = Usuario.objects.get(pk=user_id)
             except Usuario.DoesNotExist:
                 pass
@@ -251,7 +251,7 @@ def usuario_logout(sender, request, user, **kwargs):
             ip = (
                 AuditoriaMiddleware(None).get_client_ip(request)
                 if request
-                else '127.0.0.1'
+                else "127.0.0.1"
             )
             Actividad.objects.create(
                 nombre="Cierre de sesión",
@@ -280,20 +280,20 @@ def usuario_login_fallido(sender, credentials, request, **kwargs):
             system_info = middleware.get_system_info()
         else:
             # Si no hay request (caso raro), usamos valores predeterminados
-            ip = '127.0.0.1'
-            system_info = 'Sistema desconocido'
+            ip = "127.0.0.1"
+            system_info = "Sistema desconocido"
 
         # Intentar obtener el nombre de usuario de diferentes formas
         username = None
-        if credentials and 'username' in credentials:
-            username = credentials.get('username')
+        if credentials and "username" in credentials:
+            username = credentials.get("username")
         elif (
-            request and request.POST and 'email' in request.POST
+            request and request.POST and "email" in request.POST
         ):  # Si usa email como login
-            username = request.POST.get('email')
+            username = request.POST.get("email")
 
         if not username:
-            username = 'desconocido'
+            username = "desconocido"
 
         # Buscar un usuario relacionado con el nombre de usuario o email
         usuario = None
@@ -302,14 +302,14 @@ def usuario_login_fallido(sender, credentials, request, **kwargs):
             usuario = Usuario.objects.filter(nombreusuario=username).first()
 
             # Si no se encuentra, intentar buscar por email
-            if not usuario and '@' in username:
+            if not usuario and "@" in username:
                 usuario = Usuario.objects.filter(email=username).first()
         except Exception as e:
             print(f"Error al buscar usuario para login fallido: {e}")
 
         # Registrar la información detallada del intento fallido
         detalles = f"Usuario: {username}"
-        if request and hasattr(request, 'META'):
+        if request and hasattr(request, "META"):
             detalles += (
                 f" | User-Agent: {request.META.get('HTTP_USER_AGENT', 'Desconocido')}"
             )

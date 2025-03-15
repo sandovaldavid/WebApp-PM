@@ -4,11 +4,11 @@ import joblib
 import numpy as np
 
 # Asegurarse de que podemos importar desde el directorio padre
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 # Directorios y archivos
-MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
-MODEL_NAME = 'tiempo_estimator'
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
+MODEL_NAME = "tiempo_estimator"
 
 
 def run_manual_evaluation():
@@ -20,7 +20,7 @@ def run_manual_evaluation():
         print(f"Cargando modelo desde {MODEL_DIR}...")
 
         # 1. Cargar feature_dims
-        feature_dims_path = os.path.join(MODEL_DIR, 'feature_dims.pkl')
+        feature_dims_path = os.path.join(MODEL_DIR, "feature_dims.pkl")
         if not os.path.exists(feature_dims_path):
             print(f"No se encuentra feature_dims en {feature_dims_path}")
             return False
@@ -31,7 +31,7 @@ def run_manual_evaluation():
         # 2. Cargar modelo
         from rnn_model import AdvancedRNNEstimator
 
-        model_path = os.path.join(MODEL_DIR, f'{MODEL_NAME}_model.keras')
+        model_path = os.path.join(MODEL_DIR, f"{MODEL_NAME}_model.keras")
         if not os.path.exists(model_path):
             print(f"No se encuentra el modelo en {model_path}")
             return False
@@ -46,8 +46,8 @@ def run_manual_evaluation():
         # 3. Generar datos de prueba o cargar datos guardados
         try:
             # Intentar cargar datos de prueba si existen
-            X_val_path = os.path.join(MODEL_DIR, 'X_val.npy')
-            y_val_path = os.path.join(MODEL_DIR, 'y_val.npy')
+            X_val_path = os.path.join(MODEL_DIR, "X_val.npy")
+            y_val_path = os.path.join(MODEL_DIR, "y_val.npy")
 
             if os.path.exists(X_val_path) and os.path.exists(y_val_path):
                 print("Cargando datos de validación guardados...")
@@ -84,7 +84,7 @@ def run_manual_evaluation():
         # Listar archivos generados
         print("\nArchivos generados:")
         for file in os.listdir(MODEL_DIR):
-            if file.endswith('.csv') or file.endswith('.json') or file.endswith('.png'):
+            if file.endswith(".csv") or file.endswith(".json") or file.endswith(".png"):
                 print(f" - {file}")
 
         return True

@@ -32,13 +32,13 @@ def _add_update(training_id, update_data):
     from django.contrib.auth import get_user_model
 
     # Priorizar el uso del cache para mejor rendimiento
-    config_key = f'training_config_{training_id}'
+    config_key = f"training_config_{training_id}"
     config = cache.get(config_key)
 
     # Verificar si tenemos la configuración
     if config is None:
         try:
-            user_id = cache.get(f'training_user_{training_id}')
+            user_id = cache.get(f"training_user_{training_id}")
             if not user_id:
                 print(f"No se encontró user_id para training_id: {training_id}")
                 return
@@ -49,8 +49,8 @@ def _add_update(training_id, update_data):
             # Buscar en todas las sesiones activas
             for session in Session.objects.all():
                 session_data = session.get_decoded()
-                if session_data.get('_auth_user_id') and str(user.idusuario) == str(
-                    session_data.get('_auth_user_id')
+                if session_data.get("_auth_user_id") and str(user.idusuario) == str(
+                    session_data.get("_auth_user_id")
                 ):
                     store = SessionStore(session_key=session.session_key)
                     config = store.get(config_key)
@@ -65,86 +65,86 @@ def _add_update(training_id, update_data):
     # Si encontramos la configuración, añadir la actualización
     if config:
         # Inicializar la lista de actualizaciones si no existe
-        if 'updates' not in config:
-            config['updates'] = []
+        if "updates" not in config:
+            config["updates"] = []
 
         # Añadir timestamp consistente utilizando time.time() para compatibilidad
-        if 'timestamp' not in update_data:
-            update_data['timestamp'] = time.time()
+        if "timestamp" not in update_data:
+            update_data["timestamp"] = time.time()
 
         # Enriquecer actualizaciones según su tipo
-        if update_data.get('type') == 'progress':
+        if update_data.get("type") == "progress":
             # Para actualizaciones de progreso, asegurar información de estado
-            if 'stage' in update_data:
+            if "stage" in update_data:
                 # Añadir texto descriptivo para mejor accesibilidad
-                if 'status_text' not in update_data:
-                    if update_data['stage'] == 'epoch_end':
-                        update_data['status_text'] = (
+                if "status_text" not in update_data:
+                    if update_data["stage"] == "epoch_end":
+                        update_data["status_text"] = (
                             f"Época {update_data.get('epoch', 0)}/{update_data.get('total_epochs', 0)}"
                         )
-                    elif update_data['stage'] == 'epoch_start':
-                        update_data['status_text'] = (
+                    elif update_data["stage"] == "epoch_start":
+                        update_data["status_text"] = (
                             f"Iniciando época {update_data.get('epoch', 0)}"
                         )
 
                 # Asegurar que campos necesarios estén presentes
-                if 'epoch' in update_data and 'total_epochs' in update_data:
+                if "epoch" in update_data and "total_epochs" in update_data:
                     # Recalcular porcentaje de progreso para mayor precisión
-                    update_data['progress_percent'] = (
-                        update_data['epoch'] / update_data['total_epochs']
+                    update_data["progress_percent"] = (
+                        update_data["epoch"] / update_data["total_epochs"]
                     ) * 100
 
                 # Para actualizaciones de fin de época, asegurar métricas básicas
-                if update_data['stage'] == 'epoch_end':
-                    for field in ['train_loss', 'val_loss', 'train_mae', 'val_mae']:
+                if update_data["stage"] == "epoch_end":
+                    for field in ["train_loss", "val_loss", "train_mae", "val_mae"]:
                         if field not in update_data:
                             update_data[field] = 0.0
 
         # Para actualizaciones de batch, añadir información contextual
-        elif update_data.get('type') == 'batch_progress':
+        elif update_data.get("type") == "batch_progress":
             # No sobrecargar con demasiadas actualizaciones
             current_time = time.time()
-            last_batch_time = config.get('last_batch_time', 0)
+            last_batch_time = config.get("last_batch_time", 0)
 
             # Limitar frecuencia de actualizaciones de batch (máximo 1 por segundo)
             if current_time - last_batch_time < 1.0:
                 return  # Ignorar esta actualización
 
-            config['last_batch_time'] = current_time
+            config["last_batch_time"] = current_time
 
             # Asegurar campos necesarios
-            if 'batch' not in update_data:
-                update_data['batch'] = 0
+            if "batch" not in update_data:
+                update_data["batch"] = 0
 
         # Para mensajes de log, añadir nivel por defecto
-        elif update_data.get('type') == 'log':
-            if 'level' not in update_data:
-                update_data['level'] = 'info'
+        elif update_data.get("type") == "log":
+            if "level" not in update_data:
+                update_data["level"] = "info"
 
         # Para eventos de completado, añadir timestamp y estado
-        elif update_data.get('type') == 'complete':
-            config['status'] = 'completed'
-            if 'timestamp' not in update_data:
-                update_data['timestamp'] = time.time()
+        elif update_data.get("type") == "complete":
+            config["status"] = "completed"
+            if "timestamp" not in update_data:
+                update_data["timestamp"] = time.time()
 
         # Para errores, marcar el estado del entrenamiento
-        elif update_data.get('type') == 'error':
-            config['status'] = 'failed'
-            config['error'] = update_data.get('message', 'Error desconocido')
+        elif update_data.get("type") == "error":
+            config["status"] = "failed"
+            config["error"] = update_data.get("message", "Error desconocido")
 
         # Añadir la actualización a la lista
-        config['updates'].append(update_data)
+        config["updates"].append(update_data)
 
         # Asegurarnos de no almacenar demasiadas actualizaciones (máx. 1000)
-        if len(config['updates']) > 1000:
-            config['updates'] = config['updates'][-1000:]
+        if len(config["updates"]) > 1000:
+            config["updates"] = config["updates"][-1000:]
 
         # Actualizar en cache (la principal fuente de verdad)
         cache.set(config_key, config, 7200)  # Extender a 2 horas para evitar expiración
 
         # También intentar actualizar en la sesión como respaldo
         try:
-            user_id = cache.get(f'training_user_{training_id}')
+            user_id = cache.get(f"training_user_{training_id}")
             if user_id:
                 User = get_user_model()
                 user = User.objects.get(idusuario=user_id)
@@ -152,8 +152,8 @@ def _add_update(training_id, update_data):
                 # Actualizar sesiones encontradas
                 for session in Session.objects.all():
                     session_data = session.get_decoded()
-                    if session_data.get('_auth_user_id') and str(user.idusuario) == str(
-                        session_data.get('_auth_user_id')
+                    if session_data.get("_auth_user_id") and str(user.idusuario) == str(
+                        session_data.get("_auth_user_id")
                     ):
                         store = SessionStore(session_key=session.session_key)
                         store[config_key] = config
@@ -172,15 +172,15 @@ def ejecutar_entrenamiento(training_id, user_id):
     from django.core.cache import cache
 
     # Guardar la asociación del usuario con el entrenamiento en cache
-    cache.set(f'training_user_{training_id}', user_id, 3600)  # 1 hora de tiempo de vida
+    cache.set(f"training_user_{training_id}", user_id, 3600)  # 1 hora de tiempo de vida
 
     # Notificar inicio
     _add_update(
         training_id,
         {
-            'type': 'log',
-            'message': 'Iniciando proceso de entrenamiento...',
-            'level': 'info',
+            "type": "log",
+            "message": "Iniciando proceso de entrenamiento...",
+            "level": "info",
         },
     )
 
@@ -188,13 +188,13 @@ def ejecutar_entrenamiento(training_id, user_id):
         # Configuración para matplotlib si se usa
         import os
 
-        os.environ['MPLBACKEND'] = 'Agg'
+        os.environ["MPLBACKEND"] = "Agg"
         import matplotlib
 
-        matplotlib.use('Agg')
+        matplotlib.use("Agg")
 
         # Recuperar configuración de entrenamiento
-        config_key = f'training_config_{training_id}'
+        config_key = f"training_config_{training_id}"
         config = cache.get(config_key)
 
         if not config:
@@ -210,8 +210,8 @@ def ejecutar_entrenamiento(training_id, user_id):
             for session in Session.objects.all():
                 session_data = session.get_decoded()
                 # Comparar con idusuario en lugar de id
-                if session_data.get('_auth_user_id') and str(user.idusuario) == str(
-                    session_data.get('_auth_user_id')
+                if session_data.get("_auth_user_id") and str(user.idusuario) == str(
+                    session_data.get("_auth_user_id")
                 ):
                     from django.contrib.sessions.backends.db import SessionStore
 
@@ -230,16 +230,16 @@ def ejecutar_entrenamiento(training_id, user_id):
             raise ValueError("No se encontró la configuración del entrenamiento")
 
         # Actualizar estado
-        config['status'] = 'running'
+        config["status"] = "running"
         cache.set(config_key, config, 3600)
 
         # 1. Preparar los datos
         _add_update(
             training_id,
             {
-                'type': 'log',
-                'message': 'Preparando datos de entrenamiento...',
-                'level': 'info',
+                "type": "log",
+                "message": "Preparando datos de entrenamiento...",
+                "level": "info",
             },
         )
 
@@ -248,19 +248,19 @@ def ejecutar_entrenamiento(training_id, user_id):
         from redes_neuronales.estimacion_tiempo.rnn_model import AdvancedRNNEstimator
 
         # Instanciar el procesador de datos según el método seleccionado
-        if config['training_method'] == 'csv':
-            if not config['data_path'] or not os.path.exists(config['data_path']):
+        if config["training_method"] == "csv":
+            if not config["data_path"] or not os.path.exists(config["data_path"]):
                 raise ValueError(f"Archivo CSV no encontrado en: {config['data_path']}")
 
-            processor = DataProcessor(data_path=config['data_path'])
+            processor = DataProcessor(data_path=config["data_path"])
             data = processor.load_data()
 
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': f'Datos cargados desde CSV. {len(data)} registros encontrados.',
-                    'level': 'info',
+                    "type": "log",
+                    "message": f"Datos cargados desde CSV. {len(data)} registros encontrados.",
+                    "level": "info",
                 },
             )
         else:
@@ -268,22 +268,22 @@ def ejecutar_entrenamiento(training_id, user_id):
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': 'Cargando datos desde la base de datos...',
-                    'level': 'info',
+                    "type": "log",
+                    "message": "Cargando datos desde la base de datos...",
+                    "level": "info",
                 },
             )
 
             processor = DataProcessor(use_db=True)
 
             # Si se habilitó datos sintéticos, usar la función correspondiente
-            if config['use_synthetic']:
+            if config["use_synthetic"]:
                 _add_update(
                     training_id,
                     {
-                        'type': 'log',
-                        'message': 'Generando datos sintéticos para aumentar el conjunto de entrenamiento...',
-                        'level': 'info',
+                        "type": "log",
+                        "message": "Generando datos sintéticos para aumentar el conjunto de entrenamiento...",
+                        "level": "info",
                     },
                 )
 
@@ -297,11 +297,11 @@ def ejecutar_entrenamiento(training_id, user_id):
 
                 temp_dir = tempfile.gettempdir()
                 temp_output = os.path.join(
-                    temp_dir, f'synthetic_data_{training_id}.csv'
+                    temp_dir, f"synthetic_data_{training_id}.csv"
                 )
 
                 # Obtener datos de la DB y guardarlos temporalmente
-                temp_input = os.path.join(temp_dir, f'db_data_{training_id}.csv')
+                temp_input = os.path.join(temp_dir, f"db_data_{training_id}.csv")
                 processor.load_data_from_db(save_path=temp_input)
 
                 # Generar datos sintéticos
@@ -314,9 +314,9 @@ def ejecutar_entrenamiento(training_id, user_id):
                 _add_update(
                     training_id,
                     {
-                        'type': 'log',
-                        'message': f'Datos combinados generados. {len(data)} registros disponibles.',
-                        'level': 'success',
+                        "type": "log",
+                        "message": f"Datos combinados generados. {len(data)} registros disponibles.",
+                        "level": "success",
                     },
                 )
             else:
@@ -325,9 +325,9 @@ def ejecutar_entrenamiento(training_id, user_id):
                 _add_update(
                     training_id,
                     {
-                        'type': 'log',
-                        'message': f'Datos cargados desde la base de datos. {len(data)} registros encontrados.',
-                        'level': 'info',
+                        "type": "log",
+                        "message": f"Datos cargados desde la base de datos. {len(data)} registros encontrados.",
+                        "level": "info",
                     },
                 )
 
@@ -340,32 +340,32 @@ def ejecutar_entrenamiento(training_id, user_id):
         # 2. Preprocesar los datos
         _add_update(
             training_id,
-            {'type': 'log', 'message': 'Preprocesando datos...', 'level': 'info'},
+            {"type": "log", "message": "Preprocesando datos...", "level": "info"},
         )
 
         X_train, X_val, y_train, y_val, feature_dims = processor.preprocess_data(
-            test_size=config['test_size'], val_size=config['validation_size']
+            test_size=config["test_size"], val_size=config["validation_size"]
         )
 
         # Guardar los preprocesadores
-        output_dir = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models')
+        output_dir = os.path.join("redes_neuronales", "estimacion_tiempo", "models")
         os.makedirs(output_dir, exist_ok=True)
         processor.save_preprocessors(output_dir=output_dir)
 
         # Guardar explícitamente los datos de validación para evaluación posterior
-        np.save(os.path.join(output_dir, 'X_val.npy'), X_val)
-        np.save(os.path.join(output_dir, 'y_val.npy'), y_val)
+        np.save(os.path.join(output_dir, "X_val.npy"), X_val)
+        np.save(os.path.join(output_dir, "y_val.npy"), y_val)
 
         # Guardar datos completos en un archivo joblib para uso posterior
-        validation_data = {'X_val': X_val, 'y_val': y_val, 'feature_dims': feature_dims}
-        joblib.dump(validation_data, os.path.join(output_dir, 'validation_data.joblib'))
+        validation_data = {"X_val": X_val, "y_val": y_val, "feature_dims": feature_dims}
+        joblib.dump(validation_data, os.path.join(output_dir, "validation_data.joblib"))
 
         _add_update(
             training_id,
             {
-                'type': 'log',
-                'message': f'Preprocesamiento completado. Conjunto de entrenamiento: {len(X_train)}, Conjunto de validación: {len(X_val)}',
-                'level': 'success',
+                "type": "log",
+                "message": f"Preprocesamiento completado. Conjunto de entrenamiento: {len(X_train)}, Conjunto de validación: {len(X_val)}",
+                "level": "success",
             },
         )
 
@@ -373,23 +373,23 @@ def ejecutar_entrenamiento(training_id, user_id):
         _add_update(
             training_id,
             {
-                'type': 'log',
-                'message': 'Configurando modelo de red neural...',
-                'level': 'info',
+                "type": "log",
+                "message": "Configurando modelo de red neural...",
+                "level": "info",
             },
         )
 
         model_config = {
-            'rnn_units': config['rnn_units'],
-            'dense_units': [128, 64, 32],
-            'dropout_rate': config['dropout_rate'],
-            'learning_rate': config['learning_rate'],
-            'l2_reg': 0.001,
-            'use_bidirectional': config['bidirectional'],
-            'rnn_type': config['rnn_type'],
-            'activation': 'relu',
-            'batch_size': config['batch_size'],
-            'epochs': config['epochs'],
+            "rnn_units": config["rnn_units"],
+            "dense_units": [128, 64, 32],
+            "dropout_rate": config["dropout_rate"],
+            "learning_rate": config["learning_rate"],
+            "l2_reg": 0.001,
+            "use_bidirectional": config["bidirectional"],
+            "rnn_type": config["rnn_type"],
+            "activation": "relu",
+            "batch_size": config["batch_size"],
+            "epochs": config["epochs"],
         }
 
         estimator = AdvancedRNNEstimator(model_config)
@@ -398,9 +398,9 @@ def ejecutar_entrenamiento(training_id, user_id):
         _add_update(
             training_id,
             {
-                'type': 'log',
-                'message': f'Modelo configurado: {config["rnn_type"]} {"bidireccional" if config["bidirectional"] else "unidireccional"} con {config["rnn_units"]} unidades',
-                'level': 'info',
+                "type": "log",
+                "message": f'Modelo configurado: {config["rnn_type"]} {"bidireccional" if config["bidirectional"] else "unidireccional"} con {config["rnn_units"]} unidades',
+                "level": "info",
             },
         )
 
@@ -408,9 +408,9 @@ def ejecutar_entrenamiento(training_id, user_id):
         _add_update(
             training_id,
             {
-                'type': 'log',
-                'message': f'Iniciando entrenamiento del modelo con {config["epochs"]} épocas...',
-                'level': 'info',
+                "type": "log",
+                "message": f'Iniciando entrenamiento del modelo con {config["epochs"]} épocas...',
+                "level": "info",
             },
         )
 
@@ -437,18 +437,18 @@ def ejecutar_entrenamiento(training_id, user_id):
                     _add_update(
                         self.training_id,
                         {
-                            'type': 'batch_progress',
-                            'batch': batch,
-                            'loss': float(logs.get('loss', 0)),
-                            'mae': float(logs.get('mae', 0)),
-                            'epoch': self.epoch_log
+                            "type": "batch_progress",
+                            "batch": batch,
+                            "loss": float(logs.get("loss", 0)),
+                            "mae": float(logs.get("mae", 0)),
+                            "epoch": self.epoch_log
                             + 1,  # Añadir información de época actual
-                            'total_epochs': self.total_epochs,
-                            'progress_percent': (
+                            "total_epochs": self.total_epochs,
+                            "progress_percent": (
                                 (self.epoch_log + 1) / self.total_epochs
                             )
                             * 100,
-                            'timestamp': time.time(),
+                            "timestamp": time.time(),
                         },
                     )
 
@@ -459,11 +459,11 @@ def ejecutar_entrenamiento(training_id, user_id):
                 _add_update(
                     self.training_id,
                     {
-                        'type': 'progress',
-                        'stage': 'epoch_start',
-                        'epoch': epoch + 1,
-                        'total_epochs': self.total_epochs,
-                        'progress_percent': (epoch / self.total_epochs) * 100,
+                        "type": "progress",
+                        "stage": "epoch_start",
+                        "epoch": epoch + 1,
+                        "total_epochs": self.total_epochs,
+                        "progress_percent": (epoch / self.total_epochs) * 100,
                     },
                 )
 
@@ -492,18 +492,18 @@ def ejecutar_entrenamiento(training_id, user_id):
                 _add_update(
                     self.training_id,
                     {
-                        'type': 'progress',
-                        'stage': 'epoch_end',
-                        'epoch': epoch + 1,
-                        'total_epochs': self.total_epochs,
-                        'progress_percent': ((epoch + 1) / self.total_epochs) * 100,
-                        'train_loss': float(logs.get('loss', 0)),
-                        'val_loss': float(logs.get('val_loss', 0)),
-                        'train_mae': float(logs.get('mae', 0)),
-                        'val_mae': float(logs.get('val_mae', 0)),
-                        'remaining_time': remaining_time,
-                        'elapsed_time': int(elapsed),
-                        'epoch_time': int(epoch_time),
+                        "type": "progress",
+                        "stage": "epoch_end",
+                        "epoch": epoch + 1,
+                        "total_epochs": self.total_epochs,
+                        "progress_percent": ((epoch + 1) / self.total_epochs) * 100,
+                        "train_loss": float(logs.get("loss", 0)),
+                        "val_loss": float(logs.get("val_loss", 0)),
+                        "train_mae": float(logs.get("mae", 0)),
+                        "val_mae": float(logs.get("val_mae", 0)),
+                        "remaining_time": remaining_time,
+                        "elapsed_time": int(elapsed),
+                        "epoch_time": int(epoch_time),
                     },
                 )
 
@@ -516,9 +516,9 @@ def ejecutar_entrenamiento(training_id, user_id):
                     _add_update(
                         self.training_id,
                         {
-                            'type': 'log',
-                            'message': f'Época {epoch + 1}/{self.total_epochs} - loss: {logs.get("loss", 0):.4f} - val_loss: {logs.get("val_loss", 0):.4f} - mae: {logs.get("mae", 0):.4f}',
-                            'level': 'info',
+                            "type": "log",
+                            "message": f'Época {epoch + 1}/{self.total_epochs} - loss: {logs.get("loss", 0):.4f} - val_loss: {logs.get("val_loss", 0):.4f} - mae: {logs.get("mae", 0):.4f}',
+                            "level": "info",
                         },
                     )
 
@@ -532,15 +532,15 @@ def ejecutar_entrenamiento(training_id, user_id):
                     _add_update(
                         self.training_id,
                         {
-                            'type': 'batch_progress',
-                            'batch': batch,
-                            'loss': float(logs.get('loss', 0)),
-                            'mae': float(logs.get('mae', 0)),
+                            "type": "batch_progress",
+                            "batch": batch,
+                            "loss": float(logs.get("loss", 0)),
+                            "mae": float(logs.get("mae", 0)),
                         },
                     )
 
         # Añadir callback personalizado
-        progress_callback = ProgressCallback(training_id, config['epochs'])
+        progress_callback = ProgressCallback(training_id, config["epochs"])
 
         # Entrenar modelo con el callback
         history = estimator.train(
@@ -551,14 +551,14 @@ def ejecutar_entrenamiento(training_id, user_id):
         _add_update(
             training_id,
             {
-                'type': 'log',
-                'message': 'Entrenamiento completado. Evaluando modelo...',
-                'level': 'success',
+                "type": "log",
+                "message": "Entrenamiento completado. Evaluando modelo...",
+                "level": "success",
             },
         )
 
         try:
-            '''
+            """
             # Importar evaluador
             print("Importando ModelEvaluator...")
             from redes_neuronales.estimacion_tiempo.evaluator import ModelEvaluator
@@ -606,7 +606,7 @@ def ejecutar_entrenamiento(training_id, user_id):
                 'type': 'log',
                 'message': f'Evaluación completa. R²: {metrics["R2"]:.4f}, MAE: {metrics["MAE"]:.2f}',
                 'level': 'success'
-            })'''
+            })"""
 
             # Calcular solo métricas básicas para información rápida
             y_pred = estimator.predict(X_val, feature_dims)
@@ -624,19 +624,19 @@ def ejecutar_entrenamiento(training_id, user_id):
 
             # Crear diccionario simplificado solo para mostrar resultados iniciales
             metrics = {
-                'MSE': float(mse),
-                'RMSE': float(rmse),
-                'MAE': float(mae),
-                'R2': float(r2),
-                'Accuracy': 0.0,  # Placeholder
+                "MSE": float(mse),
+                "RMSE": float(rmse),
+                "MAE": float(mae),
+                "R2": float(r2),
+                "Accuracy": 0.0,  # Placeholder
             }
 
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': f'Entrenamiento completado. Métricas preliminares: R²: {r2:.4f}, MAE: {mae:.2f}',
-                    'level': 'success',
+                    "type": "log",
+                    "message": f"Entrenamiento completado. Métricas preliminares: R²: {r2:.4f}, MAE: {mae:.2f}",
+                    "level": "success",
                 },
             )
         except ImportError as e:
@@ -645,13 +645,13 @@ def ejecutar_entrenamiento(training_id, user_id):
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': f'Error al importar módulo de evaluación: {error_detail}',
-                    'level': 'warning',
+                    "type": "log",
+                    "message": f"Error al importar módulo de evaluación: {error_detail}",
+                    "level": "warning",
                 },
             )
             # Crear métricas básicas para continuar
-            metrics = {'R2': 0.9, 'MAE': 3.5, 'Accuracy': 0.85}
+            metrics = {"R2": 0.9, "MAE": 3.5, "Accuracy": 0.85}
             y_pred = []
         except Exception as e:
             error_detail = str(e)
@@ -660,22 +660,22 @@ def ejecutar_entrenamiento(training_id, user_id):
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': f'Error durante la evaluación del modelo: {error_detail}',
-                    'level': 'warning',
+                    "type": "log",
+                    "message": f"Error durante la evaluación del modelo: {error_detail}",
+                    "level": "warning",
                 },
             )
             # Crear métricas básicas para continuar
-            metrics = {'R2': 0.9, 'MAE': 3.5, 'Accuracy': 0.85}
+            metrics = {"R2": 0.9, "MAE": 3.5, "Accuracy": 0.85}
             y_pred = []
 
         # 6. Guardar el modelo
         _add_update(
             training_id,
             {
-                'type': 'log',
-                'message': f'Guardando modelo como {config["model_name"]}...',
-                'level': 'info',
+                "type": "log",
+                "message": f'Guardando modelo como {config["model_name"]}...',
+                "level": "info",
             },
         )
 
@@ -684,14 +684,14 @@ def ejecutar_entrenamiento(training_id, user_id):
         estimator.save(model_dir=output_dir, name=f'{config["model_name"]}_{timestamp}')
 
         # Si se marcó como modelo principal, guardar también con nombre fijo
-        if config['save_as_main']:
-            estimator.save(model_dir=output_dir, name='tiempo_estimator')
+        if config["save_as_main"]:
+            estimator.save(model_dir=output_dir, name="tiempo_estimator")
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': 'Modelo establecido como principal para predicciones.',
-                    'level': 'success',
+                    "type": "log",
+                    "message": "Modelo establecido como principal para predicciones.",
+                    "level": "success",
                 },
             )
 
@@ -700,39 +700,39 @@ def ejecutar_entrenamiento(training_id, user_id):
             from dashboard.models import Modeloestimacionrnn
 
             modelo, created = Modeloestimacionrnn.objects.update_or_create(
-                nombremodelo='RNN Avanzado',
+                nombremodelo="RNN Avanzado",
                 defaults={
-                    'descripcionmodelo': f'Modelo entrenado desde la interfaz web ({config["rnn_type"]} {"bidireccional" if config["bidirectional"] else "unidireccional"})',
-                    'versionmodelo': f"1.0.{timestamp}",
-                    'precision': metrics.get('R2', 0.8),
-                    'fechamodificacion': timezone.now(),  # Usar timezone.now() en lugar de datetime.now()
+                    "descripcionmodelo": f'Modelo entrenado desde la interfaz web ({config["rnn_type"]} {"bidireccional" if config["bidirectional"] else "unidireccional"})',
+                    "versionmodelo": f"1.0.{timestamp}",
+                    "precision": metrics.get("R2", 0.8),
+                    "fechamodificacion": timezone.now(),  # Usar timezone.now() en lugar de datetime.now()
                 },
             )
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': f'Registro del modelo actualizado en la base de datos.',
-                    'level': 'success',
+                    "type": "log",
+                    "message": f"Registro del modelo actualizado en la base de datos.",
+                    "level": "success",
                 },
             )
         except Exception as e:
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': f'No se pudo actualizar el registro en la base de datos: {str(e)}',
-                    'level': 'warning',
+                    "type": "log",
+                    "message": f"No se pudo actualizar el registro en la base de datos: {str(e)}",
+                    "level": "warning",
                 },
             )
 
         # 8. Preparar resultado para la interfaz
         # Extraer datos relevantes del historial para gráficas
         loss_history = {
-            'loss': [float(val) for val in history.history['loss']],
-            'val_loss': (
-                [float(val) for val in history.history['val_loss']]
-                if 'val_loss' in history.history
+            "loss": [float(val) for val in history.history["loss"]],
+            "val_loss": (
+                [float(val) for val in history.history["val_loss"]]
+                if "val_loss" in history.history
                 else []
             ),
         }
@@ -758,15 +758,15 @@ def ejecutar_entrenamiento(training_id, user_id):
             actual_sample = [0, 0]
 
         # Actualizar estado a completado con resultados
-        config['status'] = 'completed'
-        config['result'] = {
-            'metrics': metrics,
-            'history': loss_history,
-            'predictions': predictions_sample,
-            'actual': actual_sample,
-            'model_name': config['model_name'],
-            'is_main_model': config['save_as_main'],
-            'timestamp': timezone.now().strftime(
+        config["status"] = "completed"
+        config["result"] = {
+            "metrics": metrics,
+            "history": loss_history,
+            "predictions": predictions_sample,
+            "actual": actual_sample,
+            "model_name": config["model_name"],
+            "is_main_model": config["save_as_main"],
+            "timestamp": timezone.now().strftime(
                 "%Y-%m-%d %H:%M:%S"
             ),  # Usar timezone.now()
         }
@@ -778,12 +778,12 @@ def ejecutar_entrenamiento(training_id, user_id):
         _add_update(
             training_id,
             {
-                'type': 'complete',
-                'message': 'Entrenamiento finalizado exitosamente.',
-                'metrics_summary': {
-                    'R2': float(metrics.get('R2', 0)),
-                    'MAE': float(metrics.get('MAE', 0)),
-                    'Accuracy': float(metrics.get('Accuracy', 0)),
+                "type": "complete",
+                "message": "Entrenamiento finalizado exitosamente.",
+                "metrics_summary": {
+                    "R2": float(metrics.get("R2", 0)),
+                    "MAE": float(metrics.get("MAE", 0)),
+                    "Accuracy": float(metrics.get("Accuracy", 0)),
                 },
             },
         )
@@ -792,9 +792,9 @@ def ejecutar_entrenamiento(training_id, user_id):
         _add_update(
             training_id,
             {
-                'type': 'log',
-                'message': '✅ Proceso de entrenamiento completado. El modelo está listo para ser utilizado.',
-                'level': 'success',
+                "type": "log",
+                "message": "✅ Proceso de entrenamiento completado. El modelo está listo para ser utilizado.",
+                "level": "success",
             },
         )
 
@@ -803,9 +803,9 @@ def ejecutar_entrenamiento(training_id, user_id):
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': 'Iniciando generación de archivos adicionales...',
-                    'level': 'info',
+                    "type": "log",
+                    "message": "Iniciando generación de archivos adicionales...",
+                    "level": "info",
                 },
             )
 
@@ -818,9 +818,9 @@ def ejecutar_entrenamiento(training_id, user_id):
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': 'Proceso de generación de archivos iniciado en segundo plano.',
-                    'level': 'info',
+                    "type": "log",
+                    "message": "Proceso de generación de archivos iniciado en segundo plano.",
+                    "level": "info",
                 },
             )
         except Exception as e:
@@ -828,9 +828,9 @@ def ejecutar_entrenamiento(training_id, user_id):
             _add_update(
                 training_id,
                 {
-                    'type': 'log',
-                    'message': f'Advertencia: No se pudieron iniciar algunas tareas adicionales. {str(e)}',
-                    'level': 'warning',
+                    "type": "log",
+                    "message": f"Advertencia: No se pudieron iniciar algunas tareas adicionales. {str(e)}",
+                    "level": "warning",
                 },
             )
 
@@ -847,16 +847,16 @@ def ejecutar_entrenamiento(training_id, user_id):
         # Actualizar el estado en caché para reflejar el error
         from django.core.cache import cache
 
-        config_key = f'training_config_{training_id}'
+        config_key = f"training_config_{training_id}"
         config = cache.get(config_key)
         if config:
-            if 'updates' not in config:
-                config['updates'] = []
-            config['updates'].append(
+            if "updates" not in config:
+                config["updates"] = []
+            config["updates"].append(
                 {
-                    'type': 'error',
-                    'message': f"Error en el entrenamiento: {str(e)}",
-                    'timestamp': time.time(),
+                    "type": "error",
+                    "message": f"Error en el entrenamiento: {str(e)}",
+                    "timestamp": time.time(),
                 }
             )
             cache.set(config_key, config, 7200)  # 2 horas

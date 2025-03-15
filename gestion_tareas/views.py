@@ -268,7 +268,7 @@ def crear_tarea(request):
     try:
         # Obtener y contar los tipos de tarea y fases para diagnóstico
         tipos_tarea = TipoTarea.objects.all()
-        fases = Fase.objects.all().order_by('orden')
+        fases = Fase.objects.all().order_by("orden")
 
         # Añadir diagnóstico en los logs
         print(f"Tipos de tarea encontrados: {tipos_tarea.count()}")
@@ -381,7 +381,7 @@ def detalle_tarea(request, id):
     elif tarea.estado == "En Progreso":
         if tarea.duracionactual and tarea.duracionestimada:
             # Si hay un campo de porcentaje completado manual, usarlo
-            if hasattr(tarea, 'porcentaje_completado') and tarea.porcentaje_completado:
+            if hasattr(tarea, "porcentaje_completado") and tarea.porcentaje_completado:
                 progreso = float(tarea.porcentaje_completado)
             else:
                 # Estimación basada en el tiempo transcurrido respecto al plan
@@ -436,7 +436,7 @@ def detalle_tarea(request, id):
     # Etiquetas como lista
     etiquetas = []
     if tarea.tags:
-        etiquetas = [tag.strip() for tag in tarea.tags.split(',')]
+        etiquetas = [tag.strip() for tag in tarea.tags.split(",")]
 
     # Convertir claridad de requisitos a porcentaje (0-100%)
     claridad_porcentaje = 0
@@ -567,7 +567,7 @@ def editar_tarea(request, id):
             "tarea": tarea,
             "requerimientos": Requerimiento.objects.all(),
             "tipos_tarea": TipoTarea.objects.all(),
-            "fases": Fase.objects.all().order_by('orden'),
+            "fases": Fase.objects.all().order_by("orden"),
             "estados_tarea": ["Pendiente", "En Progreso", "Completada"],
             "prioridades": ["Baja", "Media", "Alta"],
             "fecha_minima": timezone.now().date(),
@@ -1026,7 +1026,7 @@ def estimar_tarea(request):
             # Configurar rutas relativas
             # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            REDES_DIR = os.path.join(BASE_DIR, 'redes_neuronales')
+            REDES_DIR = os.path.join(BASE_DIR, "redes_neuronales")
             MODEL_DIR = os.path.join(BASE_DIR, "redes_neuronales", "models")
 
             # Verificar que existe el directorio
@@ -1057,9 +1057,9 @@ def estimar_tarea(request):
                     raise FileNotFoundError(f"No se encuentra el archivo: {path}")
 
             # Obtener datos del formulario
-            complejidad = int(request.POST.get('complejidad', 2))
-            prioridad = int(request.POST.get('prioridad', 2))
-            tipo_tarea = request.POST.get('tipo_tarea', 'backend')
+            complejidad = int(request.POST.get("complejidad", 2))
+            prioridad = int(request.POST.get("prioridad", 2))
+            tipo_tarea = request.POST.get("tipo_tarea", "backend")
 
             # Prints de debug
             print("\nDatos recibidos para estimación:")
@@ -1104,20 +1104,20 @@ def estimar_tarea(request):
             )
 
             # Obtener el tiempo estimado y redondear a entero
-            tiempo_estimado = max(1, round(float(resultado['tiempo_estimado'])))
+            tiempo_estimado = max(1, round(float(resultado["tiempo_estimado"])))
 
-            return JsonResponse({'duracion_estimada': tiempo_estimado, 'success': True})
+            return JsonResponse({"duracion_estimada": tiempo_estimado, "success": True})
 
         except FileNotFoundError as e:
             return JsonResponse(
-                {'error': f"Error de archivo: {str(e)}", 'success': False}
+                {"error": f"Error de archivo: {str(e)}", "success": False}
             )
         except Exception as e:
             return JsonResponse(
-                {'error': f"Error inesperado: {str(e)}", 'success': False}
+                {"error": f"Error inesperado: {str(e)}", "success": False}
             )
 
-    return JsonResponse({'error': 'Método no permitido', 'success': False})
+    return JsonResponse({"error": "Método no permitido", "success": False})
 
 
 @login_required
@@ -1128,37 +1128,37 @@ def api_tarea_por_id(request, id):
 
         # Crear respuesta con datos de la tarea
         data = {
-            'idtarea': tarea.idtarea,
-            'nombretarea': tarea.nombretarea,
-            'descripcion': tarea.descripcion,
-            'estado': tarea.estado,
-            'prioridad': tarea.prioridad,
-            'dificultad': tarea.dificultad,
-            'fechainicio': (
-                tarea.fechainicio.strftime('%Y-%m-%d') if tarea.fechainicio else None
+            "idtarea": tarea.idtarea,
+            "nombretarea": tarea.nombretarea,
+            "descripcion": tarea.descripcion,
+            "estado": tarea.estado,
+            "prioridad": tarea.prioridad,
+            "dificultad": tarea.dificultad,
+            "fechainicio": (
+                tarea.fechainicio.strftime("%Y-%m-%d") if tarea.fechainicio else None
             ),
-            'fechafin': tarea.fechafin.strftime('%Y-%m-%d') if tarea.fechafin else None,
-            'duracionestimada': tarea.duracionestimada,
-            'costoestimado': tarea.costoestimado,
-            'tags': tarea.tags,
+            "fechafin": tarea.fechafin.strftime("%Y-%m-%d") if tarea.fechafin else None,
+            "duracionestimada": tarea.duracionestimada,
+            "costoestimado": tarea.costoestimado,
+            "tags": tarea.tags,
         }
 
         # Incluir tipo de tarea si existe
         if tarea.tipo_tarea:
-            data['tipo_tarea'] = {
-                'id': tarea.tipo_tarea.idtipotarea,
-                'nombre': tarea.tipo_tarea.nombre,
+            data["tipo_tarea"] = {
+                "id": tarea.tipo_tarea.idtipotarea,
+                "nombre": tarea.tipo_tarea.nombre,
             }
 
         # Incluir fase si existe
         if tarea.fase:
-            data['fase'] = {
-                'id': tarea.fase.idfase,
-                'nombre': tarea.fase.nombre,
-                'orden': tarea.fase.orden,
+            data["fase"] = {
+                "id": tarea.fase.idfase,
+                "nombre": tarea.fase.nombre,
+                "orden": tarea.fase.orden,
             }
 
         return JsonResponse(data)
 
     except Exception as e:
-        return JsonResponse({'error': f"Error al obtener tarea: {str(e)}"}, status=500)
+        return JsonResponse({"error": f"Error al obtener tarea: {str(e)}"}, status=500)

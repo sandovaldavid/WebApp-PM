@@ -173,7 +173,7 @@ def login(request):
         if not email or not contrasena:
             # Emitir señal de login fallido por campos faltantes
             user_login_failed.send(
-                sender=__name__, credentials={'username': email or ''}, request=request
+                sender=__name__, credentials={"username": email or ""}, request=request
             )
             return render(
                 request,
@@ -187,7 +187,7 @@ def login(request):
             if not usuario.confirmado:
                 # Emitir señal de login fallido por cuenta no confirmada
                 user_login_failed.send(
-                    sender=__name__, credentials={'username': email}, request=request
+                    sender=__name__, credentials={"username": email}, request=request
                 )
                 return render(
                     request,
@@ -221,7 +221,7 @@ def login(request):
             else:
                 # Emitir señal de login fallido por contraseña incorrecta
                 user_login_failed.send(
-                    sender=__name__, credentials={'username': email}, request=request
+                    sender=__name__, credentials={"username": email}, request=request
                 )
                 return render(
                     request,
@@ -231,7 +231,7 @@ def login(request):
         except Usuario.DoesNotExist:
             # Emitir señal de login fallido por usuario no encontrado
             user_login_failed.send(
-                sender=__name__, credentials={'username': email}, request=request
+                sender=__name__, credentials={"username": email}, request=request
             )
             return render(
                 request,
@@ -257,7 +257,7 @@ def logout(request):
     auth_logout(request)
     messages.success(request, "Has cerrado sesión correctamente")
     # Redirigir a la página de inicio o página de login
-    return redirect('usuarios:login')  # Ajusta esta URL según tu configuración
+    return redirect("usuarios:login")  # Ajusta esta URL según tu configuración
 
 
 # Vista para recuperar contraseña

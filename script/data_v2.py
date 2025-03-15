@@ -511,7 +511,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Monitor 4K"),
     costounidad=5,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -527,7 +527,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Servidor de Desarrollo"),
     costounidad=5,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -544,7 +544,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Adobe Creative Suite"),
     costounidad=200,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -560,7 +560,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia IDE Premium"),
     costounidad=300,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -576,7 +576,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Estación de Trabajo"),
     costounidad=500,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -592,7 +592,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Base de Datos Enterprise"),
     costounidad=600,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -608,7 +608,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Antivirus Empresarial"),
     costounidad=100,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -626,7 +626,7 @@ Recursomaterial.objects.create(
     ),
     costounidad=1000,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -642,7 +642,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Autodesk Maya"),
     costounidad=500,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -658,7 +658,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="NAS Enterprise Storage"),
     costounidad=5000,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -674,7 +674,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Jira Software"),
     costounidad=300,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -690,7 +690,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia TestComplete"),
     costounidad=1500,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -706,7 +706,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Sistema de Videoconferencia 4K"),
     costounidad=80,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -722,7 +722,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia VMware Enterprise"),
     costounidad=500,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 

@@ -35,10 +35,10 @@ _ACTIVE_TASKS = {}
 class TaskStatus:
     """Estados posibles de una tarea"""
 
-    PENDING = 'pending'
-    RUNNING = 'running'
-    COMPLETED = 'completed'
-    FAILED = 'failed'
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class AsyncTask:
@@ -62,17 +62,17 @@ class AsyncTask:
         )
 
         if task_id in _ACTIVE_TASKS:
-            _ACTIVE_TASKS[task_id]['status'] = TaskStatus.FAILED
-            _ACTIVE_TASKS[task_id]['error'] = str(error)
-            _ACTIVE_TASKS[task_id]['traceback'] = traceback_str
-            _ACTIVE_TASKS[task_id]['end_time'] = datetime.now()
+            _ACTIVE_TASKS[task_id]["status"] = TaskStatus.FAILED
+            _ACTIVE_TASKS[task_id]["error"] = str(error)
+            _ACTIVE_TASKS[task_id]["traceback"] = traceback_str
+            _ACTIVE_TASKS[task_id]["end_time"] = datetime.now()
 
         # Actualizar el estado en cache para la interfaz web
-        config_key = f'training_config_{task_id}'
+        config_key = f"training_config_{task_id}"
         config = cache.get(config_key)
         if config:
-            config['status'] = 'failed'
-            config['error'] = str(error)
+            config["status"] = "failed"
+            config["error"] = str(error)
             cache.set(config_key, config, 7200)  # 2 horas
 
     def _process_wrapper(self, task_id, args, kwargs, result_queue):
@@ -80,16 +80,16 @@ class AsyncTask:
         try:
             # Registrar inicio
             if task_id in _ACTIVE_TASKS:
-                _ACTIVE_TASKS[task_id]['status'] = TaskStatus.RUNNING
-                _ACTIVE_TASKS[task_id]['start_time'] = datetime.now()
+                _ACTIVE_TASKS[task_id]["status"] = TaskStatus.RUNNING
+                _ACTIVE_TASKS[task_id]["start_time"] = datetime.now()
 
             # Ejecutar la función objetivo
             result = self.target_func(*args, **kwargs)
 
             # Registrar finalización exitosa
             if task_id in _ACTIVE_TASKS:
-                _ACTIVE_TASKS[task_id]['status'] = TaskStatus.COMPLETED
-                _ACTIVE_TASKS[task_id]['end_time'] = datetime.now()
+                _ACTIVE_TASKS[task_id]["status"] = TaskStatus.COMPLETED
+                _ACTIVE_TASKS[task_id]["end_time"] = datetime.now()
 
             # Devolver resultado
             result_queue.put((True, result))
@@ -112,14 +112,14 @@ class AsyncTask:
 
         # Registrar la nueva tarea
         _ACTIVE_TASKS[task_id] = {
-            'id': task_id,
-            'name': self.name,
-            'status': TaskStatus.PENDING,
-            'create_time': datetime.now(),
-            'start_time': None,
-            'end_time': None,
-            'args': args,
-            'kwargs': kwargs,
+            "id": task_id,
+            "name": self.name,
+            "status": TaskStatus.PENDING,
+            "create_time": datetime.now(),
+            "start_time": None,
+            "end_time": None,
+            "args": args,
+            "kwargs": kwargs,
         }
 
         # Crear y iniciar el proceso
@@ -129,7 +129,7 @@ class AsyncTask:
         process.daemon = True
 
         # Almacenar proceso para posible cancelación
-        _ACTIVE_TASKS[task_id]['process'] = process
+        _ACTIVE_TASKS[task_id]["process"] = process
 
         # Iniciar proceso
         process.start()
@@ -172,8 +172,8 @@ class AsyncResult:
         if self.process.is_alive():
             self.process.terminate()
             if self.id in _ACTIVE_TASKS:
-                _ACTIVE_TASKS[self.id]['status'] = 'cancelled'
-                _ACTIVE_TASKS[self.id]['end_time'] = datetime.now()
+                _ACTIVE_TASKS[self.id]["status"] = "cancelled"
+                _ACTIVE_TASKS[self.id]["end_time"] = datetime.now()
             return True
         return False
 
@@ -185,7 +185,7 @@ start_training_process = AsyncTask(ejecutar_entrenamiento, name="entrenamiento_m
 # Funciones de utilidad para gestión de tareas
 def get_task_status(task_id):
     """Obtiene el estado actual de una tarea"""
-    return _ACTIVE_TASKS.get(task_id, {'status': 'unknown'})
+    return _ACTIVE_TASKS.get(task_id, {"status": "unknown"})
 
 
 def get_active_tasks():
@@ -193,7 +193,7 @@ def get_active_tasks():
     return {
         k: v
         for k, v in _ACTIVE_TASKS.items()
-        if v.get('status') in [TaskStatus.PENDING, TaskStatus.RUNNING]
+        if v.get("status") in [TaskStatus.PENDING, TaskStatus.RUNNING]
     }
 
 
@@ -203,8 +203,8 @@ def cleanup_completed_tasks(max_age_hours=24):
     keys_to_remove = []
 
     for task_id, task_info in _ACTIVE_TASKS.items():
-        if task_info.get('status') in [TaskStatus.COMPLETED, TaskStatus.FAILED]:
-            end_time = task_info.get('end_time')
+        if task_info.get("status") in [TaskStatus.COMPLETED, TaskStatus.FAILED]:
+            end_time = task_info.get("end_time")
             if (
                 end_time
                 and (current_time - end_time).total_seconds() > max_age_hours * 3600

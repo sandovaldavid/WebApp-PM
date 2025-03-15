@@ -11,7 +11,7 @@ import traceback
 import json
 
 # Configurar el path para importar desde el proyecto Django
-PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 sys.path.insert(0, PROJECT_PATH)
 
 # Configurar Django
@@ -29,9 +29,9 @@ from redes_neuronales.estimacion_tiempo.evaluator import ModelEvaluator
 # Configurar logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(os.path.join(PROJECT_PATH, 'logs/retrain_model.log')),
+        logging.FileHandler(os.path.join(PROJECT_PATH, "logs/retrain_model.log")),
         logging.StreamHandler(),
     ],
 )
@@ -45,8 +45,8 @@ def collect_data_from_db():
     try:
         # Obtener tareas completadas con duración registrada
         tareas = Tarea.objects.filter(
-            estado='Completada', duracionactual__isnull=False
-        ).select_related('tipo_tarea', 'fase', 'idrequerimiento')
+            estado="Completada", duracionactual__isnull=False
+        ).select_related("tipo_tarea", "fase", "idrequerimiento")
 
         if not tareas.exists():
             logger.warning("No hay tareas completadas con duración registrada")
@@ -74,21 +74,21 @@ def collect_data_from_db():
             # Agregar al dataset
             data.append(
                 {
-                    'ID': tarea.idtarea,
-                    'Complejidad': tarea.dificultad or 3,
-                    'Tipo_Tarea': tipo_tarea,
-                    'Fase_Tarea': fase,
-                    'Cantidad_Recursos': cantidad_recursos,
-                    'Carga_Trabajo_R1': carga_trabajo[0],
-                    'Experiencia_R1': experiencia[0],
-                    'Carga_Trabajo_R2': carga_trabajo[1],
-                    'Experiencia_R2': experiencia[1],
-                    'Carga_Trabajo_R3': carga_trabajo[2],
-                    'Experiencia_R3': experiencia[2],
-                    'Experiencia_Equipo': 3,  # Valor por defecto
-                    'Claridad_Requisitos': tarea.claridad_requisitos or 0.7,
-                    'Tamaño_Tarea': tarea.tamaño_estimado or 5,
-                    'Tiempo_Ejecucion': tarea.duracionactual,
+                    "ID": tarea.idtarea,
+                    "Complejidad": tarea.dificultad or 3,
+                    "Tipo_Tarea": tipo_tarea,
+                    "Fase_Tarea": fase,
+                    "Cantidad_Recursos": cantidad_recursos,
+                    "Carga_Trabajo_R1": carga_trabajo[0],
+                    "Experiencia_R1": experiencia[0],
+                    "Carga_Trabajo_R2": carga_trabajo[1],
+                    "Experiencia_R2": experiencia[1],
+                    "Carga_Trabajo_R3": carga_trabajo[2],
+                    "Experiencia_R3": experiencia[2],
+                    "Experiencia_Equipo": 3,  # Valor por defecto
+                    "Claridad_Requisitos": tarea.claridad_requisitos or 0.7,
+                    "Tamaño_Tarea": tarea.tamaño_estimado or 5,
+                    "Tiempo_Ejecucion": tarea.duracionactual,
                 }
             )
 
@@ -122,7 +122,7 @@ def retrain_model():
             return False
 
         # 2. Preparar directorio de modelos
-        model_dir = os.path.join(os.path.dirname(__file__), 'models')
+        model_dir = os.path.join(os.path.dirname(__file__), "models")
         if not os.path.exists(model_dir):
             os.makedirs(model_dir)
 
@@ -136,16 +136,16 @@ def retrain_model():
 
         # 5. Configurar modelo
         model_config = {
-            'rnn_units': 64,
-            'dense_units': [128, 64, 32],
-            'dropout_rate': 0.3,
-            'learning_rate': 0.001,
-            'l2_reg': 0.001,
-            'use_bidirectional': True,
-            'rnn_type': 'GRU',
-            'activation': 'relu',
-            'batch_size': min(32, len(X_train)),
-            'epochs': 100,
+            "rnn_units": 64,
+            "dense_units": [128, 64, 32],
+            "dropout_rate": 0.3,
+            "learning_rate": 0.001,
+            "l2_reg": 0.001,
+            "use_bidirectional": True,
+            "rnn_type": "GRU",
+            "activation": "relu",
+            "batch_size": min(32, len(X_train)),
+            "epochs": 100,
         }
 
         # 6. Inicializar y entrenar modelo
@@ -155,17 +155,17 @@ def retrain_model():
 
         # 7. Guardar modelo reentrenado
         timestamp = datetime.now().strftime("%Y%m%d")
-        estimator.save(model_dir=model_dir, name=f'tiempo_estimator_{timestamp}')
+        estimator.save(model_dir=model_dir, name=f"tiempo_estimator_{timestamp}")
 
         # También guardar como modelo principal
-        estimator.save(model_dir=model_dir, name='tiempo_estimator')
+        estimator.save(model_dir=model_dir, name="tiempo_estimator")
 
         # 8. Evaluar modelo
         evaluator = ModelEvaluator(estimator, feature_dims, model_dir)
         metrics, _ = evaluator.evaluate_model(X_val, y_val)
 
         # 9. Guardar historial de métricas (formato compatible con evaluate_metrics.py)
-        history_path = os.path.join(model_dir, 'metrics_history.json')
+        history_path = os.path.join(model_dir, "metrics_history.json")
 
         # Dataset stats para el historial
         dataset_stats = {
@@ -176,22 +176,22 @@ def retrain_model():
 
         # Información de reentrenamiento
         retraining_info = {
-            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'metrics': metrics,
-            'training_type': 'retraining',
-            'model_config': model_config,
-            'dataset_stats': dataset_stats,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "metrics": metrics,
+            "training_type": "retraining",
+            "model_config": model_config,
+            "dataset_stats": dataset_stats,
         }
 
         # Cargar historial existente o crear nuevo
         try:
             if os.path.exists(history_path):
-                with open(history_path, 'r') as f:
+                with open(history_path, "r") as f:
                     metrics_history = json.load(f)
                     if not isinstance(metrics_history, list):
                         # Convertir al nuevo formato
-                        if 'evaluations' in metrics_history:
-                            metrics_history = metrics_history['evaluations']
+                        if "evaluations" in metrics_history:
+                            metrics_history = metrics_history["evaluations"]
                         else:
                             metrics_history = []
             else:
@@ -204,19 +204,19 @@ def retrain_model():
         metrics_history.append(retraining_info)
 
         # Guardar historial actualizado
-        with open(history_path, 'w') as f:
+        with open(history_path, "w") as f:
             json.dump(metrics_history, f, indent=4)
 
         # 10. Actualizar registro en la base de datos
         from dashboard.models import Modeloestimacionrnn
 
         modelo, _ = Modeloestimacionrnn.objects.update_or_create(
-            nombremodelo='RNN Avanzado',
+            nombremodelo="RNN Avanzado",
             defaults={
-                'descripcionmodelo': 'Modelo de red neuronal recurrente para estimación de tiempo (reentrenado)',
-                'versionmodelo': f"1.0.{timestamp}",
-                'precision': metrics.get('r2', 0.8),
-                'fechamodificacion': datetime.now(),
+                "descripcionmodelo": "Modelo de red neuronal recurrente para estimación de tiempo (reentrenado)",
+                "versionmodelo": f"1.0.{timestamp}",
+                "precision": metrics.get("r2", 0.8),
+                "fechamodificacion": datetime.now(),
             },
         )
 

@@ -35,9 +35,9 @@ class EstimacionTiempoService:
     def __init__(self):
         """Inicializa el servicio cargando el modelo y los preprocesadores"""
         self.model_path = os.path.join(
-            settings.BASE_DIR, 'redes_neuronales', 'estimacion_tiempo', 'models'
+            settings.BASE_DIR, "redes_neuronales", "estimacion_tiempo", "models"
         )
-        self.model_name = 'tiempo_estimator'
+        self.model_name = "tiempo_estimator"
         self.model = None
         self.processor = None
         self.is_initialized = False
@@ -106,7 +106,7 @@ class EstimacionTiempoService:
             if equipo_id:
                 historial = (
                     HistorialEquipo.objects.filter(idequipo_id=equipo_id)
-                    .order_by('-fecha_registro')
+                    .order_by("-fecha_registro")
                     .first()
                 )
                 if historial and historial.completitud_tareas is not None:
@@ -122,7 +122,7 @@ class EstimacionTiempoService:
             if requerimiento and requerimiento.keywords:
                 # Si hay keywords, consideramos que hay mejor claridad
                 # Calculamos en base a la cantidad y calidad de keywords
-                keywords = requerimiento.keywords.split(',')
+                keywords = requerimiento.keywords.split(",")
                 if len(keywords) >= 5:
                     claridad_requisitos = 0.9  # Muy claro
                 elif len(keywords) >= 3:
@@ -136,19 +136,19 @@ class EstimacionTiempoService:
 
             # Crear diccionario de características
             features = {
-                'Complejidad': complejidad,
-                'Tipo_Tarea': tipo_tarea,
-                'Fase_Tarea': fase,
-                'Cantidad_Recursos': cantidad_recursos,
-                'Carga_Trabajo_R1': carga_trabajo[0],
-                'Experiencia_R1': experiencia[0],
-                'Carga_Trabajo_R2': carga_trabajo[1],
-                'Experiencia_R2': experiencia[1],
-                'Carga_Trabajo_R3': carga_trabajo[2],
-                'Experiencia_R3': experiencia[2],
-                'Experiencia_Equipo': experiencia_equipo,
-                'Claridad_Requisitos': claridad_requisitos,
-                'Tamaño_Tarea': tamaño_tarea,
+                "Complejidad": complejidad,
+                "Tipo_Tarea": tipo_tarea,
+                "Fase_Tarea": fase,
+                "Cantidad_Recursos": cantidad_recursos,
+                "Carga_Trabajo_R1": carga_trabajo[0],
+                "Experiencia_R1": experiencia[0],
+                "Carga_Trabajo_R2": carga_trabajo[1],
+                "Experiencia_R2": experiencia[1],
+                "Carga_Trabajo_R3": carga_trabajo[2],
+                "Experiencia_R3": experiencia[2],
+                "Experiencia_Equipo": experiencia_equipo,
+                "Claridad_Requisitos": claridad_requisitos,
+                "Tamaño_Tarea": tamaño_tarea,
             }
 
             return features
@@ -211,12 +211,12 @@ class EstimacionTiempoService:
             with transaction.atomic():
                 # Obtener o crear modelo de estimación RNN
                 modelo, created = Modeloestimacionrnn.objects.get_or_create(
-                    nombremodelo='RNN Avanzado',
+                    nombremodelo="RNN Avanzado",
                     defaults={
-                        'descripcionmodelo': 'Modelo de red neuronal recurrente para estimación de tiempo',
-                        'versionmodelo': '1.0',
-                        'precision': 0.85,  # Precisión aproximada
-                        'fechacreacion': timezone.now(),
+                        "descripcionmodelo": "Modelo de red neuronal recurrente para estimación de tiempo",
+                        "versionmodelo": "1.0",
+                        "precision": 0.85,  # Precisión aproximada
+                        "fechacreacion": timezone.now(),
                     },
                 )
 
@@ -229,9 +229,9 @@ class EstimacionTiempoService:
                     idtarea_id=tarea_id,
                     idmodelo=modelo.idmodelo,
                     defaults={
-                        'duracionestimada': estimated_time,
-                        'timestamp': timezone.now(),
-                        'recursos': str(features) if features else None,
+                        "duracionestimada": estimated_time,
+                        "timestamp": timezone.now(),
+                        "recursos": str(features) if features else None,
                     },
                 )
 
@@ -297,19 +297,19 @@ class EstimacionTiempoService:
             # Obtener todas las tareas del proyecto
             tareas = Tarea.objects.filter(
                 idrequerimiento__idproyecto_id=proyecto_id
-            ).select_related('idrequerimiento')
+            ).select_related("idrequerimiento")
 
             # Contar tareas
             total_tareas = tareas.count()
             tareas_estimadas = tareas.exclude(duracionestimada=None).count()
-            tareas_completadas = tareas.filter(estado='Completada').count()
+            tareas_completadas = tareas.filter(estado="Completada").count()
 
             # Sumar tiempo estimado y actual
             tiempo_estimado_total = (
-                tareas.aggregate(Sum('duracionestimada'))['duracionestimada__sum'] or 0
+                tareas.aggregate(Sum("duracionestimada"))["duracionestimada__sum"] or 0
             )
             tiempo_actual_total = (
-                tareas.aggregate(Sum('duracionactual'))['duracionactual__sum'] or 0
+                tareas.aggregate(Sum("duracionactual"))["duracionactual__sum"] or 0
             )
 
             # Calcular porcentaje de completitud
@@ -336,18 +336,18 @@ class EstimacionTiempoService:
 
             # Devolver resultados
             resultado = {
-                'proyecto_id': proyecto_id,
-                'nombre_proyecto': (
+                "proyecto_id": proyecto_id,
+                "nombre_proyecto": (
                     proyecto.nombreproyecto if proyecto else "Proyecto sin nombre"
                 ),
-                'total_tareas': total_tareas,
-                'tareas_estimadas': tareas_estimadas,
-                'tareas_completadas': tareas_completadas,
-                'tiempo_estimado_total': tiempo_estimado_total,
-                'tiempo_actual_total': tiempo_actual_total,
-                'porcentaje_completitud': porcentaje_completitud,
-                'fecha_fin_estimada': fecha_fin_estimada,
-                'start_date': proyecto.fechainicio if proyecto else None,
+                "total_tareas": total_tareas,
+                "tareas_estimadas": tareas_estimadas,
+                "tareas_completadas": tareas_completadas,
+                "tiempo_estimado_total": tiempo_estimado_total,
+                "tiempo_actual_total": tiempo_actual_total,
+                "porcentaje_completitud": porcentaje_completitud,
+                "fecha_fin_estimada": fecha_fin_estimada,
+                "start_date": proyecto.fechainicio if proyecto else None,
             }
 
             return resultado
@@ -371,7 +371,7 @@ class EstimacionTiempoService:
             # Obtener estimación previa
             resultados_previos = (
                 Resultadosrnn.objects.filter(idtarea_id=tarea_id)
-                .order_by('-timestamp')
+                .order_by("-timestamp")
                 .first()
             )
 
@@ -384,8 +384,8 @@ class EstimacionTiempoService:
 
             if nueva_estimacion is None:
                 return {
-                    'status': 'error',
-                    'message': 'No se pudo realizar la nueva estimación',
+                    "status": "error",
+                    "message": "No se pudo realizar la nueva estimación",
                 }
 
             # Calcular diferencia porcentual
@@ -400,14 +400,14 @@ class EstimacionTiempoService:
             self.save_estimation(tarea_id, nueva_estimacion, features)
 
             return {
-                'status': 'success',
-                'estimacion_previa': estimacion_previa,
-                'nueva_estimacion': nueva_estimacion,
-                'diferencia_horas': nueva_estimacion - estimacion_previa,
-                'diferencia_porcentual': diferencia_porcentual,
-                'fecha_estimacion': timezone.now(),
+                "status": "success",
+                "estimacion_previa": estimacion_previa,
+                "nueva_estimacion": nueva_estimacion,
+                "diferencia_horas": nueva_estimacion - estimacion_previa,
+                "diferencia_porcentual": diferencia_porcentual,
+                "fecha_estimacion": timezone.now(),
             }
 
         except Exception as e:
             logger.error(f"Error en reestimación de tarea {tarea_id}: {str(e)}")
-            return {'status': 'error', 'message': f"Error en reestimación: {str(e)}"}
+            return {"status": "error", "message": f"Error en reestimación: {str(e)}"}

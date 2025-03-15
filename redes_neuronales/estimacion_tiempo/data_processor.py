@@ -8,7 +8,7 @@ import sys
 from django.db import connection
 
 # Añadir la ruta del proyecto para importar modelos de Django
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.settings")
 import django
 
@@ -39,7 +39,7 @@ class DataProcessor:
         try:
             if self.data_path:
                 # Especificar encoding='utf-8' para manejar caracteres especiales correctamente
-                self.data = pd.read_csv(self.data_path, encoding='utf-8')
+                self.data = pd.read_csv(self.data_path, encoding="utf-8")
                 print(f"Datos cargados correctamente. Forma: {self.data.shape}")
                 return self.data
             else:
@@ -54,24 +54,24 @@ class DataProcessor:
             return None, None
 
         try:
-            tipos_tarea = list(TipoTarea.objects.all().values_list('nombre', flat=True))
-            fases = list(Fase.objects.all().values_list('nombre', flat=True))
+            tipos_tarea = list(TipoTarea.objects.all().values_list("nombre", flat=True))
+            fases = list(Fase.objects.all().values_list("nombre", flat=True))
 
             if not tipos_tarea:
                 tipos_tarea = [
-                    'Frontend',
-                    'Backend',
-                    'Database',
-                    'Testing',
-                    'Arquitectura',
+                    "Frontend",
+                    "Backend",
+                    "Database",
+                    "Testing",
+                    "Arquitectura",
                 ]
             if not fases:
                 fases = [
-                    'Inicio/Conceptualización',
-                    'Elaboración/Requisitos',
-                    'Construcción/Desarrollo',
-                    'Transición/Implementación',
-                    'Mantenimiento',
+                    "Inicio/Conceptualización",
+                    "Elaboración/Requisitos",
+                    "Construcción/Desarrollo",
+                    "Transición/Implementación",
+                    "Mantenimiento",
                 ]
 
             print(f"Tipos de tarea desde BD: {tipos_tarea}")
@@ -81,12 +81,12 @@ class DataProcessor:
         except Exception as e:
             print(f"Error al obtener categorías de la BD: {e}")
             # Valores por defecto en caso de error
-            return ['Frontend', 'Backend', 'Database', 'Testing', 'Arquitectura'], [
-                'Inicio/Conceptualización',
-                'Elaboración/Requisitos',
-                'Construcción/Desarrollo',
-                'Transición/Implementación',
-                'Mantenimiento',
+            return ["Frontend", "Backend", "Database", "Testing", "Arquitectura"], [
+                "Inicio/Conceptualización",
+                "Elaboración/Requisitos",
+                "Construcción/Desarrollo",
+                "Transición/Implementación",
+                "Mantenimiento",
             ]
 
     def preprocess_data(self, test_size=0.2, val_size=0.15):
@@ -99,30 +99,30 @@ class DataProcessor:
         Returns:
             Tupla de (X_train, X_val, y_train, y_val, feature_dims)
         """
-        if hasattr(self, 'data') and self.data is not None:
+        if hasattr(self, "data") and self.data is not None:
             df = self.data.copy()
 
             # Verificar y corregir la columna de tamaño de tarea
-            if 'Tamaño_Tarea' in df.columns:
-                tamano_col = 'Tamaño_Tarea'
-            elif 'TamaÃ±o_Tarea' in df.columns:
-                tamano_col = 'TamaÃ±o_Tarea'
-                df['Tamaño_Tarea'] = df[tamano_col]  # Crear columna con nombre correcto
+            if "Tamaño_Tarea" in df.columns:
+                tamano_col = "Tamaño_Tarea"
+            elif "TamaÃ±o_Tarea" in df.columns:
+                tamano_col = "TamaÃ±o_Tarea"
+                df["Tamaño_Tarea"] = df[tamano_col]  # Crear columna con nombre correcto
             else:
                 raise ValueError("No se encuentra la columna de tamaño de tarea")
 
             # Verificar columnas requeridas
             required_cols = [
-                'Complejidad',
-                'Tipo_Tarea',
-                'Fase_Tarea',
-                'Cantidad_Recursos',
-                'Carga_Trabajo_R1',
-                'Experiencia_R1',
-                'Experiencia_Equipo',
-                'Claridad_Requisitos',
-                'Tamaño_Tarea',
-                'Tiempo_Ejecucion',
+                "Complejidad",
+                "Tipo_Tarea",
+                "Fase_Tarea",
+                "Cantidad_Recursos",
+                "Carga_Trabajo_R1",
+                "Experiencia_R1",
+                "Experiencia_Equipo",
+                "Claridad_Requisitos",
+                "Tamaño_Tarea",
+                "Tiempo_Ejecucion",
             ]
 
             missing_cols = [col for col in required_cols if col not in df.columns]
@@ -131,8 +131,8 @@ class DataProcessor:
 
             # Validar y rellenar valores faltantes en cargas de trabajo y experiencia
             for i in range(1, 4):  # Para recursos 1, 2, y 3
-                carga_col = f'Carga_Trabajo_R{i}'
-                exp_col = f'Experiencia_R{i}'
+                carga_col = f"Carga_Trabajo_R{i}"
+                exp_col = f"Experiencia_R{i}"
 
                 # Si existe la columna pero tiene valores nulos
                 if carga_col in df.columns:
@@ -149,38 +149,38 @@ class DataProcessor:
             tipos_tarea_db, fases_db = self.get_db_categories()
 
             # Crear encoders para categorías
-            tipo_encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
-            fase_encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+            tipo_encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
+            fase_encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
 
             # Ajustar encoders con todas las categorías posibles
             if self.use_db:
                 tipo_encoder.fit(np.array(tipos_tarea_db).reshape(-1, 1))
                 fase_encoder.fit(np.array(fases_db).reshape(-1, 1))
             else:
-                tipo_encoder.fit(df[['Tipo_Tarea']])
-                fase_encoder.fit(df[['Fase_Tarea']])
+                tipo_encoder.fit(df[["Tipo_Tarea"]])
+                fase_encoder.fit(df[["Fase_Tarea"]])
 
             # Transformar las categorías
-            tipo_encoded = tipo_encoder.transform(df[['Tipo_Tarea']])
-            fase_encoded = fase_encoder.transform(df[['Fase_Tarea']])
+            tipo_encoded = tipo_encoder.transform(df[["Tipo_Tarea"]])
+            fase_encoded = fase_encoder.transform(df[["Fase_Tarea"]])
 
             # Guardar encoders
-            self.encoders['tipo_tarea'] = tipo_encoder
-            self.encoders['fase'] = fase_encoder
+            self.encoders["tipo_tarea"] = tipo_encoder
+            self.encoders["fase"] = fase_encoder
 
             # Características numéricas
             numeric_features = [
-                'Complejidad',
-                'Cantidad_Recursos',
-                'Carga_Trabajo_R1',
-                'Experiencia_R1',
-                'Carga_Trabajo_R2',
-                'Experiencia_R2',
-                'Carga_Trabajo_R3',
-                'Experiencia_R3',
-                'Experiencia_Equipo',
-                'Claridad_Requisitos',
-                'Tamaño_Tarea',
+                "Complejidad",
+                "Cantidad_Recursos",
+                "Carga_Trabajo_R1",
+                "Experiencia_R1",
+                "Carga_Trabajo_R2",
+                "Experiencia_R2",
+                "Carga_Trabajo_R3",
+                "Experiencia_R3",
+                "Experiencia_Equipo",
+                "Claridad_Requisitos",
+                "Tamaño_Tarea",
             ]
 
             # Escalar características numéricas
@@ -189,17 +189,17 @@ class DataProcessor:
             numeric_scaled = scaler.fit_transform(numeric_data)
 
             # Guardar el scaler
-            self.scalers['numeric'] = scaler
+            self.scalers["numeric"] = scaler
 
             # Combinar todas las características
             X = np.hstack((numeric_scaled, tipo_encoded, fase_encoded))
-            y = df['Tiempo_Ejecucion'].values
+            y = df["Tiempo_Ejecucion"].values
 
             # Guardar dimensiones y nombres de características para referencia
             self.feature_dims = {
-                'numeric': len(numeric_features),
-                'tipo_tarea': tipo_encoded.shape[1],
-                'fase': fase_encoded.shape[1],
+                "numeric": len(numeric_features),
+                "tipo_tarea": tipo_encoded.shape[1],
+                "fase": fase_encoded.shape[1],
             }
 
             # Dividir en conjunto de entrenamiento y conjunto restante
@@ -223,8 +223,8 @@ class DataProcessor:
             self.X_val = X_val
             self.y_train = y_train
             self.y_val = y_val
-            self.X_test = X_test if 'X_test' in locals() else None
-            self.y_test = y_test if 'y_test' in locals() else None
+            self.X_test = X_test if "X_test" in locals() else None
+            self.y_test = y_test if "y_test" in locals() else None
 
             print("Preprocesamiento completo.")
             print(f"Dimensiones de features: {self.feature_dims}")
@@ -237,23 +237,23 @@ class DataProcessor:
         else:
             raise ValueError("No hay datos para procesar. Ejecute load_data primero.")
 
-    def save_preprocessors(self, output_dir='models'):
+    def save_preprocessors(self, output_dir="models"):
         """Guarda los preprocessors para uso posterior"""
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        joblib.dump(self.scalers, os.path.join(output_dir, 'scalers.pkl'))
-        joblib.dump(self.encoders, os.path.join(output_dir, 'encoders.pkl'))
-        joblib.dump(self.feature_dims, os.path.join(output_dir, 'feature_dims.pkl'))
+        joblib.dump(self.scalers, os.path.join(output_dir, "scalers.pkl"))
+        joblib.dump(self.encoders, os.path.join(output_dir, "encoders.pkl"))
+        joblib.dump(self.feature_dims, os.path.join(output_dir, "feature_dims.pkl"))
 
         print(f"Preprocessors guardados en {output_dir}")
 
-    def load_preprocessors(self, input_dir='models'):
+    def load_preprocessors(self, input_dir="models"):
         """Carga preprocessors guardados"""
         try:
-            self.scalers = joblib.load(os.path.join(input_dir, 'scalers.pkl'))
-            self.encoders = joblib.load(os.path.join(input_dir, 'encoders.pkl'))
-            self.feature_dims = joblib.load(os.path.join(input_dir, 'feature_dims.pkl'))
+            self.scalers = joblib.load(os.path.join(input_dir, "scalers.pkl"))
+            self.encoders = joblib.load(os.path.join(input_dir, "encoders.pkl"))
+            self.feature_dims = joblib.load(os.path.join(input_dir, "feature_dims.pkl"))
             print("Preprocessors cargados correctamente")
             return True
         except Exception as e:
@@ -269,7 +269,7 @@ class DataProcessor:
         Returns:
             np.array: Datos procesados listos para el modelo
         """
-        if not hasattr(self, 'scalers') or not hasattr(self, 'encoders'):
+        if not hasattr(self, "scalers") or not hasattr(self, "encoders"):
             raise ValueError(
                 "Preprocessors no cargados. Ejecute load_preprocessors primero."
             )
@@ -279,8 +279,8 @@ class DataProcessor:
 
         # Rellenar valores faltantes en los recursos
         for i in range(1, 4):
-            carga_col = f'Carga_Trabajo_R{i}'
-            exp_col = f'Experiencia_R{i}'
+            carga_col = f"Carga_Trabajo_R{i}"
+            exp_col = f"Experiencia_R{i}"
 
             if carga_col not in task_df.columns:
                 task_df[carga_col] = 0
@@ -289,28 +289,28 @@ class DataProcessor:
 
         # Características numéricas
         numeric_features = [
-            'Complejidad',
-            'Cantidad_Recursos',
-            'Carga_Trabajo_R1',
-            'Experiencia_R1',
-            'Carga_Trabajo_R2',
-            'Experiencia_R2',
-            'Carga_Trabajo_R3',
-            'Experiencia_R3',
-            'Experiencia_Equipo',
-            'Claridad_Requisitos',
-            'Tamaño_Tarea',
+            "Complejidad",
+            "Cantidad_Recursos",
+            "Carga_Trabajo_R1",
+            "Experiencia_R1",
+            "Carga_Trabajo_R2",
+            "Experiencia_R2",
+            "Carga_Trabajo_R3",
+            "Experiencia_R3",
+            "Experiencia_Equipo",
+            "Claridad_Requisitos",
+            "Tamaño_Tarea",
         ]
 
         # Escalar datos numéricos
         numeric_data = task_df[numeric_features].values
-        numeric_scaled = self.scalers['numeric'].transform(numeric_data)
+        numeric_scaled = self.scalers["numeric"].transform(numeric_data)
 
         # Codificar tipo de tarea
-        tipo_encoded = self.encoders['tipo_tarea'].transform(task_df[['Tipo_Tarea']])
+        tipo_encoded = self.encoders["tipo_tarea"].transform(task_df[["Tipo_Tarea"]])
 
         # Codificar fase
-        fase_encoded = self.encoders['fase'].transform(task_df[['Fase_Tarea']])
+        fase_encoded = self.encoders["fase"].transform(task_df[["Fase_Tarea"]])
 
         # Combinar todas las características
         X = np.hstack((numeric_scaled, tipo_encoded, fase_encoded))

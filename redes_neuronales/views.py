@@ -18,9 +18,9 @@ def normalize_metric(value, metric_name, metrics_history):
         all_values = []
         for entry in metrics_history:
             # Manejar diferentes estructuras de datos
-            if 'metrics' in entry and metric_name in entry['metrics']:
+            if "metrics" in entry and metric_name in entry["metrics"]:
                 # Formato anidado: {'metrics': {'MSE': value}}
-                all_values.append(entry['metrics'][metric_name])
+                all_values.append(entry["metrics"][metric_name])
             elif metric_name in entry:
                 # Formato plano: {'MSE': value}
                 all_values.append(entry[metric_name])
@@ -32,7 +32,7 @@ def normalize_metric(value, metric_name, metrics_history):
         all_values = [v for v in all_values if isinstance(v, (int, float))]
 
         # Aplicar diferentes escalas según la métrica
-        if metric_name in ('MSE', 'RMSE', 'MAE', 'MAPE'):
+        if metric_name in ("MSE", "RMSE", "MAE", "MAPE"):
             # Menor es mejor, invertir la escala
             min_val, max_val = min(all_values), max(all_values)
             if min_val == max_val:
@@ -55,27 +55,27 @@ def calculate_global_precision(current_metrics, metrics_history):
     try:
         # Normalizar cada métrica relevante
         normalized_mse = normalize_metric(
-            current_metrics.get('MSE', 0), 'MSE', metrics_history
+            current_metrics.get("MSE", 0), "MSE", metrics_history
         )
         normalized_mae = normalize_metric(
-            current_metrics.get('MAE', 0), 'MAE', metrics_history
+            current_metrics.get("MAE", 0), "MAE", metrics_history
         )
         normalized_r2 = normalize_metric(
-            current_metrics.get('R2', 0), 'R2', metrics_history
+            current_metrics.get("R2", 0), "R2", metrics_history
         )
         normalized_acc = normalize_metric(
-            current_metrics.get('Accuracy', 0), 'Accuracy', metrics_history
+            current_metrics.get("Accuracy", 0), "Accuracy", metrics_history
         )
 
         # Ponderación de métricas (ajustar según la importancia relativa)
-        weights = {'mse': 0.25, 'mae': 0.25, 'r2': 0.25, 'acc': 0.25}
+        weights = {"mse": 0.25, "mae": 0.25, "r2": 0.25, "acc": 0.25}
 
         # Calcular precisión global ponderada
         global_precision = (
-            normalized_mse * weights['mse']
-            + normalized_mae * weights['mae']
-            + normalized_r2 * weights['r2']
-            + normalized_acc * weights['acc']
+            normalized_mse * weights["mse"]
+            + normalized_mae * weights["mae"]
+            + normalized_r2 * weights["r2"]
+            + normalized_acc * weights["acc"]
         )
 
         return float(global_precision)
@@ -89,15 +89,15 @@ def dashboard(request):
     """Renderiza el dashboard de métricas de la red neuronal"""
     try:
         with open(
-            'redes_neuronales\estimacion_tiempo\models\metrics_history.json', 'r'
+            "redes_neuronales\estimacion_tiempo\models\metrics_history.json", "r"
         ) as f:
             metrics_history = json.load(f)
 
             if metrics_history and isinstance(metrics_history, list):
                 latest_metrics = metrics_history[-1] if metrics_history else None
             elif metrics_history and isinstance(metrics_history, dict):
-                if 'entries' in metrics_history:
-                    entries = metrics_history['entries']
+                if "entries" in metrics_history:
+                    entries = metrics_history["entries"]
                     metrics_history = entries
                     latest_metrics = entries[-1] if entries else None
                 else:
@@ -114,9 +114,9 @@ def dashboard(request):
 
     if latest_metrics:
         try:
-            metrics_data = latest_metrics.get('metrics', latest_metrics)
+            metrics_data = latest_metrics.get("metrics", latest_metrics)
 
-            required_metrics = ['MSE', 'RMSE', 'MAE', 'R2', 'Accuracy']
+            required_metrics = ["MSE", "RMSE", "MAE", "R2", "Accuracy"]
             if all(metric in metrics_data for metric in required_metrics):
                 global_precision = calculate_global_precision(
                     metrics_data, metrics_history
@@ -138,20 +138,20 @@ def dashboard(request):
 
     for entry in metrics_history:
         try:
-            metrics_data = entry.get('metrics', entry)
+            metrics_data = entry.get("metrics", entry)
             timestamp = entry.get(
-                'timestamp', entry.get('date', entry.get('created_at', ''))
+                "timestamp", entry.get("date", entry.get("created_at", ""))
             )
 
             timestamps.append(timestamp)
 
-            mse = metrics_data.get('MSE', metrics_data.get('mse', 0))
+            mse = metrics_data.get("MSE", metrics_data.get("mse", 0))
             mse_values.append(mse)
 
-            accuracy = metrics_data.get('Accuracy', metrics_data.get('accuracy', 0))
+            accuracy = metrics_data.get("Accuracy", metrics_data.get("accuracy", 0))
             accuracy_values.append(accuracy)
 
-            r2 = metrics_data.get('R2', metrics_data.get('r2', 0))
+            r2 = metrics_data.get("R2", metrics_data.get("r2", 0))
             r2_values.append(r2)
 
             try:
@@ -163,29 +163,29 @@ def dashboard(request):
             print(f"Error procesando entrada histórica: {e}")
 
     context = {
-        'latest_metrics': latest_metrics,
-        'global_precision': global_precision,
-        'metrics_history': json.dumps(
+        "latest_metrics": latest_metrics,
+        "global_precision": global_precision,
+        "metrics_history": json.dumps(
             {
-                'timestamps': timestamps,
-                'mse_values': mse_values,
-                'accuracy_values': accuracy_values,
-                'r2_values': r2_values,
-                'global_precision_values': global_precision_values,
+                "timestamps": timestamps,
+                "mse_values": mse_values,
+                "accuracy_values": accuracy_values,
+                "r2_values": r2_values,
+                "global_precision_values": global_precision_values,
             }
         ),
     }
 
-    return render(request, 'redes_neuronales/dashboard.html', context)
+    return render(request, "redes_neuronales/dashboard.html", context)
 
 
 # falta adaptar al nuevo modelo
 @login_required
 def estimate_time(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            REDES_DIR = os.path.join(BASE_DIR, 'redes_neuronales')
+            REDES_DIR = os.path.join(BASE_DIR, "redes_neuronales")
             MODEL_DIR = os.path.join(BASE_DIR, "redes_neuronales", "models")
 
             if REDES_DIR not in sys.path:
@@ -207,9 +207,9 @@ def estimate_time(request):
                 if not os.path.exists(path):
                     raise FileNotFoundError(f"No se encuentra el archivo: {path}")
 
-            complejidad = int(request.POST.get('complejidad', 2))
-            prioridad = int(request.POST.get('prioridad', 2))
-            tipo_tarea = request.POST.get('tipo_tarea', 'backend')
+            complejidad = int(request.POST.get("complejidad", 2))
+            prioridad = int(request.POST.get("prioridad", 2))
+            tipo_tarea = request.POST.get("tipo_tarea", "backend")
 
             print("\nDatos recibidos para estimación:")
             print(f"Complejidad: {complejidad}")
@@ -245,26 +245,26 @@ def estimate_time(request):
                 X_num_norm, np.array(X_task).reshape(-1, 1), X_req_norm
             )
 
-            estimated_time = float(resultado['tiempo_estimado'])
+            estimated_time = float(resultado["tiempo_estimado"])
 
             return JsonResponse(
                 {
-                    'success': True,
-                    'estimated_time': round(estimated_time, 2),
-                    'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "success": True,
+                    "estimated_time": round(estimated_time, 2),
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 }
             )
 
         except FileNotFoundError as e:
             return JsonResponse(
-                {'error': f"Error de archivo: {str(e)}", 'success': False}
+                {"error": f"Error de archivo: {str(e)}", "success": False}
             )
         except Exception as e:
             return JsonResponse(
-                {'error': f"Error inesperado: {str(e)}", 'success': False}
+                {"error": f"Error inesperado: {str(e)}", "success": False}
             )
 
-    return JsonResponse({'error': 'Método no permitido', 'success': False})
+    return JsonResponse({"error": "Método no permitido", "success": False})
 
 
 @login_required
@@ -274,55 +274,55 @@ def estimacion_avanzada(request):
 
     try:
         with open(
-            'redes_neuronales\estimacion_tiempo\models\metrics_history.json', 'r'
+            "redes_neuronales\estimacion_tiempo\models\metrics_history.json", "r"
         ) as f:
             metrics_history = json.load(f)
             latest_metrics = metrics_history[-1] if metrics_history else None
     except:
         metrics_history = []
         latest_metrics = {
-            'metrics': {
-                'MSE': 120.45,
-                'RMSE': 10.97,
-                'MAE': 8.74,
-                'R2': 0.82,
-                'Accuracy': 0.89,
+            "metrics": {
+                "MSE": 120.45,
+                "RMSE": 10.97,
+                "MAE": 8.74,
+                "R2": 0.82,
+                "Accuracy": 0.89,
             },
-            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'model_version': '1.2.0',
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "model_version": "1.2.0",
         }
 
     if latest_metrics:
         global_precision = calculate_global_precision(
-            latest_metrics['metrics'], metrics_history
+            latest_metrics["metrics"], metrics_history
         )
     else:
         global_precision = 0.85
 
-    context['latest_metrics'] = latest_metrics
-    context['global_precision'] = global_precision
+    context["latest_metrics"] = latest_metrics
+    context["global_precision"] = global_precision
 
     try:
         with open(
-            'redes_neuronales/estimacion_tiempo/models/evaluation_metrics.json', 'r'
+            "redes_neuronales/estimacion_tiempo/models/evaluation_metrics.json", "r"
         ) as f:
             evaluation_metrics = json.load(f)
-        context['evaluation_metrics'] = evaluation_metrics
+        context["evaluation_metrics"] = evaluation_metrics
     except Exception as e:
         print(f"Error al cargar métricas de evaluación: {e}")
-        context['evaluation_metrics'] = (
-            latest_metrics.get('metrics', {}) if latest_metrics else {}
+        context["evaluation_metrics"] = (
+            latest_metrics.get("metrics", {}) if latest_metrics else {}
         )
 
     try:
         with open(
-            'redes_neuronales/estimacion_tiempo/models/segmented_evaluation.json', 'r'
+            "redes_neuronales/estimacion_tiempo/models/segmented_evaluation.json", "r"
         ) as f:
             segmented_evaluation = json.load(f)
-        context['segmented_evaluation'] = segmented_evaluation
+        context["segmented_evaluation"] = segmented_evaluation
     except Exception as e:
         print(f"Error al cargar evaluación por segmentos: {e}")
-        context['segmented_evaluation'] = {}
+        context["segmented_evaluation"] = {}
 
     try:
         import pandas as pd
@@ -333,39 +333,39 @@ def estimacion_avanzada(request):
             for _, row in df.iterrows():
                 data.append(
                     {
-                        'name': row['Feature'],
-                        'importance': float(row['Importance']),
-                        'importance_normalized': round(
-                            float(row['Importance_Normalized']) * 100, 2
+                        "name": row["Feature"],
+                        "importance": float(row["Importance"]),
+                        "importance_normalized": round(
+                            float(row["Importance_Normalized"]) * 100, 2
                         ),
                     }
                 )
-            return sorted(data, key=lambda x: x['importance_normalized'], reverse=True)
+            return sorted(data, key=lambda x: x["importance_normalized"], reverse=True)
 
         feature_importance_data = {}
 
-        feature_importance_data['global'] = load_feature_importance(
-            'redes_neuronales/estimacion_tiempo/models/global_feature_importance.csv'
+        feature_importance_data["global"] = load_feature_importance(
+            "redes_neuronales/estimacion_tiempo/models/global_feature_importance.csv"
         )
-        feature_importance_data['recurso_1'] = load_feature_importance(
-            'redes_neuronales/estimacion_tiempo/models/feature_importance_1_Recurso.csv'
+        feature_importance_data["recurso_1"] = load_feature_importance(
+            "redes_neuronales/estimacion_tiempo/models/feature_importance_1_Recurso.csv"
         )
-        feature_importance_data['recurso_2'] = load_feature_importance(
-            'redes_neuronales/estimacion_tiempo/models/feature_importance_2_Recursos.csv'
+        feature_importance_data["recurso_2"] = load_feature_importance(
+            "redes_neuronales/estimacion_tiempo/models/feature_importance_2_Recursos.csv"
         )
-        feature_importance_data['recurso_3'] = load_feature_importance(
-            'redes_neuronales/estimacion_tiempo/models/feature_importance_3_o_más_Recursos.csv'
+        feature_importance_data["recurso_3"] = load_feature_importance(
+            "redes_neuronales/estimacion_tiempo/models/feature_importance_3_o_más_Recursos.csv"
         )
 
-        context['feature_importance_data'] = feature_importance_data
+        context["feature_importance_data"] = feature_importance_data
 
-        context['feature_importance'] = feature_importance_data['global']
+        context["feature_importance"] = feature_importance_data["global"]
     except Exception as e:
         print(f"Error al cargar importancia de características: {e}")
-        context['feature_importance_data'] = {}
-        context['feature_importance'] = []
+        context["feature_importance_data"] = {}
+        context["feature_importance"] = []
 
-    return render(request, 'redes_neuronales/estimacion_avanzada.html', context)
+    return render(request, "redes_neuronales/estimacion_avanzada.html", context)
 
 
 @login_required
@@ -373,15 +373,15 @@ def entrenar_modelo(request):
     """Renderiza la interfaz de entrenamiento de red neuronal"""
     try:
         with open(
-            'redes_neuronales\estimacion_tiempo\models\metrics_history.json', 'r'
+            "redes_neuronales\estimacion_tiempo\models\metrics_history.json", "r"
         ) as f:
             metrics_history = json.load(f)
 
             if metrics_history and isinstance(metrics_history, list):
                 latest_metrics = metrics_history[-1] if metrics_history else None
             elif metrics_history and isinstance(metrics_history, dict):
-                if 'entries' in metrics_history:
-                    entries = metrics_history['entries']
+                if "entries" in metrics_history:
+                    entries = metrics_history["entries"]
                     latest_metrics = entries[-1] if entries else None
                 else:
                     latest_metrics = metrics_history
@@ -394,8 +394,8 @@ def entrenar_modelo(request):
         print(f"Error al cargar metrics_history.json: {e}")
 
     if latest_metrics:
-        metrics_data = latest_metrics.get('metrics', latest_metrics)
-        required_metrics = ['MSE', 'RMSE', 'MAE', 'R2', 'Accuracy']
+        metrics_data = latest_metrics.get("metrics", latest_metrics)
+        required_metrics = ["MSE", "RMSE", "MAE", "R2", "Accuracy"]
         if all(metric in metrics_data for metric in required_metrics):
             global_precision = calculate_global_precision(metrics_data, metrics_history)
         else:
@@ -404,22 +404,22 @@ def entrenar_modelo(request):
         global_precision = 0.8
 
     context = {
-        'latest_metrics': latest_metrics,
-        'global_precision': global_precision,
+        "latest_metrics": latest_metrics,
+        "global_precision": global_precision,
     }
 
     static_dir = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), 'static', 'img'
+        os.path.dirname(os.path.dirname(__file__)), "static", "img"
     )
-    neural_bg_path = os.path.join(static_dir, 'neural-bg.svg')
+    neural_bg_path = os.path.join(static_dir, "neural-bg.svg")
 
     if not os.path.exists(static_dir):
         os.makedirs(static_dir, exist_ok=True)
 
     if not os.path.exists(neural_bg_path):
-        with open(neural_bg_path, 'w') as f:
+        with open(neural_bg_path, "w") as f:
             f.write(
-                '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+                """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
             <defs>
                 <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
                     <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#8080ff" stroke-width="0.5"/>
@@ -447,66 +447,66 @@ def entrenar_modelo(request):
                 <path d="M 400 100 L 650 300" stroke-width="1"/>
                 <path d="M 400 500 L 650 300" stroke-width="1"/>
             </g>
-            </svg>'''
+            </svg>"""
             )
 
-    return render(request, 'redes_neuronales/entrenar_modelo.html', context)
+    return render(request, "redes_neuronales/entrenar_modelo.html", context)
 
 
 @login_required
 def iniciar_entrenamiento(request):
     """API para iniciar el proceso de entrenamiento"""
     if (
-        request.method == 'POST'
-        and request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        request.method == "POST"
+        and request.headers.get("X-Requested-With") == "XMLHttpRequest"
     ):
         import uuid
 
         training_id = str(uuid.uuid4())
 
-        training_method = request.POST.get('training_method', 'csv')
+        training_method = request.POST.get("training_method", "csv")
 
         data_path = None
-        if training_method == 'csv' and 'csv_file' in request.FILES:
+        if training_method == "csv" and "csv_file" in request.FILES:
             import tempfile
             import os
 
-            temp_dir = os.path.join(tempfile.gettempdir(), 'rnn_training')
+            temp_dir = os.path.join(tempfile.gettempdir(), "rnn_training")
             os.makedirs(temp_dir, exist_ok=True)
 
-            csv_file = request.FILES['csv_file']
-            data_path = os.path.join(temp_dir, f'training_data_{training_id}.csv')
-            with open(data_path, 'wb+') as destination:
+            csv_file = request.FILES["csv_file"]
+            data_path = os.path.join(temp_dir, f"training_data_{training_id}.csv")
+            with open(data_path, "wb+") as destination:
                 for chunk in csv_file.chunks():
                     destination.write(chunk)
 
         # Configuración del entrenamiento
         config = {
-            'training_method': training_method,
-            'data_path': data_path,
-            'use_synthetic': request.POST.get('use_synthetic') == 'on',
-            'rnn_type': request.POST.get('rnn_type', 'GRU'),
-            'bidirectional': request.POST.get('bidirectional') == '1',
-            'rnn_units': int(request.POST.get('rnn_units', 64)),
-            'dropout_rate': float(request.POST.get('dropout_rate', 0.3)),
-            'learning_rate': float(request.POST.get('learning_rate', 0.001)),
-            'epochs': int(request.POST.get('epochs', 100)),
-            'batch_size': int(request.POST.get('batch_size', 32)),
-            'test_size': int(request.POST.get('test_size', 20)) / 100,
-            'validation_size': int(request.POST.get('validation_size', 15)) / 100,
-            'model_name': request.POST.get('model_name', 'tiempo_estimator'),
-            'save_as_main': request.POST.get('save_as_main') == 'on',
-            'status': 'pending',
-            'timestamp': timezone.now().isoformat(),  # Usar timezone para consistencia
+            "training_method": training_method,
+            "data_path": data_path,
+            "use_synthetic": request.POST.get("use_synthetic") == "on",
+            "rnn_type": request.POST.get("rnn_type", "GRU"),
+            "bidirectional": request.POST.get("bidirectional") == "1",
+            "rnn_units": int(request.POST.get("rnn_units", 64)),
+            "dropout_rate": float(request.POST.get("dropout_rate", 0.3)),
+            "learning_rate": float(request.POST.get("learning_rate", 0.001)),
+            "epochs": int(request.POST.get("epochs", 100)),
+            "batch_size": int(request.POST.get("batch_size", 32)),
+            "test_size": int(request.POST.get("test_size", 20)) / 100,
+            "validation_size": int(request.POST.get("validation_size", 15)) / 100,
+            "model_name": request.POST.get("model_name", "tiempo_estimator"),
+            "save_as_main": request.POST.get("save_as_main") == "on",
+            "status": "pending",
+            "timestamp": timezone.now().isoformat(),  # Usar timezone para consistencia
         }
 
         # Guardar configuración en la sesión
-        request.session[f'training_config_{training_id}'] = config
+        request.session[f"training_config_{training_id}"] = config
 
         # Guardar también en caché para acceso desde procesos separados
         from django.core.cache import cache
 
-        cache.set(f'training_config_{training_id}', config, 7200)  # 2 horas de vida
+        cache.set(f"training_config_{training_id}", config, 7200)  # 2 horas de vida
 
         try:
             usuario_id = request.user.idusuario
@@ -518,29 +518,29 @@ def iniciar_entrenamiento(request):
             result = start_training_process.delay(training_id, usuario_id)
 
             # Opcional: Guardar ID del resultado para posible cancelación
-            cache.set(f'training_task_{training_id}', result.id, 7200)
+            cache.set(f"training_task_{training_id}", result.id, 7200)
 
         except Exception as e:
             return JsonResponse(
                 {
-                    'success': False,
-                    'error': f'Error al iniciar el entrenamiento: {str(e)}',
+                    "success": False,
+                    "error": f"Error al iniciar el entrenamiento: {str(e)}",
                 },
                 status=500,
             )
 
         return JsonResponse(
             {
-                'success': True,
-                'training_id': training_id,
-                'message': 'Proceso de entrenamiento iniciado',
+                "success": True,
+                "training_id": training_id,
+                "message": "Proceso de entrenamiento iniciado",
             }
         )
 
     return JsonResponse(
         {
-            'success': False,
-            'error': 'Método no permitido o solicitud inválida',
+            "success": False,
+            "error": "Método no permitido o solicitud inválida",
         },
         status=400,
     )
@@ -549,13 +549,13 @@ def iniciar_entrenamiento(request):
 @login_required
 def monitor_entrenamiento(request):
     """Endpoint Server-Sent Events para monitorear el progreso del entrenamiento"""
-    training_id = request.GET.get('training_id')
+    training_id = request.GET.get("training_id")
 
     if not training_id:
         return JsonResponse(
             {
-                'success': False,
-                'error': 'ID de entrenamiento no proporcionado',
+                "success": False,
+                "error": "ID de entrenamiento no proporcionado",
             },
             status=400,
         )
@@ -563,14 +563,14 @@ def monitor_entrenamiento(request):
     # Verificar existencia del entrenamiento en sesión o cache
     from django.core.cache import cache
 
-    config_key = f'training_config_{training_id}'
+    config_key = f"training_config_{training_id}"
     config = cache.get(config_key)
 
-    if not config and f'training_config_{training_id}' not in request.session:
+    if not config and f"training_config_{training_id}" not in request.session:
         return JsonResponse(
             {
-                'success': False,
-                'error': 'Sesión de entrenamiento no encontrada',
+                "success": False,
+                "error": "Sesión de entrenamiento no encontrada",
             },
             status=404,
         )
@@ -578,12 +578,12 @@ def monitor_entrenamiento(request):
     # Configurar la respuesta de streaming con eventos del servidor
     response = StreamingHttpResponse(
         _stream_training_updates(training_id, request.session),
-        content_type='text/event-stream',
+        content_type="text/event-stream",
     )
     # Configurar headers para evitar caché y buffering
-    response['Cache-Control'] = 'no-cache'
-    response['X-Accel-Buffering'] = 'no'
-    response['Access-Control-Allow-Origin'] = '*'  # Para CORS si es necesario
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+    response["Access-Control-Allow-Origin"] = "*"  # Para CORS si es necesario
 
     return response
 
@@ -603,16 +603,16 @@ def _stream_training_updates(training_id, session):
 
     # Enviar estado inicial inmediatamente para mejor feedback al usuario
     initial_update = {
-        'type': 'log',
-        'message': 'Conexión establecida con el servidor',
-        'level': 'info',
-        'timestamp': time.time(),
+        "type": "log",
+        "message": "Conexión establecida con el servidor",
+        "level": "info",
+        "timestamp": time.time(),
     }
-    yield f'data: {json.dumps(initial_update)}\n\n'
+    yield f"data: {json.dumps(initial_update)}\n\n"
 
     while True:
         current_time = time.time()
-        config_key = f'training_config_{training_id}'
+        config_key = f"training_config_{training_id}"
         config = cache.get(config_key) or session.get(config_key)
 
         # Verificar si hay configuración disponible
@@ -627,64 +627,64 @@ def _stream_training_updates(training_id, session):
             last_heartbeat_time = current_time
 
         # Procesar actualizaciones pendientes
-        updates = config.get('updates', [])
+        updates = config.get("updates", [])
 
         if len(updates) > last_update_count:
             # Procesar solo las nuevas actualizaciones
             for i in range(last_update_count, len(updates)):
                 update = updates[i]
-                update_type = update.get('type')
+                update_type = update.get("type")
 
                 # Enriquecer datos de progreso cuando sea posible
-                if update_type == 'progress':
+                if update_type == "progress":
                     # Guardar datos de época para uso posterior en actualizaciones de batch
-                    if update.get('stage') == 'epoch_end':
+                    if update.get("stage") == "epoch_end":
                         last_epoch_data = update.copy()
 
                         # Asegurar que campos cruciales estén presentes
-                        for field in ['train_loss', 'val_loss', 'train_mae', 'val_mae']:
+                        for field in ["train_loss", "val_loss", "train_mae", "val_mae"]:
                             if field not in update:
                                 update[field] = 0.0
 
                         # Información textual adicional
-                        update['status_text'] = (
+                        update["status_text"] = (
                             f"Época {update.get('epoch', 0)}/{update.get('total_epochs', 0)}"
                         )
 
-                    yield f'event: progress\ndata: {json.dumps(update)}\n\n'
+                    yield f"event: progress\ndata: {json.dumps(update)}\n\n"
 
-                elif update_type == 'batch_progress':
+                elif update_type == "batch_progress":
                     # Enriquecer con datos de la época actual si están disponibles
                     if last_epoch_data:
-                        if 'epoch' not in update and 'epoch' in last_epoch_data:
-                            update['epoch'] = last_epoch_data['epoch']
+                        if "epoch" not in update and "epoch" in last_epoch_data:
+                            update["epoch"] = last_epoch_data["epoch"]
                         if (
-                            'total_epochs' not in update
-                            and 'total_epochs' in last_epoch_data
+                            "total_epochs" not in update
+                            and "total_epochs" in last_epoch_data
                         ):
-                            update['total_epochs'] = last_epoch_data['total_epochs']
+                            update["total_epochs"] = last_epoch_data["total_epochs"]
 
-                    yield f'event: batch_progress\ndata: {json.dumps(update)}\n\n'
+                    yield f"event: batch_progress\ndata: {json.dumps(update)}\n\n"
 
-                elif update_type == 'complete':
+                elif update_type == "complete":
                     # Indicar finalización exitosa
-                    yield f'event: complete\ndata: {json.dumps(update)}\n\n'
+                    yield f"event: complete\ndata: {json.dumps(update)}\n\n"
                     # Esperar un momento para asegurar recepción antes de cerrar
                     time.sleep(0.2)
                     yield f'event: close\ndata: {json.dumps({"message": "Entrenamiento finalizado con éxito"})}\n\n'
                     return  # Terminar stream después de complete
 
-                elif update_type == 'error':
+                elif update_type == "error":
                     # Indicar error
-                    yield f'event: error\ndata: {json.dumps(update)}\n\n'
+                    yield f"event: error\ndata: {json.dumps(update)}\n\n"
                     # Esperar un momento para asegurar recepción antes de cerrar
                     time.sleep(0.2)
                     yield f'event: close\ndata: {json.dumps({"message": "Entrenamiento fallido"})}\n\n'
                     return  # Terminar stream después de error
 
-                elif update_type == 'post_processing_complete':
+                elif update_type == "post_processing_complete":
                     # Indicar finalización del post-procesamiento
-                    yield f'event: post_processing_complete\ndata: {json.dumps(update)}\n\n'
+                    yield f"event: post_processing_complete\ndata: {json.dumps(update)}\n\n"
                     # Esperar un momento para asegurar recepción antes de cerrar
                     time.sleep(0.2)
                     yield f'event: close\ndata: {json.dumps({"message": "Procesamiento completo"})}\n\n'
@@ -692,18 +692,18 @@ def _stream_training_updates(training_id, session):
 
                 else:
                     # Para otros tipos de actualizaciones (logs, etc.)
-                    yield f'data: {json.dumps(update)}\n\n'
+                    yield f"data: {json.dumps(update)}\n\n"
 
             # Actualizar contador de actualizaciones procesadas
             last_update_count = len(updates)
 
         # Verificar finalización por estado
-        if config.get('status') in ['completed', 'failed']:
+        if config.get("status") in ["completed", "failed"]:
             # Si llegamos aquí y no se ha procesado el evento de finalización específico,
             # enviar un evento de cierre genérico
             message = (
                 "Entrenamiento completado"
-                if config.get('status') == 'completed'
+                if config.get("status") == "completed"
                 else "Entrenamiento fallido"
             )
             yield f'event: close\ndata: {json.dumps({"message": message})}\n\n'
@@ -716,18 +716,18 @@ def _stream_training_updates(training_id, session):
 @login_required
 def generar_archivos_evaluacion(request):
     """Vista para generar archivos de evaluación para un modelo existente"""
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             # Importar utilidades
             from .views_utils import generate_evaluation_files, check_model_files
 
             # Primero verificar si existen los archivos necesarios
             model_check = check_model_files()
-            if not model_check['all_present']:
+            if not model_check["all_present"]:
                 return JsonResponse(
                     {
-                        'success': False,
-                        'message': f'Faltan archivos necesarios: {", ".join(model_check["missing_files"][:3])}',
+                        "success": False,
+                        "message": f'Faltan archivos necesarios: {", ".join(model_check["missing_files"][:3])}',
                     }
                 )
 
@@ -740,12 +740,12 @@ def generar_archivos_evaluacion(request):
             traceback.print_exc()
             return JsonResponse(
                 {
-                    'success': False,
-                    'message': f'Error al generar archivos de evaluación: {str(e)}',
+                    "success": False,
+                    "message": f"Error al generar archivos de evaluación: {str(e)}",
                 }
             )
 
-    return JsonResponse({'success': False, 'message': 'Método no permitido.'})
+    return JsonResponse({"success": False, "message": "Método no permitido."})
 
 
 @login_required
@@ -757,19 +757,19 @@ def model_status(request):
         status = get_model_status()
         return JsonResponse(status)
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)})
+        return JsonResponse({"status": "error", "message": str(e)})
 
 
 @login_required
 def evaluar_modelo(request):
     """API para evaluar un modelo entrenado"""
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             data = json.loads(request.body)
-            model_id = data.get('model_id')
+            model_id = data.get("model_id")
 
             # Obtener el directorio de modelos
-            models_dir = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models')
+            models_dir = os.path.join("redes_neuronales", "estimacion_tiempo", "models")
 
             # Importar el evaluador
             from redes_neuronales.estimacion_tiempo.evaluator import ModelEvaluator
@@ -779,14 +779,14 @@ def evaluar_modelo(request):
                 AdvancedRNNEstimator,
             )
 
-            estimator = AdvancedRNNEstimator.load(models_dir, 'tiempo_estimator')
+            estimator = AdvancedRNNEstimator.load(models_dir, "tiempo_estimator")
 
             # Cargar feature_dims
-            feature_dims = joblib.load(os.path.join(models_dir, 'feature_dims.pkl'))
+            feature_dims = joblib.load(os.path.join(models_dir, "feature_dims.pkl"))
 
             # Cargar datos de validación
-            X_val = np.load(os.path.join(models_dir, 'X_val.npy'))
-            y_val = np.load(os.path.join(models_dir, 'y_val.npy'))
+            X_val = np.load(os.path.join(models_dir, "X_val.npy"))
+            y_val = np.load(os.path.join(models_dir, "y_val.npy"))
 
             # Crear el evaluador
             evaluator = ModelEvaluator(estimator, feature_dims, models_dir)
@@ -799,38 +799,38 @@ def evaluar_modelo(request):
 
             # Generar análisis de importancia de características
             feature_names = [
-                'Complejidad',
-                'Cantidad_Recursos',
-                'Carga_Trabajo_R1',
-                'Experiencia_R1',
-                'Carga_Trabajo_R2',
-                'Experiencia_R2',
-                'Carga_Trabajo_R3',
-                'Experiencia_R3',
-                'Experiencia_Equipo',
-                'Claridad_Requisitos',
-                'Tamaño_Tarea',
+                "Complejidad",
+                "Cantidad_Recursos",
+                "Carga_Trabajo_R1",
+                "Experiencia_R1",
+                "Carga_Trabajo_R2",
+                "Experiencia_R2",
+                "Carga_Trabajo_R3",
+                "Experiencia_R3",
+                "Experiencia_Equipo",
+                "Claridad_Requisitos",
+                "Tamaño_Tarea",
             ]
 
             # Añadir nombres para características categóricas
-            for i in range(feature_dims['tipo_tarea']):
-                feature_names.append(f'Tipo_Tarea_{i+1}')
-            for i in range(feature_dims['fase']):
-                feature_names.append(f'Fase_{i+1}')
+            for i in range(feature_dims["tipo_tarea"]):
+                feature_names.append(f"Tipo_Tarea_{i+1}")
+            for i in range(feature_dims["fase"]):
+                feature_names.append(f"Fase_{i+1}")
 
             evaluator.analyze_feature_importance(X_val, y_val, feature_names)
 
             # Realizar evaluación segmentada
             segments = {
-                'pequeñas': lambda y: y <= 10,
-                'medianas': lambda y: (y > 10) & (y <= 30),
-                'grandes': lambda y: y > 30,
+                "pequeñas": lambda y: y <= 10,
+                "medianas": lambda y: (y > 10) & (y <= 30),
+                "grandes": lambda y: y > 30,
             }
             evaluator.segmented_evaluation(X_val, y_val, segments)
 
-            return JsonResponse({'success': True, 'metrics': metrics})
+            return JsonResponse({"success": True, "metrics": metrics})
 
         except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)})
+            return JsonResponse({"success": False, "message": str(e)})
 
-    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+    return JsonResponse({"success": False, "message": "Método no permitido"})

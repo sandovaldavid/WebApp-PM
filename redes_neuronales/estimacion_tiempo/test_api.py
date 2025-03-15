@@ -5,7 +5,7 @@ import json
 from getpass import getpass
 
 # Configurar el path del proyecto Django
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.settings")
 
 import django
@@ -21,28 +21,28 @@ def login_django():
     session = requests.Session()
 
     # Obtener token CSRF
-    response = session.get('http://localhost:8000/login/')
+    response = session.get("http://localhost:8000/login/")
     if response.status_code != 200:
         print(f"Error al obtener token CSRF: {response.status_code}")
         return None
 
     # El token CSRF normalmente está en una cookie
-    csrftoken = session.cookies.get('csrftoken')
+    csrftoken = session.cookies.get("csrftoken")
 
     # Iniciar sesión
     login_data = {
-        'username': username,
-        'password': password,
-        'csrfmiddlewaretoken': csrftoken,
+        "username": username,
+        "password": password,
+        "csrfmiddlewaretoken": csrftoken,
     }
 
-    headers = {'Referer': 'http://localhost:8000/login/', 'X-CSRFToken': csrftoken}
+    headers = {"Referer": "http://localhost:8000/login/", "X-CSRFToken": csrftoken}
 
     response = session.post(
-        'http://localhost:8000/login/', data=login_data, headers=headers
+        "http://localhost:8000/login/", data=login_data, headers=headers
     )
 
-    if response.status_code == 200 and 'login' not in response.url:
+    if response.status_code == 200 and "login" not in response.url:
         print("Inicio de sesión exitoso")
         return session
     else:
@@ -52,14 +52,14 @@ def login_django():
 
 def test_estimacion_tarea(session, tarea_id):
     """Prueba la API de estimación de tiempo para una tarea"""
-    url = 'http://localhost:8000/redes-neuronales/estimacion/api/estimacion/tarea'
+    url = "http://localhost:8000/redes-neuronales/estimacion/api/estimacion/tarea"
 
     headers = {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': session.cookies.get('csrftoken'),
+        "Content-Type": "application/json",
+        "X-CSRFToken": session.cookies.get("csrftoken"),
     }
 
-    data = {'tarea_id': tarea_id}
+    data = {"tarea_id": tarea_id}
 
     response = session.post(url, json=data, headers=headers)
     print(f"Status: {response.status_code}")
@@ -68,14 +68,14 @@ def test_estimacion_tarea(session, tarea_id):
 
 def test_reestimacion_tarea(session, tarea_id):
     """Prueba la API de reestimación de una tarea"""
-    url = 'http://localhost:8000/redes-neuronales/estimacion/api/estimacion/tarea/reestimar'
+    url = "http://localhost:8000/redes-neuronales/estimacion/api/estimacion/tarea/reestimar"
 
     headers = {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': session.cookies.get('csrftoken'),
+        "Content-Type": "application/json",
+        "X-CSRFToken": session.cookies.get("csrftoken"),
     }
 
-    data = {'tarea_id': tarea_id}
+    data = {"tarea_id": tarea_id}
 
     response = session.post(url, json=data, headers=headers)
     print(f"Status: {response.status_code}")
@@ -84,7 +84,7 @@ def test_reestimacion_tarea(session, tarea_id):
 
 def test_estimacion_proyecto(session, proyecto_id):
     """Prueba la API de estimación de proyecto"""
-    url = f'http://localhost:8000/redes-neuronales/estimacion/api/estimacion/proyecto/{proyecto_id}'
+    url = f"http://localhost:8000/redes-neuronales/estimacion/api/estimacion/proyecto/{proyecto_id}"
 
     response = session.get(url)
     print(f"Status: {response.status_code}")

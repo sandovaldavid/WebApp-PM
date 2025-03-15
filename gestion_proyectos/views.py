@@ -86,7 +86,7 @@ def index(request):
 
         # Contar proyectos completados (estado Cierre) en el mes
         completados_mes = proyectos_periodo.filter(
-            estado='Cierre', fechamodificacion__range=(mes_inicio, mes_fin)
+            estado="Cierre", fechamodificacion__range=(mes_inicio, mes_fin)
         ).count()
 
         # Contar proyectos creados en el mes
@@ -95,7 +95,7 @@ def index(request):
         ).count()
 
         # Agregar datos a las listas
-        meses.insert(0, fecha.strftime('%b'))
+        meses.insert(0, fecha.strftime("%b"))
         completados.insert(0, completados_mes)
         creados.insert(0, creados_mes)
 
@@ -111,22 +111,22 @@ def index(request):
         "cierre": proyectos_totales.filter(estado="Cierre").count(),
     }
     datos_estado = {
-        'labels': [
-            'Inicio',
-            'Planificación',
-            'Ejecución',
-            'Monitoreo-Control',
-            'Cierre',
+        "labels": [
+            "Inicio",
+            "Planificación",
+            "Ejecución",
+            "Monitoreo-Control",
+            "Cierre",
         ],
-        'data': [
-            estadisticas['inicio'],
-            estadisticas['planificacion'],
-            estadisticas['ejecucion'],
-            estadisticas['monitoreo_control'],
-            estadisticas['cierre'],
+        "data": [
+            estadisticas["inicio"],
+            estadisticas["planificacion"],
+            estadisticas["ejecucion"],
+            estadisticas["monitoreo_control"],
+            estadisticas["cierre"],
         ],
     }
-    datos_tendencia = {'labels': meses, 'completados': completados, 'creados': creados}
+    datos_tendencia = {"labels": meses, "completados": completados, "creados": creados}
     datos_tiempo = {
         "promedio": [
             # Inicio
@@ -210,7 +210,7 @@ def index(request):
     print(datos_tiempo)
 
     # Paginación
-    proyectos = proyectos.order_by('idproyecto')
+    proyectos = proyectos.order_by("idproyecto")
     paginator = Paginator(proyectos, 9)
     try:
         proyectos_paginados = paginator.page(page)
@@ -221,17 +221,17 @@ def index(request):
 
     return render(
         request,
-        'gestion_proyectos/index.html',
+        "gestion_proyectos/index.html",
         {
-            'estadisticas': estadisticas,
-            'proyectos_totales': proyectos_totales,
-            'proyectos': proyectos_paginados,
-            'datos_estado': datos_estado,
-            'datos_tendencia': datos_tendencia,
-            'datos_tiempo': datos_tiempo,
-            'vista': vista,
-            'filtros': {"busqueda": busqueda, "filtro": filtro},
-            'is_admin': is_admin,  # Agregamos is_admin al contexto
+            "estadisticas": estadisticas,
+            "proyectos_totales": proyectos_totales,
+            "proyectos": proyectos_paginados,
+            "datos_estado": datos_estado,
+            "datos_tendencia": datos_tendencia,
+            "datos_tiempo": datos_tiempo,
+            "vista": vista,
+            "filtros": {"busqueda": busqueda, "filtro": filtro},
+            "is_admin": is_admin,  # Agregamos is_admin al contexto
         },
     )
 
@@ -295,24 +295,24 @@ def detalle_proyecto(request, idproyecto):
     # 1. Valor Planeado (PV)
     valor_planeado = (
         Tarea.objects.filter(idrequerimiento__idproyecto=proyecto).aggregate(
-            pv=Sum('costoestimado')
-        )['pv']
+            pv=Sum("costoestimado")
+        )["pv"]
         or 0
     )
 
     # 2. Valor Ganado (EV)
     valor_ganado = (
         Tarea.objects.filter(
-            idrequerimiento__idproyecto=proyecto, estado='Completada'
-        ).aggregate(ev=Sum('costoestimado'))['ev']
+            idrequerimiento__idproyecto=proyecto, estado="Completada"
+        ).aggregate(ev=Sum("costoestimado"))["ev"]
         or 0
     )
 
     # 3. Costo Real (AC)
     costo_real = (
         Tarea.objects.filter(idrequerimiento__idproyecto=proyecto).aggregate(
-            ac=Sum('costoactual')
-        )['ac']
+            ac=Sum("costoactual")
+        )["ac"]
         or 0
     )
 
@@ -334,21 +334,21 @@ def detalle_proyecto(request, idproyecto):
 
     total_tareas = tareas.count()
     total_requerimientos = requerimientos.count()
-    tareas_completadas = tareas.filter(estado='Completada').count()
+    tareas_completadas = tareas.filter(estado="Completada").count()
     progreso = 100.0 * tareas_completadas / total_tareas if total_tareas > 0 else 0.0
 
-    duracion_estimada = tareas.aggregate(total=Sum('duracionestimada'))['total'] or 0
-    duracion_actual = tareas.aggregate(total=Sum('duracionactual'))['total'] or 0
+    duracion_estimada = tareas.aggregate(total=Sum("duracionestimada"))["total"] or 0
+    duracion_actual = tareas.aggregate(total=Sum("duracionactual"))["total"] or 0
 
     for requerimiento in requerimientos:
         requerimiento.tareas_pendientes = tareas.filter(
-            idrequerimiento=requerimiento, estado='Pendiente'
+            idrequerimiento=requerimiento, estado="Pendiente"
         ).count()
         requerimiento.tareas_en_progreso = tareas.filter(
-            idrequerimiento=requerimiento, estado='En Progreso'
+            idrequerimiento=requerimiento, estado="En Progreso"
         ).count()
         requerimiento.tareas_completadas = tareas.filter(
-            idrequerimiento=requerimiento, estado='Completada'
+            idrequerimiento=requerimiento, estado="Completada"
         ).count()
 
     vista = request.GET.get("vista", "grid")
@@ -359,27 +359,27 @@ def detalle_proyecto(request, idproyecto):
 
     return render(
         request,
-        'gestion_proyectos/detalle_proyecto.html',
+        "gestion_proyectos/detalle_proyecto.html",
         {
-            'proyecto': proyecto,
-            'valor_planeado': valor_planeado,
-            'valor_ganado': valor_ganado,
-            'costo_real': costo_real,
-            'cpi': round(cpi, 2),
-            'spi': round(spi, 2),
-            'requerimientos': requerimientos,
-            'tareas': tareas,
-            'recursos': recursos,
-            'presupuesto_restante': presupuesto_restante,
-            'desviacion_presupuesto': desviacion_presupuesto,
-            'progreso': progreso,
-            'duracion_estimada': duracion_estimada,
-            'duracion_actual': duracion_actual,
-            'total_tareas': total_tareas,
-            'tareas_completadas': tareas_completadas,
-            'total_requerimientos': total_requerimientos,
-            'vista': vista,
-            'filtros': {"busqueda": busqueda},
+            "proyecto": proyecto,
+            "valor_planeado": valor_planeado,
+            "valor_ganado": valor_ganado,
+            "costo_real": costo_real,
+            "cpi": round(cpi, 2),
+            "spi": round(spi, 2),
+            "requerimientos": requerimientos,
+            "tareas": tareas,
+            "recursos": recursos,
+            "presupuesto_restante": presupuesto_restante,
+            "desviacion_presupuesto": desviacion_presupuesto,
+            "progreso": progreso,
+            "duracion_estimada": duracion_estimada,
+            "duracion_actual": duracion_actual,
+            "total_tareas": total_tareas,
+            "tareas_completadas": tareas_completadas,
+            "total_requerimientos": total_requerimientos,
+            "vista": vista,
+            "filtros": {"busqueda": busqueda},
         },
     )
 
@@ -465,23 +465,23 @@ def editar_proyecto(request, idproyecto):
     proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
     requerimientos = proyecto.requerimiento_set.all()
 
-    if request.method == 'POST':
-        nombreproyecto = request.POST.get('nombreproyecto', proyecto.nombreproyecto)
-        descripcion = request.POST.get('descripcion', proyecto.descripcion)
-        estado = request.POST.get('estado', proyecto.estado)
-        fechainicio = request.POST.get('fechainicio', proyecto.fechainicio)
-        fechafin = request.POST.get('fechafin', proyecto.fechafin)
-        presupuesto = request.POST.get('presupuesto', proyecto.presupuesto)
+    if request.method == "POST":
+        nombreproyecto = request.POST.get("nombreproyecto", proyecto.nombreproyecto)
+        descripcion = request.POST.get("descripcion", proyecto.descripcion)
+        estado = request.POST.get("estado", proyecto.estado)
+        fechainicio = request.POST.get("fechainicio", proyecto.fechainicio)
+        fechafin = request.POST.get("fechafin", proyecto.fechafin)
+        presupuesto = request.POST.get("presupuesto", proyecto.presupuesto)
 
         # Validar que la fecha de inicio sea anterior a la fecha de fin
         if fechainicio >= fechafin:
             return render(
                 request,
-                'gestion_proyectos/editar_proyecto.html',
+                "gestion_proyectos/editar_proyecto.html",
                 {
-                    'proyecto': proyecto,
-                    'requerimientos': requerimientos,
-                    'error': 'La fecha de inicio debe ser anterior a la fecha de finalización.',
+                    "proyecto": proyecto,
+                    "requerimientos": requerimientos,
+                    "error": "La fecha de inicio debe ser anterior a la fecha de finalización.",
                 },
             )
 
@@ -564,19 +564,19 @@ def eliminar_requerimiento(request, idrequerimiento):
             return JsonResponse(
                 {"success": False, "error": "Requerimiento no encontrado."}
             )
-    return JsonResponse({'success': False, 'error': 'Método no permitido.'})
+    return JsonResponse({"success": False, "error": "Método no permitido."})
 
 
 @login_required
 def eliminar_proyecto(request, idproyecto):
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
             proyecto.delete()
-            return JsonResponse({'success': True})
+            return JsonResponse({"success": True})
         except Proyecto.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Proyecto no encontrado.'})
-    return JsonResponse({'success': False, 'error': 'Método no permitido.'})
+            return JsonResponse({"success": False, "error": "Proyecto no encontrado."})
+    return JsonResponse({"success": False, "error": "Método no permitido."})
 
 
 @login_required
@@ -589,32 +589,32 @@ def estadisticas_proyecto(request, idproyecto):
     presupuesto_restante = proyecto.presupuesto - presupuestoutilizado
     return render(
         request,
-        'gestion_proyectos/estadisticas_proyecto.html',
+        "gestion_proyectos/estadisticas_proyecto.html",
         {
-            'proyecto': proyecto,
-            'requerimientos': requerimientos,
-            'tareas': tareas,
-            'recursos': recursos,
-            'presupuesto_restante': presupuesto_restante,
+            "proyecto": proyecto,
+            "requerimientos": requerimientos,
+            "tareas": tareas,
+            "recursos": recursos,
+            "presupuesto_restante": presupuesto_restante,
         },
     )
 
 
 @login_required
 def filtrar_proyectos(request):
-    filtro = request.GET.get('filtro', 'todos')
+    filtro = request.GET.get("filtro", "todos")
     proyectos = Proyecto.objects.all()
 
-    if filtro == 'inicio':
-        proyectos = proyectos.filter(estado='Inicio')
-    elif filtro == 'planificacion':
-        proyectos = proyectos.filter(estado='Planificación')
-    elif filtro == 'ejecucion':
-        proyectos = proyectos.filter(estado='Ejecución')
-    elif filtro == 'monitoreo_control':
-        proyectos = proyectos.filter(estado='Monitoreo-Control')
-    elif filtro == 'cierre':
-        proyectos = proyectos.filter(estado='Cierre')
+    if filtro == "inicio":
+        proyectos = proyectos.filter(estado="Inicio")
+    elif filtro == "planificacion":
+        proyectos = proyectos.filter(estado="Planificación")
+    elif filtro == "ejecucion":
+        proyectos = proyectos.filter(estado="Ejecución")
+    elif filtro == "monitoreo_control":
+        proyectos = proyectos.filter(estado="Monitoreo-Control")
+    elif filtro == "cierre":
+        proyectos = proyectos.filter(estado="Cierre")
 
     # Paginación
     paginator = Paginator(proyectos, 9)
@@ -623,8 +623,8 @@ def filtrar_proyectos(request):
 
     return render(
         request,
-        'components/lista_proyectos.html',
-        {'proyectos': proyectos_paginados, 'filtro_activo': filtro},
+        "components/lista_proyectos.html",
+        {"proyectos": proyectos_paginados, "filtro_activo": filtro},
     )
 
 
@@ -651,7 +651,7 @@ def panel_proyectos(request):
         proyectos = proyectos.filter(estado=filtro)
 
     # Paginación
-    proyectos = proyectos.order_by('idproyecto')
+    proyectos = proyectos.order_by("idproyecto")
     paginator = Paginator(proyectos, 9)
     try:
         proyectos_paginados = paginator.page(page)
@@ -661,13 +661,13 @@ def panel_proyectos(request):
         proyectos_paginados = paginator.page(paginator.num_pages)
 
     context = {
-        'proyectos': proyectos_paginados,
-        'proyectos_totales': proyectos_totales,
-        'vista': vista,  # Asegurarnos que sea consistente
-        'filtros': {"busqueda": busqueda, "filtro": filtro},  # Pasamos el filtro
+        "proyectos": proyectos_paginados,
+        "proyectos_totales": proyectos_totales,
+        "vista": vista,  # Asegurarnos que sea consistente
+        "filtros": {"busqueda": busqueda, "filtro": filtro},  # Pasamos el filtro
     }
 
-    return render(request, 'components/panel_proyectos.html', context)
+    return render(request, "components/panel_proyectos.html", context)
 
 
 @login_required
@@ -691,7 +691,7 @@ def panel_lista_proyectos(request):
         proyectos = proyectos.filter(estado=filtro)
 
     # Paginación
-    proyectos = proyectos.order_by('idproyecto')
+    proyectos = proyectos.order_by("idproyecto")
     paginator = Paginator(proyectos, 9)
     try:
         proyectos_paginados = paginator.page(page)
@@ -701,22 +701,22 @@ def panel_lista_proyectos(request):
         proyectos_paginados = paginator.page(paginator.num_pages)
 
     context = {
-        'proyectos': proyectos_paginados,
-        'vista': vista,  # Aseguramos que se pase el valor de vista
-        'filtros': {
+        "proyectos": proyectos_paginados,
+        "vista": vista,  # Aseguramos que se pase el valor de vista
+        "filtros": {
             "busqueda": busqueda,
             "filtro": filtro,
         },  # Pasamos el filtro para la selección
     }
 
-    return render(request, 'components/lista_proyectos.html', context)
+    return render(request, "components/lista_proyectos.html", context)
 
 
 @login_required
 def crear_requerimiento(request, idproyecto):
     proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
-    if request.method == 'POST':
-        descripcion = request.POST.get('descripcion')
+    if request.method == "POST":
+        descripcion = request.POST.get("descripcion")
         if descripcion:
             now = timezone.now()
             requerimiento = Requerimiento(
@@ -726,9 +726,9 @@ def crear_requerimiento(request, idproyecto):
                 fechamodificacion=now,
             )
             requerimiento.save()
-            return redirect('gestion_proyectos:detalle_proyecto', idproyecto=idproyecto)
+            return redirect("gestion_proyectos:detalle_proyecto", idproyecto=idproyecto)
     return render(
-        request, 'gestion_proyectos/crear_requerimiento.html', {'proyecto': proyecto}
+        request, "gestion_proyectos/crear_requerimiento.html", {"proyecto": proyecto}
     )
 
 
@@ -739,20 +739,20 @@ def detalle_requerimiento(request, idrequerimiento):
 
     # Calcular estadísticas
     total_tareas = tareas.count()
-    tareas_pendientes = tareas.filter(estado='Pendiente').count()
-    tareas_en_progreso = tareas.filter(estado='En Progreso').count()
-    tareas_completadas = tareas.filter(estado='Completada').count()
+    tareas_pendientes = tareas.filter(estado="Pendiente").count()
+    tareas_en_progreso = tareas.filter(estado="En Progreso").count()
+    tareas_completadas = tareas.filter(estado="Completada").count()
 
     return render(
         request,
-        'gestion_proyectos/detalle_requerimiento.html',
+        "gestion_proyectos/detalle_requerimiento.html",
         {
-            'requerimiento': requerimiento,
-            'tareas': tareas,
-            'total_tareas': total_tareas,
-            'tareas_pendientes': tareas_pendientes,
-            'tareas_en_progreso': tareas_en_progreso,
-            'tareas_completadas': tareas_completadas,
+            "requerimiento": requerimiento,
+            "tareas": tareas,
+            "total_tareas": total_tareas,
+            "tareas_pendientes": tareas_pendientes,
+            "tareas_en_progreso": tareas_en_progreso,
+            "tareas_completadas": tareas_completadas,
         },
     )
 
@@ -761,19 +761,19 @@ def detalle_requerimiento(request, idrequerimiento):
 def editar_requerimiento(request, idrequerimiento):
     requerimiento = get_object_or_404(Requerimiento, idrequerimiento=idrequerimiento)
     proyecto = requerimiento.idproyecto
-    if request.method == 'POST':
-        descripcion = request.POST.get('descripcion')
+    if request.method == "POST":
+        descripcion = request.POST.get("descripcion")
         if descripcion:
             requerimiento.descripcion = descripcion
             requerimiento.fechamodificacion = timezone.now()
             requerimiento.save()
             return redirect(
-                'gestion_proyectos:detalle_proyecto', idproyecto=proyecto.idproyecto
+                "gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto
             )
     return render(
         request,
-        'gestion_proyectos/editar_requerimiento.html',
-        {'requerimiento': requerimiento, 'proyecto': proyecto},
+        "gestion_proyectos/editar_requerimiento.html",
+        {"requerimiento": requerimiento, "proyecto": proyecto},
     )
 
 
@@ -781,15 +781,15 @@ def editar_requerimiento(request, idrequerimiento):
 def eliminar_requerimiento(request, idrequerimiento):
     requerimiento = get_object_or_404(Requerimiento, idrequerimiento=idrequerimiento)
     proyecto = requerimiento.idproyecto
-    if request.method == 'POST':
+    if request.method == "POST":
         requerimiento.delete()
         return redirect(
-            'gestion_proyectos:detalle_proyecto', idproyecto=proyecto.idproyecto
+            "gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto
         )
     return render(
         request,
-        'gestion_proyectos/eliminar_requerimiento.html',
-        {'requerimiento': requerimiento, 'proyecto': proyecto},
+        "gestion_proyectos/eliminar_requerimiento.html",
+        {"requerimiento": requerimiento, "proyecto": proyecto},
     )
 
 

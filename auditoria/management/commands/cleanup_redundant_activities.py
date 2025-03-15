@@ -6,31 +6,31 @@ from dashboard.models import Actividad
 
 
 class Command(BaseCommand):
-    help = 'Elimina actividades redundantes en la base de datos'
+    help = "Elimina actividades redundantes en la base de datos"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--days',
+            "--days",
             type=int,
             default=30,
-            help='Número de días hacia atrás para buscar y limpiar (default: 30)',
+            help="Número de días hacia atrás para buscar y limpiar (default: 30)",
         )
         parser.add_argument(
-            '--window',
+            "--window",
             type=int,
             default=5,
-            help='Ventana de tiempo en segundos para considerar actividades como redundantes (default: 5)',
+            help="Ventana de tiempo en segundos para considerar actividades como redundantes (default: 5)",
         )
         parser.add_argument(
-            '--dry-run',
-            action='store_true',
-            help='Solo mostrar qué se eliminaría sin realizar cambios',
+            "--dry-run",
+            action="store_true",
+            help="Solo mostrar qué se eliminaría sin realizar cambios",
         )
 
     def handle(self, *args, **options):
-        days = options['days']
-        window = options['window']
-        dry_run = options['dry_run']
+        days = options["days"]
+        window = options["window"]
+        dry_run = options["dry_run"]
 
         self.stdout.write(
             self.style.NOTICE(
@@ -41,8 +41,8 @@ class Command(BaseCommand):
         # Obtener todas las actividades de modificación en el período especificado
         start_date = timezone.now() - timedelta(days=days)
         activities = Actividad.objects.filter(
-            fechacreacion__gte=start_date, accion='MODIFICACION'
-        ).order_by('entidad_tipo', 'entidad_id', 'fechacreacion')
+            fechacreacion__gte=start_date, accion="MODIFICACION"
+        ).order_by("entidad_tipo", "entidad_id", "fechacreacion")
 
         self.stdout.write(f"Encontradas {activities.count()} actividades para analizar")
 

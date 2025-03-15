@@ -7,19 +7,19 @@ Esto permite evitar registros duplicados cuando se modifican modelos relacionado
 # Cuando se modifica un modelo hijo, la auditoría se registrará en el modelo padre
 RELATED_MODELS = {
     # Formato: 'ModeloHijo': {'modelo_padre': 'ModeloPadre', 'campo_relacion': 'nombre_campo_fk'}
-    'RecursoHumano': {'modelo_padre': 'Recurso', 'campo_relacion': 'idrecurso'},
-    'RecursoMaterial': {'modelo_padre': 'Recurso', 'campo_relacion': 'idrecurso'},
-    'Desarrollador': {'modelo_padre': 'Usuario', 'campo_relacion': 'idusuario'},
-    'JefeProyecto': {'modelo_padre': 'Usuario', 'campo_relacion': 'idusuario'},
-    'Cliente': {'modelo_padre': 'Usuario', 'campo_relacion': 'idusuario'},
-    'Tester': {'modelo_padre': 'Usuario', 'campo_relacion': 'idusuario'},
-    'Administrador': {'modelo_padre': 'Usuario', 'campo_relacion': 'idusuario'},
+    "RecursoHumano": {"modelo_padre": "Recurso", "campo_relacion": "idrecurso"},
+    "RecursoMaterial": {"modelo_padre": "Recurso", "campo_relacion": "idrecurso"},
+    "Desarrollador": {"modelo_padre": "Usuario", "campo_relacion": "idusuario"},
+    "JefeProyecto": {"modelo_padre": "Usuario", "campo_relacion": "idusuario"},
+    "Cliente": {"modelo_padre": "Usuario", "campo_relacion": "idusuario"},
+    "Tester": {"modelo_padre": "Usuario", "campo_relacion": "idusuario"},
+    "Administrador": {"modelo_padre": "Usuario", "campo_relacion": "idusuario"},
 }
 
 # Mapeo inverso para rápido acceso: modelos padre a todos sus hijos
 PARENT_MODELS = {}
 for hijo, info in RELATED_MODELS.items():
-    padre = info['modelo_padre']
+    padre = info["modelo_padre"]
     if padre not in PARENT_MODELS:
         PARENT_MODELS[padre] = []
     PARENT_MODELS[padre].append(hijo)
@@ -33,14 +33,14 @@ def is_child_model(model_name):
 def get_parent_model(model_name):
     """Obtiene el modelo padre para un modelo hijo dado"""
     if model_name in RELATED_MODELS:
-        return RELATED_MODELS[model_name]['modelo_padre']
+        return RELATED_MODELS[model_name]["modelo_padre"]
     return None
 
 
 def get_relation_field(model_name):
     """Obtiene el campo de relación para un modelo hijo dado"""
     if model_name in RELATED_MODELS:
-        return RELATED_MODELS[model_name]['campo_relacion']
+        return RELATED_MODELS[model_name]["campo_relacion"]
     return None
 
 
@@ -64,7 +64,7 @@ def should_audit_child_change(instance, field_name):
         return True
 
     # Campos que normalmente no queremos auditar en modelos hijos
-    ignore_fields = ['id', 'pk', get_relation_field(model_name)]
+    ignore_fields = ["id", "pk", get_relation_field(model_name)]
 
     # Si el campo está en la lista de ignorados, no auditar
     return field_name not in ignore_fields

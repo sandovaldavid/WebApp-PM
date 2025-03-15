@@ -10,28 +10,28 @@ from data_processor import DataProcessor
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Predecir tiempo con modelo RNN entrenado'
+        description="Predecir tiempo con modelo RNN entrenado"
     )
     parser.add_argument(
-        '--model-dir',
+        "--model-dir",
         type=str,
-        default='models',
-        help='Directorio donde está guardado el modelo',
+        default="models",
+        help="Directorio donde está guardado el modelo",
     )
     parser.add_argument(
-        '--model-name',
+        "--model-name",
         type=str,
-        default='tiempo_estimator',
-        help='Nombre base del modelo',
+        default="tiempo_estimator",
+        help="Nombre base del modelo",
     )
     parser.add_argument(
-        '--input-file', type=str, help='Archivo CSV con datos de tareas a predecir'
+        "--input-file", type=str, help="Archivo CSV con datos de tareas a predecir"
     )
     parser.add_argument(
-        '--output-file',
+        "--output-file",
         type=str,
-        default='predicciones.csv',
-        help='Archivo CSV donde guardar las predicciones',
+        default="predicciones.csv",
+        help="Archivo CSV donde guardar las predicciones",
     )
 
     return parser.parse_args()
@@ -54,15 +54,15 @@ def predict_from_csv(model, processor, input_file, output_file):
 
         # Verificar que contiene las columnas necesarias
         required_columns = [
-            'Complejidad',
-            'Tipo_Tarea',
-            'Fase_Tarea',
-            'Cantidad_Recursos',
-            'Carga_Trabajo_R1',
-            'Experiencia_R1',
-            'Experiencia_Equipo',
-            'Claridad_Requisitos',
-            'Tamaño_Tarea',
+            "Complejidad",
+            "Tipo_Tarea",
+            "Fase_Tarea",
+            "Cantidad_Recursos",
+            "Carga_Trabajo_R1",
+            "Experiencia_R1",
+            "Experiencia_Equipo",
+            "Claridad_Requisitos",
+            "Tamaño_Tarea",
         ]
 
         missing_columns = [col for col in required_columns if col not in data.columns]
@@ -74,19 +74,19 @@ def predict_from_csv(model, processor, input_file, output_file):
         results = []
         for i, row in data.iterrows():
             task_data = {
-                'Complejidad': row['Complejidad'],
-                'Tipo_Tarea': row['Tipo_Tarea'],
-                'Fase_Tarea': row['Fase_Tarea'],
-                'Cantidad_Recursos': row['Cantidad_Recursos'],
-                'Carga_Trabajo_R1': row.get('Carga_Trabajo_R1', 0),
-                'Experiencia_R1': row.get('Experiencia_R1', 0),
-                'Carga_Trabajo_R2': row.get('Carga_Trabajo_R2', 0),
-                'Experiencia_R2': row.get('Experiencia_R2', 0),
-                'Carga_Trabajo_R3': row.get('Carga_Trabajo_R3', 0),
-                'Experiencia_R3': row.get('Experiencia_R3', 0),
-                'Experiencia_Equipo': row['Experiencia_Equipo'],
-                'Claridad_Requisitos': row['Claridad_Requisitos'],
-                'Tamaño_Tarea': row['Tamaño_Tarea'],
+                "Complejidad": row["Complejidad"],
+                "Tipo_Tarea": row["Tipo_Tarea"],
+                "Fase_Tarea": row["Fase_Tarea"],
+                "Cantidad_Recursos": row["Cantidad_Recursos"],
+                "Carga_Trabajo_R1": row.get("Carga_Trabajo_R1", 0),
+                "Experiencia_R1": row.get("Experiencia_R1", 0),
+                "Carga_Trabajo_R2": row.get("Carga_Trabajo_R2", 0),
+                "Experiencia_R2": row.get("Experiencia_R2", 0),
+                "Carga_Trabajo_R3": row.get("Carga_Trabajo_R3", 0),
+                "Experiencia_R3": row.get("Experiencia_R3", 0),
+                "Experiencia_Equipo": row["Experiencia_Equipo"],
+                "Claridad_Requisitos": row["Claridad_Requisitos"],
+                "Tamaño_Tarea": row["Tamaño_Tarea"],
             }
 
             # Procesar datos para el modelo
@@ -96,7 +96,7 @@ def predict_from_csv(model, processor, input_file, output_file):
             prediction = model.predict(X, processor.feature_dims)
 
             # Añadir resultado
-            results.append({'ID': i, 'Tiempo_Estimado': prediction[0], **task_data})
+            results.append({"ID": i, "Tiempo_Estimado": prediction[0], **task_data})
 
         # Crear DataFrame con resultados
         results_df = pd.DataFrame(results)

@@ -23,7 +23,7 @@ def registro_actividades(request):
     busqueda = request.GET.get("busqueda", "")
 
     # Query base
-    actividades = Actividad.objects.all().order_by('-fechacreacion')
+    actividades = Actividad.objects.all().order_by("-fechacreacion")
 
     # Aplicar filtros
     if estado:
@@ -36,7 +36,7 @@ def registro_actividades(request):
         )
 
     # Obtener tipos únicos de actividades para los filtros
-    tipos_actividades = Actividad.objects.values_list('accion', flat=True).distinct()
+    tipos_actividades = Actividad.objects.values_list("accion", flat=True).distinct()
 
     # Paginación
     paginator = Paginator(actividades, 10)  # 10 actividades por página
@@ -51,8 +51,8 @@ def registro_actividades(request):
 
     # Obtener usuarios más activos (con más actividades)
     usuarios_activos = Usuario.objects.annotate(
-        num_actividades=Count('actividad')
-    ).order_by('-num_actividades')[
+        num_actividades=Count("actividad")
+    ).order_by("-num_actividades")[
         :15
     ]  # Mostrar los 15 usuarios más activos
 
@@ -63,15 +63,15 @@ def registro_actividades(request):
 
     # Obtener todos los tipos de actividades para la gráfica
     tipos_actividades_count = (
-        Actividad.objects.values('accion')
-        .annotate(total=Count('idactividad'))
-        .order_by('-total')
+        Actividad.objects.values("accion")
+        .annotate(total=Count("idactividad"))
+        .order_by("-total")
     )
 
     # Preparar datos para la gráfica
     datos_tipos_actividades = {
-        "labels": [tipo['accion'] for tipo in tipos_actividades_count],
-        "data": [tipo['total'] for tipo in tipos_actividades_count],
+        "labels": [tipo["accion"] for tipo in tipos_actividades_count],
+        "data": [tipo["total"] for tipo in tipos_actividades_count],
     }
 
     return render(
@@ -97,7 +97,7 @@ def filtrar_actividades(request):
         busqueda = request.GET.get("busqueda", "")
 
         # Query base
-        actividades = Actividad.objects.all().order_by('-fechacreacion')
+        actividades = Actividad.objects.all().order_by("-fechacreacion")
 
         # Aplicar filtros
         if filtro:
@@ -137,7 +137,7 @@ def lista_actividades(request):
     busqueda = request.GET.get("busqueda", "")
 
     # Query base
-    actividades = Actividad.objects.all().order_by('-fechacreacion')
+    actividades = Actividad.objects.all().order_by("-fechacreacion")
 
     # Aplicar filtros
     if filtro:
@@ -159,27 +159,27 @@ def lista_actividades(request):
     for actividad in actividades_page:
         actividades_data.append(
             {
-                'idactividad': actividad.idactividad,
-                'nombre': actividad.nombre,
-                'descripcion': actividad.descripcion,
-                'accion': actividad.accion,
-                'fechacreacion': actividad.fechacreacion.strftime('%Y-%m-%d %H:%M:%S'),
-                'es_automatica': actividad.es_automatica,
-                'idusuario': {
-                    'idusuario': actividad.idusuario.idusuario,
-                    'nombreusuario': actividad.idusuario.nombreusuario,
+                "idactividad": actividad.idactividad,
+                "nombre": actividad.nombre,
+                "descripcion": actividad.descripcion,
+                "accion": actividad.accion,
+                "fechacreacion": actividad.fechacreacion.strftime("%Y-%m-%d %H:%M:%S"),
+                "es_automatica": actividad.es_automatica,
+                "idusuario": {
+                    "idusuario": actividad.idusuario.idusuario,
+                    "nombreusuario": actividad.idusuario.nombreusuario,
                 },
             }
         )
 
     return JsonResponse(
         {
-            'actividades': actividades_data,
-            'current_page': actividades_page.number,
-            'total_pages': paginator.num_pages,
-            'has_previous': actividades_page.has_previous(),
-            'has_next': actividades_page.has_next(),
-            'total_count': paginator.count,
+            "actividades": actividades_data,
+            "current_page": actividades_page.number,
+            "total_pages": paginator.num_pages,
+            "has_previous": actividades_page.has_previous(),
+            "has_next": actividades_page.has_next(),
+            "total_count": paginator.count,
         }
     )
 
@@ -200,11 +200,11 @@ def crear_actividad(request):
     if request.method == "POST":
         try:
             # Procesar los datos del formulario manualmente
-            nombre = request.POST.get('nombre')
-            descripcion = request.POST.get('descripcion')
-            fechacreacion = request.POST.get('fechacreacion')
-            idusuario = request.POST.get('idusuario')
-            accion = request.POST.get('accion')
+            nombre = request.POST.get("nombre")
+            descripcion = request.POST.get("descripcion")
+            fechacreacion = request.POST.get("fechacreacion")
+            idusuario = request.POST.get("idusuario")
+            accion = request.POST.get("accion")
 
             # Validar datos
             if not nombre or not idusuario or not accion:
@@ -244,11 +244,11 @@ def editar_actividad(request, id):
     if request.method == "POST":
         try:
             # Procesar los datos del formulario manualmente
-            nombre = request.POST.get('nombre')
-            descripcion = request.POST.get('descripcion')
-            fechacreacion = request.POST.get('fechacreacion')
-            idusuario = request.POST.get('idusuario')
-            accion = request.POST.get('accion')
+            nombre = request.POST.get("nombre")
+            descripcion = request.POST.get("descripcion")
+            fechacreacion = request.POST.get("fechacreacion")
+            idusuario = request.POST.get("idusuario")
+            accion = request.POST.get("accion")
 
             # Validar datos
             if not nombre or not idusuario or not accion:
@@ -305,7 +305,7 @@ def detalle_actividad(request, id):
     nivel_detalle = 2  # Valor predeterminado - detallado
 
     # Si es actividad de modificación y hay entidad_tipo, buscar la configuración
-    if actividad.accion == 'MODIFICACION' and actividad.entidad_tipo:
+    if actividad.accion == "MODIFICACION" and actividad.entidad_tipo:
         config = ConfiguracionAuditoria.objects.filter(
             modelo=actividad.entidad_tipo, campo__isnull=True
         ).first()
@@ -332,8 +332,8 @@ def detalle_actividad(request, id):
     for detalle in detalles_filtrados:
         nombre_campo = detalle.nombre_campo
         # Si el nombre del campo contiene un punto, es un campo de un modelo relacionado
-        if '.' in nombre_campo:
-            partes = nombre_campo.split('.')
+        if "." in nombre_campo:
+            partes = nombre_campo.split(".")
             if len(partes) == 2:
                 modelo, campo = partes
                 # Formateamos el nombre para mostrar el modelo y campo
@@ -342,13 +342,13 @@ def detalle_actividad(request, id):
 
     return render(
         request,
-        'auditoria/detalle_actividad.html',
+        "auditoria/detalle_actividad.html",
         {
-            'actividad': actividad,
-            'detalles': detalles_formateados,  # Usamos la lista formateada
-            'nivel_detalle': nivel_detalle,
-            'entidad_relacionada': entidad_relacionada,
-            'es_nivel_detallado': nivel_detalle >= 2,
+            "actividad": actividad,
+            "detalles": detalles_formateados,  # Usamos la lista formateada
+            "nivel_detalle": nivel_detalle,
+            "entidad_relacionada": entidad_relacionada,
+            "es_nivel_detallado": nivel_detalle >= 2,
         },
     )
 
@@ -372,26 +372,26 @@ def obtener_entidad_relacionada(modelo, id):
 
         # Mapeo de nombres de modelos a clases reales
         model_map = {
-            'Proyecto': Proyecto,
-            'Tarea': Tarea,
-            'Recurso': Recurso,
-            'Usuario': Usuario,
-            'Equipo': Equipo,
-            'Requerimiento': Requerimiento,
-            'Notificacion': Notificacion,  # Añadimos Notificacion
-            'Alerta': Alerta,  # Añadimos Alerta
+            "Proyecto": Proyecto,
+            "Tarea": Tarea,
+            "Recurso": Recurso,
+            "Usuario": Usuario,
+            "Equipo": Equipo,
+            "Requerimiento": Requerimiento,
+            "Notificacion": Notificacion,  # Añadimos Notificacion
+            "Alerta": Alerta,  # Añadimos Alerta
         }
 
         # Mapeo específico de nombres de campos de clave primaria
         pk_fields = {
-            'Proyecto': 'idproyecto',
-            'Tarea': 'idtarea',
-            'Recurso': 'idrecurso',
-            'Usuario': 'idusuario',
-            'Equipo': 'idequipo',
-            'Requerimiento': 'idrequerimiento',
-            'Notificacion': 'idnotificacion',  # Añadimos campo PK
-            'Alerta': 'idalerta',  # Añadimos campo PK
+            "Proyecto": "idproyecto",
+            "Tarea": "idtarea",
+            "Recurso": "idrecurso",
+            "Usuario": "idusuario",
+            "Equipo": "idequipo",
+            "Requerimiento": "idrequerimiento",
+            "Notificacion": "idnotificacion",  # Añadimos campo PK
+            "Alerta": "idalerta",  # Añadimos campo PK
         }
 
         if modelo in model_map:
@@ -435,10 +435,10 @@ def configuracion_auditoria(request):
     navegacion_habilitada = True  # Valor predeterminado
     if navegacion_config:
         navegacion_habilitada = navegacion_config.valor.lower() in (
-            'true',
-            '1',
-            'yes',
-            'si',
+            "true",
+            "1",
+            "yes",
+            "si",
         )
 
     # Obtener todos los modelos de la aplicación
@@ -447,10 +447,10 @@ def configuracion_auditoria(request):
         for model in app_config.get_models():
             # Excluir algunos modelos del sistema Django
             if model.__name__ not in [
-                'Session',
-                'LogEntry',
-                'ContentType',
-                'Permission',
+                "Session",
+                "LogEntry",
+                "ContentType",
+                "Permission",
             ]:
                 app_models.append(model.__name__)
 
@@ -458,33 +458,33 @@ def configuracion_auditoria(request):
 
     return render(
         request,
-        'auditoria/configuracion_auditoria.html',
+        "auditoria/configuracion_auditoria.html",
         {
-            'configuraciones': configuraciones,
-            'available_models': app_models,
-            'navegacion_habilitada': navegacion_habilitada,
+            "configuraciones": configuraciones,
+            "available_models": app_models,
+            "navegacion_habilitada": navegacion_habilitada,
         },
     )
 
 
 @login_required
 def crear_configuracion(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
-            modelo = request.POST.get('modelo')
-            campo = request.POST.get('campo', None)
-            if campo == '':
+            modelo = request.POST.get("modelo")
+            campo = request.POST.get("campo", None)
+            if campo == "":
                 campo = None
 
-            auditar_crear = 'auditar_crear' in request.POST
-            auditar_modificar = 'auditar_modificar' in request.POST
-            auditar_eliminar = 'auditar_eliminar' in request.POST
-            nivel_detalle = int(request.POST.get('nivel_detalle', 1))
+            auditar_crear = "auditar_crear" in request.POST
+            auditar_modificar = "auditar_modificar" in request.POST
+            auditar_eliminar = "auditar_eliminar" in request.POST
+            nivel_detalle = int(request.POST.get("nivel_detalle", 1))
 
             # Validar datos
             if not modelo:
                 messages.error(request, "Debe seleccionar un modelo para auditar.")
-                return redirect('auditoria:configuracion_auditoria')
+                return redirect("auditoria:configuracion_auditoria")
 
             # Comprobar si ya existe esta configuración
             existing_config = ConfiguracionAuditoria.objects.filter(
@@ -496,7 +496,7 @@ def crear_configuracion(request):
                     f"Ya existe una configuración para {modelo}"
                     + (f" campo {campo}" if campo else ""),
                 )
-                return redirect('auditoria:configuracion_auditoria')
+                return redirect("auditoria:configuracion_auditoria")
 
             # Crear la configuración
             ConfiguracionAuditoria.objects.create(
@@ -513,36 +513,36 @@ def crear_configuracion(request):
         except Exception as e:
             messages.error(request, f"Error al crear la configuración: {str(e)}")
 
-    return redirect('auditoria:configuracion_auditoria')
+    return redirect("auditoria:configuracion_auditoria")
 
 
 @login_required
 def editar_configuracion(request, id):
     configuracion = get_object_or_404(ConfiguracionAuditoria, idconfiguracion=id)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             # Actualizar la configuración
-            configuracion.auditar_crear = 'auditar_crear' in request.POST
-            configuracion.auditar_modificar = 'auditar_modificar' in request.POST
-            configuracion.auditar_eliminar = 'auditar_eliminar' in request.POST
-            configuracion.nivel_detalle = int(request.POST.get('nivel_detalle', 1))
+            configuracion.auditar_crear = "auditar_crear" in request.POST
+            configuracion.auditar_modificar = "auditar_modificar" in request.POST
+            configuracion.auditar_eliminar = "auditar_eliminar" in request.POST
+            configuracion.nivel_detalle = int(request.POST.get("nivel_detalle", 1))
 
             configuracion.save()
             messages.success(request, "Configuración actualizada exitosamente.")
-            return redirect('auditoria:configuracion_auditoria')
+            return redirect("auditoria:configuracion_auditoria")
 
         except Exception as e:
             messages.error(request, f"Error al actualizar la configuración: {str(e)}")
 
     return render(
-        request, 'auditoria/editar_configuracion.html', {'configuracion': configuracion}
+        request, "auditoria/editar_configuracion.html", {"configuracion": configuracion}
     )
 
 
 @login_required
 def eliminar_configuracion(request, id):
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             configuracion = get_object_or_404(
                 ConfiguracionAuditoria, idconfiguracion=id
@@ -558,21 +558,21 @@ def eliminar_configuracion(request, id):
 @login_required
 def actualizar_config_navegacion(request):
     """Actualiza la configuración de registro de navegación"""
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             # Verificar si hay un valor explícito en el campo registrar_navegacion
-            valor_explicito = request.POST.get('registrar_navegacion')
+            valor_explicito = request.POST.get("registrar_navegacion")
             if valor_explicito is not None:
-                if valor_explicito.lower() == 'true':
+                if valor_explicito.lower() == "true":
                     registrar_navegacion = True
-                elif valor_explicito.lower() == 'false':
+                elif valor_explicito.lower() == "false":
                     registrar_navegacion = False
                 else:
                     # Si no es true/false explícito, usar la presencia del campo para determinar el valor
-                    registrar_navegacion = 'registrar_navegacion' in request.POST
+                    registrar_navegacion = "registrar_navegacion" in request.POST
             else:
                 # Sin valor explícito, usar presencia del campo
-                registrar_navegacion = 'registrar_navegacion' in request.POST
+                registrar_navegacion = "registrar_navegacion" in request.POST
 
             # Obtener o crear la configuración
             from dashboard.models import ConfiguracionGeneralAuditoria
@@ -580,14 +580,14 @@ def actualizar_config_navegacion(request):
             config, created = ConfiguracionGeneralAuditoria.objects.get_or_create(
                 nombre="registrar_navegacion",
                 defaults={
-                    'valor': 'true' if registrar_navegacion else 'false',
-                    'descripcion': 'Determina si se registra la navegación de los usuarios',
+                    "valor": "true" if registrar_navegacion else "false",
+                    "descripcion": "Determina si se registra la navegación de los usuarios",
                 },
             )
 
             # Si ya existía, actualizar el valor
             if not created:
-                config.valor = 'true' if registrar_navegacion else 'false'
+                config.valor = "true" if registrar_navegacion else "false"
                 config.save()
 
             messages.success(
@@ -597,11 +597,11 @@ def actualizar_config_navegacion(request):
             messages.error(request, f"Error al actualizar configuración: {str(e)}")
 
     # Determinar de dónde vino la solicitud para redirigir correctamente
-    referer = request.META.get('HTTP_REFERER', '')
-    if 'configuracion-global' in referer:
-        return redirect('auditoria:configuracion_global_auditoria')
+    referer = request.META.get("HTTP_REFERER", "")
+    if "configuracion-global" in referer:
+        return redirect("auditoria:configuracion_global_auditoria")
     else:
-        return redirect('auditoria:configuracion_auditoria')
+        return redirect("auditoria:configuracion_auditoria")
 
 
 # Funciones para la configuración global de auditoría
@@ -641,7 +641,7 @@ def configuracion_global_auditoria(request):
     ]
 
     # Filtrar las configuraciones sugeridas que no existan ya
-    nombres_existentes = set(configuraciones.values_list('nombre', flat=True))
+    nombres_existentes = set(configuraciones.values_list("nombre", flat=True))
     sugerencias_filtradas = [
         cfg
         for cfg in configuraciones_sugeridas
@@ -650,35 +650,35 @@ def configuracion_global_auditoria(request):
 
     return render(
         request,
-        'auditoria/configuracion_global_auditoria.html',
+        "auditoria/configuracion_global_auditoria.html",
         {
-            'configuraciones': configuraciones,
-            'configuraciones_sugeridas': sugerencias_filtradas,
+            "configuraciones": configuraciones,
+            "configuraciones_sugeridas": sugerencias_filtradas,
         },
     )
 
 
 @login_required
 def crear_configuracion_global(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             from dashboard.models import ConfiguracionGeneralAuditoria
 
-            nombre = request.POST.get('nombre')
-            valor = request.POST.get('valor')
-            descripcion = request.POST.get('descripcion')
+            nombre = request.POST.get("nombre")
+            valor = request.POST.get("valor")
+            descripcion = request.POST.get("descripcion")
 
             # Validar datos
             if not nombre or not valor:
                 messages.error(request, "El nombre y valor son obligatorios.")
-                return redirect('auditoria:configuracion_global_auditoria')
+                return redirect("auditoria:configuracion_global_auditoria")
 
             # Verificar si ya existe
             if ConfiguracionGeneralAuditoria.objects.filter(nombre=nombre).exists():
                 messages.error(
                     request, f"Ya existe una configuración con el nombre '{nombre}'."
                 )
-                return redirect('auditoria:configuracion_global_auditoria')
+                return redirect("auditoria:configuracion_global_auditoria")
 
             # Crear la configuración
             ConfiguracionGeneralAuditoria.objects.create(
@@ -689,7 +689,7 @@ def crear_configuracion_global(request):
         except Exception as e:
             messages.error(request, f"Error al crear la configuración: {str(e)}")
 
-    return redirect('auditoria:configuracion_global_auditoria')
+    return redirect("auditoria:configuracion_global_auditoria")
 
 
 @login_required
@@ -698,17 +698,17 @@ def editar_configuracion_global(request, id):
 
     configuracion = get_object_or_404(ConfiguracionGeneralAuditoria, idconfiguracion=id)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
-            valor = request.POST.get('valor')
-            descripcion = request.POST.get('descripcion')
+            valor = request.POST.get("valor")
+            descripcion = request.POST.get("descripcion")
 
             if not valor:
                 messages.error(request, "El valor es obligatorio.")
                 return render(
                     request,
-                    'auditoria/editar_configuracion_global.html',
-                    {'configuracion': configuracion},
+                    "auditoria/editar_configuracion_global.html",
+                    {"configuracion": configuracion},
                 )
 
             configuracion.valor = valor
@@ -716,20 +716,20 @@ def editar_configuracion_global(request, id):
             configuracion.save()
 
             messages.success(request, "Configuración global actualizada exitosamente.")
-            return redirect('auditoria:configuracion_global_auditoria')
+            return redirect("auditoria:configuracion_global_auditoria")
         except Exception as e:
             messages.error(request, f"Error al actualizar la configuración: {str(e)}")
 
     return render(
         request,
-        'auditoria/editar_configuracion_global.html',
-        {'configuracion': configuracion},
+        "auditoria/editar_configuracion_global.html",
+        {"configuracion": configuracion},
     )
 
 
 @login_required
 def eliminar_configuracion_global(request, id):
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             from dashboard.models import ConfiguracionGeneralAuditoria
 

@@ -31,7 +31,7 @@ urlpatterns = [
     path("gestion-reportes/", include("reporte.urls")),
     path("gestion-auditoria/", include("auditoria.urls")),
     path("", include("usuarios.urls")),
-    path('redes-neuronales/', include('redes_neuronales.urls')),
-    path('api/v1/', include('api.urls')),
+    path("redes-neuronales/", include("redes_neuronales.urls")),
+    path("api/v1/", include("api.urls")),
     # path('usuarios/', include('usuarios.urls')),
 ]

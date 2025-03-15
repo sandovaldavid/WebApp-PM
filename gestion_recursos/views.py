@@ -103,7 +103,7 @@ def lista_recursos(request):
 def detalle_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
     habilidades = (
-        recurso.recursohumano.habilidades.split(',')
+        recurso.recursohumano.habilidades.split(",")
         if recurso.idtiporecurso.idtiporecurso == 1
         else []
     )
@@ -166,7 +166,7 @@ def crear_recurso(request):
 def editar_recurso(request, id):
     recurso = get_object_or_404(Recurso, pk=id)
     habilidades = (
-        recurso.recursohumano.habilidades.split(',')
+        recurso.recursohumano.habilidades.split(",")
         if recurso.idtiporecurso.idtiporecurso == 1
         else []
     )

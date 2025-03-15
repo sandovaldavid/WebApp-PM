@@ -47,21 +47,21 @@ class StandaloneDataProcessor:
         Returns:
             Tupla de (X_train, X_val, y_train, y_val, feature_dims)
         """
-        if hasattr(self, 'data') and self.data is not None:
+        if hasattr(self, "data") and self.data is not None:
             df = self.data.copy()
 
             # Verificar columnas requeridas
             required_cols = [
-                'Complejidad',
-                'Tipo_Tarea',
-                'Fase_Tarea',
-                'Cantidad_Recursos',
-                'Carga_Trabajo_R1',
-                'Experiencia_R1',
-                'Experiencia_Equipo',
-                'Claridad_Requisitos',
-                'Tamaño_Tarea',
-                'Tiempo_Ejecucion',
+                "Complejidad",
+                "Tipo_Tarea",
+                "Fase_Tarea",
+                "Cantidad_Recursos",
+                "Carga_Trabajo_R1",
+                "Experiencia_R1",
+                "Experiencia_Equipo",
+                "Claridad_Requisitos",
+                "Tamaño_Tarea",
+                "Tiempo_Ejecucion",
             ]
 
             # Comprobar si las columnas existen, considerando mayúsculas y minúsculas
@@ -90,8 +90,8 @@ class StandaloneDataProcessor:
 
             # Validar y rellenar valores faltantes en cargas de trabajo y experiencia
             for i in range(1, 4):  # Para recursos 1, 2, y 3
-                carga_col = f'Carga_Trabajo_R{i}'
-                exp_col = f'Experiencia_R{i}'
+                carga_col = f"Carga_Trabajo_R{i}"
+                exp_col = f"Experiencia_R{i}"
 
                 # Si existe la columna pero tiene valores nulos
                 if carga_col in df.columns:
@@ -105,34 +105,34 @@ class StandaloneDataProcessor:
                     df[exp_col] = 0
 
             # Crear encoders para categorías
-            tipo_encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
-            fase_encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+            tipo_encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
+            fase_encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
 
             # Ajustar encoders con todas las categorías posibles
-            tipo_encoder.fit(df[['Tipo_Tarea']])
-            fase_encoder.fit(df[['Fase_Tarea']])
+            tipo_encoder.fit(df[["Tipo_Tarea"]])
+            fase_encoder.fit(df[["Fase_Tarea"]])
 
             # Transformar las categorías
-            tipo_encoded = tipo_encoder.transform(df[['Tipo_Tarea']])
-            fase_encoded = fase_encoder.transform(df[['Fase_Tarea']])
+            tipo_encoded = tipo_encoder.transform(df[["Tipo_Tarea"]])
+            fase_encoded = fase_encoder.transform(df[["Fase_Tarea"]])
 
             # Guardar encoders
-            self.encoders['tipo_tarea'] = tipo_encoder
-            self.encoders['fase'] = fase_encoder
+            self.encoders["tipo_tarea"] = tipo_encoder
+            self.encoders["fase"] = fase_encoder
 
             # Características numéricas
             numeric_features = [
-                'Complejidad',
-                'Cantidad_Recursos',
-                'Carga_Trabajo_R1',
-                'Experiencia_R1',
-                'Carga_Trabajo_R2',
-                'Experiencia_R2',
-                'Carga_Trabajo_R3',
-                'Experiencia_R3',
-                'Experiencia_Equipo',
-                'Claridad_Requisitos',
-                'Tamaño_Tarea',
+                "Complejidad",
+                "Cantidad_Recursos",
+                "Carga_Trabajo_R1",
+                "Experiencia_R1",
+                "Carga_Trabajo_R2",
+                "Experiencia_R2",
+                "Carga_Trabajo_R3",
+                "Experiencia_R3",
+                "Experiencia_Equipo",
+                "Claridad_Requisitos",
+                "Tamaño_Tarea",
             ]
 
             # Asegurar que todas las columnas numéricas existen
@@ -146,17 +146,17 @@ class StandaloneDataProcessor:
             numeric_scaled = scaler.fit_transform(numeric_data)
 
             # Guardar el scaler
-            self.scalers['numeric'] = scaler
+            self.scalers["numeric"] = scaler
 
             # Combinar todas las características
             X = np.hstack((numeric_scaled, tipo_encoded, fase_encoded))
-            y = df['Tiempo_Ejecucion'].values
+            y = df["Tiempo_Ejecucion"].values
 
             # Guardar dimensiones y nombres de características para referencia
             self.feature_dims = {
-                'numeric': len(numeric_features),
-                'tipo_tarea': tipo_encoded.shape[1],
-                'fase': fase_encoded.shape[1],
+                "numeric": len(numeric_features),
+                "tipo_tarea": tipo_encoded.shape[1],
+                "fase": fase_encoded.shape[1],
             }
 
             # Dividir en conjuntos de entrenamiento y validación
@@ -173,46 +173,46 @@ class StandaloneDataProcessor:
         else:
             raise ValueError("No hay datos para procesar. Ejecute load_data primero.")
 
-    def save_preprocessors(self, output_dir='models'):
+    def save_preprocessors(self, output_dir="models"):
         """Guarda los preprocessors para uso posterior"""
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        joblib.dump(self.scalers, os.path.join(output_dir, 'scalers.pkl'))
-        joblib.dump(self.encoders, os.path.join(output_dir, 'encoders.pkl'))
-        joblib.dump(self.feature_dims, os.path.join(output_dir, 'feature_dims.pkl'))
+        joblib.dump(self.scalers, os.path.join(output_dir, "scalers.pkl"))
+        joblib.dump(self.encoders, os.path.join(output_dir, "encoders.pkl"))
+        joblib.dump(self.feature_dims, os.path.join(output_dir, "feature_dims.pkl"))
 
         print(f"Preprocessors guardados en {output_dir}")
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Entrenar modelo RNN para estimación de tiempos (versión standalone)'
+        description="Entrenar modelo RNN para estimación de tiempos (versión standalone)"
     )
     parser.add_argument(
-        '--data-path',
+        "--data-path",
         type=str,
-        default='estimacion_tiempos_optimizado.csv',
-        help='Ruta al archivo CSV con datos de entrenamiento',
+        default="estimacion_tiempos_optimizado.csv",
+        help="Ruta al archivo CSV con datos de entrenamiento",
     )
     parser.add_argument(
-        '--output-dir',
+        "--output-dir",
         type=str,
-        default='models',
-        help='Directorio para guardar el modelo y resultados',
+        default="models",
+        help="Directorio para guardar el modelo y resultados",
     )
     parser.add_argument(
-        '--epochs', type=int, default=100, help='Número de épocas para entrenar'
+        "--epochs", type=int, default=100, help="Número de épocas para entrenar"
     )
     parser.add_argument(
-        '--bidirectional', action='store_true', help='Usar capa RNN bidireccional'
+        "--bidirectional", action="store_true", help="Usar capa RNN bidireccional"
     )
     parser.add_argument(
-        '--rnn-type',
+        "--rnn-type",
         type=str,
-        default='GRU',
-        choices=['GRU', 'LSTM'],
-        help='Tipo de capa recurrente a usar',
+        default="GRU",
+        choices=["GRU", "LSTM"],
+        help="Tipo de capa recurrente a usar",
     )
 
     return parser.parse_args()
@@ -222,16 +222,16 @@ def train_model(X_train, y_train, X_val, y_val, feature_dims, config):
     """Entrena el modelo con los datos proporcionados"""
     # Configurar modelo
     model_config = {
-        'rnn_units': 64,
-        'dense_units': [128, 64, 32],
-        'dropout_rate': 0.3,
-        'learning_rate': 0.001,
-        'l2_reg': 0.001,
-        'use_bidirectional': config.bidirectional,
-        'rnn_type': config.rnn_type,
-        'activation': 'relu',
-        'batch_size': 32,
-        'epochs': config.epochs,
+        "rnn_units": 64,
+        "dense_units": [128, 64, 32],
+        "dropout_rate": 0.3,
+        "learning_rate": 0.001,
+        "l2_reg": 0.001,
+        "use_bidirectional": config.bidirectional,
+        "rnn_type": config.rnn_type,
+        "activation": "relu",
+        "batch_size": 32,
+        "epochs": config.epochs,
     }
 
     # Inicializar y construir el modelo
@@ -242,7 +242,7 @@ def train_model(X_train, y_train, X_val, y_val, feature_dims, config):
     history = estimator.train(X_train, y_train, X_val, y_val, feature_dims)
 
     # Guardar el modelo
-    estimator.save(model_dir=config.output_dir, name='tiempo_estimator')
+    estimator.save(model_dir=config.output_dir, name="tiempo_estimator")
 
     return estimator, history
 
@@ -270,16 +270,16 @@ def evaluate_model(estimator, X_val, y_val, feature_dims, output_dir):
 
     # Guardar métricas
     metrics_dict = {
-        'mse': float(mse),
-        'rmse': float(rmse),
-        'mae': float(mae),
-        'r2': float(r2),
+        "mse": float(mse),
+        "rmse": float(rmse),
+        "mae": float(mae),
+        "r2": float(r2),
     }
 
     # Guardar resultados
     import json
 
-    with open(os.path.join(output_dir, 'evaluation_metrics.json'), 'w') as f:
+    with open(os.path.join(output_dir, "evaluation_metrics.json"), "w") as f:
         json.dump(metrics_dict, f, indent=4)
 
     print("\nMétricas de evaluación:")
@@ -291,24 +291,24 @@ def evaluate_model(estimator, X_val, y_val, feature_dims, output_dir):
 
     plt.subplot(1, 2, 1)
     plt.scatter(y_val, y_pred, alpha=0.5)
-    plt.plot([min(y_val), max(y_val)], [min(y_val), max(y_val)], 'r--')
-    plt.xlabel('Tiempo real')
-    plt.ylabel('Tiempo predicho')
-    plt.title('Comparación de predicciones')
+    plt.plot([min(y_val), max(y_val)], [min(y_val), max(y_val)], "r--")
+    plt.xlabel("Tiempo real")
+    plt.ylabel("Tiempo predicho")
+    plt.title("Comparación de predicciones")
 
     plt.subplot(1, 2, 2)
     plt.hist(y_pred - y_val, bins=20, alpha=0.5)
-    plt.axvline(x=0, color='r', linestyle='--')
-    plt.xlabel('Error de predicción')
-    plt.ylabel('Frecuencia')
-    plt.title('Distribución de errores')
+    plt.axvline(x=0, color="r", linestyle="--")
+    plt.xlabel("Error de predicción")
+    plt.ylabel("Frecuencia")
+    plt.title("Distribución de errores")
 
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'prediction_analysis.png'))
+    plt.savefig(os.path.join(output_dir, "prediction_analysis.png"))
     plt.close()
 
     # Crear gráfico de historia de entrenamiento
-    estimator.plot_history(save_path=os.path.join(output_dir, 'training_history.png'))
+    estimator.plot_history(save_path=os.path.join(output_dir, "training_history.png"))
 
     return metrics_dict, y_pred
 

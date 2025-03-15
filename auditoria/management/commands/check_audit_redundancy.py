@@ -6,7 +6,7 @@ from django.utils import timezone
 
 
 class Command(BaseCommand):
-    help = 'Comprueba y muestra actividades redundantes en la auditoría'
+    help = "Comprueba y muestra actividades redundantes en la auditoría"
 
     def handle(self, *args, **options):
         # Buscar actividades de modificación que ocurrieron en un intervalo corto de tiempo (5 segundos)
@@ -15,8 +15,8 @@ class Command(BaseCommand):
         # Obtener todas las actividades de los últimos 30 días
         recent_activities = Actividad.objects.filter(
             fechacreacion__gte=timezone.now() - timedelta(days=30),
-            accion='MODIFICACION',
-        ).order_by('fechacreacion')
+            accion="MODIFICACION",
+        ).order_by("fechacreacion")
 
         # Agrupar por entidad y aproximación de tiempo
         redundancy_groups = {}

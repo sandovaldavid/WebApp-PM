@@ -16,11 +16,11 @@ def estimate_task_api(request):
     """API para estimar el tiempo de una tarea"""
     try:
         data = json.loads(request.body)
-        tarea_id = data.get('tarea_id')
+        tarea_id = data.get("tarea_id")
 
         if not tarea_id:
             return JsonResponse(
-                {'status': 'error', 'message': 'Se requiere ID de tarea'}, status=400
+                {"status": "error", "message": "Se requiere ID de tarea"}, status=400
             )
 
         # Verificar que la tarea existe
@@ -28,7 +28,7 @@ def estimate_task_api(request):
             tarea = Tarea.objects.get(idtarea=tarea_id)
         except Tarea.DoesNotExist:
             return JsonResponse(
-                {'status': 'error', 'message': f'No existe tarea con ID {tarea_id}'},
+                {"status": "error", "message": f"No existe tarea con ID {tarea_id}"},
                 status=404,
             )
 
@@ -37,21 +37,21 @@ def estimate_task_api(request):
         success, estimated_time, message = service.estimate_and_save(tarea_id)
 
         if not success:
-            return JsonResponse({'status': 'error', 'message': message}, status=500)
+            return JsonResponse({"status": "error", "message": message}, status=500)
 
         return JsonResponse(
             {
-                'status': 'success',
-                'tarea_id': tarea_id,
-                'tiempo_estimado': estimated_time,
-                'message': message,
+                "status": "success",
+                "tarea_id": tarea_id,
+                "tiempo_estimado": estimated_time,
+                "message": message,
             }
         )
 
     except Exception as e:
         logger.error(f"Error en API de estimación: {str(e)}")
         return JsonResponse(
-            {'status': 'error', 'message': f'Error interno: {str(e)}'}, status=500
+            {"status": "error", "message": f"Error interno: {str(e)}"}, status=500
         )
 
 
@@ -61,11 +61,11 @@ def reestimate_task_api(request):
     """API para reestimar una tarea tras cambios"""
     try:
         data = json.loads(request.body)
-        tarea_id = data.get('tarea_id')
+        tarea_id = data.get("tarea_id")
 
         if not tarea_id:
             return JsonResponse(
-                {'status': 'error', 'message': 'Se requiere ID de tarea'}, status=400
+                {"status": "error", "message": "Se requiere ID de tarea"}, status=400
             )
 
         # Verificar que la tarea existe
@@ -73,7 +73,7 @@ def reestimate_task_api(request):
             tarea = Tarea.objects.get(idtarea=tarea_id)
         except Tarea.DoesNotExist:
             return JsonResponse(
-                {'status': 'error', 'message': f'No existe tarea con ID {tarea_id}'},
+                {"status": "error", "message": f"No existe tarea con ID {tarea_id}"},
                 status=404,
             )
 
@@ -81,17 +81,17 @@ def reestimate_task_api(request):
         service = get_estimacion_service()
         result = service.reestimate_after_changes(tarea_id)
 
-        if result['status'] == 'error':
+        if result["status"] == "error":
             return JsonResponse(
-                {'status': 'error', 'message': result['message']}, status=500
+                {"status": "error", "message": result["message"]}, status=500
             )
 
-        return JsonResponse({'status': 'success', 'data': result})
+        return JsonResponse({"status": "success", "data": result})
 
     except Exception as e:
         logger.error(f"Error en API de reestimación: {str(e)}")
         return JsonResponse(
-            {'status': 'error', 'message': f'Error interno: {str(e)}'}, status=500
+            {"status": "error", "message": f"Error interno: {str(e)}"}, status=500
         )
 
 
@@ -105,8 +105,8 @@ def project_estimation_api(request, proyecto_id):
         except Proyecto.DoesNotExist:
             return JsonResponse(
                 {
-                    'status': 'error',
-                    'message': f'No existe proyecto con ID {proyecto_id}',
+                    "status": "error",
+                    "message": f"No existe proyecto con ID {proyecto_id}",
                 },
                 status=404,
             )
@@ -117,14 +117,14 @@ def project_estimation_api(request, proyecto_id):
 
         if result is None:
             return JsonResponse(
-                {'status': 'error', 'message': 'No se pudo estimar el proyecto'},
+                {"status": "error", "message": "No se pudo estimar el proyecto"},
                 status=500,
             )
 
-        return JsonResponse({'status': 'success', 'data': result})
+        return JsonResponse({"status": "success", "data": result})
 
     except Exception as e:
         logger.error(f"Error en API de estimación de proyecto: {str(e)}")
         return JsonResponse(
-            {'status': 'error', 'message': f'Error interno: {str(e)}'}, status=500
+            {"status": "error", "message": f"Error interno: {str(e)}"}, status=500
         )

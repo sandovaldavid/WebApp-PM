@@ -17,7 +17,7 @@ import joblib
 class ModelEvaluator:
     """Clase para evaluar el rendimiento de los modelos de estimación de tiempo"""
 
-    def __init__(self, model, feature_dims, output_dir='models'):
+    def __init__(self, model, feature_dims, output_dir="models"):
         """Inicializa el evaluador
 
         Args:
@@ -71,10 +71,10 @@ class ModelEvaluator:
 
         # Verificar que todas las métricas estén entre 0 y 1
         metrics = {
-            'accuracy': min(max(accuracy, 0), 1),
-            'precision': min(max(precision, 0), 1),
-            'recall': min(max(recall, 0), 1),
-            'f1': min(max(f1, 0), 1),
+            "accuracy": min(max(accuracy, 0), 1),
+            "precision": min(max(precision, 0), 1),
+            "recall": min(max(recall, 0), 1),
+            "f1": min(max(f1, 0), 1),
         }
 
         return metrics
@@ -107,20 +107,20 @@ class ModelEvaluator:
 
         # Combinar todas las métricas
         metrics = {
-            'MSE': mse,
-            'RMSE': rmse,
-            'MAE': mae,
-            'MAPE': mape,
-            'R2': r2,
-            'Accuracy': classification_metrics['accuracy'],
-            'Precision': classification_metrics['precision'],
-            'Recall': classification_metrics['recall'],
-            'F1': classification_metrics['f1'],
+            "MSE": mse,
+            "RMSE": rmse,
+            "MAE": mae,
+            "MAPE": mape,
+            "R2": r2,
+            "Accuracy": classification_metrics["accuracy"],
+            "Precision": classification_metrics["precision"],
+            "Recall": classification_metrics["recall"],
+            "F1": classification_metrics["f1"],
         }
 
         # Guardar métricas en archivo JSON
-        metrics_path = os.path.join(self.output_dir, 'evaluation_metrics.json')
-        with open(metrics_path, 'w') as f:
+        metrics_path = os.path.join(self.output_dir, "evaluation_metrics.json")
+        with open(metrics_path, "w") as f:
             json.dump(metrics, f, indent=4)
 
         # Guardar en historial de métricas
@@ -129,7 +129,7 @@ class ModelEvaluator:
         print("\nMétricas de evaluación:")
         for metric_name, value in metrics.items():
             # Para métricas de clasificación, mostrar como porcentaje para mayor claridad
-            if metric_name in ['Accuracy', 'Precision', 'Recall', 'F1']:
+            if metric_name in ["Accuracy", "Precision", "Recall", "F1"]:
                 print(f"  {metric_name}: {value*100:.2f}%")
             else:
                 print(f"  {metric_name}: {value:.4f}")
@@ -142,25 +142,25 @@ class ModelEvaluator:
         Args:
             metrics: Diccionario con las métricas a guardar
         """
-        history_path = os.path.join(self.output_dir, 'metrics_history.json')
+        history_path = os.path.join(self.output_dir, "metrics_history.json")
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Añadir timestamp a las métricas
-        metrics_with_timestamp = {'timestamp': timestamp, 'metrics': metrics}
+        metrics_with_timestamp = {"timestamp": timestamp, "metrics": metrics}
 
         # Cargar historial existente o crear uno nuevo
         try:
             if os.path.exists(history_path):
-                with open(history_path, 'r') as f:
+                with open(history_path, "r") as f:
                     history = json.load(f)
                     if isinstance(history, list):
                         # Formato compatible con evaluate_metrics.py
                         history.append(metrics_with_timestamp)
                     else:
                         # Formato original con 'evaluations'
-                        if 'evaluations' not in history:
-                            history['evaluations'] = []
-                        history['evaluations'].append(metrics_with_timestamp)
+                        if "evaluations" not in history:
+                            history["evaluations"] = []
+                        history["evaluations"].append(metrics_with_timestamp)
             else:
                 # Crear nuevo historial (formato compatible con evaluate_metrics.py)
                 history = [metrics_with_timestamp]
@@ -169,7 +169,7 @@ class ModelEvaluator:
             history = [metrics_with_timestamp]  # Crear nuevo en caso de error
 
         # Guardar historial actualizado
-        with open(history_path, 'w') as f:
+        with open(history_path, "w") as f:
             json.dump(history, f, indent=4)
 
         print(f"Métricas guardadas en historial: {history_path}")
@@ -191,46 +191,46 @@ class ModelEvaluator:
         # Línea de perfecta predicción
         max_val = max(max(y_true), max(y_pred))
         min_val = min(min(y_true), min(y_pred))
-        plt.plot([min_val, max_val], [min_val, max_val], 'r--')
+        plt.plot([min_val, max_val], [min_val, max_val], "r--")
 
-        plt.xlabel('Tiempo real (horas)')
-        plt.ylabel('Tiempo estimado (horas)')
-        plt.title('Predicción vs Valor Real')
+        plt.xlabel("Tiempo real (horas)")
+        plt.ylabel("Tiempo estimado (horas)")
+        plt.title("Predicción vs Valor Real")
         plt.grid(True, alpha=0.3)
 
         # 2. Histograma de errores
         plt.subplot(2, 2, 2)
         errors = y_pred - y_true
-        plt.hist(errors, bins=20, alpha=0.6, color='green')
-        plt.axvline(x=0, color='r', linestyle='--')
-        plt.xlabel('Error de predicción (horas)')
-        plt.ylabel('Frecuencia')
-        plt.title('Distribución de Errores')
+        plt.hist(errors, bins=20, alpha=0.6, color="green")
+        plt.axvline(x=0, color="r", linestyle="--")
+        plt.xlabel("Error de predicción (horas)")
+        plt.ylabel("Frecuencia")
+        plt.title("Distribución de Errores")
         plt.grid(True, alpha=0.3)
 
         # 3. Plot de residuos
         plt.subplot(2, 2, 3)
-        plt.scatter(y_pred, errors, alpha=0.6, color='purple')
-        plt.axhline(y=0, color='r', linestyle='--')
-        plt.xlabel('Tiempo estimado (horas)')
-        plt.ylabel('Residuo (horas)')
-        plt.title('Análisis de Residuos')
+        plt.scatter(y_pred, errors, alpha=0.6, color="purple")
+        plt.axhline(y=0, color="r", linestyle="--")
+        plt.xlabel("Tiempo estimado (horas)")
+        plt.ylabel("Residuo (horas)")
+        plt.title("Análisis de Residuos")
         plt.grid(True, alpha=0.3)
 
         # 4. Distribución de predicciones y valores reales
         plt.subplot(2, 2, 4)
-        sns.kdeplot(y_true, label='Real', color='blue')
-        sns.kdeplot(y_pred, label='Estimado', color='orange')
-        plt.xlabel('Tiempo (horas)')
-        plt.ylabel('Densidad')
-        plt.title('Distribución de Tiempos')
+        sns.kdeplot(y_true, label="Real", color="blue")
+        sns.kdeplot(y_pred, label="Estimado", color="orange")
+        plt.xlabel("Tiempo (horas)")
+        plt.ylabel("Densidad")
+        plt.title("Distribución de Tiempos")
         plt.legend()
         plt.grid(True, alpha=0.3)
 
         plt.tight_layout()
 
         if save_fig:
-            plt.savefig(os.path.join(self.output_dir, 'evaluation_plots.png'), dpi=300)
+            plt.savefig(os.path.join(self.output_dir, "evaluation_plots.png"), dpi=300)
             print(
                 f"Gráficos guardados en {os.path.join(self.output_dir, 'evaluation_plots.png')}"
             )
@@ -259,33 +259,33 @@ class ModelEvaluator:
         tipo_indices = list(
             range(
                 num_numeric_features,
-                num_numeric_features + self.feature_dims['tipo_tarea'],
+                num_numeric_features + self.feature_dims["tipo_tarea"],
             )
         )
         fase_indices = list(
             range(
-                num_numeric_features + self.feature_dims['tipo_tarea'],
+                num_numeric_features + self.feature_dims["tipo_tarea"],
                 num_numeric_features
-                + self.feature_dims['tipo_tarea']
-                + self.feature_dims['fase'],
+                + self.feature_dims["tipo_tarea"]
+                + self.feature_dims["fase"],
             )
         )
 
         # Definir características agrupadas para análisis
         feature_groups = {
-            'Complejidad': [0],
-            'Cantidad_Recursos': [1],
-            'Carga_Trabajo_R1': [2],
-            'Experiencia_R1': [3],
-            'Carga_Trabajo_R2': [4],
-            'Experiencia_R2': [5],
-            'Carga_Trabajo_R3': [6],
-            'Experiencia_R3': [7],
-            'Experiencia_Equipo': [8],
-            'Claridad_Requisitos': [9],
-            'Tamaño_Tarea': [10],
-            'Tipo_Tarea': tipo_indices,
-            'Fase_Tarea': fase_indices,
+            "Complejidad": [0],
+            "Cantidad_Recursos": [1],
+            "Carga_Trabajo_R1": [2],
+            "Experiencia_R1": [3],
+            "Carga_Trabajo_R2": [4],
+            "Experiencia_R2": [5],
+            "Carga_Trabajo_R3": [6],
+            "Experiencia_R3": [7],
+            "Experiencia_Equipo": [8],
+            "Claridad_Requisitos": [9],
+            "Tamaño_Tarea": [10],
+            "Tipo_Tarea": tipo_indices,
+            "Fase_Tarea": fase_indices,
         }
 
         # Predicciones base
@@ -319,9 +319,9 @@ class ModelEvaluator:
 
             # Crear segmentos por cantidad de recursos
             resource_segments = {
-                '1 Recurso': np.isclose(recursos_scaled, valor_1_recurso, rtol=1e-5),
-                '2 Recursos': np.isclose(recursos_scaled, valor_2_recursos, rtol=1e-5),
-                '3 o más Recursos': np.isclose(
+                "1 Recurso": np.isclose(recursos_scaled, valor_1_recurso, rtol=1e-5),
+                "2 Recursos": np.isclose(recursos_scaled, valor_2_recursos, rtol=1e-5),
+                "3 o más Recursos": np.isclose(
                     recursos_scaled, valor_3_recursos, rtol=1e-5
                 ),
             }
@@ -332,10 +332,10 @@ class ModelEvaluator:
             print(f"  Valor más alto (posible 2+ Recursos): {valores_ordenados[1]}")
 
             resource_segments = {
-                'Recursos Menores': np.isclose(
+                "Recursos Menores": np.isclose(
                     recursos_scaled, valores_ordenados[0], rtol=1e-5
                 ),
-                'Recursos Mayores': np.isclose(
+                "Recursos Mayores": np.isclose(
                     recursos_scaled, valores_ordenados[1], rtol=1e-5
                 ),
             }
@@ -364,14 +364,14 @@ class ModelEvaluator:
             # Determinar características relevantes según el número de recursos
             relevant_features = list(feature_groups.keys())
 
-            if '1 Recurso' in segment_name or 'Recursos Menores' in segment_name:
+            if "1 Recurso" in segment_name or "Recursos Menores" in segment_name:
                 # Excluir información de recursos 2 y 3
                 relevant_features = [
-                    f for f in relevant_features if 'R2' not in f and 'R3' not in f
+                    f for f in relevant_features if "R2" not in f and "R3" not in f
                 ]
-            elif '2 Recursos' in segment_name:
+            elif "2 Recursos" in segment_name:
                 # Excluir información del recurso 3
-                relevant_features = [f for f in relevant_features if 'R3' not in f]
+                relevant_features = [f for f in relevant_features if "R3" not in f]
 
             print(
                 f"Características consideradas para '{segment_name}': {relevant_features}"
@@ -419,17 +419,17 @@ class ModelEvaluator:
 
             # Crear DataFrame
             importance_df = pd.DataFrame(
-                importance_scores, columns=['Feature', 'Importance']
+                importance_scores, columns=["Feature", "Importance"]
             )
 
             # Normalización más representativa: dividir por la suma total
-            sum_importance = importance_df['Importance'].sum()
+            sum_importance = importance_df["Importance"].sum()
             if sum_importance > 0:
-                importance_df['Importance_Normalized'] = (
-                    importance_df['Importance'] / sum_importance
+                importance_df["Importance_Normalized"] = (
+                    importance_df["Importance"] / sum_importance
                 )
             else:
-                importance_df['Importance_Normalized'] = 0
+                importance_df["Importance_Normalized"] = 0
 
             segment_results[segment_name] = importance_df
 
@@ -460,36 +460,36 @@ class ModelEvaluator:
 
         # Crear DataFrame global
         global_importance_df = pd.DataFrame(
-            global_importance_scores, columns=['Feature', 'Importance']
+            global_importance_scores, columns=["Feature", "Importance"]
         )
 
         # Normalizar de manera más representativa
-        sum_importance = global_importance_df['Importance'].sum()
+        sum_importance = global_importance_df["Importance"].sum()
         if sum_importance > 0:
-            global_importance_df['Importance_Normalized'] = (
-                global_importance_df['Importance'] / sum_importance
+            global_importance_df["Importance_Normalized"] = (
+                global_importance_df["Importance"] / sum_importance
             )
         else:
-            global_importance_df['Importance_Normalized'] = 0
+            global_importance_df["Importance_Normalized"] = 0
 
         # Guardar resultados globales
         global_importance_df.to_csv(
-            os.path.join(self.output_dir, 'global_feature_importance.csv'), index=False
+            os.path.join(self.output_dir, "global_feature_importance.csv"), index=False
         )
 
         # Visualizar importancia global
         plt.figure(figsize=(12, 8))
         plt.barh(
-            global_importance_df['Feature'],
-            global_importance_df['Importance_Normalized'],
-            color='teal',
+            global_importance_df["Feature"],
+            global_importance_df["Importance_Normalized"],
+            color="teal",
         )
-        plt.xlabel('Importancia Normalizada')
-        plt.ylabel('Característica')
-        plt.title('Importancia Global de Características')
+        plt.xlabel("Importancia Normalizada")
+        plt.ylabel("Característica")
+        plt.title("Importancia Global de Características")
         plt.tight_layout()
         plt.savefig(
-            os.path.join(self.output_dir, 'global_feature_importance.png'), dpi=300
+            os.path.join(self.output_dir, "global_feature_importance.png"), dpi=300
         )
 
         # Crear un plot con subplots para cada segmento
@@ -513,17 +513,17 @@ class ModelEvaluator:
 
                 # Visualizar
                 axes[i].barh(
-                    importance_df['Feature'],
-                    importance_df['Importance_Normalized'],
-                    color='royalblue',
+                    importance_df["Feature"],
+                    importance_df["Importance_Normalized"],
+                    color="royalblue",
                 )
-                axes[i].set_xlabel('Importancia Normalizada')
-                axes[i].set_ylabel('Característica')
-                axes[i].set_title(f'Importancia de Características - {segment_name}')
+                axes[i].set_xlabel("Importancia Normalizada")
+                axes[i].set_ylabel("Característica")
+                axes[i].set_title(f"Importancia de Características - {segment_name}")
 
             plt.tight_layout()
             plt.savefig(
-                os.path.join(self.output_dir, 'segmented_feature_importance.png'),
+                os.path.join(self.output_dir, "segmented_feature_importance.png"),
                 dpi=300,
             )
         else:
@@ -531,7 +531,7 @@ class ModelEvaluator:
                 "\nNo se encontraron suficientes datos para hacer análisis por segmentos de recursos."
             )
 
-        plt.close('all')  # Cerrar todas las figuras para evitar mostrarlas en Jupyter
+        plt.close("all")  # Cerrar todas las figuras para evitar mostrarlas en Jupyter
 
         print(
             f"\nAnálisis de importancia completado. Resultados guardados en {self.output_dir}"
@@ -541,13 +541,13 @@ class ModelEvaluator:
         # Importancia global
         plt.figure(figsize=(12, 8))
         plt.barh(
-            global_importance_df['Feature'],
-            global_importance_df['Importance_Normalized'],
-            color='teal',
+            global_importance_df["Feature"],
+            global_importance_df["Importance_Normalized"],
+            color="teal",
         )
-        plt.xlabel('Importancia Normalizada')
-        plt.ylabel('Característica')
-        plt.title('Importancia Global de Características')
+        plt.xlabel("Importancia Normalizada")
+        plt.ylabel("Característica")
+        plt.title("Importancia Global de Características")
         plt.tight_layout()
         plt.show()
 
@@ -555,13 +555,13 @@ class ModelEvaluator:
         for segment_name, importance_df in segment_results.items():
             plt.figure(figsize=(10, 6))
             plt.barh(
-                importance_df['Feature'],
-                importance_df['Importance_Normalized'],
-                color='royalblue',
+                importance_df["Feature"],
+                importance_df["Importance_Normalized"],
+                color="royalblue",
             )
-            plt.xlabel('Importancia Normalizada')
-            plt.ylabel('Característica')
-            plt.title(f'Importancia de Características - {segment_name}')
+            plt.xlabel("Importancia Normalizada")
+            plt.ylabel("Característica")
+            plt.title(f"Importancia de Características - {segment_name}")
             plt.tight_layout()
             plt.show()
 
@@ -599,18 +599,18 @@ class ModelEvaluator:
 
             # Calcular métricas
             segment_metrics = {
-                'mse': mean_squared_error(y_segment, y_pred_segment),
-                'rmse': np.sqrt(mean_squared_error(y_segment, y_pred_segment)),
-                'mae': mean_absolute_error(y_segment, y_pred_segment),
-                'mape': mean_absolute_percentage_error(y_segment, y_pred_segment),
-                'r2': r2_score(y_segment, y_pred_segment),
-                'count': len(y_segment),
+                "mse": mean_squared_error(y_segment, y_pred_segment),
+                "rmse": np.sqrt(mean_squared_error(y_segment, y_pred_segment)),
+                "mae": mean_absolute_error(y_segment, y_pred_segment),
+                "mape": mean_absolute_percentage_error(y_segment, y_pred_segment),
+                "r2": r2_score(y_segment, y_pred_segment),
+                "count": len(y_segment),
             }
 
             results[segment_name] = segment_metrics
 
         # Guardar resultados
-        with open(os.path.join(self.output_dir, 'segmented_evaluation.json'), 'w') as f:
+        with open(os.path.join(self.output_dir, "segmented_evaluation.json"), "w") as f:
             json.dump(results, f, indent=4)
 
         # Imprimir resultados
@@ -618,7 +618,7 @@ class ModelEvaluator:
         for segment_name, metrics in results.items():
             print(f"\n{segment_name} (n={metrics['count']}):")
             for metric_name, value in metrics.items():
-                if metric_name != 'count':
+                if metric_name != "count":
                     print(f"  {metric_name.upper()}: {value:.4f}")
 
         return results
@@ -654,15 +654,15 @@ class ModelEvaluator:
 
         # Combinar todas las métricas
         metrics = {
-            'MSE': float(mse),
-            'RMSE': float(rmse),
-            'MAE': float(mae),
-            'MAPE': float(mape),
-            'R2': float(r2),
-            'Accuracy': float(classification_metrics['accuracy']),
-            'Precision': float(classification_metrics['precision']),
-            'Recall': float(classification_metrics['recall']),
-            'F1': float(classification_metrics['f1']),
+            "MSE": float(mse),
+            "RMSE": float(rmse),
+            "MAE": float(mae),
+            "MAPE": float(mape),
+            "R2": float(r2),
+            "Accuracy": float(classification_metrics["accuracy"]),
+            "Precision": float(classification_metrics["precision"]),
+            "Recall": float(classification_metrics["recall"]),
+            "F1": float(classification_metrics["f1"]),
         }
 
         return metrics
@@ -690,10 +690,10 @@ class ModelEvaluator:
         """
         # Definir segmentos por tiempo real
         segments = {
-            'Tareas pequeñas (<= 5h)': lambda y: y <= 5,
-            'Tareas medianas (5-20h)': lambda y: (y > 5) & (y <= 20),
-            'Tareas grandes (20-40h)': lambda y: (y > 20) & (y <= 40),
-            'Tareas muy grandes (>40h)': lambda y: y > 40,
+            "Tareas pequeñas (<= 5h)": lambda y: y <= 5,
+            "Tareas medianas (5-20h)": lambda y: (y > 5) & (y <= 20),
+            "Tareas grandes (20-40h)": lambda y: (y > 20) & (y <= 40),
+            "Tareas muy grandes (>40h)": lambda y: y > 40,
         }
 
         # Utilizar el método que ya está implementado

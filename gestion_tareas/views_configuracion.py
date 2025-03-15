@@ -26,27 +26,27 @@ def configuracion_tareas(request):
     total_tareas_comunes = TareaComun.objects.count()
 
     # Tipos de tarea más utilizados
-    tipos_tarea = TipoTarea.objects.annotate(num_tareas=Count('tarea')).order_by(
-        '-num_tareas'
+    tipos_tarea = TipoTarea.objects.annotate(num_tareas=Count("tarea")).order_by(
+        "-num_tareas"
     )[:5]
 
     # Fases ordenadas
-    fases = Fase.objects.all().order_by('orden')
+    fases = Fase.objects.all().order_by("orden")
 
     # Tareas comunes más utilizadas (Nuevo)
     # Intentamos primero ordenarlas por uso (relaciones con tareas)
     tareas_comunes = (
-        TareaComun.objects.annotate(num_usos=Count('tareatareacomun'))
-        .select_related('idtipotarea')
-        .order_by('-num_usos')[:5]
+        TareaComun.objects.annotate(num_usos=Count("tareatareacomun"))
+        .select_related("idtipotarea")
+        .order_by("-num_usos")[:5]
     )
 
     # Si no hay relaciones, mostrar las más recientes
     if not tareas_comunes.exists() or all(t.num_usos == 0 for t in tareas_comunes):
         tareas_comunes = (
             TareaComun.objects.all()
-            .select_related('idtipotarea')
-            .order_by('-fechacreacion')[:5]
+            .select_related("idtipotarea")
+            .order_by("-fechacreacion")[:5]
         )
 
     context = {
@@ -67,7 +67,7 @@ def configuracion_tareas(request):
 def lista_tipos_tarea(request):
     """Vista para listar tipos de tarea"""
     tipos_tarea = (
-        TipoTarea.objects.all().annotate(num_tareas=Count('tarea')).order_by('nombre')
+        TipoTarea.objects.all().annotate(num_tareas=Count("tarea")).order_by("nombre")
     )
 
     context = {
@@ -169,7 +169,7 @@ def eliminar_tipo_tarea(request, id):
 @login_required
 def lista_fases(request):
     """Vista para listar fases"""
-    fases = Fase.objects.all().order_by('orden')
+    fases = Fase.objects.all().order_by("orden")
 
     context = {
         "fases": fases,
@@ -196,7 +196,7 @@ def crear_fase(request):
             # Desplazar fases existentes
             with transaction.atomic():
                 # Obtener todas las fases con orden >= al nuevo orden y actualizar su orden
-                Fase.objects.filter(orden__gte=orden).update(orden=F('orden') + 1)
+                Fase.objects.filter(orden__gte=orden).update(orden=F("orden") + 1)
 
                 # Crear la nueva fase
                 Fase.objects.create(
@@ -214,8 +214,8 @@ def crear_fase(request):
             return redirect("gestion_tareas:crear_fase")
 
     # Preparar datos para el formulario
-    fases = Fase.objects.all().order_by('orden')
-    ultimo_orden = fases.aggregate(Max('orden'))['orden__max'] or 0
+    fases = Fase.objects.all().order_by("orden")
+    ultimo_orden = fases.aggregate(Max("orden"))["orden__max"] or 0
     siguiente_orden = ultimo_orden + 1
 
     # Crear lista de posiciones disponibles
@@ -223,10 +223,10 @@ def crear_fase(request):
 
     # Añadir posiciones para insertar antes de cada fase existente
     for fase in fases:
-        posiciones_disponibles.append({'orden': fase.orden, 'fase': fase})
+        posiciones_disponibles.append({"orden": fase.orden, "fase": fase})
 
     # Añadir posición para insertar al final
-    posiciones_disponibles.append({'orden': siguiente_orden, 'fase': None})
+    posiciones_disponibles.append({"orden": siguiente_orden, "fase": None})
 
     context = {
         "posiciones_disponibles": posiciones_disponibles,
@@ -353,7 +353,7 @@ def actualizar_orden_fases(request):
 def lista_tareas_comunes(request):
     """Vista para listar tareas comunes"""
     tareas_comunes = (
-        TareaComun.objects.all().select_related('idtipotarea').order_by('nombre')
+        TareaComun.objects.all().select_related("idtipotarea").order_by("nombre")
     )
 
     context = {
@@ -397,7 +397,7 @@ def crear_tarea_comun(request):
             return redirect("gestion_tareas:crear_tarea_comun")
 
     # Obtener tipos de tarea para el formulario
-    tipos_tarea = TipoTarea.objects.all().order_by('nombre')
+    tipos_tarea = TipoTarea.objects.all().order_by("nombre")
 
     context = {
         "tipos_tarea": tipos_tarea,
@@ -440,7 +440,7 @@ def editar_tarea_comun(request, id):
             return redirect("gestion_tareas:editar_tarea_comun", id=id)
 
     # Obtener tipos de tarea para el formulario
-    tipos_tarea = TipoTarea.objects.all().order_by('nombre')
+    tipos_tarea = TipoTarea.objects.all().order_by("nombre")
 
     context = {
         "tarea_comun": tarea_comun,

@@ -65,7 +65,7 @@ class ConfiguracionAuditoria(models.Model):
     class Meta:
         managed = True
         db_table = "configuracion_auditoria"
-        unique_together = (('modelo', 'campo'),)
+        unique_together = (("modelo", "campo"),)
 
 
 class ConfiguracionGeneralAuditoria(models.Model):
@@ -601,7 +601,7 @@ class CustomUserManager(BaseUserManager):
     def _create_user(self, nombreusuario, email, password, **extra_fields):
         """Crear y guardar un usuario con el nombreusuario, email y password dados."""
         if not nombreusuario:
-            raise ValueError('El nombre de usuario es obligatorio')
+            raise ValueError("El nombre de usuario es obligatorio")
         email = self.normalize_email(email)
         username = nombreusuario  # Usar nombreusuario como username para compatibilidad
         user = self.model(
@@ -613,22 +613,22 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_user(self, nombreusuario, email=None, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', False)
-        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault("is_staff", False)
+        extra_fields.setdefault("is_superuser", False)
         return self._create_user(nombreusuario, email, password, **extra_fields)
 
     def create_superuser(
         self, nombreusuario, email=None, password=None, **extra_fields
     ):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('rol', 'Administrador')
-        extra_fields.setdefault('confirmado', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("rol", "Administrador")
+        extra_fields.setdefault("confirmado", True)
 
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superusuario debe tener is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superusuario debe tener is_superuser=True.')
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superusuario debe tener is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superusuario debe tener is_superuser=True.")
 
         return self._create_user(nombreusuario, email, password, **extra_fields)
 

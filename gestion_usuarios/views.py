@@ -78,7 +78,7 @@ def lista_usuarios(request):
 
     # Paginación
     usuarios = usuarios.order_by(
-        'idusuario'
+        "idusuario"
     )  # Ordenar por idusuario para evitar advertencia
     paginator = Paginator(usuarios, 9)  # 9 usuarios por página
     try:

@@ -17,40 +17,40 @@ from django.utils import timezone
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Entrenar modelo RNN para estimación de tiempos'
+        description="Entrenar modelo RNN para estimación de tiempos"
     )
     parser.add_argument(
-        '--data-path',
+        "--data-path",
         type=str,
-        default='estimacion_tiempos_optimizado.csv',
-        help='Ruta al archivo CSV con datos de entrenamiento',
+        default="estimacion_tiempos_optimizado.csv",
+        help="Ruta al archivo CSV con datos de entrenamiento",
     )
     parser.add_argument(
-        '--use-db',
-        action='store_true',
-        help='Usar categorías de la base de datos en lugar del CSV',
+        "--use-db",
+        action="store_true",
+        help="Usar categorías de la base de datos en lugar del CSV",
     )
     parser.add_argument(
-        '--output-dir',
+        "--output-dir",
         type=str,
-        default='models',
-        help='Directorio para guardar el modelo y resultados',
+        default="models",
+        help="Directorio para guardar el modelo y resultados",
     )
     parser.add_argument(
-        '--epochs', type=int, default=100, help='Número de épocas para entrenar'
+        "--epochs", type=int, default=100, help="Número de épocas para entrenar"
     )
     parser.add_argument(
-        '--bidirectional', action='store_true', help='Usar capa RNN bidireccional'
+        "--bidirectional", action="store_true", help="Usar capa RNN bidireccional"
     )
     parser.add_argument(
-        '--rnn-type',
+        "--rnn-type",
         type=str,
-        default='GRU',
-        choices=['GRU', 'LSTM'],
-        help='Tipo de capa recurrente a usar',
+        default="GRU",
+        choices=["GRU", "LSTM"],
+        help="Tipo de capa recurrente a usar",
     )
     parser.add_argument(
-        '--test-size', type=float, default=0.2, help='Proporción de datos para prueba'
+        "--test-size", type=float, default=0.2, help="Proporción de datos para prueba"
     )
 
     return parser.parse_args()
@@ -96,16 +96,16 @@ def main():
     # 3. Configurar e inicializar el modelo
     print("\n[3/5] Configurando modelo...")
     model_config = {
-        'rnn_units': 64,
-        'dense_units': [128, 64, 32],
-        'dropout_rate': 0.3,
-        'learning_rate': 0.001,
-        'l2_reg': 0.001,
-        'use_bidirectional': args.bidirectional,
-        'rnn_type': args.rnn_type,
-        'activation': 'relu',
-        'batch_size': 32,
-        'epochs': args.epochs,
+        "rnn_units": 64,
+        "dense_units": [128, 64, 32],
+        "dropout_rate": 0.3,
+        "learning_rate": 0.001,
+        "l2_reg": 0.001,
+        "use_bidirectional": args.bidirectional,
+        "rnn_type": args.rnn_type,
+        "activation": "relu",
+        "batch_size": 32,
+        "epochs": args.epochs,
     }
 
     estimator = AdvancedRNNEstimator(model_config)
@@ -128,27 +128,27 @@ def main():
 
     print("[4/5] Guardando datos de validación...")
     validation_data = {
-        'X_val': X_val,
-        'y_val': y_val,
-        'X_test': X_test,
-        'y_test': y_test,
+        "X_val": X_val,
+        "y_val": y_val,
+        "X_test": X_test,
+        "y_test": y_test,
     }
-    validation_path = os.path.join(output_dir, 'validation_data.joblib')
+    validation_path = os.path.join(output_dir, "validation_data.joblib")
     joblib.dump(validation_data, validation_path)
 
     # También guardar como archivos individuales para compatibilidad
-    np.save(os.path.join(output_dir, 'X_val.npy'), X_val)
-    np.save(os.path.join(output_dir, 'y_val.npy'), y_val)
-    np.save(os.path.join(output_dir, 'X_test.npy'), X_test)
-    np.save(os.path.join(output_dir, 'y_test.npy'), y_test)
+    np.save(os.path.join(output_dir, "X_val.npy"), X_val)
+    np.save(os.path.join(output_dir, "y_val.npy"), y_val)
+    np.save(os.path.join(output_dir, "X_test.npy"), X_test)
+    np.save(os.path.join(output_dir, "y_test.npy"), y_test)
 
     print(f"Datos de validación guardados en {validation_path}")
 
     # Guardar el modelo
-    estimator.save(model_dir=output_dir, name='tiempo_estimator')
+    estimator.save(model_dir=output_dir, name="tiempo_estimator")
 
     # Plot del entrenamiento
-    estimator.plot_history(save_path=os.path.join(output_dir, 'training_history.png'))
+    estimator.plot_history(save_path=os.path.join(output_dir, "training_history.png"))
 
     # 5. Evaluar el modelo
     print("\n[5/5] Evaluando modelo...")
@@ -160,7 +160,7 @@ def main():
     metrics, y_pred = evaluator.evaluate_model(X_test, y_test)
 
     # Guardar métricas con información de entrenamiento inicial
-    metrics_history_path = os.path.join(output_dir, 'metrics_history.json')
+    metrics_history_path = os.path.join(output_dir, "metrics_history.json")
 
     # Registrar modelo en la base de datos
     from dashboard.models import Modeloestimacionrnn
@@ -168,13 +168,13 @@ def main():
 
     timestamp = datetime.now().strftime("%Y%m%d")
     modelo, created = Modeloestimacionrnn.objects.update_or_create(
-        nombremodelo='RNN Avanzado',
+        nombremodelo="RNN Avanzado",
         defaults={
-            'descripcionmodelo': 'Modelo de red neuronal recurrente para estimación de tiempo (entrenamiento inicial)',
-            'versionmodelo': f"1.0.{timestamp}",
-            'precision': metrics.get('r2', 0.8),
-            'fechacreacion': timezone.now(),
-            'fechamodificacion': timezone.now(),
+            "descripcionmodelo": "Modelo de red neuronal recurrente para estimación de tiempo (entrenamiento inicial)",
+            "versionmodelo": f"1.0.{timestamp}",
+            "precision": metrics.get("r2", 0.8),
+            "fechacreacion": timezone.now(),
+            "fechamodificacion": timezone.now(),
         },
     )
 
@@ -185,17 +185,17 @@ def main():
     # Corregir el acceso al historial de entrenamiento
     try:
         # Intentar obtener el número de épocas entrenadas
-        if hasattr(estimator, 'history') and estimator.history is not None:
+        if hasattr(estimator, "history") and estimator.history is not None:
             if (
-                hasattr(estimator.history, 'params')
-                and 'epochs' in estimator.history.params
+                hasattr(estimator.history, "params")
+                and "epochs" in estimator.history.params
             ):
-                epochs_trained = estimator.history.params['epochs']
+                epochs_trained = estimator.history.params["epochs"]
             elif (
-                hasattr(estimator.history, 'history')
-                and len(estimator.history.history.get('loss', [])) > 0
+                hasattr(estimator.history, "history")
+                and len(estimator.history.history.get("loss", [])) > 0
             ):
-                epochs_trained = len(estimator.history.history['loss'])
+                epochs_trained = len(estimator.history.history["loss"])
             else:
                 epochs_trained = args.epochs
         else:
@@ -213,23 +213,23 @@ def main():
     }
 
     training_info = {
-        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'metrics': metrics,
-        'training_type': 'initial',
-        'model_config': model_config,
-        'dataset_stats': dataset_stats,
-        'epochs_trained': epochs_trained,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "metrics": metrics,
+        "training_type": "initial",
+        "model_config": model_config,
+        "dataset_stats": dataset_stats,
+        "epochs_trained": epochs_trained,
     }
 
     # Cargar historial existente o crear uno nuevo (formato compatible con evaluate_metrics.py)
     try:
         if os.path.exists(metrics_history_path):
-            with open(metrics_history_path, 'r') as f:
+            with open(metrics_history_path, "r") as f:
                 metrics_history = json.load(f)
                 if not isinstance(metrics_history, list):
                     # Convertir al nuevo formato
-                    if 'evaluations' in metrics_history:
-                        metrics_history = metrics_history['evaluations']
+                    if "evaluations" in metrics_history:
+                        metrics_history = metrics_history["evaluations"]
                     else:
                         metrics_history = []
         else:
@@ -242,7 +242,7 @@ def main():
     metrics_history.append(training_info)
 
     # Guardar historial actualizado
-    with open(metrics_history_path, 'w') as f:
+    with open(metrics_history_path, "w") as f:
         json.dump(metrics_history, f, indent=4)
 
     # Visualizar predicciones
@@ -253,20 +253,20 @@ def main():
     # Lista simplificada de nombres de características
     feature_names = (
         [
-            'Complejidad',
-            'Cantidad_Recursos',
-            'Carga_R1',
-            'Exp_R1',
-            'Carga_R2',
-            'Exp_R2',
-            'Carga_R3',
-            'Exp_R3',
-            'Exp_Equipo',
-            'Claridad_Req',
-            'Tamaño',
+            "Complejidad",
+            "Cantidad_Recursos",
+            "Carga_R1",
+            "Exp_R1",
+            "Carga_R2",
+            "Exp_R2",
+            "Carga_R3",
+            "Exp_R3",
+            "Exp_Equipo",
+            "Claridad_Req",
+            "Tamaño",
         ]
-        + [f'Tipo_{i}' for i in range(feature_dims['tipo_tarea'])]
-        + [f'Fase_{i}' for i in range(feature_dims['fase'])]
+        + [f"Tipo_{i}" for i in range(feature_dims["tipo_tarea"])]
+        + [f"Fase_{i}" for i in range(feature_dims["fase"])]
     )
 
     evaluator.analyze_feature_importance(X_test, y_test, feature_names)
@@ -274,9 +274,9 @@ def main():
     # Evaluación por segmentos (tareas pequeñas, medianas, grandes)
     print("\n[Extra] Evaluando por segmentos de tamaño...")
     segments = {
-        'Tareas pequeñas': lambda y: y <= 40,
-        'Tareas medianas': lambda y: (y > 40) & (y <= 80),
-        'Tareas grandes': lambda y: y > 80,
+        "Tareas pequeñas": lambda y: y <= 40,
+        "Tareas medianas": lambda y: (y > 40) & (y <= 80),
+        "Tareas grandes": lambda y: y > 80,
     }
 
     evaluator.segmented_evaluation(X_test, y_test, segments)

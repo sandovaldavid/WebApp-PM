@@ -36,7 +36,7 @@ def set_current_user(user):
 
 def get_current_user():
     """Obtiene el usuario almacenado para el hilo actual"""
-    return getattr(_thread_local, 'user', None)
+    return getattr(_thread_local, "user", None)
 
 
 def get_client_ip():
@@ -53,14 +53,14 @@ def get_model_config(model_instance):
     model_name = model_instance.__class__.__name__
 
     # No auditar la configuración de auditoría para evitar recursión infinita
-    if model_name == 'ConfiguracionAuditoria':
+    if model_name == "ConfiguracionAuditoria":
         return None
 
     try:
         # Verificar primero si estamos en migración
         import sys
 
-        if 'migrate' in sys.argv:
+        if "migrate" in sys.argv:
             return None
 
         # Verificar si la tabla existe antes de consultarla
@@ -68,7 +68,7 @@ def get_model_config(model_instance):
 
         with connection.cursor() as cursor:
             table_names = connection.introspection.table_names(cursor)
-            if 'configuracion_auditoria' not in table_names:
+            if "configuracion_auditoria" not in table_names:
                 print(
                     "Tabla configuracion_auditoria no existe todavía, saltando configuración de auditoría"
                 )
@@ -107,16 +107,16 @@ def get_model_config(model_instance):
 def get_model_name(instance):
     """Obtener un nombre legible y en español para el modelo"""
     model_names = {
-        'Proyecto': 'Proyecto',
-        'Tarea': 'Tarea',
-        'Recurso': 'Recurso',
-        'Equipo': 'Equipo',
-        'Usuario': 'Usuario',
-        'Fase': 'Fase',
-        'TareaComun': 'Tarea Común',
-        'Requerimiento': 'Requerimiento',
-        'Alerta': 'Alerta',
-        'Notificacion': 'Notificación',
+        "Proyecto": "Proyecto",
+        "Tarea": "Tarea",
+        "Recurso": "Recurso",
+        "Equipo": "Equipo",
+        "Usuario": "Usuario",
+        "Fase": "Fase",
+        "TareaComun": "Tarea Común",
+        "Requerimiento": "Requerimiento",
+        "Alerta": "Alerta",
+        "Notificacion": "Notificación",
     }
 
     model_name = instance.__class__.__name__
@@ -125,19 +125,19 @@ def get_model_name(instance):
 
 def get_instance_name(instance):
     """Obtener un nombre identificativo para la instancia del modelo"""
-    if hasattr(instance, 'nombre'):
+    if hasattr(instance, "nombre"):
         return instance.nombre
-    elif hasattr(instance, 'nombreusuario'):
+    elif hasattr(instance, "nombreusuario"):
         return instance.nombreusuario
-    elif hasattr(instance, 'nombretarea'):
+    elif hasattr(instance, "nombretarea"):
         return instance.nombretarea
-    elif hasattr(instance, 'nombreproyecto'):
+    elif hasattr(instance, "nombreproyecto"):
         return instance.nombreproyecto
-    elif hasattr(instance, 'nombreequipo'):
+    elif hasattr(instance, "nombreequipo"):
         return instance.nombreequipo
-    elif hasattr(instance, 'nombrerecurso'):
+    elif hasattr(instance, "nombrerecurso"):
         return instance.nombrerecurso
-    elif hasattr(instance, 'descripcion') and instance.descripcion:
+    elif hasattr(instance, "descripcion") and instance.descripcion:
         return (
             f"{instance.descripcion[:50]}..."
             if len(instance.descripcion) > 50
@@ -192,13 +192,13 @@ def registrar_cambios(instance, changes, action_type, user=None):
                 prefixed_changes[prefixed_field] = values
 
             # Si el padre ya tiene cambios, los extendemos
-            if hasattr(parent_instance, '_changes'):
-                parent_changes = getattr(parent_instance, '_changes', {})
+            if hasattr(parent_instance, "_changes"):
+                parent_changes = getattr(parent_instance, "_changes", {})
                 parent_changes.update(prefixed_changes)
-                setattr(parent_instance, '_changes', parent_changes)
+                setattr(parent_instance, "_changes", parent_changes)
             else:
                 # Si no tiene cambios previos, asignamos los nuevos
-                setattr(parent_instance, '_changes', prefixed_changes)
+                setattr(parent_instance, "_changes", prefixed_changes)
 
         # No continuamos la auditoría para el hijo
         return
@@ -212,9 +212,9 @@ def registrar_cambios(instance, changes, action_type, user=None):
 
     # Verificar si este tipo de acción debe ser auditada según la configuración
     if (
-        (action_type == 'CREACION' and not config.auditar_crear)
-        or (action_type == 'MODIFICACION' and not config.auditar_modificar)
-        or (action_type == 'ELIMINACION' and not config.auditar_eliminar)
+        (action_type == "CREACION" and not config.auditar_crear)
+        or (action_type == "MODIFICACION" and not config.auditar_modificar)
+        or (action_type == "ELIMINACION" and not config.auditar_eliminar)
     ):
         return
 
@@ -235,13 +235,13 @@ def registrar_cambios(instance, changes, action_type, user=None):
 
     # Información básica para todos los niveles
     descripcion_basica = ""
-    if action_type == 'CREACION':
+    if action_type == "CREACION":
         descripcion_basica = f"Se ha creado {model_display.lower()}: {instance_name}"
-    elif action_type == 'MODIFICACION':
+    elif action_type == "MODIFICACION":
         descripcion_basica = (
             f"Se ha modificado {model_display.lower()}: {instance_name}"
         )
-    elif action_type == 'ELIMINACION':
+    elif action_type == "ELIMINACION":
         descripcion_basica = f"Se ha eliminado {model_display.lower()}: {instance_name}"
 
     # Crear la actividad principal según el nivel de detalle
@@ -267,9 +267,9 @@ def registrar_cambios(instance, changes, action_type, user=None):
         num_cambios = len(changes) if changes else 0
         host = socket.gethostname()
 
-        if action_type == 'MODIFICACION' and num_cambios > 0:
+        if action_type == "MODIFICACION" and num_cambios > 0:
             campos_modificados = [
-                field.replace('_', ' ').title() for field in changes.keys()
+                field.replace("_", " ").title() for field in changes.keys()
             ]
             campos_str = (
                 ", ".join(campos_modificados)
@@ -309,13 +309,13 @@ def registrar_cambios(instance, changes, action_type, user=None):
                 continue
 
             # Para nivel 2 y 3, registrar todos los campos
-            field_name = field.replace('_', ' ').title()
+            field_name = field.replace("_", " ").title()
 
             DetalleActividad.objects.create(
                 idactividad=actividad,
                 nombre_campo=field_name,
-                valor_anterior=values.get('old', None),
-                valor_nuevo=values.get('new', None),
+                valor_anterior=values.get("old", None),
+                valor_nuevo=values.get("new", None),
             )
 
 
@@ -325,46 +325,46 @@ def get_entity_details(instance):
     model_name = instance.__class__.__name__
     details = []
 
-    if model_name == 'Proyecto':
+    if model_name == "Proyecto":
         details.append(f"Nombre: {instance.nombreproyecto}")
-        if hasattr(instance, 'estado') and instance.estado:
+        if hasattr(instance, "estado") and instance.estado:
             details.append(f"Estado: {instance.estado}")
-        if hasattr(instance, 'presupuesto') and instance.presupuesto:
+        if hasattr(instance, "presupuesto") and instance.presupuesto:
             details.append(f"Presupuesto: {instance.presupuesto}")
-        if hasattr(instance, 'idequipo') and instance.idequipo:
+        if hasattr(instance, "idequipo") and instance.idequipo:
             details.append(f"Equipo: {instance.idequipo.nombreequipo}")
 
-    elif model_name == 'Tarea':
+    elif model_name == "Tarea":
         details.append(f"Nombre: {instance.nombretarea}")
-        if hasattr(instance, 'estado') and instance.estado:
+        if hasattr(instance, "estado") and instance.estado:
             details.append(f"Estado: {instance.estado}")
-        if hasattr(instance, 'prioridad') and instance.prioridad:
+        if hasattr(instance, "prioridad") and instance.prioridad:
             details.append(f"Prioridad: {instance.prioridad}")
-        if hasattr(instance, 'fechainicio') and instance.fechainicio:
+        if hasattr(instance, "fechainicio") and instance.fechainicio:
             details.append(f"Inicio: {instance.fechainicio}")
-        if hasattr(instance, 'fechafin') and instance.fechafin:
+        if hasattr(instance, "fechafin") and instance.fechafin:
             details.append(f"Fin: {instance.fechafin}")
 
-    elif model_name == 'Usuario':
+    elif model_name == "Usuario":
         details.append(f"Usuario: {instance.nombreusuario}")
-        if hasattr(instance, 'email') and instance.email:
+        if hasattr(instance, "email") and instance.email:
             details.append(f"Email: {instance.email}")
-        if hasattr(instance, 'rol') and instance.rol:
+        if hasattr(instance, "rol") and instance.rol:
             details.append(f"Rol: {instance.rol}")
 
-    elif model_name == 'Recurso':
+    elif model_name == "Recurso":
         details.append(f"Nombre: {instance.nombrerecurso}")
-        if hasattr(instance, 'disponibilidad'):
+        if hasattr(instance, "disponibilidad"):
             disp = "Disponible" if instance.disponibilidad else "No disponible"
             details.append(f"Disponibilidad: {disp}")
-        if hasattr(instance, 'carga_trabajo') and instance.carga_trabajo:
+        if hasattr(instance, "carga_trabajo") and instance.carga_trabajo:
             details.append(f"Carga: {instance.carga_trabajo}%")
 
     # Añadir más entidades según sea necesario...
 
     if not details:  # Si no se encontró ningún detalle específico
         # Obtener algunos atributos generales
-        for attr in ['nombre', 'descripcion', 'estado', 'fecha', 'id']:
+        for attr in ["nombre", "descripcion", "estado", "fecha", "id"]:
             if hasattr(instance, attr):
                 val = getattr(instance, attr)
                 if val:
@@ -382,13 +382,13 @@ def pre_save_handler(sender, instance, **kwargs):
     """Almacena temporalmente los valores anteriores para comparar después"""
     # Excluir modelos que no queremos auditar
     excluded_models = [
-        'Session',
-        'LogEntry',
-        'ContentType',
-        'Permission',
-        'Actividad',
-        'DetalleActividad',
-        'ConfiguracionAuditoria',
+        "Session",
+        "LogEntry",
+        "ContentType",
+        "Permission",
+        "Actividad",
+        "DetalleActividad",
+        "ConfiguracionAuditoria",
     ]
     if sender.__name__ in excluded_models:
         return
@@ -409,7 +409,7 @@ def pre_save_handler(sender, instance, **kwargs):
                 field_name = field.name
 
                 # Ignorar campos que típicamente no se deberían auditar
-                if field_name in ['updated_at', 'fechamodificacion', 'last_login']:
+                if field_name in ["updated_at", "fechamodificacion", "last_login"]:
                     continue
 
                 # Obtener valores antiguos y nuevos
@@ -418,7 +418,7 @@ def pre_save_handler(sender, instance, **kwargs):
 
                 # Si son diferentes, registrar el cambio
                 if old_value != new_value:
-                    changes[field_name] = {'old': str(old_value), 'new': str(new_value)}
+                    changes[field_name] = {"old": str(old_value), "new": str(new_value)}
 
             # Guardar cambios temporalmente en la instancia
             if changes:
@@ -432,13 +432,13 @@ def audit_post_save(sender, instance, created, **kwargs):
     """Registra creaciones y modificaciones automáticamente"""
     # Excluir modelos que no queremos auditar
     excluded_models = [
-        'Session',
-        'LogEntry',
-        'ContentType',
-        'Permission',
-        'Actividad',
-        'DetalleActividad',
-        'ConfiguracionAuditoria',
+        "Session",
+        "LogEntry",
+        "ContentType",
+        "Permission",
+        "Actividad",
+        "DetalleActividad",
+        "ConfiguracionAuditoria",
     ]
     if sender.__name__ in excluded_models:
         return
@@ -455,8 +455,8 @@ def audit_post_save(sender, instance, created, **kwargs):
         return
 
     # Determinar tipo de acción y cambios
-    action_type = 'CREACION' if created else 'MODIFICACION'
-    changes = getattr(instance, '_changes', {}) if hasattr(instance, '_changes') else {}
+    action_type = "CREACION" if created else "MODIFICACION"
+    changes = getattr(instance, "_changes", {}) if hasattr(instance, "_changes") else {}
 
     # Si no hay cambios y es una modificación, no auditar
     if not created and not changes:
@@ -477,13 +477,13 @@ def audit_post_delete(sender, instance, **kwargs):
     """Registra eliminaciones automáticamente"""
     # Excluir modelos que no queremos auditar
     excluded_models = [
-        'Session',
-        'LogEntry',
-        'ContentType',
-        'Permission',
-        'Actividad',
-        'DetalleActividad',
-        'ConfiguracionAuditoria',
+        "Session",
+        "LogEntry",
+        "ContentType",
+        "Permission",
+        "Actividad",
+        "DetalleActividad",
+        "ConfiguracionAuditoria",
     ]
     if sender.__name__ in excluded_models:
         return
@@ -497,7 +497,7 @@ def audit_post_delete(sender, instance, **kwargs):
     user = get_current_user()
 
     # Registrar la eliminación
-    registrar_cambios(instance, {}, 'ELIMINACION', user)
+    registrar_cambios(instance, {}, "ELIMINACION", user)
 
 
 # Lista completa de modelos a auditar

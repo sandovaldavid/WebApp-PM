@@ -26,7 +26,7 @@ def generar_datos_monte_carlo(
         output_path (str): Ruta donde guardar el archivo CSV con datos sintéticos
     """
     # Cargar el archivo CSV
-    df = pd.read_csv(csv_path, encoding='latin-1')
+    df = pd.read_csv(csv_path, encoding="latin-1")
 
     # Corregir el nombre de la columna si es necesario
     if "TamaÃ±o_Tarea" in df.columns:
@@ -57,7 +57,7 @@ def generar_datos_monte_carlo(
     kdes = {}
     for col in numeric_cols:
         # Usar Scott's rule para bandwidth óptimo
-        kdes[col] = gaussian_kde(df_clean[col].dropna(), bw_method='scott')
+        kdes[col] = gaussian_kde(df_clean[col].dropna(), bw_method="scott")
 
     # Analizar distribuciones de variables categóricas
     cat_distributions = {}
@@ -212,7 +212,7 @@ def analizar_probabilidades_condicionales(df, categorical_cols, numeric_cols):
         for j, cat2 in enumerate(categorical_cols):
             if i < j:  # Evitar duplicación
                 # Crear tabla de contingencia normalizada
-                cont_table = pd.crosstab(df[cat1], df[cat2], normalize='index')
+                cont_table = pd.crosstab(df[cat1], df[cat2], normalize="index")
                 conditional_distributions[f"{cat2}|{cat1}"] = cont_table
 
     # Probabilidades condicionales para variables numéricas dadas categóricas
@@ -226,7 +226,7 @@ def analizar_probabilidades_condicionales(df, categorical_cols, numeric_cols):
             for cat, values in grouped.items():
                 if len(values) > 10:  # Suficientes datos para KDE
                     try:
-                        kde_dict[cat] = gaussian_kde(values, bw_method='scott')
+                        kde_dict[cat] = gaussian_kde(values, bw_method="scott")
                     except:
                         # En caso de error, usar distribución general
                         kde_dict[cat] = None
@@ -239,13 +239,13 @@ def analizar_probabilidades_condicionales(df, categorical_cols, numeric_cols):
         # Discretizar en 5 bins
         bins = 5
         df[f"{num_col}_bin"] = pd.qcut(
-            df[num_col], q=bins, labels=False, duplicates='drop'
+            df[num_col], q=bins, labels=False, duplicates="drop"
         )
 
         for cat_col in categorical_cols:
             # Tabla de contingencia normalizada
             cont_table = pd.crosstab(
-                df[f"{num_col}_bin"], df[cat_col], normalize='index'
+                df[f"{num_col}_bin"], df[cat_col], normalize="index"
             )
             conditional_distributions[f"{cat_col}|{num_col}_bin"] = cont_table
 
@@ -823,7 +823,7 @@ def generar_datos_con_copulas(
         tamanos_reales,
     )
 
-    return synthetic_df.to_dict('records')
+    return synthetic_df.to_dict("records")
 
 
 def generar_datos_numericos_correlacionados(
@@ -1698,8 +1698,8 @@ def validar_datos_sinteticos(
         ]
 
         # Calcular matrices de correlación
-        real_corr = df_real_corr[all_cols].corr(method='spearman').fillna(0)
-        sint_corr = df_sint_corr[all_cols].corr(method='spearman').fillna(0)
+        real_corr = df_real_corr[all_cols].corr(method="spearman").fillna(0)
+        sint_corr = df_sint_corr[all_cols].corr(method="spearman").fillna(0)
 
         # Calcular error medio absoluto
         mae = np.abs(real_corr - sint_corr).mean().mean()
@@ -1743,7 +1743,7 @@ def generar_graficos_comparativos(
 
             # Histograma para datos reales
             plt.hist(
-                df_real[col].dropna(), bins=20, alpha=0.5, label='Real', density=True
+                df_real[col].dropna(), bins=20, alpha=0.5, label="Real", density=True
             )
 
             # Histograma para datos sintéticos
@@ -1751,15 +1751,15 @@ def generar_graficos_comparativos(
                 df_sintetico[col].dropna(),
                 bins=20,
                 alpha=0.5,
-                label='Sintético',
+                label="Sintético",
                 density=True,
             )
 
-            plt.title(f'Distribución de {col}')
+            plt.title(f"Distribución de {col}")
             plt.legend()
 
     plt.tight_layout()
-    plt.savefig('comparacion_distribuciones_numericas.png')
+    plt.savefig("comparacion_distribuciones_numericas.png")
     print(
         "Gráficos comparativos de variables numéricas guardados como 'comparacion_distribuciones_numericas.png'"
     )
@@ -1797,17 +1797,17 @@ def generar_graficos_comparativos(
             width = 0.35
 
             # Crear gráfico de barras
-            plt.bar(x - width / 2, real_counts, width, label='Real')
-            plt.bar(x + width / 2, sint_counts, width, label='Sintético')
+            plt.bar(x - width / 2, real_counts, width, label="Real")
+            plt.bar(x + width / 2, sint_counts, width, label="Sintético")
 
-            plt.xlabel('Categoría')
-            plt.ylabel('Frecuencia relativa')
-            plt.title(f'Distribución de {col}')
-            plt.xticks(x, all_cats, rotation=45, ha='right')
+            plt.xlabel("Categoría")
+            plt.ylabel("Frecuencia relativa")
+            plt.title(f"Distribución de {col}")
+            plt.xticks(x, all_cats, rotation=45, ha="right")
             plt.legend()
 
     plt.tight_layout()
-    plt.savefig('comparacion_distribuciones_categoricas.png')
+    plt.savefig("comparacion_distribuciones_categoricas.png")
     print(
         "Gráficos comparativos de variables categóricas guardados como 'comparacion_distribuciones_categoricas.png'"
     )
@@ -1844,16 +1844,16 @@ def generar_graficos_comparativos(
     try:
         plt.subplot(1, 2, 1)
         corr_real = df_real_corr[all_cols].corr()
-        sns.heatmap(corr_real, annot=True, cmap='coolwarm', fmt='.2f', square=True)
-        plt.title('Correlaciones - Datos Reales')
+        sns.heatmap(corr_real, annot=True, cmap="coolwarm", fmt=".2f", square=True)
+        plt.title("Correlaciones - Datos Reales")
 
         plt.subplot(1, 2, 2)
         corr_sint = df_sint_corr[all_cols].corr()
-        sns.heatmap(corr_sint, annot=True, cmap='coolwarm', fmt='.2f', square=True)
-        plt.title('Correlaciones - Datos Sintéticos')
+        sns.heatmap(corr_sint, annot=True, cmap="coolwarm", fmt=".2f", square=True)
+        plt.title("Correlaciones - Datos Sintéticos")
 
         plt.tight_layout()
-        plt.savefig('comparacion_correlaciones.png')
+        plt.savefig("comparacion_correlaciones.png")
         print(
             "Comparación de matrices de correlación guardada como 'comparacion_correlaciones.png'"
         )
@@ -1869,8 +1869,8 @@ def validar_correlaciones_criticas(df_real, df_sintetico, variables_criticas):
     df_sint_sub = df_sintetico[variables_criticas].copy()
 
     # Calcular correlaciones
-    corr_real = df_real_sub.corr(method='spearman')
-    corr_sint = df_sint_sub.corr(method='spearman')
+    corr_real = df_real_sub.corr(method="spearman")
+    corr_sint = df_sint_sub.corr(method="spearman")
 
     print("\nCorrelaciones de variables críticas:")
     print("\nDatos reales:")
@@ -1946,8 +1946,8 @@ def validar_correlaciones_criticas(df_real, df_sintetico, variables_criticas):
 
         # Calcular correlaciones
         try:
-            corr_real = df_real_temp[[var1, var2]].corr(method='spearman').iloc[0, 1]
-            corr_sint = df_sint_temp[[var1, var2]].corr(method='spearman').iloc[0, 1]
+            corr_real = df_real_temp[[var1, var2]].corr(method="spearman").iloc[0, 1]
+            corr_sint = df_sint_temp[[var1, var2]].corr(method="spearman").iloc[0, 1]
             diff = abs(corr_real - corr_sint)
 
             print(
