@@ -200,9 +200,17 @@ def login(request):
 
             # Usar authenticate y login de Django
             if check_password(contrasena, usuario.contrasena):
-                # Autenticar el usuario
-                from django.contrib.auth import login as auth_login
+                # Autenticar el usuario usando el backend explícitamente
+                from django.contrib.auth import authenticate, login as auth_login
 
+                # Obtener el backend que usaremos
+                from django.contrib.auth import get_backends
+                for backend in get_backends():
+                    # Usar el primer backend disponible
+                    usuario.backend = f"{backend.__module__}.{backend.__class__.__name__}"
+                    break
+
+                # Ahora podemos hacer login pasando el usuario con el atributo backend
                 auth_login(request, usuario)
 
                 # Actualizar el campo last_login
