@@ -108,6 +108,10 @@ class AuditoriaMiddleware:
         # No auditar favicon, robots.txt y similares
         if request.path in ["/favicon.ico", "/robots.txt", "/sitemap.xml"]:
             return True
+            
+        # Excluir todas las rutas de la API de la auditoría
+        if request.path.startswith("/api/"):
+            return True
 
         return False
 
@@ -272,6 +276,10 @@ def usuario_login_fallido(sender, credentials, request, **kwargs):
     Registra intentos fallidos de inicio de sesión con información detallada.
     """
     try:
+        # Skip audit for API requests
+        if request and request.path.startswith('/api/'):
+            return
+            
         middleware = AuditoriaMiddleware(None)
 
         # Obtener la dirección IP y la información del sistema
@@ -314,16 +322,17 @@ def usuario_login_fallido(sender, credentials, request, **kwargs):
                 f" | User-Agent: {request.META.get('HTTP_USER_AGENT', 'Desconocido')}"
             )
 
-        # Registramos la actividad con información detallada
-        Actividad.objects.create(
-            nombre="Intento de inicio de sesión fallido",
-            descripcion=f"Intento fallido de inicio de sesión para el usuario: {username}. Sistema: {system_info}. {detalles}",
-            idusuario=usuario,  # Puede ser None
-            accion="LOGIN_FALLIDO",
-            entidad_tipo="Autenticación",
-            ip_address=ip,
-            es_automatica=True,
-        )
+        # Create activity ONLY if we have a valid user to associate it with
+        if usuario:
+            Actividad.objects.create(
+                nombre="Intento de inicio de sesión fallido",
+                descripcion=f"Intento fallido de inicio de sesión para el usuario: {username}. Sistema: {system_info}. {detalles}",
+                idusuario=usuario,
+                accion="LOGIN_FALLIDO",
+                entidad_tipo="Autenticación",
+                ip_address=ip,
+                es_automatica=True,
+            )
     except Exception as e:
         # Capturar cualquier error para evitar que interrumpa el flujo de la aplicación
         print(f"Error al registrar intento de login fallido: {e}")
