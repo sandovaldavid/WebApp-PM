@@ -48,4 +48,4 @@ class UsuarioListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for listing users"""
     class Meta:
         model = Usuario
-        fields = ["id", "username", "email", "nombreusuario", "rol", "is_active"]
+        fields = ["idusuario", "username", "email", "nombreusuario", "rol", "is_active"]
