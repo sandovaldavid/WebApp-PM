@@ -17,57 +17,71 @@ class Actividad(models.Model):
     fechacreacion = models.DateTimeField(auto_now_add=True)  # Cambiar a auto_now_add
     idusuario = models.ForeignKey("Usuario", models.DO_NOTHING, db_column="idusuario")
     accion = models.CharField(max_length=255)
-    
+
     # Nuevos campos necesarios
-    entidad_tipo = models.CharField(max_length=50, blank=True, null=True)  # Proyecto, Tarea, etc.
+    entidad_tipo = models.CharField(
+        max_length=50, blank=True, null=True
+    )  # Proyecto, Tarea, etc.
     entidad_id = models.IntegerField(blank=True, null=True)  # ID del objeto modificado
-    ip_address = models.GenericIPAddressField(blank=True, null=True)  # IP desde donde se realizó
-    es_automatica = models.BooleanField(default=True)  # Si fue registrada automáticamente
-    
+    ip_address = models.GenericIPAddressField(
+        blank=True, null=True
+    )  # IP desde donde se realizó
+    es_automatica = models.BooleanField(
+        default=True
+    )  # Si fue registrada automáticamente
+
     class Meta:
         managed = True
         db_table = "actividad"
 
+
 class DetalleActividad(models.Model):
     """Almacena cambios detallados de cada campo modificado"""
+
     iddetalle = models.AutoField(primary_key=True)
     idactividad = models.ForeignKey(Actividad, on_delete=models.CASCADE)
     nombre_campo = models.CharField(max_length=100)
     valor_anterior = models.TextField(blank=True, null=True)
     valor_nuevo = models.TextField(blank=True, null=True)
-    
+
     class Meta:
         managed = True
         db_table = "detalle_actividad"
 
+
 class ConfiguracionAuditoria(models.Model):
     """Configuración de qué entidades y campos auditar"""
+
     idconfiguracion = models.AutoField(primary_key=True)
     modelo = models.CharField(max_length=100)  # Nombre del modelo a auditar
-    campo = models.CharField(max_length=100, blank=True, null=True)  # Campo específico o null para todos
+    campo = models.CharField(
+        max_length=100, blank=True, null=True
+    )  # Campo específico o null para todos
     auditar_crear = models.BooleanField(default=True)
     auditar_modificar = models.BooleanField(default=True)
     auditar_eliminar = models.BooleanField(default=True)
     nivel_detalle = models.IntegerField(default=1)  # 1=básico, 2=detallado, 3=completo
-    
+
     class Meta:
         managed = True
         db_table = "configuracion_auditoria"
         unique_together = (('modelo', 'campo'),)
 
+
 class ConfiguracionGeneralAuditoria(models.Model):
     """Configuraciones generales del sistema de auditoría"""
+
     idconfiguracion = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100, unique=True)
     valor = models.CharField(max_length=255)
     descripcion = models.TextField(blank=True, null=True)
-    
+
     class Meta:
         managed = True
         db_table = "configuracion_general_auditoria"
         verbose_name = "Configuración General de Auditoría"
         verbose_name_plural = "Configuraciones Generales de Auditoría"
-    
+
     def __str__(self):
         return f"{self.nombre}: {self.valor}"
 
@@ -162,6 +176,7 @@ class Historialnotificacion(models.Model):
         managed = True
         db_table = "historialnotificacion"
 
+
 # reemplazada pro actividad
 class Historialreporte(models.Model):
     idhistorialreporte = models.AutoField(primary_key=True)
@@ -172,6 +187,7 @@ class Historialreporte(models.Model):
     class Meta:
         managed = True
         db_table = "historialreporte"
+
 
 # reemplazada pro actividad
 class Historialreporteusuario(models.Model):
@@ -185,6 +201,7 @@ class Historialreporteusuario(models.Model):
     class Meta:
         managed = True
         db_table = "historialreporteusuario"
+
 
 # podria ser reemplazada pro actividad
 class Historialtarea(models.Model):
@@ -445,7 +462,7 @@ class TipoTarea(models.Model):
     class Meta:
         managed = True
         db_table = "tipotarea"
-        
+
     def __str__(self):
         return self.nombre
 
@@ -460,7 +477,7 @@ class Fase(models.Model):
     class Meta:
         managed = True
         db_table = "fase"
-        
+
     def __str__(self):
         return self.nombre
 
@@ -479,7 +496,7 @@ class TareaComun(models.Model):
     class Meta:
         managed = True
         db_table = "tareacomun"
-        
+
     def __str__(self):
         return self.nombre
 
@@ -497,23 +514,15 @@ class Tarea(models.Model):
     estado = models.CharField(max_length=50, blank=True, null=True)
     prioridad = models.IntegerField(blank=True, null=True)
     tipo_tarea = models.ForeignKey(
-        TipoTarea, 
-        models.SET_NULL, 
-        db_column="idtipotarea", 
-        null=True, 
-        blank=True
+        TipoTarea, models.SET_NULL, db_column="idtipotarea", null=True, blank=True
     )
     # Relación con la nueva tabla Fase
     fase = models.ForeignKey(
-        Fase,
-        models.SET_NULL,
-        db_column="idfase",
-        null=True,
-        blank=True
+        Fase, models.SET_NULL, db_column="idfase", null=True, blank=True
     )
     claridad_requisitos = models.FloatField(blank=True, null=True)
     tamaño_estimado = models.IntegerField(blank=True, null=True)
-    
+
     costoestimado = models.DecimalField(
         max_digits=15, decimal_places=2, blank=True, null=True
     )
@@ -534,9 +543,11 @@ class Tarea(models.Model):
 class TareaTareaComun(models.Model):
     idrelacion = models.AutoField(primary_key=True)
     idtarea = models.ForeignKey(Tarea, models.CASCADE, db_column="idtarea")
-    idtareacomun = models.ForeignKey(TareaComun, models.CASCADE, db_column="idtareacomun")
+    idtareacomun = models.ForeignKey(
+        TareaComun, models.CASCADE, db_column="idtareacomun"
+    )
     similitud = models.FloatField(default=1.0, blank=True, null=True)
-    
+
     class Meta:
         managed = True
         db_table = "tareatarea_comun"
@@ -548,13 +559,17 @@ class Tarearecurso(models.Model):
     idtarea = models.ForeignKey(Tarea, models.DO_NOTHING, db_column="idtarea")
     idrecurso = models.ForeignKey(Recurso, models.DO_NOTHING, db_column="idrecurso")
     cantidad = models.IntegerField(blank=True, null=True)
-    experiencia = models.IntegerField(blank=True, null=True, choices=[
-        (1, "Novato"),
-        (2, "Principiante"),
-        (3, "Competente"),
-        (4, "Proficiente"),
-        (5, "Experto"),
-    ])  # Nuevo campo
+    experiencia = models.IntegerField(
+        blank=True,
+        null=True,
+        choices=[
+            (1, "Novato"),
+            (2, "Principiante"),
+            (3, "Competente"),
+            (4, "Proficiente"),
+            (5, "Experto"),
+        ],
+    )  # Nuevo campo
 
     class Meta:
         managed = True
@@ -589,7 +604,9 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('El nombre de usuario es obligatorio')
         email = self.normalize_email(email)
         username = nombreusuario  # Usar nombreusuario como username para compatibilidad
-        user = self.model(nombreusuario=nombreusuario, username=username, email=email, **extra_fields)
+        user = self.model(
+            nombreusuario=nombreusuario, username=username, email=email, **extra_fields
+        )
         user.set_password(password)
         user.contrasena = user.password
         user.save(using=self._db)
@@ -600,18 +617,21 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(nombreusuario, email, password, **extra_fields)
 
-    def create_superuser(self, nombreusuario, email=None, password=None, **extra_fields):
+    def create_superuser(
+        self, nombreusuario, email=None, password=None, **extra_fields
+    ):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('rol', 'Administrador')
         extra_fields.setdefault('confirmado', True)
-        
+
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superusuario debe tener is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superusuario debe tener is_superuser=True.')
-            
+
         return self._create_user(nombreusuario, email, password, **extra_fields)
+
 
 class Usuario(AbstractUser):
     idusuario = models.AutoField(primary_key=True)
@@ -660,7 +680,7 @@ class HistorialEquipo(models.Model):
     completitud_tareas = models.FloatField(blank=True, null=True)
     tiempo_promedio_tareas = models.FloatField(blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         managed = True
         db_table = "historialequipo"

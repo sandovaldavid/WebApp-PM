@@ -34,30 +34,74 @@ urlpatterns = [
         name="crear_tarea_programada",
     ),
     path('estimar-tarea/', views.estimar_tarea, name='estimar_tarea'),
-    
     # Configuración de tareas - Usando las vistas del nuevo archivo
-    path('configuracion/', views_configuracion.configuracion_tareas, name='configuracion_tareas'),
-    
+    path(
+        'configuracion/',
+        views_configuracion.configuracion_tareas,
+        name='configuracion_tareas',
+    ),
     # Tipos de tarea
-    path('configuracion/tipos-tarea/', views_configuracion.lista_tipos_tarea, name='lista_tipos_tarea'),
-    path('configuracion/tipos-tarea/crear/', views_configuracion.crear_tipo_tarea, name='crear_tipo_tarea'),
-    path('configuracion/tipos-tarea/editar/<int:id>/', views_configuracion.editar_tipo_tarea, name='editar_tipo_tarea'),
-    path('configuracion/tipos-tarea/eliminar/<int:id>/', views_configuracion.eliminar_tipo_tarea, name='eliminar_tipo_tarea'),
-    
+    path(
+        'configuracion/tipos-tarea/',
+        views_configuracion.lista_tipos_tarea,
+        name='lista_tipos_tarea',
+    ),
+    path(
+        'configuracion/tipos-tarea/crear/',
+        views_configuracion.crear_tipo_tarea,
+        name='crear_tipo_tarea',
+    ),
+    path(
+        'configuracion/tipos-tarea/editar/<int:id>/',
+        views_configuracion.editar_tipo_tarea,
+        name='editar_tipo_tarea',
+    ),
+    path(
+        'configuracion/tipos-tarea/eliminar/<int:id>/',
+        views_configuracion.eliminar_tipo_tarea,
+        name='eliminar_tipo_tarea',
+    ),
     # Fases
     path('configuracion/fases/', views_configuracion.lista_fases, name='lista_fases'),
-    path('configuracion/fases/crear/', views_configuracion.crear_fase, name='crear_fase'),
-    path('configuracion/fases/editar/<int:id>/', views_configuracion.editar_fase, name='editar_fase'),
-    path('configuracion/fases/eliminar/<int:id>/', views_configuracion.eliminar_fase, name='eliminar_fase'),
-    path('configuracion/fases/actualizar-orden/', views_configuracion.actualizar_orden_fases, name='actualizar_orden_fases'),
-    
+    path(
+        'configuracion/fases/crear/', views_configuracion.crear_fase, name='crear_fase'
+    ),
+    path(
+        'configuracion/fases/editar/<int:id>/',
+        views_configuracion.editar_fase,
+        name='editar_fase',
+    ),
+    path(
+        'configuracion/fases/eliminar/<int:id>/',
+        views_configuracion.eliminar_fase,
+        name='eliminar_fase',
+    ),
+    path(
+        'configuracion/fases/actualizar-orden/',
+        views_configuracion.actualizar_orden_fases,
+        name='actualizar_orden_fases',
+    ),
     # Tareas comunes
-    path('configuracion/tareas-comunes/', views_configuracion.lista_tareas_comunes, name='lista_tareas_comunes'),
-    path('configuracion/tareas-comunes/crear/', views_configuracion.crear_tarea_comun, name='crear_tarea_comun'),
-    path('configuracion/tareas-comunes/editar/<int:id>/', views_configuracion.editar_tarea_comun, name='editar_tarea_comun'),
-    path('configuracion/tareas-comunes/eliminar/<int:id>/', views_configuracion.eliminar_tarea_comun, name='eliminar_tarea_comun'),
-
+    path(
+        'configuracion/tareas-comunes/',
+        views_configuracion.lista_tareas_comunes,
+        name='lista_tareas_comunes',
+    ),
+    path(
+        'configuracion/tareas-comunes/crear/',
+        views_configuracion.crear_tarea_comun,
+        name='crear_tarea_comun',
+    ),
+    path(
+        'configuracion/tareas-comunes/editar/<int:id>/',
+        views_configuracion.editar_tarea_comun,
+        name='editar_tarea_comun',
+    ),
+    path(
+        'configuracion/tareas-comunes/eliminar/<int:id>/',
+        views_configuracion.eliminar_tarea_comun,
+        name='eliminar_tarea_comun',
+    ),
     # Agregar esta ruta en urlpatterns
     path('api/tareas/<int:id>/', views.api_tarea_por_id, name='api_tarea_por_id'),
-
 ]

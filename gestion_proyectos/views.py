@@ -627,6 +627,7 @@ def filtrar_proyectos(request):
         {'proyectos': proyectos_paginados, 'filtro_activo': filtro},
     )
 
+
 @login_required
 def panel_proyectos(request):
     vista = request.GET.get("vista", "grid")
@@ -636,7 +637,7 @@ def panel_proyectos(request):
 
     # Query base
     proyectos = Proyecto.objects.all()
-    
+
     # Total para estadísticas
     proyectos_totales = proyectos
 
@@ -668,6 +669,7 @@ def panel_proyectos(request):
 
     return render(request, 'components/panel_proyectos.html', context)
 
+
 @login_required
 def panel_lista_proyectos(request):
     """Vista que retorna solo el contenido para actualizaciones HTMX"""
@@ -678,7 +680,7 @@ def panel_lista_proyectos(request):
 
     # Query base
     proyectos = Proyecto.objects.all()
-    
+
     # Filtros
     if busqueda:
         proyectos = proyectos.filter(
@@ -701,7 +703,10 @@ def panel_lista_proyectos(request):
     context = {
         'proyectos': proyectos_paginados,
         'vista': vista,  # Aseguramos que se pase el valor de vista
-        'filtros': {"busqueda": busqueda, "filtro": filtro},  # Pasamos el filtro para la selección
+        'filtros': {
+            "busqueda": busqueda,
+            "filtro": filtro,
+        },  # Pasamos el filtro para la selección
     }
 
     return render(request, 'components/lista_proyectos.html', context)

@@ -4,7 +4,17 @@ from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Case, When, Count, FloatField, F, Sum, DecimalField, Value, Avg
+from django.db.models import (
+    Case,
+    When,
+    Count,
+    FloatField,
+    F,
+    Sum,
+    DecimalField,
+    Value,
+    Avg,
+)
 from django.db.models.functions import Coalesce, TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
@@ -175,58 +185,77 @@ def panel_control(request):
     '''
     # Filtro de equipo
     equipo_id = request.GET.get('equipo', None)
-    
+
     # Obtener todos los equipos para el filtro
     equipos = Equipo.objects.all()
-    
+
     # Estadísticas generales
     # Corregir el cálculo del porcentaje de presupuesto utilizado usando tipos consistentes
     presupuestos = Proyecto.objects.aggregate(
         utilizado=Coalesce(
-            Sum('presupuestoutilizado', output_field=DecimalField(max_digits=15, decimal_places=2)), 
-            Value(Decimal('0'), output_field=DecimalField(max_digits=15, decimal_places=2))
+            Sum(
+                'presupuestoutilizado',
+                output_field=DecimalField(max_digits=15, decimal_places=2),
+            ),
+            Value(
+                Decimal('0'), output_field=DecimalField(max_digits=15, decimal_places=2)
+            ),
         ),
         total=Coalesce(
-            Sum('presupuesto', output_field=DecimalField(max_digits=15, decimal_places=2)), 
-            Value(Decimal('1'), output_field=DecimalField(max_digits=15, decimal_places=2))
-        )
+            Sum(
+                'presupuesto',
+                output_field=DecimalField(max_digits=15, decimal_places=2),
+            ),
+            Value(
+                Decimal('1'), output_field=DecimalField(max_digits=15, decimal_places=2)
+            ),
+        ),
     )
-    
+
     presupuesto_utilizado = float(presupuestos['utilizado'])
     presupuesto_total = float(presupuestos['total'])
-    
+
     # Evitar división por cero
     if presupuesto_total > 0:
         porcentaje_utilizado = int((presupuesto_utilizado / presupuesto_total) * 100)
     else:
         porcentaje_utilizado = 0
-    
 
     # Obtener el primer día del mes actual y del mes anterior
     hoy = timezone.now().date()
-    primer_dia_mes_actual = timezone.make_aware(datetime.datetime(hoy.year, hoy.month, 1))
+    primer_dia_mes_actual = timezone.make_aware(
+        datetime.datetime(hoy.year, hoy.month, 1)
+    )
 
     # Calcular el primer día del mes anterior
     if hoy.month == 1:  # Si estamos en enero
-        primer_dia_mes_anterior = timezone.make_aware(datetime.datetime(hoy.year - 1, 12, 1))
+        primer_dia_mes_anterior = timezone.make_aware(
+            datetime.datetime(hoy.year - 1, 12, 1)
+        )
     else:
-        primer_dia_mes_anterior = timezone.make_aware(datetime.datetime(hoy.year, hoy.month - 1, 1))
+        primer_dia_mes_anterior = timezone.make_aware(
+            datetime.datetime(hoy.year, hoy.month - 1, 1)
+        )
 
     # Calcular el primer día del mes siguiente
     if hoy.month == 12:  # Si estamos en diciembre
-        primer_dia_mes_siguiente = timezone.make_aware(datetime.datetime(hoy.year + 1, 1, 1))
+        primer_dia_mes_siguiente = timezone.make_aware(
+            datetime.datetime(hoy.year + 1, 1, 1)
+        )
     else:
-        primer_dia_mes_siguiente = timezone.make_aware(datetime.datetime(hoy.year, hoy.month + 1, 1))
+        primer_dia_mes_siguiente = timezone.make_aware(
+            datetime.datetime(hoy.year, hoy.month + 1, 1)
+        )
 
     # Contar proyectos nuevos en el mes actual y anterior
     proyectos_mes_actual = Proyecto.objects.filter(
         fechacreacion__gte=primer_dia_mes_actual,
-        fechacreacion__lt=primer_dia_mes_siguiente
+        fechacreacion__lt=primer_dia_mes_siguiente,
     ).count()
 
     proyectos_mes_anterior = Proyecto.objects.filter(
         fechacreacion__gte=primer_dia_mes_anterior,
-        fechacreacion__lt=primer_dia_mes_actual
+        fechacreacion__lt=primer_dia_mes_actual,
     ).count()
 
     # Calcular la tendencia (diferencia entre este mes y el anterior)
@@ -236,12 +265,14 @@ def panel_control(request):
         'proyectos_activos': Proyecto.objects.filter(estado='Ejecución').count(),
         'proyectos_tendencia': proyectos_tendencia,
         'tareas_pendientes': Tarea.objects.filter(estado='Pendiente').count(),
-        'tareas_vencidas': Tarea.objects.filter(fechafin__lt=datetime.date.today(), estado__in=['Pendiente', 'En Progreso']).count(),
+        'tareas_vencidas': Tarea.objects.filter(
+            fechafin__lt=datetime.date.today(), estado__in=['Pendiente', 'En Progreso']
+        ).count(),
         'presupuesto_utilizado_porcentaje': porcentaje_utilizado,
         'total_equipos': Equipo.objects.count(),
         'total_recursos': Recurso.objects.count(),
     }
-    
+
     # Proyectos con información de progreso y estado
     proyectos_query = Proyecto.objects.annotate(
         total_tareas=Count('requerimiento__tarea'),
@@ -258,10 +289,10 @@ def panel_control(request):
             0.0,
         ),
     )
-    
+
     if equipo_id:
         proyectos_query = proyectos_query.filter(idequipo=equipo_id)
-    
+
     proyectos = proyectos_query.order_by('-fechacreacion')[:10]
 
     # Proyectos por equipo (para el gráfico)
@@ -272,16 +303,18 @@ def panel_control(request):
         'Planificación': [],
         'Ejecución': [],
         'Monitoreo-Control': [],
-        'Cierre': []
+        'Cierre': [],
     }
 
     # Obtener todos los equipos y contar sus proyectos por estado
     for equipo in equipos_list:
         equipos_nombres.append(equipo.nombreequipo)
-        
+
         # Contar proyectos por estado para este equipo
         for estado in proyectos_por_estado.keys():
-            count = Proyecto.objects.filter(idequipo=equipo.idequipo, estado=estado).count()
+            count = Proyecto.objects.filter(
+                idequipo=equipo.idequipo, estado=estado
+            ).count()
             proyectos_por_estado[estado].append(count)
 
     # Definir colores para cada estado
@@ -290,74 +323,87 @@ def panel_control(request):
         'Planificación': 'rgba(54, 162, 235, 0.8)',  # Azul
         'Ejecución': 'rgba(75, 192, 192, 0.8)',  # Verde claro
         'Monitoreo-Control': 'rgba(153, 102, 255, 0.8)',  # Púrpura
-        'Cierre': 'rgba(255, 99, 132, 0.8)'  # Rojo
+        'Cierre': 'rgba(255, 99, 132, 0.8)',  # Rojo
     }
 
     # Construir estructura para Chart.js
-    proyectos_equipo_datos = {
-        'labels': equipos_nombres,
-        'datasets': []
-    }
+    proyectos_equipo_datos = {'labels': equipos_nombres, 'datasets': []}
 
     # Crear dataset para cada estado
     for estado, datos in proyectos_por_estado.items():
         dataset = {
             'label': f'Proyectos en {estado}',
             'data': datos,
-            'backgroundColor': estados_colores.get(estado)
+            'backgroundColor': estados_colores.get(estado),
         }
         proyectos_equipo_datos['datasets'].append(dataset)
-    
+
     # Proyectos con información financiera
     proyectos_presupuesto = Proyecto.objects.annotate(
         porcentaje_presupuesto=Case(
             When(presupuesto=0, then=0),
             default=100 * F('presupuestoutilizado') / F('presupuesto'),
-            output_field=FloatField()
+            output_field=FloatField(),
         ),
-        presupuesto_restante=F('presupuesto') - F('presupuestoutilizado')
+        presupuesto_restante=F('presupuesto') - F('presupuestoutilizado'),
     ).order_by('-porcentaje_presupuesto')[:10]
-    
+
     # Tareas recientes
-    tareas = Tarea.objects.select_related('idrequerimiento__idproyecto').annotate(
-        proyecto_nombre=F('idrequerimiento__idproyecto__nombreproyecto')
-    ).order_by('-fechamodificacion')[:15]
+    tareas = (
+        Tarea.objects.select_related('idrequerimiento__idproyecto')
+        .annotate(proyecto_nombre=F('idrequerimiento__idproyecto__nombreproyecto'))
+        .order_by('-fechamodificacion')[:15]
+    )
 
     # Datos para el gráfico de tareas completadas por mes (últimos 12 meses)
     doce_meses_atras = hoy - datetime.timedelta(days=365)
-    
+
     # Obtener las tareas completadas agrupadas por mes
     tareas_completadas_mes = (
         Tarea.objects.filter(
-            estado='Completada',
-            fechamodificacion__gte=doce_meses_atras
+            estado='Completada', fechamodificacion__gte=doce_meses_atras
         )
         .annotate(mes=TruncMonth('fechamodificacion'))
         .values('mes')
         .annotate(total=Count('idtarea'))
         .order_by('mes')
     )
-    
+
     # Crear un diccionario que mapee cada mes a su total de tareas completadas
-    meses_completados = {item['mes'].strftime('%m'): item['total'] for item in tareas_completadas_mes}
-    
+    meses_completados = {
+        item['mes'].strftime('%m'): item['total'] for item in tareas_completadas_mes
+    }
+
     # Definir nombres de meses y preparar datos para el gráfico
-    nombres_meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    nombres_meses = [
+        'Ene',
+        'Feb',
+        'Mar',
+        'Abr',
+        'May',
+        'Jun',
+        'Jul',
+        'Ago',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dic',
+    ]
     datos_tareas_completadas = []
-    
+
     # Llenar el array con datos para cada mes
     for i in range(1, 13):
         mes_str = f"{i:02d}"  # Formato de dos dígitos: 01, 02, ..., 12
         datos_tareas_completadas.append(meses_completados.get(mes_str, 0))
-    
+
     # Recursos con carga de trabajo
     recursos = Recurso.objects.annotate(
         total_tareas=Count('tarearecurso'),
         carga_trabajo_porcentaje=Case(
             When(disponibilidad=False, then=100),
             default=Coalesce(F('carga_trabajo') * 100, 0),
-            output_field=FloatField()
-        )
+            output_field=FloatField(),
+        ),
     ).order_by('-carga_trabajo_porcentaje')[:10]
 
     # Distribución de usuarios por tipo
@@ -366,77 +412,120 @@ def panel_control(request):
         'Testers': Tester.objects.count(),
         'Administradores': Administrador.objects.count(),
         'Clientes': Cliente.objects.count(),
-        'Jefes de proyecto': Jefeproyecto.objects.count()
+        'Jefes de proyecto': Jefeproyecto.objects.count(),
     }
-    
+
     # Notificaciones recientes
     notificaciones = Notificacion.objects.order_by('-fechacreacion')[:8]
-    
+
     # Alertas activas
     alertas = Alerta.objects.filter(activa=True).order_by('-fechacreacion')[:8]
 
     # Datos para gráficos
     # Estado de proyectos
     estado_proyectos = {}
-    for estado in ['Inicio', 'Planificación', 'Ejecución', 'Monitoreo-Control', 'Cierre']:
+    for estado in [
+        'Inicio',
+        'Planificación',
+        'Ejecución',
+        'Monitoreo-Control',
+        'Cierre',
+    ]:
         estado_proyectos[estado] = Proyecto.objects.filter(estado=estado).count()
-    
+
     # Estado de tareas
     estado_tareas = {}
     for estado in ['Pendiente', 'En Progreso', 'Completada', 'Atrasada', 'Bloqueada']:
         estado_tareas[estado] = Tarea.objects.filter(estado=estado).count()
-    
+
     # Prioridad de tareas
     prioridad_tareas = {}
     for prioridad in range(1, 4):  # Asumiendo prioridades 1-5
-        prioridad_tareas[f'Prioridad {prioridad}'] = Tarea.objects.filter(prioridad=prioridad).count()
-    
+        prioridad_tareas[f'Prioridad {prioridad}'] = Tarea.objects.filter(
+            prioridad=prioridad
+        ).count()
+
     # Rendimiento de equipos (con datos reales)
     equipos_rendimiento_datos = {
-        'labels': ['Efectividad', 'Puntualidad', 'Calidad', 'Productividad', 'Colaboración'],
-        'datasets': []
+        'labels': [
+            'Efectividad',
+            'Puntualidad',
+            'Calidad',
+            'Productividad',
+            'Colaboración',
+        ],
+        'datasets': [],
     }
-    
+
     # Obtener hasta 5 equipos con más miembros
     equipos_con_rendimiento = Equipo.objects.annotate(
         num_miembros=Count('miembro')
     ).order_by('-num_miembros')[:5]
-    
+
     # Para cada equipo, calcular sus métricas de rendimiento
     for i, equipo in enumerate(equipos_con_rendimiento):
         # Proyectos del equipo
         proyectos_equipo = Proyecto.objects.filter(idequipo=equipo.idequipo)
-        
+
         # Si no hay proyectos, usar valores promedio genéricos
         if not proyectos_equipo.exists():
             continue
-        
+
         # Tareas relacionadas con proyectos de este equipo
-        tareas_equipo = Tarea.objects.filter(idrequerimiento__idproyecto__in=proyectos_equipo)
-        
+        tareas_equipo = Tarea.objects.filter(
+            idrequerimiento__idproyecto__in=proyectos_equipo
+        )
+
         # 1. Efectividad: Porcentaje de tareas_equipo completadas
         if tareas_equipo.count() > 0:
-            efectividad = min(int((tareas_equipo.filter(estado='Completada').count() / tareas_equipo.count()) * 100), 100)
+            efectividad = min(
+                int(
+                    (
+                        tareas_equipo.filter(estado='Completada').count()
+                        / tareas_equipo.count()
+                    )
+                    * 100
+                ),
+                100,
+            )
         else:
             efectividad = 0
-        
+
         # 2. Puntualidad: Tareas_equipo entregadas a tiempo vs atrasadas
         tareas_equipo_completadas = tareas_equipo.filter(estado='Completada')
         if tareas_equipo_completadas.count() > 0:
-            tareas_equipo_a_tiempo = tareas_equipo_completadas.filter(fechamodificacion__lte=F('fechafin')).count()
-            puntualidad = min(int((tareas_equipo_a_tiempo / tareas_equipo_completadas.count()) * 100), 100)
+            tareas_equipo_a_tiempo = tareas_equipo_completadas.filter(
+                fechamodificacion__lte=F('fechafin')
+            ).count()
+            puntualidad = min(
+                int((tareas_equipo_a_tiempo / tareas_equipo_completadas.count()) * 100),
+                100,
+            )
         else:
             puntualidad = 0
-        
+
         # 3. Calidad: Inverse de tareas_equipo bloqueadas/con problemas
         if tareas_equipo.count() > 0:
-            problemas = tareas_equipo.filter(estado__in=['Bloqueada', 'Atrasada']).count()
-            calidad = max(min(int(((tareas_equipo.count() - problemas) / tareas_equipo.count()) * 100), 100), 0)
+            problemas = tareas_equipo.filter(
+                estado__in=['Bloqueada', 'Atrasada']
+            ).count()
+            calidad = max(
+                min(
+                    int(
+                        ((tareas_equipo.count() - problemas) / tareas_equipo.count())
+                        * 100
+                    ),
+                    100,
+                ),
+                0,
+            )
         else:
             calidad = 0
-        
+
         # 4. Productividad: Basado en duración estimada vs actual
-        tareas_equipo_con_duracion = tareas_equipo.exclude(duracionestimada=None).exclude(duracionactual=None)
+        tareas_equipo_con_duracion = tareas_equipo.exclude(
+            duracionestimada=None
+        ).exclude(duracionactual=None)
         if tareas_equipo_con_duracion.count() > 0:
             # Si duracionactual es menor que duracionestimada, se considera más productivo
             productividad_total = 0
@@ -444,43 +533,46 @@ def panel_control(request):
                 if t.duracionactual > 0:
                     ratio = min((t.duracionestimada / t.duracionactual), 1)  # Máx 100%
                     productividad_total += ratio * 100
-            
-            productividad = int(productividad_total / tareas_equipo_con_duracion.count())
+
+            productividad = int(
+                productividad_total / tareas_equipo_con_duracion.count()
+            )
         else:
             productividad = 0
-        
+
         # 5. Colaboración: Basado en número de recursos por tarea
-        recursos_por_tarea = Tarearecurso.objects.filter(
-            idtarea__in=tareas_equipo
-        ).values('idtarea').annotate(
-            num_recursos=Count('idrecurso')
-        ).aggregate(
-            promedio=Coalesce(Avg('num_recursos'), 0, output_field=FloatField())
-        )['promedio']
-        
+        recursos_por_tarea = (
+            Tarearecurso.objects.filter(idtarea__in=tareas_equipo)
+            .values('idtarea')
+            .annotate(num_recursos=Count('idrecurso'))
+            .aggregate(
+                promedio=Coalesce(Avg('num_recursos'), 0, output_field=FloatField())
+            )['promedio']
+        )
+
         # Convertimos a escala 0-100, donde 3 recursos es óptimo (100%)
         if recursos_por_tarea > 0:
             colaboracion = min(int(100 - abs(3 - recursos_por_tarea) * 15), 100)
         else:
             colaboracion = 0
-        
+
         # Colores para cada equipo
         colores_bg = [
             'rgba(59, 130, 246, 0.2)',  # Azul
             'rgba(16, 185, 129, 0.2)',  # Verde
             'rgba(245, 158, 11, 0.2)',  # Amarillo
             'rgba(139, 92, 246, 0.2)',  # Morado
-            'rgba(236, 72, 153, 0.2)'   # Rosa
+            'rgba(236, 72, 153, 0.2)',  # Rosa
         ]
-        
+
         colores_borde = [
             '#3b82f6',  # Azul
             '#10b981',  # Verde
             '#f59e0b',  # Amarillo
             '#8b5cf6',  # Morado
-            '#ec4899'   # Rosa
+            '#ec4899',  # Rosa
         ]
-        
+
         # Crear dataset para este equipo
         dataset = {
             'label': equipo.nombreequipo,
@@ -488,10 +580,9 @@ def panel_control(request):
             'backgroundColor': colores_bg[i % len(colores_bg)],
             'borderColor': colores_borde[i % len(colores_borde)],
             'borderWidth': 2,
-            'pointBackgroundColor': colores_borde[i % len(colores_borde)]
+            'pointBackgroundColor': colores_borde[i % len(colores_borde)],
         }
         equipos_rendimiento_datos['datasets'].append(dataset)
-
 
         # Datos para el gráfico de presupuesto global
         presupuesto_global_datos = [porcentaje_utilizado, 100 - porcentaje_utilizado]
@@ -505,21 +596,34 @@ def panel_control(request):
         for tipo in tipos_recurso:
             # Obtener todos los recursos de este tipo
             recursos_tipo = Recurso.objects.filter(idtiporecurso=tipo.idtiporecurso)
-            
+
             # Obtener las tareas asociadas a estos recursos
-            tareas_ids = Tarearecurso.objects.filter(idrecurso__in=recursos_tipo).values_list('idtarea', flat=True)
-            
+            tareas_ids = Tarearecurso.objects.filter(
+                idrecurso__in=recursos_tipo
+            ).values_list('idtarea', flat=True)
+
             # Sumar los costos actuales de estas tareas
             gasto_total = Tarea.objects.filter(idtarea__in=tareas_ids).aggregate(
-                total=Coalesce(Sum('costoactual'), Value(0, output_field=DecimalField(max_digits=15, decimal_places=2)))
+                total=Coalesce(
+                    Sum('costoactual'),
+                    Value(
+                        0, output_field=DecimalField(max_digits=15, decimal_places=2)
+                    ),
+                )
             )['total']
-            
+
             # Si no hay gastos reales, usar los estimados
             if gasto_total == 0:
                 gasto_total = Tarea.objects.filter(idtarea__in=tareas_ids).aggregate(
-                    total=Coalesce(Sum('costoestimado'), Value(0, output_field=DecimalField(max_digits=15, decimal_places=2)))
+                    total=Coalesce(
+                        Sum('costoestimado'),
+                        Value(
+                            0,
+                            output_field=DecimalField(max_digits=15, decimal_places=2),
+                        ),
+                    )
                 )['total']
-            
+
             # Solo añadir tipos con gastos mayores a cero
             if gasto_total > 0:
                 gastos_categorias[tipo.nametiporecurso] = float(gasto_total)
@@ -529,27 +633,37 @@ def panel_control(request):
 
     # Obtener gastos por mes (costos actuales de tareas)
     gastos_mensuales = (
-        Tarea.objects.filter(
-            fechamodificacion__gte=doce_meses_atras
-        )
+        Tarea.objects.filter(fechamodificacion__gte=doce_meses_atras)
         .annotate(mes=TruncMonth('fechamodificacion'))
         .values('mes')
         .annotate(
             total_actual=Coalesce(
-                Sum('costoactual', output_field=DecimalField(max_digits=15, decimal_places=2)),
-                Value(0, output_field=DecimalField(max_digits=15, decimal_places=2))
+                Sum(
+                    'costoactual',
+                    output_field=DecimalField(max_digits=15, decimal_places=2),
+                ),
+                Value(0, output_field=DecimalField(max_digits=15, decimal_places=2)),
             ),
             total_estimado=Coalesce(
-                Sum('costoestimado', output_field=DecimalField(max_digits=15, decimal_places=2)),
-                Value(0, output_field=DecimalField(max_digits=15, decimal_places=2))
-            )
+                Sum(
+                    'costoestimado',
+                    output_field=DecimalField(max_digits=15, decimal_places=2),
+                ),
+                Value(0, output_field=DecimalField(max_digits=15, decimal_places=2)),
+            ),
         )
         .order_by('mes')
     )
 
     # Crear dos diccionarios que mapeen cada mes a sus costos
-    meses_gastos_actuales = {item['mes'].strftime('%m'): float(item['total_actual']) for item in gastos_mensuales}
-    meses_gastos_estimados = {item['mes'].strftime('%m'): float(item['total_estimado']) for item in gastos_mensuales}
+    meses_gastos_actuales = {
+        item['mes'].strftime('%m'): float(item['total_actual'])
+        for item in gastos_mensuales
+    }
+    meses_gastos_estimados = {
+        item['mes'].strftime('%m'): float(item['total_estimado'])
+        for item in gastos_mensuales
+    }
 
     # Preparar datos para el gráfico
     datos_gastos_actuales = []
@@ -587,5 +701,5 @@ def panel_control(request):
         #'fecha_inicio_str': fecha_inicio.strftime('%d/%m/%Y'),
         #'fecha_fin_str': fecha_fin.strftime('%d/%m/%Y'),
     }
-    
+
     return render(request, 'dashboard/panel_control.html', context)

@@ -46,13 +46,25 @@ fake = Faker()
 # Crear tipos de tareas iniciales
 print("---------------------( Creando tipos de tareas ...)---------------------")
 tipos_tarea = [
-    {"nombre": "Frontend", "descripcion": "Desarrollo de interfaces de usuario y experiencia de usuario"},
-    {"nombre": "Backend", "descripcion": "Desarrollo de lógica de negocio y servicios de servidor"},
+    {
+        "nombre": "Frontend",
+        "descripcion": "Desarrollo de interfaces de usuario y experiencia de usuario",
+    },
+    {
+        "nombre": "Backend",
+        "descripcion": "Desarrollo de lógica de negocio y servicios de servidor",
+    },
     {"nombre": "Database", "descripcion": "Tareas relacionadas con bases de datos"},
     {"nombre": "Testing", "descripcion": "Pruebas y aseguramiento de calidad"},
     {"nombre": "DevOps", "descripcion": "Infraestructura y despliegue"},
-    {"nombre": "Documentación", "descripcion": "Elaboración de documentación técnica y de usuario"},
-    {"nombre": "Análisis", "descripcion": "Análisis de requerimientos y diseño de soluciones"},
+    {
+        "nombre": "Documentación",
+        "descripcion": "Elaboración de documentación técnica y de usuario",
+    },
+    {
+        "nombre": "Análisis",
+        "descripcion": "Análisis de requerimientos y diseño de soluciones",
+    },
 ]
 
 tipo_tarea_objects = {}
@@ -67,11 +79,31 @@ for tipo in tipos_tarea:
 # Crear fases iniciales
 print("---------------------( Creando fases ...)---------------------")
 fases = [
-    {"nombre": "Inicio/Conceptualización", "descripcion": "Fase inicial del proyecto", "orden": 1},
-    {"nombre": "Elaboración/Requisitos", "descripcion": "Definición y análisis de requisitos", "orden": 2},
-    {"nombre": "Construcción/Desarrollo", "descripcion": "Implementación de la solución", "orden": 3},
-    {"nombre": "Transición/Implementación", "descripcion": "Despliegue y entrega", "orden": 4},
-    {"nombre": "Mantenimiento", "descripcion": "Soporte y mantenimiento post-implementación", "orden": 5},
+    {
+        "nombre": "Inicio/Conceptualización",
+        "descripcion": "Fase inicial del proyecto",
+        "orden": 1,
+    },
+    {
+        "nombre": "Elaboración/Requisitos",
+        "descripcion": "Definición y análisis de requisitos",
+        "orden": 2,
+    },
+    {
+        "nombre": "Construcción/Desarrollo",
+        "descripcion": "Implementación de la solución",
+        "orden": 3,
+    },
+    {
+        "nombre": "Transición/Implementación",
+        "descripcion": "Despliegue y entrega",
+        "orden": 4,
+    },
+    {
+        "nombre": "Mantenimiento",
+        "descripcion": "Soporte y mantenimiento post-implementación",
+        "orden": 5,
+    },
 ]
 
 fase_objects = {}
@@ -3747,5 +3779,3 @@ post_delete.connect(audit_post_delete)
 print("Historial de alertas adicional completado")
 
 print("Proceso finalizado")
-
-

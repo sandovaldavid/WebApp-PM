@@ -30,10 +30,7 @@ urlpatterns = [
     ),
     path('filtrar-proyectos/', views.filtrar_proyectos, name='filtrar_proyectos'),
     path('panel-proyectos/', views.panel_proyectos, name='panel_proyectos'),
-    path(
-        'lista_proyectos', 
-        views.panel_lista_proyectos, 
-        name='panel_lista_proyectos'),
+    path('lista_proyectos', views.panel_lista_proyectos, name='panel_lista_proyectos'),
     path(
         'crear-requerimiento/<int:idproyecto>/',
         views.crear_requerimiento,

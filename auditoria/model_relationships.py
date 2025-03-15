@@ -24,9 +24,11 @@ for hijo, info in RELATED_MODELS.items():
         PARENT_MODELS[padre] = []
     PARENT_MODELS[padre].append(hijo)
 
+
 def is_child_model(model_name):
     """Verifica si un modelo es un modelo hijo en la jerarquía de auditoría"""
     return model_name in RELATED_MODELS
+
 
 def get_parent_model(model_name):
     """Obtiene el modelo padre para un modelo hijo dado"""
@@ -34,32 +36,35 @@ def get_parent_model(model_name):
         return RELATED_MODELS[model_name]['modelo_padre']
     return None
 
+
 def get_relation_field(model_name):
     """Obtiene el campo de relación para un modelo hijo dado"""
     if model_name in RELATED_MODELS:
         return RELATED_MODELS[model_name]['campo_relacion']
     return None
 
+
 def get_child_models(model_name):
     """Obtiene la lista de modelos hijo para un modelo padre dado"""
     return PARENT_MODELS.get(model_name, [])
+
 
 # Agregamos una función para detectar si debe auditarse un cambio en un modelo hijo
 def should_audit_child_change(instance, field_name):
     """
     Determina si un cambio en un campo específico de un modelo hijo debe auditarse.
-    
+
     Para algunos campos especiales (como el propio ID del modelo o la relación con el padre),
     no queremos propagar los cambios.
     """
     model_name = instance.__class__.__name__
-    
+
     # Si no es un modelo hijo, siempre auditar
     if not is_child_model(model_name):
         return True
-    
+
     # Campos que normalmente no queremos auditar en modelos hijos
     ignore_fields = ['id', 'pk', get_relation_field(model_name)]
-    
+
     # Si el campo está en la lista de ignorados, no auditar
     return field_name not in ignore_fields

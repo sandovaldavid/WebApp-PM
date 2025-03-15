@@ -7,13 +7,15 @@ class ActividadForm(forms.ModelForm):
     fecha_visualizacion = forms.DateTimeField(
         label='Fecha de creación',
         required=False,
-        widget=forms.DateTimeInput(attrs={'readonly': 'readonly', 'class': 'form-control'})
+        widget=forms.DateTimeInput(
+            attrs={'readonly': 'readonly', 'class': 'form-control'}
+        ),
     )
-    
+
     class Meta:
         model = Actividad
         exclude = ['fechacreacion']
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Si es edición, mostrar la fecha actual
