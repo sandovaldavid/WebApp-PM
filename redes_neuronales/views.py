@@ -10,6 +10,7 @@ from django.utils import timezone
 import sys
 import os
 
+import traceback
 
 def normalize_metric(value, metric_name, metrics_history):
     """Normaliza métricas usando Min-Max scaling con valores observados"""
@@ -178,7 +179,7 @@ def estimate_time(request):
             REDES_DIR = os.path.join(BASE_DIR, 'redes_neuronales')
             MODEL_DIR = os.path.join(BASE_DIR, "redes_neuronales", "models")
 
-            if REDES_DIR not in sys.path:
+            if (REDES_DIR not in sys.path):
                 sys.path.append(REDES_DIR)
 
             from ml_model import EstimacionModel, DataPreprocessor
@@ -255,7 +256,6 @@ def estimate_time(request):
             )
 
     return JsonResponse({'error': 'Método no permitido', 'success': False})
-
 
 @login_required
 def estimacion_avanzada(request):
@@ -345,6 +345,7 @@ def estimacion_avanzada(request):
 
     return render(request, 'redes_neuronales/estimacion_avanzada.html', context)
 
+#endpoints para entrenar modelo
 @login_required
 def entrenar_modelo(request):
     """Renderiza la interfaz de entrenamiento de red neuronal"""
@@ -423,11 +424,35 @@ def entrenar_modelo(request):
     
     return render(request, 'redes_neuronales/entrenar_modelo.html', context)
 
+def safe_cache_set(key, value, timeout=None):
+    """Función para almacenar datos en caché de manera segura con manejo de errores"""
+    from django.core.cache import cache
+    try:
+        cache.set(key, value, timeout)
+        return True
+    except Exception as e:
+        import traceback
+        print(f"Error al almacenar en caché: {str(e)}")
+        print(traceback.format_exc())
+        return False
+
+def safe_cache_get(key):
+    """Función para recuperar datos de caché de manera segura"""
+    from django.core.cache import cache
+    try:
+        return cache.get(key)
+    except Exception as e:
+        import traceback
+        print(f"Error al leer de caché: {str(e)}")
+        print(traceback.format_exc())
+        return None
+
 @login_required
 def iniciar_entrenamiento(request):
     """API para iniciar el proceso de entrenamiento"""
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         import uuid
+        import time
         training_id = str(uuid.uuid4())
         
         training_method = request.POST.get('training_method', 'csv')
@@ -446,7 +471,7 @@ def iniciar_entrenamiento(request):
                 for chunk in csv_file.chunks():
                     destination.write(chunk)
         
-        # Configuración del entrenamiento
+        # Configuración del entrenamiento - MEJORADO: Inicializar lista de actualizaciones vacía
         config = {
             'training_method': training_method,
             'data_path': data_path,
@@ -463,29 +488,75 @@ def iniciar_entrenamiento(request):
             'model_name': request.POST.get('model_name', 'tiempo_estimator'),
             'save_as_main': request.POST.get('save_as_main') == 'on',
             'status': 'pending',
+            'updates': [],  # IMPORTANTE: Inicializar array de actualizaciones vacío
             'timestamp': timezone.now().isoformat()  # Usar timezone para consistencia
         }
         
-        # Guardar configuración en la sesión
+        # Guardar configuración en la sesión (primer método de respaldo)
         request.session[f'training_config_{training_id}'] = config
         
-        # Guardar también en caché para acceso desde procesos separados
-        from django.core.cache import cache
-        cache.set(f'training_config_{training_id}', config, 7200)  # 2 horas de vida
+        # Intentar guardar en caché - si falla, continuamos usando la sesión
+        cache_success = safe_cache_set(f'training_config_{training_id}', config, 7200)  # 2 horas de vida
         
         try:
             usuario_id = request.user.idusuario
             
-            # MODIFICADO: Usar AsyncTask en lugar de Thread directo
+            # También almacenar usuario_id en la sesión como respaldo
+            request.session[f'training_user_{training_id}'] = usuario_id
+            
+            # Intentar almacenar usuario_id en caché
+            if cache_success:
+                safe_cache_set(f'training_user_{training_id}', usuario_id, 7200)
+            
+            # Importar la tarea definida en tasks.py
             from .tasks import start_training_process
             
-            # Iniciar el proceso asíncrono
-            result = start_training_process.delay(training_id, usuario_id)
-            
-            # Opcional: Guardar ID del resultado para posible cancelación
-            cache.set(f'training_task_{training_id}', result.id, 7200)
+            try:
+                # MEJORA: Enviar mensaje inicial directo a la cola y caché
+                from .ipc_utils import send_update
+                initial_message = {
+                    'type': 'log',
+                    'message': 'Proceso de entrenamiento iniciándose...',
+                    'level': 'info',
+                    'timestamp': time.time()
+                }
+                send_update(training_id, initial_message)
+                
+                # Añadir también al array en config directamente
+                config['updates'].append(initial_message)
+                safe_cache_set(f'training_config_{training_id}', config, 7200)
+                
+                # Iniciar el proceso asíncrono usando .delay() que ahora funciona correctamente
+                print(f"Iniciando entrenamiento con ID {training_id} y usuario {usuario_id}")
+                result = start_training_process.delay(training_id, usuario_id)
+                
+                # Opcional: Guardar ID del resultado para posible cancelación
+                if cache_success:
+                    safe_cache_set(f'training_task_{training_id}', result.id, 7200)
+                    
+                print(f"Proceso iniciado con éxito, ID de resultado: {result.id}")
+                
+            except Exception as task_error:
+                # Log detallado del error específico de la tarea
+                import traceback
+                print(f"Error al crear la tarea asíncrona: {str(task_error)}")
+                print(traceback.format_exc())
+                
+                # Intentar método alternativo si .delay() falla
+                from .tasks import task_manager
+                from .entrenamiento_utils import ejecutar_entrenamiento
+                
+                task_id = task_manager.start_task(ejecutar_entrenamiento, training_id, usuario_id)
+                print(f"Método alternativo utilizado, tarea iniciada con ID: {task_id}")
+                
+                if cache_success:
+                    safe_cache_set(f'training_task_{training_id}', task_id, 7200)
             
         except Exception as e:
+            import traceback
+            print(f"Error al iniciar el entrenamiento: {str(e)}")
+            print(traceback.format_exc())
+            
             return JsonResponse({
                 'success': False,
                 'error': f'Error al iniciar el entrenamiento: {str(e)}',
@@ -495,6 +566,7 @@ def iniciar_entrenamiento(request):
             'success': True,
             'training_id': training_id,
             'message': 'Proceso de entrenamiento iniciado',
+            'cache_status': 'ok' if cache_success else 'fallback_to_session'
         })
     
     return JsonResponse({
@@ -525,14 +597,16 @@ def monitor_entrenamiento(request):
         }, status=404)
     
     # Configurar la respuesta de streaming con eventos del servidor
+    # IMPORTANTE: No añadir ningún header de tipo hop-by-hop
     response = StreamingHttpResponse(
         _stream_training_updates(training_id, request.session),
         content_type='text/event-stream'
     )
-    # Configurar headers para evitar caché y buffering
+    
+    # Headers seguros para SSE (solo headers end-to-end)
     response['Cache-Control'] = 'no-cache'
     response['X-Accel-Buffering'] = 'no'
-    response['Access-Control-Allow-Origin'] = '*'  # Para CORS si es necesario
+    response['Access-Control-Allow-Origin'] = '*'
     
     return response
 
@@ -540,115 +614,320 @@ def _stream_training_updates(training_id, session):
     """Función generadora para enviar actualizaciones SSE con mejor responsividad"""
     import time
     import json
+    import re
+    import traceback
+    from redes_neuronales.ipc_utils import get_updates, dump_queue_status
+    from redes_neuronales.debug_utils import trace_log, inspect_queue, verify_connections
     from django.core.cache import cache
     
+    # Diagnóstico inicial
+    trace_log(f"Iniciando stream para training_id={training_id}", category="STREAM")
+    
     # Parámetros optimizados para máxima responsividad
-    poll_interval = 0.1  # Reducido a 0.1s para actualización más rápida
-    heartbeat_interval = 1.0  # Enviar heartbeat cada segundo
+    poll_interval = 0.03  # Reducido para actualización más inmediata 
     last_update_count = 0
     last_heartbeat_time = 0
-    last_epoch_data = None
+    last_debug_time = 0
+    last_diagnostic_time = 0
+    start_monitoring_time = time.time()  # Registrar cuándo iniciamos el monitoreo
     
-    # Enviar estado inicial inmediatamente para mejor feedback al usuario
+    # Variables para seguimiento
+    cycles_without_updates = 0
+    total_epochs_seen = set()
+    total_updates_received = 0
+    total_epoch_logs_received = 0
+    
+    # Creamos conjunto para rastrear los logs de época ya enviados
+    epoch_logs_sent = set()
+    # Rastreo de la última época verificada para epoch_log_X claves especializadas
+    last_epoch_checked = 0
+    next_epoch_check_time = 0
+    
+    # Enviar estado inicial inmediatamente
     initial_update = {
         'type': 'log',
         'message': 'Conexión establecida con el servidor',
         'level': 'info',
         'timestamp': time.time()
     }
-    yield f'data: {json.dumps(initial_update)}\n\n'
+    yield f'event: log\ndata: {json.dumps(initial_update)}\n\n'
+    
+    # Añadir mensaje de debug para saber que estamos iniciando el streaming
+    print(f"Iniciando streaming para training_id: {training_id}")
+    
+    # Enviar un mensaje de log explícito para verificar que la comunicación funciona
+    verification_msg = {
+        'type': 'log',
+        'message': 'Sistema de monitorización activo - esperando datos del entrenamiento',
+        'level': 'info',
+        'timestamp': time.time() + 0.1
+    }
+    yield f'event: log\ndata: {json.dumps(verification_msg)}\n\n'
+    
+    # Enviar diagnóstico inicial como evento especial
+    diagnostics = {
+        'type': 'diagnostics',
+        'message': 'Iniciando diagnóstico de comunicación',
+        'timestamp': time.time(),
+        'queue_status': dump_queue_status()
+    }
+    yield f'event: diagnostics\ndata: {json.dumps(diagnostics)}\n\n'
     
     while True:
         current_time = time.time()
         config_key = f'training_config_{training_id}'
-        config = cache.get(config_key) or session.get(config_key)
+        updates = []
         
-        # Verificar si hay configuración disponible
-        if not config:
-            yield f'data: {json.dumps({"type": "log", "message": "Esperando datos del entrenamiento...", "level": "info"})}\n\n'
-            time.sleep(1)  # Esperar más tiempo si no hay configuración
-            continue
-        
-        # Enviar heartbeat periódico para mantener la conexión viva
-        if current_time - last_heartbeat_time >= heartbeat_interval:
-            yield f'event: heartbeat\ndata: {json.dumps({"timestamp": current_time, "training_id": training_id})}\n\n'
-            last_heartbeat_time = current_time
-        
-        # Procesar actualizaciones pendientes
-        updates = config.get('updates', [])
-        
-        if len(updates) > last_update_count:
-            # Procesar solo las nuevas actualizaciones
-            for i in range(last_update_count, len(updates)):
-                update = updates[i]
-                update_type = update.get('type')
+        try:
+            # DIAGNÓSTICO: Ejecutar verificación periódica (cada 10 segundos)
+            if current_time - last_diagnostic_time > 10:
+                last_diagnostic_time = current_time
+                queue_state = inspect_queue(training_id)
+                trace_log(f"Diagnóstico periódico: cycles_without_updates={cycles_without_updates}, "
+                         f"epochs_seen={sorted(list(total_epochs_seen))}, "
+                         f"queue_state={queue_state}", category="MONITOR")
                 
-                # Enriquecer datos de progreso cuando sea posible
-                if update_type == 'progress':
-                    # Guardar datos de época para uso posterior en actualizaciones de batch
-                    if update.get('stage') == 'epoch_end':
-                        last_epoch_data = update.copy()
+                # Verificar si han pasado demasiados ciclos sin actualizaciones
+                if cycles_without_updates > 200:  # REDUCIDO: De 300 a 200 ciclos (~6 segundos)
+                    connections = verify_connections(training_id)
+                    trace_log(f"Muchos ciclos sin actualizaciones: {connections}", 
+                             category="WARNING", include_stack=True)
+                    
+                    # NUEVA RECUPERACIÓN: Añadir mensaje de diagnóstico a la lista
+                    # si no hay actualizaciones después de un tiempo prolongado
+                    config = safe_cache_get(config_key)
+                    if config and config.get('status') == 'pending':
+                        # Verificar si el proceso realmente comenzó
+                        diagnostic_update = {
+                            'type': 'log',
+                            'message': f'DIAGNÓSTICO: No se detectan actualizaciones después de {cycles_without_updates * poll_interval:.1f} segundos. Verificando estado...',
+                            'level': 'warning',
+                            'timestamp': current_time
+                        }
                         
-                        # Asegurar que campos cruciales estén presentes
-                        for field in ['train_loss', 'val_loss', 'train_mae', 'val_mae']:
-                            if field not in update:
-                                update[field] = 0.0
-                                
-                        # Información textual adicional
-                        update['status_text'] = f"Época {update.get('epoch', 0)}/{update.get('total_epochs', 0)}"
+                        # Añadir a cache para asegurar comunicación
+                        if 'updates' not in config:
+                            config['updates'] = []
+                        config['updates'].append(diagnostic_update)
+                        safe_cache_set(config_key, config, 7200)
                         
-                    yield f'event: progress\ndata: {json.dumps(update)}\n\n'
+                        # Enviar directamente al cliente
+                        yield f'event: log\ndata: {json.dumps(diagnostic_update)}\n\n'
+                        yield '\n'  # Forzar flush
+                        
+                        # Intentar actualizar el contador para evitar mensajes repetitivos
+                        if config and 'updates' in config:
+                            last_update_count = len(config['updates'])
                     
-                elif update_type == 'batch_progress':
-                    # Enriquecer con datos de la época actual si están disponibles
-                    if last_epoch_data:
-                        if 'epoch' not in update and 'epoch' in last_epoch_data:
-                            update['epoch'] = last_epoch_data['epoch']
-                        if 'total_epochs' not in update and 'total_epochs' in last_epoch_data:
-                            update['total_epochs'] = last_epoch_data['total_epochs']
+                    # Intentar enviar un evento de diagnóstico al cliente
+                    diagnostic_update = {
+                        'type': 'diagnostic_warning',
+                        'message': 'Posible problema de comunicación detectado',
+                        'cycles_without_updates': cycles_without_updates,
+                        'queue_state': queue_state,
+                        'timestamp': current_time
+                    }
+                    yield f'event: diagnostic\ndata: {json.dumps(diagnostic_update)}\n\n'
+                    cycles_without_updates = 0  # Reiniciar contador
+                
+                # MEJORA: Verificación adicional si no hay actualizaciones después de mucho tiempo
+                if current_time - start_monitoring_time > 45 and len(total_epochs_seen) == 0:
+                    # Añadir log de emergencia - posible problema serio de comunicación
+                    emergency_msg = {
+                        'type': 'log',
+                        'message': '⚠️ ALERTA: No se han detectado épocas después de 45 segundos. '
+                                   'Posible problema en la comunicación entre procesos.',
+                        'level': 'error',
+                        'timestamp': current_time
+                    }
+                    yield f'event: log\ndata: {json.dumps(emergency_msg)}\n\n'
+                    yield '\n'  # Forzar flush
                     
-                    yield f'event: batch_progress\ndata: {json.dumps(update)}\n\n'
-                    
-                elif update_type == 'complete':
-                    # Indicar finalización exitosa
-                    yield f'event: complete\ndata: {json.dumps(update)}\n\n'
-                    # Esperar un momento para asegurar recepción antes de cerrar
-                    time.sleep(0.2)
-                    yield f'event: close\ndata: {json.dumps({"message": "Entrenamiento finalizado con éxito"})}\n\n'
-                    return  # Terminar stream después de complete
-                    
-                elif update_type == 'error':
-                    # Indicar error
-                    yield f'event: error\ndata: {json.dumps(update)}\n\n'
-                    # Esperar un momento para asegurar recepción antes de cerrar
-                    time.sleep(0.2)
-                    yield f'event: close\ndata: {json.dumps({"message": "Entrenamiento fallido"})}\n\n'
-                    return  # Terminar stream después de error
-                    
-                elif update_type == 'post_processing_complete':
-                    # Indicar finalización del post-procesamiento
-                    yield f'event: post_processing_complete\ndata: {json.dumps(update)}\n\n'
-                    # Esperar un momento para asegurar recepción antes de cerrar
-                    time.sleep(0.2)
-                    yield f'event: close\ndata: {json.dumps({"message": "Procesamiento completo"})}\n\n'
-                    return  # Terminar stream
-                    
-                else:
-                    # Para otros tipos de actualizaciones (logs, etc.)
-                    yield f'data: {json.dumps(update)}\n\n'
-            
-            # Actualizar contador de actualizaciones procesadas
-            last_update_count = len(updates)
+                    # Sugerir acción al usuario
+                    help_msg = {
+                        'type': 'log',
+                        'message': 'Recomendación: Intente reiniciar el entrenamiento. '
+                                   'Si el problema persiste, verifique los logs del servidor.',
+                        'level': 'warning',
+                        'timestamp': current_time + 0.1
+                    }
+                    yield f'event: log\ndata: {json.dumps(help_msg)}\n\n'
+                    yield '\n'  # Forzar flush
         
-        # Verificar finalización por estado
-        if config.get('status') in ['completed', 'failed']:
-            # Si llegamos aquí y no se ha procesado el evento de finalización específico,
-            # enviar un evento de cierre genérico
-            message = "Entrenamiento completado" if config.get('status') == 'completed' else "Entrenamiento fallido"
-            yield f'event: close\ndata: {json.dumps({"message": message})}\n\n'
-            break
+            # NUEVA IMPLEMENTACIÓN: Intentar obtener actualizaciones de la cola IPC
+            updates = get_updates(training_id)
             
-        # Breve pausa antes de la siguiente verificación
+            # MEJORA: Verificar claves especializadas de época en caché cada 0.5 segundos
+            if current_time > next_epoch_check_time:
+                next_epoch_check_time = current_time + 0.5  # Revisar cada 0.5 segundos
+                
+                # Buscar las entradas de época en caché con claves dedicadas
+                epoch_updates = []
+                max_check = last_epoch_checked + 20  # Revisar 20 épocas adelante como máximo
+                
+                for epoch_num in range(last_epoch_checked + 1, max_check + 1):
+                    epoch_key = f'epoch_log_{training_id}_{epoch_num}'
+                    epoch_log = cache.get(epoch_key)
+                    
+                    if epoch_log:
+                        # Si encontramos una época en caché que no hemos enviado, añadirla a las actualizaciones
+                        if epoch_num not in epoch_logs_sent:
+                            trace_log(f"✅ Encontrada época {epoch_num} en caché especializada", category="EPOCH_CACHE_HIT")
+                            # Marcar como especializado para saber su origen
+                            epoch_log['from_specialized_cache'] = True
+                            epoch_updates.append(epoch_log)
+                            last_epoch_checked = epoch_num
+                
+                if epoch_updates:
+                    trace_log(f"✅ Recuperadas {len(epoch_updates)} épocas desde caché especializada", 
+                             category="EPOCH_RECOVERY")
+                    # Añadir al inicio para procesarlas primero
+                    updates = epoch_updates + updates
+            
+            # Si no hay actualizaciones en la cola ni en caché especializada, revisar caché general como respaldo
+            if not updates:
+                cycles_without_updates += 1
+                
+                # Obtener de la caché
+                config = safe_cache_get(config_key)
+                if not config:
+                    config = session.get(config_key)
+                    
+                if config:
+                    cache_updates = config.get('updates', [])
+                    
+                    # Si hay actualizaciones en cache, usarlas pero solo las nuevas
+                    if cache_updates and len(cache_updates) > last_update_count:
+                        updates = cache_updates[last_update_count:]
+                        trace_log(f"Usando {len(updates)} actualizaciones de caché como respaldo", category="CACHE")
+                        last_update_count = len(cache_updates)
+            else:
+                # Si recibimos actualizaciones, reiniciar contador
+                cycles_without_updates = 0
+                total_updates_received += len(updates)
+                # Contar cuántas son logs de época
+                epoch_logs = sum(1 for u in updates 
+                               if u.get('type') == 'log' and u.get('is_epoch_log', False))
+                total_epoch_logs_received += epoch_logs
+                
+                trace_log(f"Recibidas {len(updates)} actualizaciones ({epoch_logs} logs de época)", 
+                         category="UPDATES")
+            
+            # Enviar heartbeat cada segundo para mantener la conexión activa
+            if current_time - last_heartbeat_time >= 1.0:
+                heartbeat_data = {
+                    "timestamp": current_time,
+                    "stats": {
+                        "total_updates": total_updates_received,
+                        "total_epochs": len(total_epochs_seen),
+                        "total_epoch_logs": total_epoch_logs_received
+                    }
+                }
+                yield f'event: heartbeat\ndata: {json.dumps(heartbeat_data)}\n\n'
+                last_heartbeat_time = current_time
+            
+            # Procesar actualizaciones recibidas
+            if updates:
+                # MEJORA: Forzar flush después de cada mensaje importante
+                for update in updates:
+                    # Rastrear épocas vistas
+                    if update.get('type') == 'log' and update.get('is_epoch_log') and update.get('epoch_number'):
+                        total_epochs_seen.add(update.get('epoch_number'))
+                    
+                    update_type = update.get('type', '')
+                    
+                    # Eventos no relacionados con logs
+                    if update_type in ['progress', 'batch_progress', 'complete', 'error', 'process_complete', 'process_error', 'post_processing_complete']:
+                        event_type = update_type
+                        yield f'event: {event_type}\ndata: {json.dumps(update)}\n\n'
+                        yield '\n'  # Forzar flush
+                        continue
+                    
+                    # MEJORA: Detección y procesamiento especial para logs de época
+                    if update_type == 'log':
+                        message = update.get('message', '')
+                        
+                        # Verificar si es un log de época por flags o contenido del mensaje
+                        is_epoch_log = update.get('is_epoch_log', False) or update.get('is_real_epoch', False)
+                        epoch_num = update.get('epoch_number')
+                        
+                        # Detección mejorada por contenido del mensaje
+                        if not is_epoch_log and isinstance(message, str):
+                            if ('Época ' in message and '/' in message) or \
+                               ('[EPOCH LOG]' in message) or \
+                               ('>>> ÉPOCA' in message) or \
+                               message.strip().startswith('Época'):
+                                is_epoch_log = True
+                                update['is_epoch_log'] = True
+                                
+                                # Extraer número de época si no está presente
+                                if not epoch_num:
+                                    match = re.search(r'Época (\d+)/(\d+)', message)
+                                    if match:
+                                        epoch_num = int(match.group(1))
+                                        update['epoch_number'] = epoch_num
+                                        update['total_epochs'] = int(match.group(2))
+                                
+                                # Marcar como época real
+                                update['is_real_epoch'] = True
+                                trace_log(f"Detectado log de época por contenido: Época {epoch_num}", category="EPOCH_DETECTION")
+                        
+                        # MEJORA: Enviar logs de época con evento especial
+                        if is_epoch_log and epoch_num:
+                            # Si este epoch ya se envió, usar otro enfoque 
+                            if epoch_num in epoch_logs_sent:
+                                trace_log(f"Reenvío de log de época {epoch_num} con formato alternativo", category="EPOCH_RESEND")
+                                # Enviar como evento específico de época
+                                yield f'event: epoch\ndata: {json.dumps(update)}\n\n'
+                                yield '\n'  # Forzar flush
+                            else:
+                                # Añadir al conjunto de enviados y enviar como evento normal
+                                epoch_logs_sent.add(epoch_num)
+                                source = "caché especializada" if update.get('from_specialized_cache') else "normal"
+                                trace_log(f"Enviando log de época {epoch_num} al cliente (origen: {source})", category="EPOCH_SEND")
+                                
+                                # Enviar como log normal primero
+                                yield f'event: log\ndata: {json.dumps(update)}\n\n'
+                                yield '\n'  # Forzar flush
+                                
+                                # También enviarlo como evento especial de época para redundancia
+                                yield f'event: epoch\ndata: {json.dumps(update)}\n\n'
+                                yield '\n'  # Forzar flush
+                        else:
+                            # Logs normales (no de época)
+                            log_data = json.dumps(update)
+                            yield f'event: log\ndata: {log_data}\n\n'
+                            yield '\n'  # Forzar flush
+                    else:
+                        # Para otros tipos de mensajes genéricos
+                        yield f'data: {json.dumps(update)}\n\n'
+                        yield '\n'  # Forzar flush
+            
+            # Verificar si el entrenamiento ha terminado
+            config = safe_cache_get(config_key) or session.get(config_key)
+            if config and config.get('status') in ['completed', 'failed']:
+                if not updates:  # Solo cerramos si no hay más actualizaciones
+                    trace_log(f"Entrenamiento terminado con estado: {config.get('status')}. Cerrando stream.", category="STREAM_END")
+                    yield f'event: close\ndata: {json.dumps({"message": "Stream finalizado correctamente"})}\n\n'
+                    break
+            
+        except Exception as e:
+            # Manejar excepciones durante el streaming
+            error_trace = traceback.format_exc()
+            trace_log(f"Error en streaming: {str(e)}\n{error_trace}", category="STREAM_ERROR", include_stack=True)
+            
+            # Intentar enviar el error al cliente
+            try:
+                error_data = {
+                    'message': f"Error en el servidor: {str(e)}",
+                    'type': 'error',
+                    'timestamp': time.time()
+                }
+                yield f'event: error\ndata: {json.dumps(error_data)}\n\n'
+            except:
+                pass  # Ignorar si no podemos enviar el error
+        
+        # Esperar un pequeño tiempo antes de la siguiente actualización
         time.sleep(poll_interval)
 
 @login_required
@@ -753,6 +1032,9 @@ def evaluar_modelo(request):
                 'grandes': lambda y: y > 30
             }
             evaluator.segmented_evaluation(X_val, y_val, segments)
+
+            import matplotlib.pyplot as plt
+            plt.close('all')  # Cerrar TODAS las figuras - Añade esta línea
             
             return JsonResponse({
                 'success': True, 
@@ -764,5 +1046,281 @@ def evaluar_modelo(request):
                 'success': False,
                 'message': str(e)
             })
+        
+        finally:
+            import gc
+            plt.close('all')
+            gc.collect()  # Opcional: forzar recolección de basura
             
     return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+@login_required
+def diagnosticar_entrenamiento(request):
+    """Endpoint para realizar diagnósticos específicos sobre los logs de época"""
+    training_id = request.GET.get('training_id')
+    
+    if not training_id:
+        return JsonResponse({
+            'success': False,
+            'error': 'ID de entrenamiento no proporcionado'
+        }, status=400)
+    
+    try:
+        # Importar utilidades de diagnóstico
+        from .debug_utils import verify_connections, check_cache_state, inspect_queue, trace_log
+        from .ipc_utils import dump_queue_status, get_queue_for_training
+        
+        # 1. Verificar estado de conexiones (cache y cola)
+        connections = verify_connections(training_id)
+        
+        # 2. Diagnóstico específico de logs de época
+        epoch_logs_diagnostics = diagnosticar_logs_epoca(training_id)
+        
+        # 3. Verificar el estado de la sesión
+        session_info = {}
+        if hasattr(request, 'session'):
+            config_key = f'training_config_{training_id}'
+            if config_key in request.session:
+                config = request.session[config_key]
+                session_info = {
+                    'status': config.get('status', 'unknown'),
+                    'timestamp': config.get('timestamp', ''),
+                    'has_updates': 'updates' in config,
+                    'updates_count': len(config.get('updates', [])),
+                    'epoch_logs_count': sum(1 for u in config.get('updates', []) 
+                                         if u.get('type') == 'log' and u.get('is_epoch_log', False))
+                }
+            else:
+                session_info = {'status': 'not_found'}
+        
+        # Obtener info de las últimas actualizaciones para análisis
+        cache_state = check_cache_state(training_id)
+        last_updates = get_last_updates(training_id, 10)  # Obtener las últimas 10 actualizaciones
+        
+        # 4. Elaborar informe completo de diagnóstico
+        diagnostics_report = {
+            'success': True,
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'training_id': training_id,
+            'connections': connections,
+            'epoch_logs': epoch_logs_diagnostics,
+            'session_info': session_info,
+            'queue_status': dump_queue_status(),
+            'last_updates': last_updates
+        }
+        
+        # Registrar un log del diagnóstico realizado
+        trace_log(f"Diagnóstico completo para training_id={training_id}", 
+                 category="DIAGNOSTIC_REQUEST", include_stack=True)
+        
+        return JsonResponse(diagnostics_report)
+    
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'traceback': error_trace
+        }, status=500)
+
+def diagnosticar_logs_epoca(training_id, request=None):
+    """Realiza diagnóstico específico sobre los logs de época para un entrenamiento"""
+    from django.core.cache import cache
+    from .debug_utils import trace_log
+    from django_redis import get_redis_connection
+    
+    # Diagnóstico detallado de logs de época
+    result = {
+        'total_found': 0,
+        'in_cache': {
+            'count': 0,
+            'epochs_found': []
+        },
+        'in_queue': {
+            'count': 0,
+            'queue_size': 0,
+            'epochs_found': []
+        },
+        'issues': [],
+        'process_info': {}
+    }
+    
+    try:
+        # Verificar conexión Redis
+        redis_connected = False
+        try:
+            conn = get_redis_connection("default")
+            # Prueba simple para verificar que Redis responde
+            conn.ping()
+            redis_connected = True
+        except Exception as e:
+            trace_log(f"Error al verificar Redis: {str(e)}", category="REDIS_CHECK")
+            result['issues'].append({
+                'type': 'redis_connection',
+                'message': f'Error al verificar conexión Redis: {str(e)}'
+            })
+        
+        # Añadir información sobre procesos
+        from .tasks import _ACTIVE_TASKS, active_processes
+        
+        # MEJORA: Verificar si hay cualquier proceso activo, no solo el exacto del training_id
+        process_active = False
+        direct_process = False
+        
+        # 1. Verificar si hay un proceso específico para este training_id
+        if training_id in _ACTIVE_TASKS:
+            process_active = True
+            direct_process = True
+            result['process_info'] = {
+                'id': training_id,
+                'status': _ACTIVE_TASKS[training_id].get('status', 'unknown'),
+                'start_time': _ACTIVE_TASKS[training_id].get('start_time'),
+                'is_direct': True
+            }
+        
+        # 2. Si no hay proceso específico, verificar procesos activos en general
+        if not direct_process:
+            active_count = len(active_processes)
+            if active_count > 0:
+                process_active = True
+                result['process_info'] = {
+                    'active_count': active_count,
+                    'is_direct': False
+                }
+        
+        # 1. Revisar logs de época en caché especializados
+        epoch_logs_specialized = []
+        for i in range(1, 101):
+            epoch_key = f'epoch_log_{training_id}_{i}'
+            epoch_data = cache.get(epoch_key)
+            if epoch_data:
+                epoch_logs_specialized.append(i)
+                result['in_cache']['count'] += 1
+                if i not in result['in_cache']['epochs_found']:
+                    result['in_cache']['epochs_found'].append(i)
+                result['total_found'] += 1
+                
+        if epoch_logs_specialized:
+            result['in_cache']['specialized_keys'] = len(epoch_logs_specialized)
+            result['in_cache']['specialized_epochs'] = epoch_logs_specialized
+        
+        # 2. Revisar logs de época en configuración general
+        config_key = f'training_config_{training_id}'
+        config = cache.get(config_key)
+        
+        if config:
+            updates = config.get('updates', [])
+            epoch_logs = [u for u in updates if u.get('type') == 'log' and 
+                          (u.get('is_epoch_log') or 'epoch' in u)]
+            
+            # Extraer números de época
+            for log in epoch_logs:
+                epoch_num = log.get('epoch_number') or log.get('epoch')
+                if epoch_num and isinstance(epoch_num, (int, str)) and str(epoch_num).isdigit():
+                    epoch_num = int(epoch_num)
+                    if epoch_num not in result['in_cache']['epochs_found']:
+                        result['in_cache']['epochs_found'].append(epoch_num)
+                    result['in_cache']['count'] += 1
+                    result['total_found'] += 1
+        else:
+            result['issues'].append({
+                'type': 'cache_missing',
+                'message': 'No se encontró configuración en caché para este entrenamiento'
+            })
+
+        # MEJORA: También buscar en la caché genérica por clave de training_id
+        status_key = f'training_status_{training_id}'
+        training_status = cache.get(status_key)
+        if training_status:
+            status_epoch_logs = training_status.get('epoch_logs', [])
+            for epoch_num in status_epoch_logs:
+                if epoch_num not in result['in_cache']['epochs_found']:
+                    result['in_cache']['epochs_found'].append(epoch_num)
+                    result['in_cache']['count'] += 1
+                    result['total_found'] += 1
+
+        # 3. Revisar logs en la cola IPC
+        from .ipc_utils import get_queue_for_training, get_updates
+        
+        # Crear una copia temporal de la cola para hacer el diagnóstico
+        # sin afectar la cola original
+        try:
+            queue = get_queue_for_training(training_id)
+            result['in_queue']['queue_size'] = queue.qsize() if hasattr(queue, 'qsize') else 'unknown'
+        except Exception as e:
+            trace_log(f"Error al verificar cola IPC: {str(e)}", category="QUEUE_CHECK")
+            result['issues'].append({
+                'type': 'queue_error',
+                'message': f'Error al verificar cola IPC: {str(e)}'
+            })
+        
+        # 5. Actualizar estado de proceso activo según todo lo analizado
+        result['process_info']['is_active'] = process_active
+        
+        # Resultado final con información de Redis
+        result['connection_status'] = {
+            'redis_connected': redis_connected,
+            'ipc_queue_available': hasattr(queue, 'qsize') if 'queue' in locals() else False,
+            'cache_status': 'active' if config else 'missing',
+            'cache_timestamp': config.get('timestamp') if config else None
+        }
+        
+        # 6. Analizar fallos específicos de comunicación
+        if result['total_found'] == 0 and not redis_connected:
+            result['issues'].append({
+                'type': 'no_communication',
+                'message': 'No se detectó comunicación de logs de época y Redis no está conectado'
+            })
+        
+        # Resultado final con información de Redis
+        result['connection_status'] = {
+            'redis_connected': redis_connected,
+            'ipc_queue_available': hasattr(queue, 'qsize') if 'queue' in locals() else False,
+            'cache_status': 'active' if config else 'missing',
+            'cache_timestamp': config.get('timestamp') if config else None
+        }
+        
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        trace_log(f"Error en diagnóstico de logs de época: {str(e)}\n{error_trace}", 
+                 category="DIAGNOSTIC_ERROR", include_stack=True)
+        result['issues'].append({
+            'type': 'diagnostic_error',
+            'message': f'Error durante el diagnóstico: {str(e)}',
+            'traceback': error_trace
+        })
+    
+    return result
+
+
+def get_last_updates(training_id, limit=10):
+    """Obtiene las últimas actualizaciones para un entrenamiento desde el caché"""
+    config_key = f'training_config_{training_id}'
+    config = safe_cache_get(config_key)
+    
+    if config and 'updates' in config:
+        updates = config['updates'][-limit:]  # Obtener las últimas 'limit' actualizaciones
+        
+        # Sanitizar y simplificar para la respuesta JSON
+        sanitized_updates = []
+        for update in updates:
+            # Crear una copia para no modificar el original
+            sanitized = {
+                'type': update.get('type', 'unknown'),
+                'timestamp': update.get('timestamp', 0),
+                'is_epoch_log': update.get('is_epoch_log', False),
+                'is_real_epoch': update.get('is_real_epoch', False),
+                'epoch_number': update.get('epoch_number'),
+                'level': update.get('level', 'info')
+            }
+            
+            # Añadir un resumen del mensaje si existe
+            if 'message' in update:
+                message = update['message']
+                sanitized['message_preview'] = message[:100] + '...' if len(message) > 100 else message
+            
+            sanitized_updates.append(sanitized)
+        
+        return sanitized_updates
+    
+    return None

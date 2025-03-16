@@ -13,6 +13,7 @@ from multiprocessing import Process  # Importar Process en lugar de Thread
 # Luego de las importaciones iniciales
 import matplotlib
 matplotlib.use('Agg')  # Redundante pero por seguridad
+matplotlib.rcParams['figure.max_open_warning'] = 0  # Evitar advertencias por exceso de figuras
 
 # Asegurar que se puede importar desde el directorio padre
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
@@ -82,13 +83,25 @@ def run_evaluation_in_background(training_id=None):
         
         print("[PostTraining] ✅ Métricas básicas generadas correctamente.")
         _notify_completion(training_id, True, "Métricas generadas correctamente. Puede visualizar detalles en el panel de métricas.")
+        
+        import matplotlib.pyplot as plt
+        plt.close('all')  # Cerrar todas las figuras abiertas
+        
         return True
         
     except Exception as e:
         print(f"[PostTraining] ❌ Error durante la generación de archivos: {e}")
         traceback.print_exc()
         _notify_completion(training_id, False, f"Error: {str(e)}")
+
+        # También limpiar recursos en caso de excepción
+        import matplotlib.pyplot as plt
+        plt.close('all')        
         return False
+    finally:
+        # Código de limpieza que siempre debe ejecutarse
+        import gc
+        gc.collect()  # Forzar recolección de basura
 
 def _notify_completion(training_id, success, message):
     """Notifica la finalización del proceso de post-entrenamiento al cliente"""
@@ -148,6 +161,16 @@ def start_background_tasks(training_id=None):
     )
     process.daemon = True
     process.start()
+
+    # Opcional: si quieres esperar un tiempo máximo y luego terminar el proceso
+    import threading
+    def terminate_after(proc, seconds):
+        time.sleep(seconds)
+        if proc.is_alive():
+            proc.terminate()
+    
+    threading.Thread(target=terminate_after, args=(process, 300)).start()  # 5 minutos máximo
+
     return process
 
 # Punto de entrada para ejecutar manualmente

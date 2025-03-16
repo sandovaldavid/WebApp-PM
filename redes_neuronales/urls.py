@@ -13,4 +13,6 @@ urlpatterns = [
     path('estimacion/', include('redes_neuronales.estimacion_tiempo.urls')),
     path('evaluar-modelo/', views.evaluar_modelo, name='evaluar_modelo'),
     path('generar-archivos-evaluacion/', views.generar_archivos_evaluacion, name='generar_archivos_evaluacion'),
+    # Nueva ruta para diagnóstico de logs de época
+    path('diagnosticar-entrenamiento/', views.diagnosticar_entrenamiento, name='diagnosticar_entrenamiento'),
 ]

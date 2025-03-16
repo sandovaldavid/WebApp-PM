@@ -1,6 +1,12 @@
+# Al inicio del archivo
 import os
+os.environ['MPLBACKEND'] = 'Agg'
 import numpy as np
 import pandas as pd
+
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import (

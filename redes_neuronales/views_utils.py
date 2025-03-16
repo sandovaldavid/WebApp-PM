@@ -7,6 +7,9 @@ import joblib
 import traceback
 from datetime import datetime
 
+# Añadir la importación faltante
+from django.contrib.auth.decorators import login_required
+
 def generate_evaluation_files(request):
     """Función para generar archivos de evaluación bajo demanda"""
     try:
@@ -30,6 +33,11 @@ def generate_evaluation_files(request):
             'success': False,
             'message': f'Error inesperado: {str(e)}'
         }
+    finally:
+        import matplotlib.pyplot as plt
+        import gc
+        plt.close('all')
+        gc.collect()  # Opcional: forzar recolección de basura
 
 def check_model_files():
     """Verifica los archivos necesarios para el modelo"""
@@ -73,6 +81,11 @@ def run_manual_evaluation():
             'success': False,
             'message': f'Error durante la evaluación manual: {str(e)}'
         }
+    finally:
+        import matplotlib.pyplot as plt
+        import gc
+        plt.close('all')
+        gc.collect()  # Opcional: forzar recolección de basura
 
 def get_model_status():
     """Obtiene el estado actual del modelo"""
@@ -151,3 +164,17 @@ def generar_archivos_evaluacion(request):
         'success': False,
         'message': 'Método no permitido.'
     })
+
+def send_log_event(message, level="info"):
+    """Formatea un evento SSE de tipo 'log'"""
+    data = json.dumps({"message": message, "level": level})
+    return f"event: log\ndata: {data}\n\n"
+
+def send_epoch_event(message, level="info", epoch_num=None):
+    """Formatea un evento SSE específico para épocas"""
+    data = json.dumps({"message": message, "level": level, "epoch": epoch_num})
+    event_id = f"epoch_{epoch_num}" if epoch_num else None
+    if event_id:
+        return f"event: epoch\nid: {event_id}\ndata: {data}\n\n"
+    else:
+        return f"event: epoch\ndata: {data}\n\n"

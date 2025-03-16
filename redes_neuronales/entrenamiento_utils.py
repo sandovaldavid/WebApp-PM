@@ -16,110 +16,75 @@ import django
 django.setup()
 
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 # Añadir importación de timezone
 from django.utils import timezone
 
 def _add_update(training_id, update_data):
     """Añade una actualización al cache para ser enviada al cliente"""
-    # Intentar obtener la sesión del usuario
+    # Importar cache explícitamente para evitar problemas en procesos separados
     from django.core.cache import cache
-    from django.contrib.sessions.models import Session
-    from django.contrib.sessions.backends.db import SessionStore
-    from django.contrib.auth import get_user_model
     
     # Priorizar el uso del cache para mejor rendimiento
     config_key = f'training_config_{training_id}'
-    config = cache.get(config_key)
     
-    # Verificar si tenemos la configuración
-    if config is None:
-        try:
-            user_id = cache.get(f'training_user_{training_id}')
-            if not user_id:
-                print(f"No se encontró user_id para training_id: {training_id}")
-                return
-                
-            User = get_user_model()
-            user = User.objects.get(idusuario=user_id)
+    # Añadir timestamp consistente si no existe
+    if 'timestamp' not in update_data:
+        update_data['timestamp'] = time.time()
+        
+    # Marcar explícitamente los logs de época si contienen información de época
+    # pero no están marcados
+    if 'epoch' in update_data and 'total_epochs' in update_data:
+        if not update_data.get('is_epoch_log'):
+            update_data['is_epoch_log'] = True
             
-            # Buscar en todas las sesiones activas
-            for session in Session.objects.all():
-                session_data = session.get_decoded()
-                if session_data.get('_auth_user_id') and str(user.idusuario) == str(session_data.get('_auth_user_id')):
-                    store = SessionStore(session_key=session.session_key)
-                    config = store.get(config_key)
-                    if config:
-                        # Guardar en cache para próximas actualizaciones
-                        cache.set(config_key, config, 3600)
-                        break
+    # Para depuración: mostrar cuando se trata de un log de época
+    if update_data.get('is_epoch_log'):
+        print(f"[EPOCH_LOG] Enviando log de época {update_data.get('epoch_number', update_data.get('epoch', '?'))}/{update_data.get('total_epochs', '?')}")
+    
+    # Intentar obtener la config actual varias veces con reintentos
+    max_retries = 3
+    retry_count = 0
+    config = None
+    
+    while retry_count < max_retries:
+        config = cache.get(config_key)
+        if config:
+            break
+        retry_count += 1
+        time.sleep(0.1)  # Esperar un poco antes de reintentar
+    
+    # Si después de los reintentos no tenemos config, buscar en sesiones
+    if not config:
+        try:
+            from django.contrib.sessions.models import Session
+            from django.contrib.sessions.backends.db import SessionStore
+            
+            user_id = cache.get(f'training_user_{training_id}')
+            if user_id:
+                User = get_user_model()
+                try:
+                    user = User.objects.get(idusuario=user_id)
+                    
+                    # Buscar en todas las sesiones activas
+                    for session in Session.objects.all():
+                        session_data = session.get_decoded()
+                        if session_data.get('_auth_user_id') and str(user.idusuario) == str(session_data.get('_auth_user_id')):
+                            store = SessionStore(session_key=session.session_key)
+                            config = store.get(config_key)
+                            if config:
+                                # Guardar en cache para próximas actualizaciones
+                                cache.set(config_key, config, 7200)
+                                break
+                except Exception as e:
+                    print(f"Error al buscar usuario: {e}")
         except Exception as e:
             print(f"Error al buscar sesión: {e}")
-            return
     
     # Si encontramos la configuración, añadir la actualización
     if config:
         # Inicializar la lista de actualizaciones si no existe
         if 'updates' not in config:
             config['updates'] = []
-            
-        # Añadir timestamp consistente utilizando time.time() para compatibilidad
-        if 'timestamp' not in update_data:
-            update_data['timestamp'] = time.time()
-        
-        # Enriquecer actualizaciones según su tipo
-        if update_data.get('type') == 'progress':
-            # Para actualizaciones de progreso, asegurar información de estado
-            if 'stage' in update_data:
-                # Añadir texto descriptivo para mejor accesibilidad
-                if 'status_text' not in update_data:
-                    if update_data['stage'] == 'epoch_end':
-                        update_data['status_text'] = f"Época {update_data.get('epoch', 0)}/{update_data.get('total_epochs', 0)}"
-                    elif update_data['stage'] == 'epoch_start':
-                        update_data['status_text'] = f"Iniciando época {update_data.get('epoch', 0)}"
-                
-                # Asegurar que campos necesarios estén presentes
-                if 'epoch' in update_data and 'total_epochs' in update_data:
-                    # Recalcular porcentaje de progreso para mayor precisión
-                    update_data['progress_percent'] = (update_data['epoch'] / update_data['total_epochs']) * 100
-                
-                # Para actualizaciones de fin de época, asegurar métricas básicas
-                if update_data['stage'] == 'epoch_end':
-                    for field in ['train_loss', 'val_loss', 'train_mae', 'val_mae']:
-                        if field not in update_data:
-                            update_data[field] = 0.0
-        
-        # Para actualizaciones de batch, añadir información contextual
-        elif update_data.get('type') == 'batch_progress':
-            # No sobrecargar con demasiadas actualizaciones
-            current_time = time.time()
-            last_batch_time = config.get('last_batch_time', 0)
-            
-            # Limitar frecuencia de actualizaciones de batch (máximo 1 por segundo)
-            if current_time - last_batch_time < 1.0:
-                return  # Ignorar esta actualización
-            
-            config['last_batch_time'] = current_time
-            
-            # Asegurar campos necesarios
-            if 'batch' not in update_data:
-                update_data['batch'] = 0
-                
-        # Para mensajes de log, añadir nivel por defecto
-        elif update_data.get('type') == 'log':
-            if 'level' not in update_data:
-                update_data['level'] = 'info'
-        
-        # Para eventos de completado, añadir timestamp y estado
-        elif update_data.get('type') == 'complete':
-            config['status'] = 'completed'
-            if 'timestamp' not in update_data:
-                update_data['timestamp'] = time.time()
-                
-        # Para errores, marcar el estado del entrenamiento
-        elif update_data.get('type') == 'error':
-            config['status'] = 'failed'
-            config['error'] = update_data.get('message', 'Error desconocido')
             
         # Añadir la actualización a la lista
         config['updates'].append(update_data)
@@ -128,29 +93,25 @@ def _add_update(training_id, update_data):
         if len(config['updates']) > 1000:
             config['updates'] = config['updates'][-1000:]
         
-        # Actualizar en cache (la principal fuente de verdad)
-        cache.set(config_key, config, 7200)  # Extender a 2 horas para evitar expiración
+        # Actualizar en cache con tiempo extendido
+        cache_set_success = cache.set(config_key, config, 7200)  # 2 horas
         
-        # También intentar actualizar en la sesión como respaldo
-        try:
-            user_id = cache.get(f'training_user_{training_id}')
-            if user_id:
-                User = get_user_model()
-                user = User.objects.get(idusuario=user_id)
-                
-                # Actualizar sesiones encontradas
-                for session in Session.objects.all():
-                    session_data = session.get_decoded()
-                    if session_data.get('_auth_user_id') and str(user.idusuario) == str(session_data.get('_auth_user_id')):
-                        store = SessionStore(session_key=session.session_key)
-                        store[config_key] = config
-                        store.save()
-                        break
-        except Exception as e:
-            # Solo loguear el error, no detener el proceso
-            print(f"Error al actualizar sesión (no crítico): {e}")
+        # Verificar si se guardó correctamente (especialmente para logs de época)
+        if update_data.get('is_epoch_log'):
+            verification = cache.get(config_key)
+            if verification and 'updates' in verification:
+                epoch_logs = [u for u in verification['updates'] if u.get('is_epoch_log')]
+                print(f"[CACHE_VERIFY] Total logs de época en cache: {len(epoch_logs)}")
+        
+        return cache_set_success
     else:
-        print(f"No se pudo encontrar configuración para training_id: {training_id}")
+        print(f"[WARNING] No se pudo encontrar configuración para training_id: {training_id}")
+        # Intentar crear una configuración inicial como último recurso
+        new_config = {
+            'status': 'running',
+            'updates': [update_data]
+        }
+        return cache.set(config_key, new_config, 7200)
 
 def ejecutar_entrenamiento(training_id, user_id):
     """Ejecuta el proceso de entrenamiento en segundo plano y envía actualizaciones al frontend"""
@@ -416,7 +377,7 @@ def ejecutar_entrenamiento(training_id, user_id):
                 else:
                     remaining_time = f"{int(remaining_secs)}s"
                 
-                # Enviar actualización detallada
+                # Enviar actualización detallada con marcadores correctos
                 _add_update(self.training_id, {
                     'type': 'progress',
                     'stage': 'epoch_end',
@@ -429,7 +390,22 @@ def ejecutar_entrenamiento(training_id, user_id):
                     'val_mae': float(logs.get('val_mae', 0)),
                     'remaining_time': remaining_time,
                     'elapsed_time': int(elapsed),
-                    'epoch_time': int(epoch_time)
+                    'epoch_time': int(epoch_time),
+                    'is_epoch_log': True,  # IMPORTANTE: Marcar explícitamente como log de época
+                    'is_real_epoch': True  # IMPORTANTE: Marcar como época real
+                })
+
+                # Enviar también como mensaje de log para mayor compatibilidad
+                _add_update(self.training_id, {
+                    'type': 'log',
+                    'message': f'Época {epoch + 1}/{self.total_epochs} - loss: {logs.get("loss", 0):.4f} - val_loss: {logs.get("val_loss", 0):.4f} - mae: {logs.get("mae", 0):.4f}',
+                    'level': 'info',
+                    'epoch_number': epoch + 1,  # IMPORTANTE: Añadir número de época
+                    'total_epochs': self.total_epochs,
+                    'is_epoch_log': True,      # IMPORTANTE: Marcar explícitamente como log de época
+                    'is_real_epoch': True,     # IMPORTANTE: Marcar como época real
+                    'train_loss': float(logs.get('loss', 0)),
+                    'val_loss': float(logs.get('val_loss', 0))
                 })
                 
                 # Enviar un mensaje de log cada X épocas o en momentos clave
@@ -439,6 +415,34 @@ def ejecutar_entrenamiento(training_id, user_id):
                         'message': f'Época {epoch + 1}/{self.total_epochs} - loss: {logs.get("loss", 0):.4f} - val_loss: {logs.get("val_loss", 0):.4f} - mae: {logs.get("mae", 0):.4f}',
                         'level': 'info'
                     })
+
+                # Añadir marcadores de época
+                update_data = {
+                    'type': 'log',
+                    'message': f"Época {epoch+1}/{self.total_epochs} - loss: {logs.get('loss', 0):.4f}",
+                    'level': 'info',
+                    'is_epoch_log': True,  # Importante: marca como log de época
+                    'epoch_number': epoch + 1,
+                    'total_epochs': self.total_epochs,
+                    'timestamp': time.time()
+                }
+                
+                print(f"[EPOCH_DEBUG] Enviando log de época {epoch+1}/{self.total_epochs}")
+                
+                # Enviar actualización
+                success = _add_update(self.training_id, update_data)
+                
+                # Verificar que se guardó correctamente
+                from django.core.cache import cache
+                config_key = f'training_config_{self.training_id}'
+                saved_config = cache.get(config_key)
+                
+                if saved_config and 'updates' in saved_config:
+                    epoch_logs = [u for u in saved_config['updates'] if u.get('is_epoch_log')]
+                    print(f"[EPOCH_VERIFY] Total logs de época en Redis: {len(epoch_logs)}")
+                    print(f"[EPOCH_VERIFY] Última época guardada: {epoch_logs[-1]['epoch_number'] if epoch_logs else 'ninguna'}")
+                else:
+                    print("[EPOCH_ERROR] No se pudo verificar si el log de época se guardó correctamente")
             
             def on_batch_end(self, batch, logs=None):
                 # Actualizar progreso en tiempo real, pero limitando frecuencia

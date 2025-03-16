@@ -45,6 +45,8 @@
         background-color: #4f46e5;
         transition: width 0.3s ease;
     }
+    
+    /* Estilos para el contenedor de logs - Definición única */
     .log-container {
         background-color: #1a1a1a;
         color: #00ff00;
@@ -53,21 +55,30 @@
         border-radius: 0.5rem;
         max-height: 300px;
         overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #4f46e5 #1a1a1a;
     }
+    
+    /* Estilo para scrollbar en Chrome/Safari */
+    .log-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .log-container::-webkit-scrollbar-track {
+        background: #1a1a1a;
+    }
+    
+    .log-container::-webkit-scrollbar-thumb {
+        background-color: #4f46e5;
+        border-radius: 8px;
+    }
+    
     .log-line {
         margin: 0;
         padding: 2px 0;
     }
-
-    .text-update {
-        animation: pulse 0.3s ease-in-out;
-    }
-
-    @keyframes pulse {
-        0% { opacity: 0.5; }
-        50% { opacity: 1; }
-        100% { opacity: 0.5; }
-    }
+    
+    /* Nota: .text-update y .epoch-log-container se definen en training-monitor.js */
 </style>
 {% endblock %}
 
@@ -88,6 +99,10 @@
         </a>
     </div>
 </div>
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'js/training-monitor.js' %}"></script>
 {% endblock %}
 
 {% block body %}
@@ -347,11 +362,22 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Añadimos un indicador de estado de comunicación -->
+                    <div class="mt-4 text-xs text-gray-500 flex items-center" id="sseStatus">
+                        <span class="w-2 h-2 rounded-full bg-green-500 inline-block mr-2" id="sseStatusDot"></span>
+                        <span id="sseStatusText">Conexión SSE activa</span>
+                    </div>
                 </div>
-                
+
                 <!-- Log del entrenamiento -->
                 <div class="md:col-span-8">
-                    <h4 class="font-medium text-gray-700 mb-2">Registro de entrenamiento</h4>
+                    <h4 class="font-medium text-gray-700 mb-2 flex items-center justify-between">
+                        <span>Registro de entrenamiento</span>
+                        <button id="clearLogBtn" class="text-xs text-gray-500 hover:text-gray-700 ml-2">
+                            <i class="fas fa-eraser mr-1"></i> Limpiar registros
+                        </button>
+                    </h4>
                     <div id="trainingLog" class="log-container">
                         <p class="log-line">Iniciando proceso de entrenamiento...</p>
                     </div>
@@ -424,6 +450,17 @@
                 </button>
                 <small class="text-xs text-gray-500 ml-2">Usar solo si faltan archivos de evaluación</small>
             </div>
+            
+            <div class="mt-2">
+                <button id="diagnosticar-entrenamiento-btn" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-md text-sm flex items-center border border-amber-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Diagnosticar comunicación de logs
+                </button>
+                <small class="text-xs text-gray-500 ml-2">Resolver problemas con los logs de época</small>
+            </div>
+            
         </div>
     </div>
 
@@ -490,12 +527,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const startTrainingBtn = document.getElementById('startTrainingBtn');
     const trainingForm = document.getElementById('trainingForm');
     const trainingResults = document.getElementById('trainingResults');
-    const trainingLog = document.getElementById('trainingLog');
-    const trainingProgress = document.getElementById('trainingProgress');
-    const trainingStatus = document.getElementById('trainingStatus');
-    const trainLoss = document.getElementById('trainLoss');
-    const valLoss = document.getElementById('valLoss');
-    const currentEpoch = document.getElementById('currentEpoch');
+    
+    // Variable para el monitor de entrenamiento
+    let trainingMonitor = null;
     
     startTrainingBtn.addEventListener('click', function() {
         // Validar formulario
@@ -516,8 +550,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(trainingForm);
         
         // Iniciar proceso de entrenamiento mediante AJAX
-        addLogEntry("Iniciando conexión con el servidor...");
-        updateTrainingStatus("Conectando...", 0);
+        const trainingLog = document.getElementById('trainingLog');
+        
+        if (trainingLog) {
+            const logLine = document.createElement('p');
+            logLine.className = 'log-line';
+            logLine.textContent = "Iniciando conexión con el servidor...";
+            trainingLog.appendChild(logLine);
+        }
+        
+        document.getElementById('trainingStatus').textContent = "Conectando...";
+        document.getElementById('trainingProgress').style.width = "0%";
         
         // Crear request
         const xhr = new XMLHttpRequest();
@@ -531,19 +574,66 @@ document.addEventListener('DOMContentLoaded', function() {
                     try {
                         const response = JSON.parse(xhr.responseText);
                         if (response.success) {
-                            // Entrenar usando Server-Sent Events (SSE) para actualizaciones en tiempo real
-                            startTrainingMonitor(response.training_id);
+                            // Inicializar el TrainingMonitor con todos los selectores necesarios
+                            trainingMonitor = new TrainingMonitor(response.training_id, {
+                                logContainerSelector: '#trainingLog',
+                                progressBarSelector: '#trainingProgress',
+                                statusSelector: '#trainingStatus',
+                                currentEpochSelector: '#currentEpoch',
+                                remainingTimeSelector: '#remainingTime',
+                                trainLossSelector: '#trainLoss',
+                                valLossSelector: '#valLoss',
+                                onComplete: handleTrainingComplete,
+                                onError: function(error) {
+                                    // Usar el método del TrainingMonitor para logs
+                                    if (trainingMonitor) {
+                                        trainingMonitor.addLogEntry("ERROR: " + error.message, "error");
+                                    } else {
+                                        console.error("Error:", error.message);
+                                    }
+                                    document.getElementById('trainingStatus').textContent = "Error";
+                                    document.getElementById('trainingProgress').style.width = "0%";
+                                }
+                            });
+                            
+                            // Iniciar explícitamente el monitor y guardar en window para acceso global
+                            trainingMonitor.start();
+                            window.trainingMonitor = trainingMonitor;
+                            console.log("Monitor de entrenamiento iniciado correctamente");
+                            
+                            // Iniciar monitoreo de conexión SSE
+                            initializeConnectionMonitoring();
                         } else {
-                            addLogEntry("ERROR: " + response.error, "error");
-                            updateTrainingStatus("Error", 0);
+                            const errorMsg = "ERROR: " + (response.error || "Error desconocido");
+                            if (trainingLog) {
+                                const errorLine = document.createElement('p');
+                                errorLine.className = 'log-line';
+                                errorLine.style.color = '#ff6b6b';
+                                errorLine.textContent = errorMsg;
+                                trainingLog.appendChild(errorLine);
+                            }
+                            document.getElementById('trainingStatus').textContent = "Error";
                         }
                     } catch (e) {
-                        addLogEntry("ERROR: Problema al procesar la respuesta del servidor", "error");
-                        updateTrainingStatus("Error", 0);
+                        console.error("Error al iniciar monitor:", e);
+                        if (trainingLog) {
+                            const errorLine = document.createElement('p');
+                            errorLine.className = 'log-line';
+                            errorLine.style.color = '#ff6b6b';
+                            errorLine.textContent = "ERROR: Problema al procesar la respuesta del servidor";
+                            trainingLog.appendChild(errorLine);
+                        }
+                        document.getElementById('trainingStatus').textContent = "Error";
                     }
                 } else {
-                    addLogEntry("ERROR: Error en la comunicación con el servidor (código " + xhr.status + ")", "error");
-                    updateTrainingStatus("Error", 0);
+                    if (trainingLog) {
+                        const errorLine = document.createElement('p');
+                        errorLine.className = 'log-line';
+                        errorLine.style.color = '#ff6b6b';
+                        errorLine.textContent = "ERROR: Error en la comunicación con el servidor (código " + xhr.status + ")";
+                        trainingLog.appendChild(errorLine);
+                    }
+                    document.getElementById('trainingStatus').textContent = "Error";
                 }
             }
         };
@@ -553,174 +643,149 @@ document.addEventListener('DOMContentLoaded', function() {
         startTrainingBtn.disabled = true;
         startTrainingBtn.classList.add('opacity-50', 'cursor-not-allowed');
     });
-    
-    // Función para monitorear el entrenamiento usando SSE
-    function startTrainingMonitor(trainingId) {
-        const source = new EventSource(`{% url "redes_neuronales:monitor_entrenamiento" %}?training_id=${trainingId}`);
+
+    // Función para monitoreo de conexión SSE - Simplificada y unificada
+    function initializeConnectionMonitoring() {
+        const statusDot = document.getElementById('sseStatusDot');
+        const statusText = document.getElementById('sseStatusText');
+        const reconnectBtn = document.getElementById('reconnectBtn') || createReconnectButton();
         
-        // Añadir mensaje para confirmar conexión
-        addLogEntry("Conexión establecida con el servidor. Iniciando entrenamiento...", "info");
+        // Contador de tiempo desde último heartbeat
+        let lastHeartbeatTime = Date.now();
+        const maxHeartbeatDelay = 5000; // 5 segundos
         
-        source.onmessage = function(event) {
-            try {
-                const data = JSON.parse(event.data);
-                console.log("Mensaje recibido:", data.type, data);
-                
-                // Manejar diferentes tipos de mensajes
-                switch (data.type) {
-                    case 'log':
-                        addLogEntry(data.message, data.level || 'info');
-                        break;
-                    case 'progress':
-                        updateTrainingProgress(data);
-                        break;
-                    case 'batch_progress':
-                        // Actualizaciones más frecuentes para mantener la interfaz respondiendo
-                        if (data.loss !== undefined) {
-                            trainLoss.textContent = data.loss.toFixed(4);
-                        }
-                        // Actualizar también la época y progreso si está disponible
-                        if (data.epoch !== undefined && data.total_epochs !== undefined) {
-                            currentEpoch.textContent = `${data.epoch}/${data.total_epochs}`;
-                            const progress = Math.max(1, (data.epoch / data.total_epochs) * 100);
-                            trainingProgress.style.width = `${progress}%`;
-                        }
-                        // Añadir la clase de animación para feedback visual
-                        trainLoss.classList.add('text-update');
-                        setTimeout(() => trainLoss.classList.remove('text-update'), 300);
-                        break;
-                    case 'complete':
-                        handleTrainingComplete(data);
-                        break;
-                    case 'error':
-                        addLogEntry("ERROR: " + data.message, "error");
-                        updateTrainingStatus("Error", 0);
-                        source.close();
-                        break;
-                    default:
-                        console.log("Mensaje de tipo desconocido:", data.type);
-                }
-            } catch (e) {
-                console.error("Error procesando mensaje:", e);
-                addLogEntry("ERROR: Formato de mensaje inválido", "error");
-            }
-        };
-                
-        // Manejar eventos especiales
-        source.addEventListener('complete', function(event) {
-            const data = JSON.parse(event.data);
-            handleTrainingComplete(data);
-            // No cerramos el source aquí
-        });
-        
-        source.addEventListener('error', function(event) {
-            // Verificar si ya se completó el entrenamiento antes de mostrar un mensaje de error
-            if (document.getElementById('finalMetrics').classList.contains('hidden')) {
-                // Solo mostrar error si aún no se han mostrado las métricas finales
-                addLogEntry("ERROR: Se perdió la conexión con el servidor", "error");
-                updateTrainingStatus("Error de conexión", 0);
-            }
-        });
-        
-        // NUEVO: Manejar eventos de post-procesamiento
-        source.addEventListener('post_processing_complete', function(event) {
-            const data = JSON.parse(event.data);
-            addLogEntry("✅ " + (data.message || "Procesamiento posterior completado con éxito"), "success");
-            source.close();
-        });
-        
-        // NUEVO: Manejar cierre explícito
-        source.addEventListener('close', function(event) {
-            const data = JSON.parse(event.data);
-            console.log("Conexión cerrada por el servidor: ", data.message);
-            source.close();
-        });
-        
-        // NUEVO: Manejar heartbeats
-        source.addEventListener('heartbeat', function(event) {
-            console.log("Heartbeat recibido:", new Date().toLocaleTimeString());
-        });
-    }
-    
-    // Funciones de utilidad para actualizar la interfaz
-    function addLogEntry(message, level = 'info') {
-        const logLine = document.createElement('p');
-        logLine.className = 'log-line';
-        
-        if (level === 'error') {
-            logLine.style.color = '#ff6b6b';
-        } else if (level === 'warning') {
-            logLine.style.color = '#ffd166';
-        } else if (level === 'success') {
-            logLine.style.color = '#06d6a0';
-        }
-        
-        logLine.textContent = message;
-        trainingLog.appendChild(logLine);
-        trainingLog.scrollTop = trainingLog.scrollHeight;
-    }
-    
-    function updateTrainingStatus(status, progress) {
-        trainingStatus.textContent = status;
-        trainingProgress.style.width = `${progress}%`;
-    }
-    
-    function updateTrainingProgress(data) {
-        // Verificar que tenemos los datos necesarios y mostrar en consola para debug
-        console.log("Datos de progreso recibidos:", data);
-        
-        // Actualizar barra de progreso
-        if (data.epoch !== undefined && data.total_epochs !== undefined) {
-            const progress = (data.epoch / data.total_epochs) * 100;
-            updateTrainingStatus(`Entrenando [Época ${data.epoch}/${data.total_epochs}]`, progress);
+        // Revisar cada segundo
+        const intervalId = setInterval(() => {
+            const timeSinceLastHeartbeat = Date.now() - lastHeartbeatTime;
             
-            // Actualizar contador de época
-            currentEpoch.textContent = `${data.epoch}/${data.total_epochs}`;
-        }
-        
-        // Actualizar métricas actuales con validación
-        if (data.train_loss !== undefined) {
-            trainLoss.textContent = data.train_loss.toFixed(4);
-        }
-        
-        if (data.val_loss !== undefined) {
-            valLoss.textContent = data.val_loss.toFixed(4);
-        }
-        
-        // Actualizar tiempo restante estimado
-        if (data.remaining_time) {
-            document.getElementById('remainingTime').textContent = data.remaining_time;
-        }
-        
-        // Actualizar detalles adicionales si están disponibles
-        if (data.train_mae !== undefined) {
-            const trainMaeElement = document.getElementById('trainMAE');
-            if (trainMaeElement) {
-                trainMaeElement.textContent = data.train_mae.toFixed(4);
+            if (timeSinceLastHeartbeat > maxHeartbeatDelay) {
+                // Conexión posiblemente interrumpida
+                if (statusDot) statusDot.className = "w-2 h-2 rounded-full bg-red-500 inline-block mr-2";
+                if (statusText) statusText.textContent = "Conexión interrumpida";
+                if (reconnectBtn) reconnectBtn.classList.remove('hidden');
+                
+                // Intentar reconexión automática
+                if (window.trainingMonitor && !window.trainingMonitor.isComplete) {
+                    console.log("Intentando reconexión automática...");
+                    if (window.trainingMonitor) {
+                        window.trainingMonitor.stop();
+                        setTimeout(() => window.trainingMonitor.start(), 300);
+                    }
+                }
             }
+        }, 1000);
+        
+        // Registrar listener para el evento heartbeat en window.trainingMonitor
+        if (window.trainingMonitor && window.trainingMonitor.source) {
+            window.trainingMonitor.source.addEventListener('heartbeat', () => {
+                lastHeartbeatTime = Date.now();
+                if (statusDot) statusDot.className = "w-2 h-2 rounded-full bg-green-500 inline-block mr-2";
+                if (statusText) statusText.textContent = "Conexión SSE activa";
+                if (reconnectBtn) reconnectBtn.classList.add('hidden');
+            });
         }
         
-        if (data.val_mae !== undefined) {
-            const valMaeElement = document.getElementById('valMAE');
-            if (valMaeElement) {
-                valMaeElement.textContent = data.val_mae.toFixed(4);
-            }
-        }
-        
-        // Opcional: Actualizar con animación para mejor feedback visual
-        const elementsToAnimate = [trainLoss, valLoss, document.getElementById('remainingTime'), currentEpoch];
-        elementsToAnimate.forEach(el => {
-            if (el) {
-                el.classList.add('text-update');
-                setTimeout(() => el.classList.remove('text-update'), 300);
-            }
-        });
+        // Limpieza al desmontar
+        return () => clearInterval(intervalId);
     }
     
+    // NUEVO: Intervalo para verificar épocas faltantes después de un tiempo
+    setTimeout(() => {
+        if (window.trainingMonitor && window.trainingMonitor._lastEpochReceived > 3) {
+            const currentEpoch = parseInt(document.getElementById('currentEpoch')?.textContent || '0');
+            const match = /(\d+)\/(\d+)/.exec(currentEpoch);
+            
+            if (match && parseInt(match[1]) > 0) {
+                // Comparar épocas procesadas con la época actual mostrada
+                const epochsProcessed = window.trainingMonitor._epochsProcessed.size;
+                const currentEpochNum = parseInt(match[1]);
+                
+                if (currentEpochNum > epochsProcessed + 2) {
+                    console.warn(`Posible discrepancia: UI muestra época ${currentEpochNum} pero solo hay ${epochsProcessed} épocas procesadas`);
+                    
+                    // Solo alertar al usuario si la discrepancia es significativa
+                    const trainingLog = document.getElementById('trainingLog');
+                    if (trainingLog && currentEpochNum > epochsProcessed + 5) {
+                        const warningLine = document.createElement('p');
+                        warningLine.className = 'log-line';
+                        warningLine.style.color = '#ffd166';
+                        warningLine.innerHTML = `⚠️ Posible problema con los logs: UI muestra época ${currentEpochNum} pero solo se han procesado ${epochsProcessed} logs de época.`;
+                        trainingLog.appendChild(warningLine);
+                        trainingLog.scrollTop = trainingLog.scrollHeight;
+                    }
+                }
+            }
+        }
+    }, 20000); // Verificar después de 20 segundos del inicio
+    
+    // Crear botón de reconexión
+    function createReconnectButton() {
+        const trainingStatus = document.getElementById('sseStatus');
+        if (!trainingStatus) return null;
+        
+        const reconnectBtn = document.createElement('button');
+        reconnectBtn.id = 'reconnectBtn';
+        reconnectBtn.className = "ml-2 text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-1 rounded hidden";
+        reconnectBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Reconectar';
+        reconnectBtn.addEventListener('click', function() {
+            if (window.trainingMonitor) {
+                reconnectBtn.disabled = true;
+                reconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Reconectando...';
+                
+                window.trainingMonitor.stop();
+                setTimeout(() => {
+                    window.trainingMonitor.start();
+                    reconnectBtn.disabled = false;
+                    reconnectBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Reconectar';
+                    reconnectBtn.classList.add('hidden');
+                    
+                    // Usar método del monitor para logs
+                    if (window.trainingMonitor) {
+                        window.trainingMonitor.addLogEntry("Reconexión manual iniciada...", "warning");
+                    }
+                }, 500);
+            }
+        });
+        
+        trainingStatus.appendChild(reconnectBtn);
+        return reconnectBtn;
+    }
+    
+    // Botón para limpiar logs
+    document.getElementById('clearLogBtn')?.addEventListener('click', function() {
+        const logContainer = document.getElementById('trainingLog');
+        if (logContainer) {
+            // Mantener solo el primer mensaje
+            const firstLog = logContainer.querySelector('.log-line:first-child');
+            logContainer.innerHTML = '';
+            if (firstLog) logContainer.appendChild(firstLog);
+        }
+    });
+
+    // Función para manejar la finalización del entrenamiento
     function handleTrainingComplete(data) {
-        // Actualizar estado final
-        updateTrainingStatus("Completado", 100);
-        addLogEntry("Entrenamiento completado con éxito!", "success");
+        console.log("Entrenamiento completado con datos:", data);
+        
+        // Actualizar estado final usando el monitor si está disponible
+        if (window.trainingMonitor) {
+            window.trainingMonitor.updateTrainingStatus("Completado", 100);
+            window.trainingMonitor.addLogEntry("Entrenamiento completado con éxito!", "success");
+        } else {
+            document.getElementById('trainingStatus').textContent = "Completado";
+            document.getElementById('trainingProgress').style.width = "100%";
+        }
+
+        // NUEVO: Reemplazar spinner por icono de check
+        const spinnerElement = document.getElementById('trainingSpinner');
+        if (spinnerElement) {
+            // Crear el icono de check
+            spinnerElement.classList.remove('spinner');
+            spinnerElement.innerHTML = `
+                <svg class="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            `;
+        }
         
         // Mostrar sección de métricas finales
         const finalMetrics = document.getElementById('finalMetrics');
@@ -781,7 +846,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 console.error("Formato de métricas incorrecto:", metrics);
-                addLogEntry("Error: Formato de métricas incorrecto", "error");
+                if (window.trainingMonitor) {
+                    window.trainingMonitor.addLogEntry("Error: Formato de métricas incorrecto", "error");
+                }
                 document.getElementById('metricMSE').textContent = "Error";
                 document.getElementById('metricMAE').textContent = "Error";
                 document.getElementById('metricRMSE').textContent = "Error";
@@ -789,7 +856,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (e) {
             console.error("Error al procesar resultados:", e);
-            addLogEntry(`Error al procesar resultados: ${e.message}`, "error");
+            if (window.trainingMonitor) {
+                window.trainingMonitor.addLogEntry(`Error al procesar resultados: ${e.message}`, "error");
+            }
         }
         
         // Habilitar botón de nuevo
@@ -805,69 +874,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Iniciar el proceso de evaluación
             requestModelEvaluation(data.model_id || data.training_id);
         }, 1500); // Esperar 1.5 segundos para mostrar la sección de evaluación
-    }
-
-    // Nueva función para solicitar evaluación
-    function requestModelEvaluation(modelId) {
-        // Mostrar progreso de evaluación
-        document.getElementById('evaluationProgress').classList.remove('hidden');
-        document.getElementById('evaluationResults').classList.add('hidden');
-        
-        // Solicitar evaluación al servidor
-        fetch('/redes-neuronales/evaluar-modelo/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({
-                model_id: modelId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // La evaluación se ha completado con éxito
-                updateEvaluationResults(data);
-            } else {
-                // Error en la evaluación
-                addLogEntry(`Error en la evaluación: ${data.message}`, "error");
-            }
-        })
-        .catch(error => {
-            addLogEntry(`Error de conexión: ${error}`, "error");
-        })
-        .finally(() => {
-            // Ocultar el indicador de progreso
-            document.getElementById('evaluationProgress').classList.add('hidden');
-        });
-    }
-    
-    // Función para actualizar resultados de evaluación
-    function updateEvaluationResults(data) {
-        // Mostrar la sección de resultados
-        document.getElementById('evaluationResults').classList.remove('hidden');
-        
-        // Actualizar métricas
-        const metricsHTML = `
-            <div class="grid grid-cols-2 gap-3">
-                <div><strong>MSE:</strong> ${data.metrics.MSE.toFixed(2)}</div>
-                <div><strong>RMSE:</strong> ${data.metrics.RMSE.toFixed(2)}</div>
-                <div><strong>MAE:</strong> ${data.metrics.MAE.toFixed(2)}</div>
-                <div><strong>R²:</strong> ${data.metrics.R2.toFixed(4)}</div>
-                <div><strong>Precisión:</strong> ${(data.metrics.Accuracy * 100).toFixed(1)}%</div>
-                <div><strong>F1:</strong> ${(data.metrics.F1 * 100).toFixed(1)}%</div>
-            </div>
-        `;
-        document.getElementById('metricsDisplay').innerHTML = metricsHTML;
-        
-        // Actualizar imágenes
-        const timestamp = new Date().getTime(); // Evitar caché
-        document.getElementById('featureImportanceImg').src = `/static/redes_neuronales/models/global_feature_importance.png?t=${timestamp}`;
-        document.getElementById('evaluationPlotsImg').src = `/static/redes_neuronales/models/evaluation_plots.png?t=${timestamp}`;
-        
-        // Añadir mensaje de log
-        addLogEntry("Evaluación del modelo completada con éxito", "success");
     }
 
     // Función para crear el gráfico de pérdida
@@ -966,6 +972,239 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Nueva función para solicitar evaluación
+    function requestModelEvaluation(modelId) {
+        // Mostrar progreso de evaluación
+        document.getElementById('evaluationProgress').classList.remove('hidden');
+        document.getElementById('evaluationResults').classList.add('hidden');
+        
+        // Solicitar evaluación al servidor
+        fetch('/redes-neuronales/evaluar-modelo/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                model_id: modelId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // La evaluación se ha completado con éxito
+                updateEvaluationResults(data);
+            } else {
+                // Error en la evaluación
+                addLogEntry(`Error en la evaluación: ${data.message}`, "error");
+            }
+        })
+        .catch(error => {
+            addLogEntry(`Error de conexión: ${error}`, "error");
+        })
+        .finally(() => {
+            // Ocultar el indicador de progreso
+            document.getElementById('evaluationProgress').classList.add('hidden');
+        });
+    }
+    
+    // Función para actualizar resultados de evaluación
+    function updateEvaluationResults(data) {
+        // Mostrar la sección de resultados
+        document.getElementById('evaluationResults').classList.remove('hidden');
+        
+        // Actualizar métricas
+        const metricsHTML = `
+            <div class="grid grid-cols-2 gap-3">
+                <div><strong>MSE:</strong> ${data.metrics.MSE.toFixed(2)}</div>
+                <div><strong>RMSE:</strong> ${data.metrics.RMSE.toFixed(2)}</div>
+                <div><strong>MAE:</strong> ${data.metrics.MAE.toFixed(2)}</div>
+                <div><strong>R²:</strong> ${data.metrics.R2.toFixed(4)}</div>
+                <div><strong>Precisión:</strong> ${(data.metrics.Accuracy * 100).toFixed(1)}%</</div>
+                <div><strong>F1:</strong> ${(data.metrics.F1 * 100).toFixed(1)}%</</div>
+            </div>
+        `;
+        document.getElementById('metricsDisplay').innerHTML = metricsHTML;
+        
+        // Actualizar imágenes
+        const timestamp = new Date().getTime(); // Evitar caché
+        document.getElementById('featureImportanceImg').src = `/static/redes_neuronales/models/global_feature_importance.png?t=${timestamp}`;
+        document.getElementById('evaluationPlotsImg').src = `/static/redes_neuronales/models/evaluation_plots.png?t=${timestamp}`;
+        
+        // Añadir mensaje de log
+        addLogEntry("Evaluación del modelo completada con éxito", "success");
+    }
+
+    // Función para diagnosticar problemas de entrenamiento
+    document.getElementById('diagnosticar-entrenamiento-btn')?.addEventListener('click', function() {
+        const btn = this;
+        const originalContent = btn.innerHTML;
+        
+        // Obtener el ID de entrenamiento actual
+        const trainingId = window.trainingMonitor?.trainingId;
+        if (!trainingId) {
+            alert('No hay entrenamiento activo para diagnosticar.');
+            return;
+        }
+        
+        // Cambiar el botón a estado "cargando"
+        btn.disabled = true;
+        btn.innerHTML = `<svg class="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg> Diagnosticando...`;
+        
+        // Realizar la solicitud al endpoint de diagnóstico
+        fetch(`/redes-neuronales/diagnosticar-entrenamiento/?training_id=${trainingId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error en la respuesta: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Mostrar resultados del diagnóstico
+                    showDiagnosticResults(data);
+                } else {
+                    console.error('Error en diagnóstico:', data.error);
+                    alert(`Error al realizar diagnóstico: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`Error de conexión: ${error.message}`);
+            })
+            .finally(() => {
+                // Restaurar el botón
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            });
+    });
+
+    // Función para mostrar resultados del diagnóstico
+    function showDiagnosticResults(data) {
+        // Creamos un modal para mostrar los resultados
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50';
+        modal.id = 'diagnosticModal';
+        
+        // Analizar problemas encontrados
+        let issuesHtml = '';
+        const issues = data.epoch_logs.issues || [];
+        if (issues.length > 0) {
+            issuesHtml = `<div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                <h4 class="font-semibold text-yellow-800 mb-2">Se encontraron ${issues.length} problemas:</h4>
+                <ul class="list-disc pl-5 text-yellow-700">
+                    ${issues.map(issue => `<li>${issue.message}</li>`).join('')}
+                </ul>
+            </div>`;
+        } else {
+            issuesHtml = `<div class="mb-4 p-3 bg-green-50 border border-green-200 rounded">
+                <h4 class="font-semibold text-green-800">¡Todo funciona correctamente!</h4>
+                <p class="text-green-700">No se detectaron problemas en la comunicación de logs.</p>
+            </div>`;
+        }
+        
+        // Información sobre los logs de época encontrados
+        const epochsFound = data.epoch_logs.in_cache.epochs_found || [];
+        const totalFound = data.epoch_logs.total_found || 0;
+        
+        const epochLogsInfo = `<div class="mb-4">
+            <h4 class="font-semibold mb-2">Logs de época encontrados:</h4>
+            <ul class="list-none space-y-1">
+                <li><span class="font-medium">En caché:</span> ${data.epoch_logs.in_cache.count || 0}</li>
+                <li><span class="font-medium">En cola IPC:</span> ${data.epoch_logs.in_queue.queue_size || 0}</li>
+                <li><span class="font-medium">Épocas detectadas:</span> ${epochsFound.length > 0 ? epochsFound.sort((a,b) => a-b).join(', ') : 'Ninguna'}</li>
+                <li><span class="font-medium">Total encontrados:</span> ${totalFound}</li>
+            </ul>
+        </div>`;
+        
+        // Últimas actualizaciones recibidas
+        let updatesHtml = '';
+        const lastUpdates = data.last_updates || [];
+        if (lastUpdates.length > 0) {
+            updatesHtml = `<div class="mb-4">
+                <h4 class="font-semibold mb-2">Últimas actualizaciones:</h4>
+                <ul class="list-none space-y-0.5 text-sm bg-gray-50 p-2 rounded max-h-32 overflow-y-auto">
+                    ${lastUpdates.map(u => {
+                        const time = new Date(u.timestamp * 1000).toLocaleTimeString();
+                        const type = u.type;
+                        const details = u.is_epoch_log ? ` (Época ${u.epoch_number || u.epoch})` : '';
+                        return `<li>[${time}] ${type}${details}</li>`;
+                    }).join('')}
+                </ul>
+            </div>`;
+        }
+        
+        // Conexión y estado general
+        const connectionStatus = `<div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <h4 class="font-semibold mb-2">Estado de conexión:</h4>
+                <ul class="list-none space-y-1">
+                    <li class="flex items-center">
+                        <span class="inline-block w-3 h-3 rounded-full mr-2 ${data.epoch_logs.connection_status?.redis_connected ? 'bg-green-500' : 'bg-red-500'}"></span>
+                        <span class="font-medium">Redis:</span> ${data.epoch_logs.connection_status?.redis_connected ? 'Conectado' : 'No conectado'}
+                    </li>
+                    <li class="flex items-center">
+                        <span class="inline-block w-3 h-3 rounded-full mr-2 ${data.epoch_logs.connection_status?.ipc_queue_available ? 'bg-green-500' : 'bg-yellow-500'}"></span>
+                        <span class="font-medium">Cola IPC:</span> ${data.epoch_logs.connection_status?.ipc_queue_available ? 'Disponible' : 'No disponible'}
+                    </li>
+                    <li><span class="font-medium">Estado en sesión:</span> ${data.epoch_logs.connection_status?.cache_status || 'desconocido'}</li>
+                    <li><span class="font-medium">Timestamp en caché:</span> ${data.epoch_logs.connection_status?.cache_timestamp ? new Date(data.epoch_logs.connection_status.cache_timestamp).toLocaleString() : 'N/A'}</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-2">Estado del proceso:</h4>
+                <ul class="list-none space-y-1">
+                    <li class="flex items-center">
+                        <span class="inline-block w-3 h-3 rounded-full mr-2 ${data.epoch_logs.process_info?.is_active ? 'bg-green-500' : 'bg-gray-500'}"></span>
+                        <span class="font-medium">Proceso activo:</span> ${data.epoch_logs.process_info?.is_active ? 'Sí' : 'No'}
+                    </li>
+                    <li><span class="font-medium">Tipo:</span> ${data.epoch_logs.process_info?.is_direct ? 'Directo' : 'Indirecto/Desconocido'}</li>
+                    <li><span class="font-medium">Estado:</span> ${data.epoch_logs.process_info?.status || 'N/A'}</li>
+                </ul>
+            </div>
+        </div>`;
+        
+        // Modal completo
+        modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                <h3 class="text-xl font-bold text-gray-800">Diagnóstico de Entrenamiento</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            ${issuesHtml}
+            ${epochLogsInfo}
+            ${connectionStatus}
+            ${updatesHtml}
+            
+            <div class="mt-5 text-right">
+                <button id="closeModalBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                    Cerrar
+                </button>
+            </div>
+        </div>`;
+        
+        // Añadir modal al DOM
+        document.body.appendChild(modal);
+        
+        // Manejar cierre del modal
+        document.getElementById('closeModal').addEventListener('click', () => modal.remove());
+        document.getElementById('closeModalBtn').addEventListener('click', () => modal.remove());
+        
+        // Añadir entrada de log
+        if (typeof addLogEntry === 'function') {
+            addLogEntry(`Diagnóstico completado. ${issues.length > 0 ? `Se encontraron ${issues.length} problemas.` : '¡Todo funciona correctamente!'}`, 
+                    issues.length > 0 ? "warning" : "success");
+        }
+    }    
 });
 
 // En el mismo archivo HTML
@@ -1001,5 +1240,169 @@ document.getElementById('generar-archivos-btn')?.addEventListener('click', funct
     });
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    // ... código existente ...
+
+    // Función para detectar problemas de conexión con mejor soporte para reconexión
+    function monitorSSEConnection() {
+        const statusDot = document.getElementById('sseStatusDot');
+        const statusText = document.getElementById('sseStatusText');
+        const reconnectBtn = document.getElementById('reconnectBtn');
+        
+        // Contador de tiempo desde último heartbeat
+        let lastHeartbeatTime = Date.now();
+        const maxHeartbeatDelay = 5000; // 5 segundos
+        
+        // Revisar cada segundo
+        setInterval(() => {
+            const timeSinceLastHeartbeat = Date.now() - lastHeartbeatTime;
+            
+            if (timeSinceLastHeartbeat > maxHeartbeatDelay) {
+                // Conexión posiblemente interrumpida
+                if (statusDot) statusDot.className = "w-2 h-2 rounded-full bg-red-500 inline-block mr-2";
+                if (statusText) statusText.textContent = "Conexión interrumpida";
+                if (reconnectBtn) reconnectBtn.classList.remove('hidden');
+                
+                // Intentar reconexión automática
+                if (window.trainingMonitor && !window.trainingMonitor.isComplete) {
+                    console.log("Intentando reconexión automática...");
+                    setTimeout(() => {
+                        if (window.trainingMonitor) {
+                            window.trainingMonitor.stop();
+                            setTimeout(() => window.trainingMonitor.start(), 300);
+                        }
+                    }, 1000);
+                }
+            }
+        }, 1000);
+        
+        // Actualizar timestamp cuando recibimos heartbeat
+        if (window.trainingMonitor && window.trainingMonitor.source) {
+            window.trainingMonitor.source.addEventListener('heartbeat', () => {
+                lastHeartbeatTime = Date.now();
+                if (statusDot) statusDot.className = "w-2 h-2 rounded-full bg-green-500 inline-block mr-2";
+                if (statusText) statusText.textContent = "Conexión SSE activa";
+                if (reconnectBtn) reconnectBtn.classList.add('hidden');
+            });
+        }
+    }
+
+    // Botón para forzar reconexión - mejoramos visibilidad
+    const trainingStatus = document.getElementById('sseStatus');
+    if (trainingStatus) {
+        const reconnectBtn = document.createElement('button');
+        reconnectBtn.id = 'reconnectBtn';
+        reconnectBtn.className = "ml-2 text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-1 rounded hidden";
+        reconnectBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Reconectar';
+        reconnectBtn.addEventListener('click', function() {
+            if (window.trainingMonitor) {
+                reconnectBtn.disabled = true;
+                reconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Reconectando...';
+                
+                window.trainingMonitor.stop();
+                setTimeout(() => {
+                    window.trainingMonitor.start();
+                    reconnectBtn.disabled = false;
+                    reconnectBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Reconectar';
+                    reconnectBtn.classList.add('hidden');
+                    
+                    // Añadir log
+                    const trainingLog = document.getElementById('trainingLog');
+                    if (trainingLog) {
+                        const logLine = document.createElement('p');
+                        logLine.className = 'log-line';
+                        logLine.style.color = '#ffd166';
+                        logLine.textContent = "Reconexión manual iniciada...";
+                        trainingLog.appendChild(logLine);
+                        trainingLog.scrollTop = trainingLog.scrollHeight;
+                    }
+                }, 500);
+            }
+        });
+        trainingStatus.appendChild(reconnectBtn);
+    }
+});
+
+// NUEVA FUNCIÓN: Intenta recuperar logs de época perdidos
+function attemptToRecoverMissingEpochLogs(trainingId) {
+    if (!window.trainingMonitor) return;
+    
+    const logContainer = document.getElementById('trainingLog');
+    if (!logContainer) return;
+    
+    // Añadir mensaje informativo
+    const infoLine = document.createElement('p');
+    infoLine.className = 'log-line';
+    infoLine.style.color = '#4f46e5';
+    infoLine.textContent = "Intentando recuperar logs de épocas faltantes...";
+    logContainer.appendChild(infoLine);
+    
+    fetch(`/redes-neuronales/diagnosticar-entrenamiento/?training_id=${trainingId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.epoch_logs && data.epoch_logs.in_cache && data.epoch_logs.in_cache.epochs_found) {
+                const recoveredCount = data.epoch_logs.in_cache.count || 0;
+                
+                if (recoveredCount > 0) {
+                    const successLine = document.createElement('p');
+                    successLine.className = 'log-line';
+                    successLine.style.color = '#06d6a0';
+                    successLine.textContent = `✅ Se encontraron ${recoveredCount} logs de época en caché.`;
+                    logContainer.appendChild(successLine);
+                    
+                    // Forzar reconexión para recuperar los logs
+                    if (window.trainingMonitor) {
+                        const reconnectLine = document.createElement('p');
+                        reconnectLine.className = 'log-line';
+                        reconnectLine.style.color = '#4f46e5';
+                        reconnectLine.textContent = "Reconectando para recuperar logs...";
+                        logContainer.appendChild(reconnectLine);
+                        
+                        window.trainingMonitor.stop();
+                        setTimeout(() => window.trainingMonitor.start(), 500);
+                    }
+                } else {
+                    const noFoundLine = document.createElement('p');
+                    noFoundLine.className = 'log-line';
+                    noFoundLine.style.color = '#ffd166';
+                    noFoundLine.textContent = "No se encontraron logs de época adicionales en caché.";
+                    logContainer.appendChild(noFoundLine);
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error al intentar recuperar logs:", error);
+            const errorLine = document.createElement('p');
+            errorLine.className = 'log-line';
+            errorLine.style.color = '#ff6b6b';
+            errorLine.textContent = `Error al intentar recuperar logs: ${error.message}`;
+            logContainer.appendChild(errorLine);
+        });
+        
+    // Auto-scroll al final del log
+    logContainer.scrollTop = logContainer.scrollHeight;
+}
+
+// Añadimos un botón para recuperar logs
+const trainingResults = document.getElementById('trainingResults');
+if (trainingResults) {
+    const recoverBtn = document.createElement('button');
+    recoverBtn.id = 'recover-logs-btn';
+    recoverBtn.className = "px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md text-sm flex items-center border border-blue-200 mt-2";
+    recoverBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Recuperar logs de época perdidos';
+    recoverBtn.addEventListener('click', function() {
+        if (window.trainingMonitor && window.trainingMonitor.trainingId) {
+            attemptToRecoverMissingEpochLogs(window.trainingMonitor.trainingId);
+        } else {
+            alert('No hay entrenamiento activo.');
+        }
+    });
+    
+    // Insertarlo después del botón de diagnóstico
+    const diagnosticBtn = document.getElementById('diagnosticar-entrenamiento-btn');
+    if (diagnosticBtn && diagnosticBtn.parentNode) {
+        diagnosticBtn.parentNode.appendChild(recoverBtn);
+    }
+}
 </script>
 {% endblock %}
