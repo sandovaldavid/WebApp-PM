@@ -118,10 +118,11 @@ class TrainingMonitor {
     _setupEventHandlers() {
         // Manejar conexión abierta
         this.source.onopen = () => {
-            console.log("Conexión SSE abierta correctamente");
-            this.connectionAttempts = 0; // Reiniciar contador de intentos
+            console.log("Conexión SSE abierta");
+            this.connectionAttempts = 0;
+            this.addLogEntry("Conexión establecida con el servidor", "success");
             
-            // Actualizar indicador visual de conexión
+            // Actualizar indicador visual
             const statusDot = document.getElementById('sseStatusDot');
             const statusText = document.getElementById('sseStatusText');
             if (statusDot) statusDot.className = "w-2 h-2 rounded-full bg-green-500 inline-block mr-2";
@@ -153,7 +154,7 @@ class TrainingMonitor {
                     this.start();
                 }, delay);
             } else if (!this.isComplete && this.connectionAttempts >= this.maxConnectionAttempts) {
-                this.addLogEntry("No se pudo restablecer la conexión. Por favor, pulse el botón 'Reconectar'.", "error");
+                this.addLogEntry("No se pudo restablecer la conexión.", "error");
             }
         };
 
@@ -354,19 +355,36 @@ class TrainingMonitor {
             }
         });
 
-        // Manejar mensajes genéricos como respaldo
+        // Mejora para mensajes genéricos
         this.source.onmessage = (event) => {
             try {
+                console.log("📩 Mensaje genérico recibido:", event.data);
                 const data = JSON.parse(event.data);
-                console.log("Evento recibido (genérico):", data);
                 
-                // Procesar mensaje según su tipo
-                if (data.type === 'log') {
-                    this.addLogEntry(data.message, data.level || 'info');
+                // Procesar según el tipo si está disponible
+                if (data.type === 'complete' || (data.success === true && data.metrics)) {
+                    console.log("🔍 Detectado mensaje de tipo 'complete' en formato genérico");
+                    
+                    // Marcar como completado
+                    this.isComplete = true;
+                    
+                    // Actualizar interfaz
+                    this.updateTrainingStatus("Entrenamiento completado", 100);
+                    this._replaceSpinnerWithCheck();
+                    
+                    // IMPORTANTE: Llamar a AMBAS formas de finalización
+                    if (typeof window.handleTrainingComplete === 'function') {
+                        window.handleTrainingComplete(data);
+                    }
+                    
+                    if (this.callbacks.onComplete) {
+                        this.callbacks.onComplete(data);
+                    }
+                } else {
+                    this.addLogEntry(`Mensaje del servidor: ${JSON.stringify(data)}`, "info");
                 }
             } catch (e) {
-                console.error("Error al procesar mensaje:", e, "Data:", event.data);
-                this.addLogEntry("Error: Formato de mensaje inválido", "error");
+                console.error("Error al procesar mensaje:", e);
             }
         };
         
@@ -400,32 +418,68 @@ class TrainingMonitor {
             }
         });
         
-        // Manejar evento de finalización
+        // Mejora específica para evento 'complete'
         this.source.addEventListener('complete', (event) => {
             try {
+                console.log("🟢 Evento 'complete' recibido:", event.data);
                 const data = JSON.parse(event.data);
-                console.log("Entrenamiento completado:", data);
-                this.isComplete = true;
-                this.updateTrainingStatus("Completado", 100);
-                this.addLogEntry("✅ Entrenamiento completado con éxito!", "success");
                 
-                // Reemplazar spinner con icono de check
+                // Marcar como completado
+                this.isComplete = true;
+                
+                // Actualizar estado visual
+                this.updateTrainingStatus("Entrenamiento completado", 100);
+                this.addLogEntry("🎉 ¡Entrenamiento completado con éxito!", "success");
+                
+                // Reemplazar spinner con ícono de verificación
                 this._replaceSpinnerWithCheck();
                 
-                // Llamar callback personalizado si existe
-                if (this.callbacks.onComplete) {
-                    this.callbacks.onComplete(data);
+                // IMPORTANTE: Disparar evento global para asegurar que cualquier manejador pueda responder
+                const completeEvent = new CustomEvent('training_complete', { detail: data });
+                window.dispatchEvent(completeEvent);
+                
+                // IMPORTANTE: Llamar a AMBAS formas de finalización
+                if (typeof window.handleTrainingComplete === 'function') {
+                    console.log("📣 Llamando a window.handleTrainingComplete");
+                    window.handleTrainingComplete(data);
                 }
                 
-                // Cerrar la conexión después de un tiempo para permitir mensajes finales
-                setTimeout(() => {
-                    this.stop();
-                }, 3000);
+                if (this.callbacks.onComplete) {
+                    console.log("📣 Llamando a this.callbacks.onComplete");
+                    this.callbacks.onComplete(data);
+                }
             } catch (e) {
-                console.error("Error al procesar evento de finalización:", e, "Data:", event.data);
+                console.error("Error al procesar evento de finalización:", e);
             }
         });
-        
+
+        // NUEVO: Evento post_processing_complete (tareas posteriores completadas)
+        this.source.addEventListener('post_processing_complete', (event) => {
+            try {
+                console.log("Post-procesamiento completado:", event.data);
+                const data = JSON.parse(event.data);
+                
+                this.addLogEntry("✅ Post-procesamiento completado: " + data.message, "success");
+                
+                // Mostrar sección de evaluación
+                const evaluationSection = document.getElementById('evaluationSection');
+                if (evaluationSection) {
+                    evaluationSection.classList.remove('hidden');
+                    
+                    // Opcionalmente iniciar evaluación automática
+                    setTimeout(() => {
+                        const modelId = data.model_id || this.trainingId;
+                        if (typeof requestModelEvaluation === 'function') {
+                            requestModelEvaluation(modelId);
+                        }
+                    }, 1000);
+                }
+                
+            } catch (e) {
+                console.error("Error al procesar evento post-procesamiento:", e);
+            }
+        });
+
         // Manejar eventos de error
         this.source.addEventListener('error', (event) => {
             console.error("Error en la conexión SSE:", event);
@@ -491,6 +545,56 @@ class TrainingMonitor {
                 console.error("Error procesando heartbeat:", e);
             }
         });
+
+        // NUEVO: Evento para diagnósticos
+        this.source.addEventListener('diagnostic', (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log("Diagnóstico recibido:", data);
+                
+                if (data.cycles_without_updates > 500) {
+                    this.addLogEntry(`Diagnóstico: ${data.cycles_without_updates} ciclos sin actualizaciones.`, "warning");
+                }
+            } catch (e) {
+                console.error("Error al procesar diagnóstico:", e);
+            }
+        });
+
+        // NUEVO: Evento para heartbeats (mantener conexión viva)
+        this.source.addEventListener('heartbeat', (event) => {
+            // Solo registrar en consola para no llenar el log
+            try {
+                const data = JSON.parse(event.data);
+                // Actualizar el último tiempo de heartbeat recibido
+                this._lastHeartbeatTime = Date.now();
+                
+                // Disparar evento personalizado para monitoreo de conexión
+                const heartbeatEvent = new CustomEvent('training_heartbeat', { detail: data });
+                window.dispatchEvent(heartbeatEvent);
+                
+            } catch (e) {
+                console.error("Error al procesar heartbeat:", e);
+            }
+        });
+
+        // También capturar mensajes genéricos (para compatibilidad)
+        this.source.onmessage = (event) => {
+            try {
+                console.log("Mensaje genérico recibido:", event.data);
+                const data = JSON.parse(event.data);
+                
+                // Procesar según el tipo si está disponible
+                if (data.type === 'complete') {
+                    // Disparar manualmente el evento complete para asegurar que se procese
+                    const customEvent = new MessageEvent('complete', { data: event.data });
+                    this.source.dispatchEvent(customEvent);
+                } else {
+                    this.addLogEntry(`Mensaje del servidor: ${JSON.stringify(data)}`, "info");
+                }
+            } catch (e) {
+                console.error("Error al procesar mensaje:", e);
+            }
+        };
     }
     
     /**

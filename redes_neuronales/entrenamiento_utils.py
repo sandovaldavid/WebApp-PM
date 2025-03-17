@@ -728,3 +728,13 @@ def ejecutar_entrenamiento(training_id, user_id):
                 'timestamp': time.time()
             })
             cache.set(config_key, config, 7200)  # 2 horas
+
+    # Al finalizar el entrenamiento, iniciar tareas posteriores
+    try:
+        from redes_neuronales.estimacion_tiempo.post_training_tasks import start_background_tasks
+        print(f"[INFO] Iniciando tareas posteriores al entrenamiento...")
+        start_background_tasks(training_id)
+        print(f"[INFO] Tareas posteriores iniciadas correctamente")
+    except Exception as e:
+        print(f"Error al iniciar tareas posteriores al entrenamiento: {str(e)}")
+        # No detener el proceso principal si las tareas posteriores fallan

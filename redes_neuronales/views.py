@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 import sys
 import os
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 import traceback
 
@@ -637,6 +639,10 @@ def _stream_training_updates(training_id, session):
     total_updates_received = 0
     total_epoch_logs_received = 0
     
+    # NUEVO: Ajuste de umbrales para diagnósticos
+    warning_threshold = 1000  # AUMENTADO: De 200/300 a 1000 ciclos (30 segundos aprox.)
+    info_threshold = 500      # Nuevo umbral para logs informativos
+    
     # Creamos conjunto para rastrear los logs de época ya enviados
     epoch_logs_sent = set()
     # Rastreo de la última época verificada para epoch_log_X claves especializadas
@@ -679,253 +685,142 @@ def _stream_training_updates(training_id, session):
         updates = []
         
         try:
-            # DIAGNÓSTICO: Ejecutar verificación periódica (cada 10 segundos)
-            if current_time - last_diagnostic_time > 10:
-                last_diagnostic_time = current_time
-                queue_state = inspect_queue(training_id)
-                trace_log(f"Diagnóstico periódico: cycles_without_updates={cycles_without_updates}, "
-                         f"epochs_seen={sorted(list(total_epochs_seen))}, "
-                         f"queue_state={queue_state}", category="MONITOR")
-                
-                # Verificar si han pasado demasiados ciclos sin actualizaciones
-                if cycles_without_updates > 200:  # REDUCIDO: De 300 a 200 ciclos (~6 segundos)
-                    connections = verify_connections(training_id)
-                    trace_log(f"Muchos ciclos sin actualizaciones: {connections}", 
-                             category="WARNING", include_stack=True)
-                    
-                    # NUEVA RECUPERACIÓN: Añadir mensaje de diagnóstico a la lista
-                    # si no hay actualizaciones después de un tiempo prolongado
-                    config = safe_cache_get(config_key)
-                    if config and config.get('status') == 'pending':
-                        # Verificar si el proceso realmente comenzó
-                        diagnostic_update = {
-                            'type': 'log',
-                            'message': f'DIAGNÓSTICO: No se detectan actualizaciones después de {cycles_without_updates * poll_interval:.1f} segundos. Verificando estado...',
-                            'level': 'warning',
-                            'timestamp': current_time
-                        }
-                        
-                        # Añadir a cache para asegurar comunicación
-                        if 'updates' not in config:
-                            config['updates'] = []
-                        config['updates'].append(diagnostic_update)
-                        safe_cache_set(config_key, config, 7200)
-                        
-                        # Enviar directamente al cliente
-                        yield f'event: log\ndata: {json.dumps(diagnostic_update)}\n\n'
-                        yield '\n'  # Forzar flush
-                        
-                        # Intentar actualizar el contador para evitar mensajes repetitivos
-                        if config and 'updates' in config:
-                            last_update_count = len(config['updates'])
-                    
-                    # Intentar enviar un evento de diagnóstico al cliente
-                    diagnostic_update = {
-                        'type': 'diagnostic_warning',
-                        'message': 'Posible problema de comunicación detectado',
-                        'cycles_without_updates': cycles_without_updates,
-                        'queue_state': queue_state,
-                        'timestamp': current_time
-                    }
-                    yield f'event: diagnostic\ndata: {json.dumps(diagnostic_update)}\n\n'
-                    cycles_without_updates = 0  # Reiniciar contador
-                
-                # MEJORA: Verificación adicional si no hay actualizaciones después de mucho tiempo
-                if current_time - start_monitoring_time > 45 and len(total_epochs_seen) == 0:
-                    # Añadir log de emergencia - posible problema serio de comunicación
-                    emergency_msg = {
-                        'type': 'log',
-                        'message': '⚠️ ALERTA: No se han detectado épocas después de 45 segundos. '
-                                   'Posible problema en la comunicación entre procesos.',
-                        'level': 'error',
-                        'timestamp': current_time
-                    }
-                    yield f'event: log\ndata: {json.dumps(emergency_msg)}\n\n'
-                    yield '\n'  # Forzar flush
-                    
-                    # Sugerir acción al usuario
-                    help_msg = {
-                        'type': 'log',
-                        'message': 'Recomendación: Intente reiniciar el entrenamiento. '
-                                   'Si el problema persiste, verifique los logs del servidor.',
-                        'level': 'warning',
-                        'timestamp': current_time + 0.1
-                    }
-                    yield f'event: log\ndata: {json.dumps(help_msg)}\n\n'
-                    yield '\n'  # Forzar flush
-        
-            # NUEVA IMPLEMENTACIÓN: Intentar obtener actualizaciones de la cola IPC
-            updates = get_updates(training_id)
+            # Recuperar la configuración y actualizaciones desde la caché
+            config = cache.get(config_key)
             
-            # MEJORA: Verificar claves especializadas de época en caché cada 0.5 segundos
-            if current_time > next_epoch_check_time:
-                next_epoch_check_time = current_time + 0.5  # Revisar cada 0.5 segundos
+            # MODIFICACIÓN 1: Verificar primero si hay actualizaciones en caché - OPTIMIZADO
+            if config and 'updates' in config:
+                cache_updates = config['updates']
                 
-                # Buscar las entradas de época en caché con claves dedicadas
-                epoch_updates = []
-                max_check = last_epoch_checked + 20  # Revisar 20 épocas adelante como máximo
-                
-                for epoch_num in range(last_epoch_checked + 1, max_check + 1):
-                    epoch_key = f'epoch_log_{training_id}_{epoch_num}'
-                    epoch_log = cache.get(epoch_key)
+                if len(cache_updates) > last_update_count:
+                    # Hay nuevas actualizaciones en caché
+                    new_updates = cache_updates[last_update_count:]
+                    updates.extend(new_updates)
                     
-                    if epoch_log:
-                        # Si encontramos una época en caché que no hemos enviado, añadirla a las actualizaciones
-                        if epoch_num not in epoch_logs_sent:
-                            trace_log(f"✅ Encontrada época {epoch_num} en caché especializada", category="EPOCH_CACHE_HIT")
-                            # Marcar como especializado para saber su origen
-                            epoch_log['from_specialized_cache'] = True
-                            epoch_updates.append(epoch_log)
-                            last_epoch_checked = epoch_num
-                
-                if epoch_updates:
-                    trace_log(f"✅ Recuperadas {len(epoch_updates)} épocas desde caché especializada", 
-                             category="EPOCH_RECOVERY")
-                    # Añadir al inicio para procesarlas primero
-                    updates = epoch_updates + updates
-            
-            # Si no hay actualizaciones en la cola ni en caché especializada, revisar caché general como respaldo
-            if not updates:
-                cycles_without_updates += 1
-                
-                # Obtener de la caché
-                config = safe_cache_get(config_key)
-                if not config:
-                    config = session.get(config_key)
+                    # Actualizar contador para la próxima verificación
+                    last_update_count = len(cache_updates)
                     
-                if config:
-                    cache_updates = config.get('updates', [])
+                    # Resetear contador de ciclos sin actualizaciones
+                    cycles_without_updates = 0
                     
-                    # Si hay actualizaciones en cache, usarlas pero solo las nuevas
-                    if cache_updates and len(cache_updates) > last_update_count:
-                        updates = cache_updates[last_update_count:]
-                        trace_log(f"Usando {len(updates)} actualizaciones de caché como respaldo", category="CACHE")
-                        last_update_count = len(cache_updates)
+                    # Registrar actualizaciones procesadas
+                    total_updates_received += len(new_updates)
+                    
+                    # Registrar épocas vistas
+                    for update in new_updates:
+                        if update.get('is_epoch_log') and update.get('epoch_number'):
+                            total_epochs_seen.add(update.get('epoch_number'))
+                            total_epoch_logs_received += 1
+                else:
+                    # No hay actualizaciones nuevas en caché, incrementar contador
+                    cycles_without_updates += 1
             else:
-                # Si recibimos actualizaciones, reiniciar contador
-                cycles_without_updates = 0
-                total_updates_received += len(updates)
-                # Contar cuántas son logs de época
-                epoch_logs = sum(1 for u in updates 
-                               if u.get('type') == 'log' and u.get('is_epoch_log', False))
-                total_epoch_logs_received += epoch_logs
-                
-                trace_log(f"Recibidas {len(updates)} actualizaciones ({epoch_logs} logs de época)", 
-                         category="UPDATES")
+                # No se encontró configuración o no tiene actualizaciones
+                cycles_without_updates += 1
             
-            # Enviar heartbeat cada segundo para mantener la conexión activa
+            # DIAGNÓSTICO: Ejecutar verificación periódica (cada 15 segundos)
+            if current_time - last_diagnostic_time > 15:
+                last_diagnostic_time = current_time
+                
+                # NUEVO: Evaluación progresiva según la gravedad
+                if cycles_without_updates > warning_threshold:
+                    # Solo reportar como advertencia después de muchos ciclos
+                    connections = verify_connections(training_id)
+                    
+                    # MODIFICADO: Usar nivel INFO en lugar de WARNING
+                    trace_log(f"Muchos ciclos sin actualizaciones: {cycles_without_updates}", 
+                             category="INFO", include_stack=False)
+                    
+                    # Solo mostrar WARN después de 2 minutos sin updates
+                    if current_time - start_monitoring_time > 120 and len(total_epochs_seen) == 0:
+                        trace_log(f"Posible problema de comunicación: {connections}", 
+                                 category="WARNING", include_stack=False)
+                
+                elif cycles_without_updates > info_threshold:
+                    # Reportar como INFO si supera el umbral informativo pero no el de advertencia
+                    trace_log(f"Varios ciclos sin actualizaciones: {cycles_without_updates}", 
+                             category="DEBUG", include_stack=False)
+            
+            # MODIFICACIÓN 2: Solo intentar recuperar desde la cola cada 5 ciclos
+            if not updates and cycles_without_updates % 5 == 0:
+                # Intentar obtener desde la cola IPC solo ocasionalmente para reducir carga
+                ipc_updates = get_updates(training_id)
+                if ipc_updates:
+                    updates.extend(ipc_updates)
+                    cycles_without_updates = 0
+                    
+                    # Registrar actualizaciones procesadas
+                    total_updates_received += len(ipc_updates)
+            
+            # Enviar heartbeat cada segundo
             if current_time - last_heartbeat_time >= 1.0:
                 heartbeat_data = {
                     "timestamp": current_time,
                     "stats": {
+                        "cycles": cycles_without_updates,
                         "total_updates": total_updates_received,
-                        "total_epochs": len(total_epochs_seen),
-                        "total_epoch_logs": total_epoch_logs_received
+                        "epochs_seen": len(total_epochs_seen),
+                        "monitoring_time": int(current_time - start_monitoring_time)
                     }
                 }
                 yield f'event: heartbeat\ndata: {json.dumps(heartbeat_data)}\n\n'
                 last_heartbeat_time = current_time
             
             # Procesar actualizaciones recibidas
-            if updates:
-                # MEJORA: Forzar flush después de cada mensaje importante
-                for update in updates:
-                    # Rastrear épocas vistas
-                    if update.get('type') == 'log' and update.get('is_epoch_log') and update.get('epoch_number'):
-                        total_epochs_seen.add(update.get('epoch_number'))
-                    
-                    update_type = update.get('type', '')
-                    
-                    # Eventos no relacionados con logs
-                    if update_type in ['progress', 'batch_progress', 'complete', 'error', 'process_complete', 'process_error', 'post_processing_complete']:
-                        event_type = update_type
-                        yield f'event: {event_type}\ndata: {json.dumps(update)}\n\n'
-                        yield '\n'  # Forzar flush
-                        continue
-                    
-                    # MEJORA: Detección y procesamiento especial para logs de época
-                    if update_type == 'log':
-                        message = update.get('message', '')
-                        
-                        # Verificar si es un log de época por flags o contenido del mensaje
-                        is_epoch_log = update.get('is_epoch_log', False) or update.get('is_real_epoch', False)
-                        epoch_num = update.get('epoch_number')
-                        
-                        # Detección mejorada por contenido del mensaje
-                        if not is_epoch_log and isinstance(message, str):
-                            if ('Época ' in message and '/' in message) or \
-                               ('[EPOCH LOG]' in message) or \
-                               ('>>> ÉPOCA' in message) or \
-                               message.strip().startswith('Época'):
-                                is_epoch_log = True
-                                update['is_epoch_log'] = True
-                                
-                                # Extraer número de época si no está presente
-                                if not epoch_num:
-                                    match = re.search(r'Época (\d+)/(\d+)', message)
-                                    if match:
-                                        epoch_num = int(match.group(1))
-                                        update['epoch_number'] = epoch_num
-                                        update['total_epochs'] = int(match.group(2))
-                                
-                                # Marcar como época real
-                                update['is_real_epoch'] = True
-                                trace_log(f"Detectado log de época por contenido: Época {epoch_num}", category="EPOCH_DETECTION")
-                        
-                        # MEJORA: Enviar logs de época con evento especial
-                        if is_epoch_log and epoch_num:
-                            # Si este epoch ya se envió, usar otro enfoque 
-                            if epoch_num in epoch_logs_sent:
-                                trace_log(f"Reenvío de log de época {epoch_num} con formato alternativo", category="EPOCH_RESEND")
-                                # Enviar como evento específico de época
-                                yield f'event: epoch\ndata: {json.dumps(update)}\n\n'
-                                yield '\n'  # Forzar flush
-                            else:
-                                # Añadir al conjunto de enviados y enviar como evento normal
-                                epoch_logs_sent.add(epoch_num)
-                                source = "caché especializada" if update.get('from_specialized_cache') else "normal"
-                                trace_log(f"Enviando log de época {epoch_num} al cliente (origen: {source})", category="EPOCH_SEND")
-                                
-                                # Enviar como log normal primero
-                                yield f'event: log\ndata: {json.dumps(update)}\n\n'
-                                yield '\n'  # Forzar flush
-                                
-                                # También enviarlo como evento especial de época para redundancia
-                                yield f'event: epoch\ndata: {json.dumps(update)}\n\n'
-                                yield '\n'  # Forzar flush
-                        else:
-                            # Logs normales (no de época)
-                            log_data = json.dumps(update)
-                            yield f'event: log\ndata: {log_data}\n\n'
-                            yield '\n'  # Forzar flush
-                    else:
-                        # Para otros tipos de mensajes genéricos
-                        yield f'data: {json.dumps(update)}\n\n'
-                        yield '\n'  # Forzar flush
+            for update in updates:
+                # Determinar el tipo de evento según el contenido
+                event_type = update.get('type', 'log')
+                
+                # Serializar la actualización a JSON y enviarla
+                update_json = json.dumps(update)
+                yield f'event: {event_type}\ndata: {update_json}\n\n'
             
             # Verificar si el entrenamiento ha terminado
-            config = safe_cache_get(config_key) or session.get(config_key)
             if config and config.get('status') in ['completed', 'failed']:
                 if not updates:  # Solo cerramos si no hay más actualizaciones
                     trace_log(f"Entrenamiento terminado con estado: {config.get('status')}. Cerrando stream.", category="STREAM_END")
+                    
+                    # NUEVO: Enviar evento complete con los resultados finales antes de cerrar
+                    # Obtener métricas finales si están disponibles
+                    final_metrics = {}
+                    training_results = {}
+                    
+                    # Intentar obtener métricas finales desde la configuración
+                    if config.get('metrics'):
+                        final_metrics = config.get('metrics')
+                    if config.get('results'):
+                        training_results = config.get('results')
+                    
+                    # Construir respuesta de finalización completa
+                    complete_data = {
+                        'status': config.get('status'),
+                        'timestamp': time.time(),
+                        'training_id': training_id,
+                        'message': 'Entrenamiento finalizado',
+                        'metrics': final_metrics,
+                        'results': training_results,
+                        'model_id': training_id,
+                        'model_name': config.get('model_name', 'tiempo_estimator')
+                    }
+                    
+                    # Emitir evento complete con los resultados
+                    yield f'event: complete\ndata: {json.dumps(complete_data)}\n\n'
+                    
+                    # Emitir evento de cierre después del complete
                     yield f'event: close\ndata: {json.dumps({"message": "Stream finalizado correctamente"})}\n\n'
                     break
             
+            # Si no hay actualizaciones, añadir un pequeño retraso para evitar CPU al 100%
+            if not updates:
+                time.sleep(poll_interval)
+
         except Exception as e:
-            # Manejar excepciones durante el streaming
             error_trace = traceback.format_exc()
-            trace_log(f"Error en streaming: {str(e)}\n{error_trace}", category="STREAM_ERROR", include_stack=True)
+            trace_log(f"Error en stream de actualizaciones: {str(e)}\n{error_trace}", 
+                     category="STREAM_ERROR", include_stack=True)
             
-            # Intentar enviar el error al cliente
-            try:
-                error_data = {
-                    'message': f"Error en el servidor: {str(e)}",
-                    'type': 'error',
-                    'timestamp': time.time()
-                }
-                yield f'event: error\ndata: {json.dumps(error_data)}\n\n'
-            except:
-                pass  # Ignorar si no podemos enviar el error
+            # Pequeño retraso antes de continuar
+            time.sleep(0.5)
         
         # Esperar un pequeño tiempo antes de la siguiente actualización
         time.sleep(poll_interval)
@@ -963,52 +858,76 @@ def generar_archivos_evaluacion(request):
     })
 
 @login_required
-def model_status(request):
-    """Obtener estado actual del modelo para actualizar la interfaz"""
-    try:
-        from .views_utils import get_model_status
-        status = get_model_status()
-        return JsonResponse(status)
-    except Exception as e:
-        return JsonResponse({
-            'status': 'error',
-            'message': str(e)
-        })
-
-@login_required
+@require_POST
 def evaluar_modelo(request):
-    """API para evaluar un modelo entrenado"""
-    if request.method == 'POST':
+    """
+    Vista para evaluar un modelo existente y generar visualizaciones
+    """
+    try:
+        # Recibir el ID del modelo (training_id) del cuerpo de la solicitud
+        data = json.loads(request.body)
+        model_id = data.get('model_id')
+        
+        if not model_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'No se proporcionó un ID de modelo válido'
+            })
+            
+        # CORRECCIÓN: Usar rutas absolutas para mayor seguridad
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        models_dir = os.path.join(BASE_DIR, 'redes_neuronales', 'estimacion_tiempo', 'models')
+        
+        # Crear directorio si no existe
+        os.makedirs(models_dir, exist_ok=True)
+        
+        # Verificar que existe el modelo
+        model_keras_path = os.path.join(models_dir, 'tiempo_estimator_model.keras')
+        if not os.path.exists(model_keras_path):
+            return JsonResponse({
+                'success': False,
+                'message': 'El modelo no existe en el sistema'
+            })
+        
         try:
-            data = json.loads(request.body)
-            model_id = data.get('model_id')
-            
-            # Obtener el directorio de modelos
-            models_dir = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models')
-            
-            # Importar el evaluador
+            # Importar clases necesarias
             from redes_neuronales.estimacion_tiempo.evaluator import ModelEvaluator
-            
-            # Cargar el modelo
             from redes_neuronales.estimacion_tiempo.rnn_model import AdvancedRNNEstimator
+            import joblib
+            
+            print(f"Cargando modelo para evaluación desde: {models_dir}")
+            # Cargar el modelo
             estimator = AdvancedRNNEstimator.load(models_dir, 'tiempo_estimator')
             
             # Cargar feature_dims
             feature_dims = joblib.load(os.path.join(models_dir, 'feature_dims.pkl'))
             
             # Cargar datos de validación
-            X_val = np.load(os.path.join(models_dir, 'X_val.npy'))
-            y_val = np.load(os.path.join(models_dir, 'y_val.npy'))
+            try:
+                print("Cargando datos de validación...")
+                X_val = np.load(os.path.join(models_dir, 'X_val.npy'))
+                y_val = np.load(os.path.join(models_dir, 'y_val.npy'))
+            except Exception as e:
+                print(f"Error al cargar datos de validación: {str(e)}")
+                traceback.print_exc()
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error al cargar datos de validación: {str(e)}'
+                })
             
-            # Crear el evaluador
+            print(f"Creando evaluador con directorio de salida: {models_dir}")
+            # CAMBIO: Usar models_dir como directorio de salida para el evaluador
             evaluator = ModelEvaluator(estimator, feature_dims, models_dir)
             
-            # Realizar evaluación completa
-            metrics, _ = evaluator.evaluate_model(X_val, y_val)
+            print("Realizando evaluación del modelo...")
+            # Evaluar el modelo
+            metrics, predictions = evaluator.evaluate_model(X_val, y_val)
             
-            # Generar gráficos de evaluación
-            evaluator.plot_predictions(y_val, estimator.predict(X_val, feature_dims))
+            print("Generando gráficos de predicciones...")
+            # Generar gráficos de predicciones
+            evaluator.plot_predictions(y_val, predictions)
             
+            print("Analizando importancia de características...")
             # Generar análisis de importancia de características
             feature_names = [
                 'Complejidad', 'Cantidad_Recursos', 'Carga_Trabajo_R1', 
@@ -1022,37 +941,51 @@ def evaluar_modelo(request):
                 feature_names.append(f'Tipo_Tarea_{i+1}')
             for i in range(feature_dims['fase']):
                 feature_names.append(f'Fase_{i+1}')
-                
+            
             evaluator.analyze_feature_importance(X_val, y_val, feature_names)
             
-            # Realizar evaluación segmentada
+            print("Realizando evaluación segmentada...")
+            # Evaluación segmentada para comprender el rendimiento en diferentes tipos de tareas
             segments = {
                 'pequeñas': lambda y: y <= 10,
                 'medianas': lambda y: (y > 10) & (y <= 30),
                 'grandes': lambda y: y > 30
             }
             evaluator.segmented_evaluation(X_val, y_val, segments)
-
-            import matplotlib.pyplot as plt
-            plt.close('all')  # Cerrar TODAS las figuras - Añade esta línea
             
+            # Construir rutas para las imágenes generadas
+            # IMPORTANTE: Ahora apuntan al directorio de modelos para acceso via backend
+            image_paths = {
+                'feature_importance': os.path.join(models_dir, 'global_feature_importance.png'),
+                'evaluation_plots': os.path.join(models_dir, 'evaluation_plots.png'),
+                'segmented_metrics': os.path.join(models_dir, 'segmented_metrics.png')
+            }
+            
+            print("Evaluación completa. Enviando resultados...")
+            # Devolver respuesta de éxito con métricas y rutas de imágenes
             return JsonResponse({
-                'success': True, 
-                'metrics': metrics
+                'success': True,
+                'message': 'Evaluación completada con éxito',
+                'metrics': metrics,
+                'files_location': models_dir,  # Informar dónde están los archivos
+                'model_id': model_id
             })
             
         except Exception as e:
+            print(f"Error durante la evaluación: {str(e)}")
+            traceback.print_exc()
             return JsonResponse({
                 'success': False,
-                'message': str(e)
+                'message': f'Error durante la evaluación: {str(e)}'
             })
-        
-        finally:
-            import gc
-            plt.close('all')
-            gc.collect()  # Opcional: forzar recolección de basura
-            
-    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+    
+    except Exception as e:
+        print(f"Error general: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        })
 
 @login_required
 def diagnosticar_entrenamiento(request):
@@ -1324,3 +1257,39 @@ def get_last_updates(training_id, limit=10):
         return sanitized_updates
     
     return None
+
+@login_required
+def model_status(request):
+    """Devuelve el estado actual del modelo y sus métricas"""
+    try:
+        # Cargar las métricas desde el archivo JSON
+        import os
+        import json
+        metrics_file = os.path.join(os.path.dirname(__file__), 'estimacion_tiempo', 'models', 'evaluation_metrics.json')
+        
+        if os.path.exists(metrics_file):
+            with open(metrics_file, 'r') as f:
+                metrics = json.load(f)
+        else:
+            metrics = {
+                'MSE': 0.0,
+                'RMSE': 0.0,
+                'MAE': 0.0,
+                'R2': 0.0,
+                'Accuracy': 0.0,
+                'Precision': 0.0,
+                'Recall': 0.0,
+                'F1': 0.0,
+            }
+        
+        return JsonResponse({
+            'status': 'success',
+            'metrics': metrics,
+            'model_name': 'tiempo_estimator',
+            'is_main_model': True
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        })

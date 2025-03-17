@@ -496,7 +496,10 @@ def main():
         # Determinar si estamos en un hilo principal o secundario
         try:
             import threading
-            is_main_thread = threading.current_thread() is threading.main_thread()
+            import os
+            # Verificar variable de entorno para forzar modo hilo principal
+            is_force_main = os.environ.get('FORCE_MAIN_THREAD') == '1'
+            is_main_thread = is_force_main or threading.current_thread() is threading.main_thread()
         except ImportError:
             is_main_thread = True  # Asumir hilo principal si no podemos verificar
         

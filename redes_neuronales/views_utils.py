@@ -11,48 +11,93 @@ from datetime import datetime
 from django.contrib.auth.decorators import login_required
 
 def generate_evaluation_files(request):
-    """Función para generar archivos de evaluación bajo demanda"""
-    try:
-        # Forzar uso de backend no interactivo para matplotlib
-        import matplotlib
-        matplotlib.use('Agg')
-        os.environ['MPLBACKEND'] = 'Agg'
-        
-        from .estimacion_tiempo.generate_evaluation_files import main as generate_files
-        
-        # Ejecutar la generación de archivos
-        success = generate_files()
-        
-        return {
-            'success': success,
-            'message': 'Archivos generados correctamente' if success else 'Error al generar archivos'
-        }
-    except Exception as e:
-        traceback.print_exc()
+    """Genera archivos de evaluación para un modelo existente"""
+    model_status = check_model_files()
+    
+    if not model_status['all_present']:
         return {
             'success': False,
-            'message': f'Error inesperado: {str(e)}'
+            'message': f'Faltan archivos necesarios: {", ".join(model_status["missing_files"])}'
         }
-    finally:
-        import matplotlib.pyplot as plt
-        import gc
-        plt.close('all')
-        gc.collect()  # Opcional: forzar recolección de basura
+    
+    try:
+        # Importar el evaluador
+        from redes_neuronales.estimacion_tiempo.evaluator import ModelEvaluator
+        from redes_neuronales.estimacion_tiempo.rnn_model import AdvancedRNNEstimator
+        import joblib
+        import numpy as np
+        
+        # Rutas de archivos
+        models_dir = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models')
+        
+        # Cargar el modelo
+        estimator = AdvancedRNNEstimator.load(models_dir, 'tiempo_estimator')
+        
+        # Cargar feature_dims
+        feature_dims = joblib.load(os.path.join(models_dir, 'feature_dims.pkl'))
+        
+        # Cargar datos de validación
+        X_val = np.load(os.path.join(models_dir, 'X_val.npy'))
+        y_val = np.load(os.path.join(models_dir, 'y_val.npy'))
+        
+        # Crear el evaluador
+        evaluator = ModelEvaluator(estimator, feature_dims, models_dir)
+        
+        # Realizar evaluación completa
+        metrics, _ = evaluator.evaluate_model(X_val, y_val)
+        
+        # Generar gráficos de evaluación
+        evaluator.plot_predictions(y_val, estimator.predict(X_val, feature_dims))
+        
+        # Generar análisis de importancia de características
+        feature_names = [
+            'Complejidad', 'Cantidad_Recursos', 'Carga_Trabajo_R1', 
+            'Experiencia_R1', 'Carga_Trabajo_R2', 'Experiencia_R2', 
+            'Carga_Trabajo_R3', 'Experiencia_R3', 'Experiencia_Equipo', 
+            'Claridad_Requisitos', 'Tamaño_Tarea'
+        ]
+        
+        # Añadir nombres para características categóricas
+        for i in range(feature_dims['tipo_tarea']):
+            feature_names.append(f'Tipo_Tarea_{i+1}')
+        for i in range(feature_dims['fase']):
+            feature_names.append(f'Fase_{i+1}')
+            
+        evaluator.analyze_feature_importance(X_val, y_val, feature_names)
+        
+        # Realizar evaluación segmentada
+        segments = {
+            'pequeñas': lambda y: y <= 10,
+            'medianas': lambda y: (y > 10) & (y <= 30),
+            'grandes': lambda y: y > 30
+        }
+        evaluator.segmented_evaluation(X_val, y_val, segments)
+        
+        return {
+            'success': True,
+            'message': 'Archivos de evaluación generados correctamente.'
+        }
+        
+    except Exception as e:
+        import traceback
+        return {
+            'success': False,
+            'message': f'Error: {str(e)}',
+            'traceback': traceback.format_exc()
+        }
 
 def check_model_files():
-    """Verifica los archivos necesarios para el modelo"""
-    output_dir = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models')
-    
+    """Verifica si existen todos los archivos necesarios del modelo"""
     required_files = [
-        'tiempo_estimator_model.keras',
-        'tiempo_estimator_config.joblib',
-        'feature_dims.pkl',
+        os.path.join('redes_neuronales', 'estimacion_tiempo', 'models', 'tiempo_estimator_model.keras'),
+        os.path.join('redes_neuronales', 'estimacion_tiempo', 'models', 'metrics_history.json'),
+        os.path.join('redes_neuronales', 'estimacion_tiempo', 'models', 'feature_dims.pkl')
     ]
     
     missing_files = []
-    for file in required_files:
-        if not os.path.exists(os.path.join(output_dir, file)):
-            missing_files.append(file)
+    for file_path in required_files:
+        if not os.path.exists(file_path):
+            missing_files.append(file_path)
     
     return {
         'all_present': len(missing_files) == 0,
@@ -88,50 +133,54 @@ def run_manual_evaluation():
         gc.collect()  # Opcional: forzar recolección de basura
 
 def get_model_status():
-    """Obtiene el estado actual del modelo"""
-    model_dir = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models')
+    """Obtiene el estado actual del modelo y sus métricas"""
+    result = {
+        'status': 'error',
+        'message': 'No se pudo determinar el estado del modelo'
+    }
     
     try:
-        # Verificar si existe el modelo principal
-        model_path = os.path.join(model_dir, 'tiempo_estimator_model.keras')
+        # Verificar si existe el modelo
+        model_path = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models', 'tiempo_estimator_model.keras')
+        metrics_path = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models', 'metrics_history.json')
+        
         if not os.path.exists(model_path):
             return {
-                'status': 'not_found',
-                'message': 'No se encontró el modelo principal'
+                'status': 'warning',
+                'message': 'Modelo no encontrado'
             }
         
-        # Cargar métricas
-        metrics_path = os.path.join(model_dir, 'evaluation_metrics.json')
+        # Obtener fecha de modificación del modelo
+        model_modified = os.path.getmtime(model_path)
+        
+        # Obtener métricas más recientes
+        metrics = None
         if os.path.exists(metrics_path):
             with open(metrics_path, 'r') as f:
-                metrics = json.load(f)
-        else:
-            metrics = None
+                try:
+                    metrics_data = json.load(f)
+                    if isinstance(metrics_data, list) and metrics_data:
+                        latest_metrics = metrics_data[-1]
+                        metrics = latest_metrics.get('metrics', latest_metrics)
+                    elif isinstance(metrics_data, dict):
+                        metrics = metrics_data.get('metrics', metrics_data)
+                except json.JSONDecodeError:
+                    pass
         
-        # Obtener fecha de la última modificación
-        modified_time = os.path.getmtime(model_path)
-        modified_date = datetime.fromtimestamp(modified_time).strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Determinar estado basado en presencia de archivos de evaluación
-        evaluation_files = glob.glob(os.path.join(model_dir, '*.json'))
-        evaluation_files.extend(glob.glob(os.path.join(model_dir, '*.png')))
-        
-        if len(evaluation_files) >= 5:
-            status = 'ready'
-        else:
-            status = 'needs_evaluation'
-            
-        return {
-            'status': status,
-            'message': 'Modelo listo para usar' if status == 'ready' else 'Se recomienda generar archivos de evaluación',
-            'modified': modified_date,
+        result = {
+            'status': 'success',
+            'model_exists': True,
+            'last_modified': model_modified,
+            'last_modified_date': os.path.getmtime(model_path),
             'metrics': metrics
         }
+        
     except Exception as e:
-        return {
-            'status': 'error',
-            'message': f'Error al verificar estado del modelo: {str(e)}'
-        }
+        import traceback
+        result['message'] = str(e)
+        result['traceback'] = traceback.format_exc()
+    
+    return result
 
 @login_required
 def generar_archivos_evaluacion(request):

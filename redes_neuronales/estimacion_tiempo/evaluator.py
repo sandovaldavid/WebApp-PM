@@ -235,7 +235,7 @@ class ModelEvaluator:
             plt.savefig(os.path.join(self.output_dir, 'evaluation_plots.png'), dpi=300)
             print(f"Gráficos guardados en {os.path.join(self.output_dir, 'evaluation_plots.png')}")
             
-        plt.show()
+        plt.close()
     
     def analyze_feature_importance(self, X_test, y_test, feature_names=None):
         """Analiza la importancia de las características mediante perturbación

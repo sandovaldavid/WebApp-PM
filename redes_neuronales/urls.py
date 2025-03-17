@@ -10,6 +10,7 @@ urlpatterns = [
     path('entrenar-modelo/', views.entrenar_modelo, name='entrenar_modelo'),
     path('iniciar-entrenamiento/', views.iniciar_entrenamiento, name='iniciar_entrenamiento'),
     path('monitor-entrenamiento/', views.monitor_entrenamiento, name='monitor_entrenamiento'),
+    path('model-status/', views.model_status, name='model_status'),
     path('estimacion/', include('redes_neuronales.estimacion_tiempo.urls')),
     path('evaluar-modelo/', views.evaluar_modelo, name='evaluar_modelo'),
     path('generar-archivos-evaluacion/', views.generar_archivos_evaluacion, name='generar_archivos_evaluacion'),
