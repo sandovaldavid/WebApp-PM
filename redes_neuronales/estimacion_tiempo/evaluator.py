@@ -496,8 +496,7 @@ class ModelEvaluator:
         plt.xlabel('Importancia Normalizada')
         plt.ylabel('Característica')
         plt.title('Importancia Global de Características')
-        plt.tight_layout()
-        plt.show()
+        plt.close()
         
         # Mostrar cada segmento en una gráfica separada
         for segment_name, importance_df in segment_results.items():
@@ -509,7 +508,7 @@ class ModelEvaluator:
             plt.ylabel('Característica')
             plt.title(f'Importancia de Características - {segment_name}')
             plt.tight_layout()
-            plt.show()
+            plt.close()
         
         return global_importance_df, segment_results
     

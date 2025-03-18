@@ -55,6 +55,15 @@ function initializeUI() {
             }
         });
     }
+    
+    // Inicializar botón para volver a configuración
+    const backToConfigBtn = document.getElementById('backToConfigBtn');
+    if (backToConfigBtn) {
+        backToConfigBtn.addEventListener('click', function() {
+            // Usar true para reiniciar completamente (como una nueva carga de página)
+            showConfigPanel(true);
+        });
+    }
 }
 
 /**
@@ -78,6 +87,15 @@ function setupEventHandlers() {
     if (diagnosticarEntrenamientoBtn) {
         diagnosticarEntrenamientoBtn.addEventListener('click', diagnosticarEntrenamiento);
     }
+    
+    // Botón para nuevo entrenamiento
+    const newTrainingBtn = document.getElementById('newTrainingBtn');
+    if (newTrainingBtn) {
+        newTrainingBtn.addEventListener('click', function() {
+            // Usar true para reiniciar completamente (como una nueva carga de página)
+            showConfigPanel(true);
+        });
+    }
 }
 
 /**
@@ -95,6 +113,9 @@ function updateUIState() {
     if (evaluationSection) {
         evaluationSection.classList.add('hidden');
     }
+    
+    // Asegurar que el panel de configuración esté visible
+    showConfigPanel();
     
     // Inicializar el estado del indicador de conexión SSE
     const sseStatusDot = document.getElementById('sseStatusDot');
@@ -116,12 +137,6 @@ function startTraining() {
         return;
     }
     
-    // Mostrar sección de resultados
-    const trainingResults = document.getElementById('trainingResults');
-    if (trainingResults) {
-        trainingResults.classList.remove('hidden');
-    }
-    
     // Obtener los datos del formulario
     const form = document.getElementById('trainingForm');
     const formData = new FormData(form);
@@ -132,6 +147,18 @@ function startTraining() {
         startTrainingBtn.disabled = true;
         startTrainingBtn.classList.add('opacity-50', 'cursor-not-allowed');
         startTrainingBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Iniciando...';
+    }
+    
+    // Ocultar panel de configuración y mostrar resultados
+    hideConfigPanel();
+    
+    // Mostrar sección de resultados
+    const trainingResults = document.getElementById('trainingResults');
+    if (trainingResults) {
+        trainingResults.classList.remove('hidden');
+        // Añadir animación de entrada
+        trainingResults.classList.add('animate-fadeIn');
+        setTimeout(() => trainingResults.classList.remove('animate-fadeIn'), 500);
     }
     
     // Actualizar estado visual
@@ -320,6 +347,9 @@ function handleTrainingComplete(data) {
         finalMetrics.classList.remove('hidden');
     }
     
+    // Mostrar botón para volver a la configuración
+    showBackToConfigButton();
+    
     // MEJORADO: Actualizar valores de métricas con manejo robusto de mayúsculas/minúsculas y valores nulos
     if (data.metrics) {
         // Normalizar métricas para manejar inconsistencia de mayúsculas/minúsculas
@@ -492,6 +522,9 @@ function handleTrainingError(error) {
         startTrainingBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         startTrainingBtn.innerHTML = '<i class="fas fa-cogs mr-1"></i> Reintentar';
     }
+    
+    // Mostrar botón para volver a la configuración
+    showBackToConfigButton();
 }
 
 /**
@@ -847,6 +880,21 @@ function displayEvaluationResults(data) {
         metricsHtml += '</ul>';
         metricsDisplay.innerHTML = metricsHtml;
     }
+
+    // NUEVO: Actualizar valores en las tarjetas principales
+    if (data.metrics) {
+        // Error Medio (MAE)
+        updateEvaluationMetric('metricMAEDisplay', data.metrics.MAE);
+        
+        // Precisión R²
+        updateEvaluationMetric('metricR2Display', data.metrics.R2);
+        
+        // RMSE
+        updateEvaluationMetric('metricRMSEDisplay', data.metrics.RMSE);
+        
+        // Precisión Global
+        updateEvaluationMetric('metricGlobalDisplay', data.global_precision, true);
+    }
     
     // Mostrar imágenes si están disponibles
     if (data.feature_importance_image) {
@@ -862,6 +910,46 @@ function displayEvaluationResults(data) {
             evaluationPlotsImg.src = data.evaluation_plots_image + '?t=' + new Date().getTime();
         }
     }
+
+    // NUEVO: Mostrar imagen de métricas por segmentos
+    if (data.segmented_metrics_image) {
+        const segmentedMetricsImg = document.getElementById('segmentedMetricsImg');
+        if (segmentedMetricsImg) {
+            segmentedMetricsImg.src = data.segmented_metrics_image + '?t=' + new Date().getTime();
+        }
+    }
+    
+    // Mostrar botón para volver a configuración de forma prominente
+    showBackToConfigButton();
+}
+
+/**
+ * Actualiza un valor de métrica en la interfaz con formato apropiado
+ * @param {string} elementId - ID del elemento a actualizar
+ * @param {number} value - Valor de la métrica
+ * @param {boolean} isPercentage - Si el valor debe mostrarse como porcentaje
+ */
+function updateEvaluationMetric(elementId, value, isPercentage = false) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    if (value !== undefined && value !== null) {
+        if (isPercentage) {
+            // Convertir a porcentaje y mostrar con 1 decimal
+            element.textContent = (value * 100).toFixed(1);
+        } else {
+            // Mostrar con 2 decimales para métricas normales
+            element.textContent = typeof value === 'number' ? value.toFixed(2) : value;
+        }
+    } else {
+        element.textContent = "N/D";
+    }
+    
+    // Añadir efecto de actualización
+    element.classList.add('pulse-update');
+    setTimeout(() => {
+        element.classList.remove('pulse-update');
+    }, 1500);
 }
 
 /**
@@ -1176,6 +1264,298 @@ function createEmptyChart(canvasId, message) {
         }
     });
 }
+
+/**
+ * Muestra el panel de configuración y oculta los resultados y evaluación
+ * @param {boolean} resetTraining - Si es true, reinicia el estado como si fuera una nueva carga de página
+ */
+function showConfigPanel(resetTraining = false) {
+    // Mostrar panel de configuración
+    const configPanel = document.getElementById('configurationPanel');
+    if (configPanel) {
+        configPanel.classList.remove('hidden');
+        configPanel.classList.add('animate-fadeIn');
+        setTimeout(() => configPanel.classList.remove('animate-fadeIn'), 500);
+    }
+    
+    // Ocultar botón de volver
+    const backToConfigBtn = document.getElementById('backToConfigBtn');
+    if (backToConfigBtn) {
+        backToConfigBtn.classList.add('hidden');
+    }
+    
+    // Ocultar COMPLETAMENTE los resultados del entrenamiento (no solo minimizar)
+    const trainingResults = document.getElementById('trainingResults');
+    if (trainingResults) {
+        trainingResults.classList.add('hidden');
+        trainingResults.classList.remove('opacity-60', 'scale-95');
+    }
+    
+    // Ocultar la sección de evaluación del modelo
+    const evaluationSection = document.getElementById('evaluationSection');
+    if (evaluationSection) {
+        evaluationSection.classList.add('hidden');
+    }
+    
+    // Si resetTraining es true, reiniciar el estado como si fuera una nueva carga
+    if (resetTraining) {
+        // Reiniciar el estado del entrenamiento
+        if (trainingMonitor) {
+            trainingMonitor.stop();
+            trainingMonitor = null;
+        }
+        
+        // Limpiar ID de entrenamiento actual
+        currentTrainingId = null;
+        
+        // Reiniciar el estado de las gráficas
+        chartsInitialized = false;
+        lossChart = null;
+        predictionsChart = null;
+        
+        // Reiniciar el formulario de entrenamiento
+        const trainingForm = document.getElementById('trainingForm');
+        if (trainingForm) {
+            trainingForm.reset();
+            
+            // SOLUCIÓN: Limpiar explícitamente el campo de archivo CSV
+            const csvFileInput = document.getElementById('csv_file');
+            if (csvFileInput) {
+                // Crear un nuevo elemento input file que reemplace al actual
+                const newFileInput = document.createElement('input');
+                newFileInput.type = 'file';
+                newFileInput.id = csvFileInput.id;
+                newFileInput.name = csvFileInput.name;
+                newFileInput.className = csvFileInput.className;
+                newFileInput.accept = csvFileInput.accept || '.csv';
+                
+                // Reemplazar el elemento actual con el nuevo
+                csvFileInput.parentNode.replaceChild(newFileInput, csvFileInput);
+            }
+        }
+        
+        // Limpiar el registro de entrenamiento
+        const trainingLog = document.getElementById('trainingLog');
+        if (trainingLog) {
+            trainingLog.innerHTML = '<p class="log-line">Listo para iniciar un nuevo entrenamiento.</p>';
+        }
+        
+        // Ocultar métricas finales si están visibles
+        const finalMetrics = document.getElementById('finalMetrics');
+        if (finalMetrics) {
+            finalMetrics.classList.add('hidden');
+        }
+        
+        // Reiniciar las métricas a valores vacíos
+        const metricElements = ['metricMSE', 'metricMAE', 'metricRMSE', 'metricR2'];
+        metricElements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = '--';
+        });
+        
+        // Reiniciar el estado de indicadores de progreso
+        updateTrainingStatus("Esperando inicio de entrenamiento", 0);
+        
+        // SOLUCIÓN: Reiniciar el spinner de entrenamiento
+        const trainingSpinner = document.getElementById('trainingSpinner');
+        if (trainingSpinner) {
+            // Asegurar que el elemento se muestre correctamente
+            trainingSpinner.classList.remove('hidden');
+            trainingSpinner.classList.add('pulse-ring');
+        }
+        
+        // Reiniciar los estados de los indicadores
+        const sseStatusDot = document.getElementById('sseStatusDot');
+        const sseStatusText = document.getElementById('sseStatusText');
+        if (sseStatusDot && sseStatusText) {
+            // Limpiar todas las clases posibles y reiniciar
+            sseStatusDot.className = "w-2 h-2 rounded-full bg-gray-500 inline-block mr-2";
+            sseStatusText.textContent = "Sin conexión";
+        }
+        
+        console.log('Estado del entrenamiento reiniciado completamente');
+    }
+    
+    // Scroll hacia arriba para mostrar el panel de configuración
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+/**
+ * Oculta el panel de configuración y muestra los resultados
+ */
+function hideConfigPanel() {
+    // Ocultar panel de configuración
+    const configPanel = document.getElementById('configurationPanel');
+    if (configPanel) {
+        configPanel.classList.add('hidden');
+    }
+    
+    // Mostrar resultados con normalidad
+    const trainingResults = document.getElementById('trainingResults');
+    if (trainingResults) {
+        trainingResults.classList.remove('hidden', 'opacity-60', 'scale-95');
+    }
+}
+
+/**
+ * Muestra el botón para volver al panel de configuración
+ */
+function showBackToConfigButton() {
+    const backToConfigBtn = document.getElementById('backToConfigBtn');
+    if (backToConfigBtn) {
+        backToConfigBtn.classList.remove('hidden');
+        backToConfigBtn.classList.add('animate-fadeIn');
+        setTimeout(() => backToConfigBtn.classList.remove('animate-fadeIn'), 500);
+    }
+}
+
+
+/**
+ * Solicita la generación de un informe de evaluación del modelo
+ */
+function generateModelReport() {
+    // Verificar que tenemos un ID de modelo válido
+    if (!currentTrainingId) {
+        alert('No hay un modelo evaluado para generar el informe.');
+        return;
+    }
+    
+    // Referencia al botón
+    const reportBtn = document.getElementById('generateReportBtn');
+    const originalContent = reportBtn.innerHTML;
+    
+    // Cambiar el botón a estado de carga
+    reportBtn.disabled = true;
+    reportBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Generando...';
+    
+    // Mostrar notificación de proceso iniciado
+    showNotification('Generando informe de evaluación...', 'info');
+    
+    // Enviar solicitud al servidor
+    fetch(`${URLS.generarInforme}`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ 
+            model_id: currentTrainingId,
+            include_charts: true,
+            include_metrics: true,
+            include_feature_importance: true
+        })
+    })
+    .then(response => {
+        // Si es un PDF o blob, manejarlo diferente
+        if (response.headers.get('Content-Type') === 'application/pdf') {
+            return response.blob().then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `evaluacion_modelo_${currentTrainingId.substring(0, 8)}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                return { success: true, message: 'Informe descargado correctamente' };
+            });
+        }
+        
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showNotification('Informe generado correctamente', 'success');
+        } else {
+            showNotification(`Error: ${data.message}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error al generar informe:', error);
+        showNotification('Error al generar informe', 'error');
+    })
+    .finally(() => {
+        // Restaurar el botón a su estado original
+        reportBtn.disabled = false;
+        reportBtn.innerHTML = originalContent;
+    });
+}
+
+/**
+ * Muestra una notificación temporal
+ * @param {string} message - Mensaje a mostrar
+ * @param {string} type - Tipo de notificación: 'success', 'error', 'info', 'warning'
+ */
+function showNotification(message, type = 'info') {
+    // Crear elemento de notificación
+    const notification = document.createElement('div');
+    
+    // Configurar clases según el tipo
+    const baseClasses = 'fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-500 transform translate-y-0 opacity-100';
+    let typeClasses = '';
+    let icon = '';
+    
+    switch(type) {
+        case 'success':
+            typeClasses = 'bg-green-50 text-green-800 border border-green-200';
+            icon = '<i class="fas fa-check-circle text-green-500 mr-2"></i>';
+            break;
+        case 'error':
+            typeClasses = 'bg-red-50 text-red-800 border border-red-200';
+            icon = '<i class="fas fa-exclamation-circle text-red-500 mr-2"></i>';
+            break;
+        case 'warning':
+            typeClasses = 'bg-yellow-50 text-yellow-800 border border-yellow-200';
+            icon = '<i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>';
+            break;
+        default: // info
+            typeClasses = 'bg-blue-50 text-blue-800 border border-blue-200';
+            icon = '<i class="fas fa-info-circle text-blue-500 mr-2"></i>';
+    }
+    
+    notification.className = `${baseClasses} ${typeClasses}`;
+    notification.innerHTML = `<div class="flex items-center">${icon}<span>${message}</span></div>`;
+    
+    // Añadir a DOM
+    document.body.appendChild(notification);
+    
+    // Animar entrada
+    setTimeout(() => {
+        notification.style.transform = 'translateY(0)';
+        notification.style.opacity = '1';
+    }, 10);
+    
+    // Animar salida y eliminar
+    setTimeout(() => {
+        notification.style.transform = 'translateY(20px)';
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 500);
+    }, 4000);
+}
+
+// Añadir estilos para las animaciones
+(function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .scale-95 {
+            transform: scale(0.95);
+        }
+    `;
+    document.head.appendChild(style);
+})();
 
 // Añadir estilos para la animación de actualización de métricas
 (function() {

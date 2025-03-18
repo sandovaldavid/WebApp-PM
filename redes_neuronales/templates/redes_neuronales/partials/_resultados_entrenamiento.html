@@ -195,7 +195,7 @@
             </div>
             
             <!-- Más información y acciones -->
-            <div class="mt-6 pt-4 border-t flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <!--<div class="mt-6 pt-4 border-t flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <div class="p-3 bg-green-50 border border-green-100 rounded-lg">
                         <p class="text-sm text-gray-600">El modelo ha sido guardado como <span id="savedModelName" class="font-semibold">tiempo_estimator</span></p>
@@ -212,6 +212,29 @@
                         <i class="fas fa-calculator mr-2"></i> Ir a Estimación
                     </a>
                 </div>
+            </div>-->
+        </div>
+
+        <!-- Acciones finales -->
+        <div class="mt-8 pt-6 border-t flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <div class="p-3 bg-green-50 border border-green-100 rounded-lg">
+                    <p class="text-sm text-gray-600">El modelo ha sido guardado como <span id="savedModelName" class="font-semibold">tiempo_estimator</span></p>
+                    <p id="setAsMainModel" class="text-sm text-green-600 hidden mt-1 flex items-center">
+                        <i class="fas fa-check-circle mr-1"></i> Establecido como modelo principal
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button id="newTrainingBtn" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                    <i class="fas fa-plus mr-2"></i> Nuevo Entrenamiento
+                </button>
+                <a href="{% url 'redes_neuronales:redes_dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                    <i class="fas fa-tachometer-alt mr-2"></i> Ver Dashboard
+                </a>
+                <a href="{% url 'redes_neuronales:estimacion_avanzada' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                    <i class="fas fa-calculator mr-2"></i> Ir a Estimación
+                </a>
             </div>
         </div>
 

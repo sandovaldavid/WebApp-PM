@@ -203,7 +203,6 @@
     100% { background-color: rgba(79, 70, 229, 0); }
 }
 
-
 /* Estilos para mejorar las gráficas */
 .chart-container {
     transition: all 0.3s ease;
@@ -245,3 +244,53 @@
     font-size: 14px;
     color: #6B7280;
   }
+
+/* Estilos específicos para la sección de evaluación del modelo */
+.evaluation-image {
+  transition: transform 0.2s ease-in-out;
+}
+
+.image-zoom-btn:hover + .image-container .evaluation-image,
+.image-container:hover .evaluation-image {
+  transform: scale(1.02);
+}
+
+.metric-value {
+  transition: all 0.3s ease;
+}
+
+#evaluationProgress .animate-pulse {
+  animation: progress-pulse 1.5s infinite;
+}
+
+@keyframes progress-pulse {
+  0%, 100% {
+    width: 60%;
+    opacity: 0.6;
+  }
+  50% {
+    width: 90%;
+    opacity: 0.9;
+  }
+}
+
+/* Efectos sutiles para hover en tarjetas de métricas */
+.metric-value {
+  background: linear-gradient(120deg, transparent 0%, transparent 100%);
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  transition: all 0.3s ease;
+}
+
+.metric-value.highlighted {
+  animation: highlight-metric 2s ease;
+}
+
+@keyframes highlight-metric {
+  0% { background-position: 100% 0; }
+  50% { 
+    background-position: 0 0;
+    background-image: linear-gradient(120deg, rgba(79, 70, 229, 0.1) 0%, transparent 100%);
+  }
+  100% { background-position: 100% 0; }
+}

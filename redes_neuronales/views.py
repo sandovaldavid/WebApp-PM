@@ -1118,7 +1118,6 @@ def _prepare_complete_event(training_id):
     return complete_data
 
 
-
 @login_required
 def generar_archivos_evaluacion(request):
     """Vista para generar archivos de evaluación para un modelo existente"""
@@ -1178,6 +1177,7 @@ def evaluar_modelo(request):
         
         # Verificar que existe el modelo
         model_keras_path = os.path.join(models_dir, 'tiempo_estimator_model.keras')
+        
         if not os.path.exists(model_keras_path):
             return JsonResponse({
                 'success': False,
@@ -1189,6 +1189,8 @@ def evaluar_modelo(request):
             from redes_neuronales.estimacion_tiempo.evaluator import ModelEvaluator
             from redes_neuronales.estimacion_tiempo.rnn_model import AdvancedRNNEstimator
             import joblib
+            import numpy as np
+            import time
             
             print(f"Cargando modelo para evaluación desde: {models_dir}")
             # Cargar el modelo
@@ -1246,23 +1248,67 @@ def evaluar_modelo(request):
                 'medianas': lambda y: (y > 10) & (y <= 30),
                 'grandes': lambda y: y > 30
             }
-            evaluator.segmented_evaluation(X_val, y_val, segments)
+            segmented_results = evaluator.segmented_evaluation(X_val, y_val, segments)
             
-            # Construir rutas para las imágenes generadas
-            # IMPORTANTE: Ahora apuntan al directorio de modelos para acceso via backend
-            image_paths = {
-                'feature_importance': os.path.join(models_dir, 'global_feature_importance.png'),
-                'evaluation_plots': os.path.join(models_dir, 'evaluation_plots.png'),
-                'segmented_metrics': os.path.join(models_dir, 'segmented_metrics.png')
-            }
+            # Generar nombres de archivo únicos para evitar caché del navegador
+            timestamp = int(time.time())
             
-            print("Evaluación completa. Enviando resultados...")
-            # Devolver respuesta de éxito con métricas y rutas de imágenes
+            # Copiar las imágenes al directorio static para que sean accesibles desde la web
+            static_dir = os.path.join(BASE_DIR, 'static', 'evaluacion', model_id)
+            os.makedirs(static_dir, exist_ok=True)
+            
+            # Funciones de utilidad para copiar y generar URL
+            def copy_and_get_url(source_file, dest_name):
+                import shutil
+                # Verificar primero si source_file es None para evitar el error
+                if source_file is None:
+                    return None
+                    
+                dest_file = os.path.join(static_dir, f"{dest_name}_{timestamp}.png")
+                if os.path.exists(source_file):
+                    shutil.copy2(source_file, dest_file)
+                    # Convertir a URL relativa para el frontend
+                    return f"/static/evaluacion/{model_id}/{dest_name}_{timestamp}.png"
+                return None
+            
+            # Copiar y generar URLs para las imágenes
+            feature_importance_url = copy_and_get_url(
+                os.path.join(models_dir, 'global_feature_importance.png'),
+                'feature_importance'
+            )
+            
+            evaluation_plots_url = copy_and_get_url(
+                os.path.join(models_dir, 'evaluation_plots.png'),
+                'evaluation_plots'
+            )
+            
+            segmented_metrics_url = copy_and_get_url(
+                os.path.join(models_dir, 'segmented_feature_importance.png'),
+                'segmented_metrics'
+            )
+
+            # Calcular precisión global (similar a la función calculate_global_precision)
+            # Si no tienes history de métricas, usa un valor predeterminado
+            try:
+                with open(os.path.join(models_dir, 'metrics_history.json'), 'r') as f:
+                    metrics_history = json.load(f)
+                global_precision = calculate_global_precision(metrics, metrics_history)
+            except:
+                # Si no hay historial, usar un cálculo simple basado en R2
+                r2 = metrics.get('R2', 0)
+                global_precision = min(1.0, max(0.0, (r2 + 0.2) / 1.2))
+            
+            
+            # Devolver respuesta de éxito con métricas y URLs de imágenes
             return JsonResponse({
                 'success': True,
                 'message': 'Evaluación completada con éxito',
                 'metrics': metrics,
-                'files_location': models_dir,  # Informar dónde están los archivos
+                'global_precision': global_precision,
+                'feature_importance_image': feature_importance_url,
+                'evaluation_plots_image': evaluation_plots_url,
+                'segmented_metrics_image': segmented_metrics_url,
+                'segmented_results': segmented_results,
                 'model_id': model_id
             })
             
@@ -1281,6 +1327,214 @@ def evaluar_modelo(request):
             'success': False,
             'message': f'Error: {str(e)}'
         })
+
+
+@login_required
+@require_POST
+def generar_informe_evaluacion(request):
+    """
+    Vista para generar un informe PDF con los resultados de la evaluación del modelo
+    """
+    try:
+        # Obtener datos del request
+        data = json.loads(request.body)
+        model_id = data.get('model_id')
+        include_charts = data.get('include_charts', True)
+        include_metrics = data.get('include_metrics', True)
+        include_feature_importance = data.get('include_feature_importance', True)
+        
+        if not model_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'No se proporcionó un ID de modelo válido'
+            })
+        
+        # Configurar rutas y directorios
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        models_dir = os.path.join(BASE_DIR, 'redes_neuronales', 'estimacion_tiempo', 'models')
+        static_dir = os.path.join(BASE_DIR, 'static', 'evaluacion', model_id)
+        
+        # Verificar que existe el modelo
+        model_keras_path = os.path.join(models_dir, 'tiempo_estimator_model.keras')
+        if not os.path.exists(model_keras_path):
+            return JsonResponse({
+                'success': False,
+                'message': 'El modelo no existe en el sistema'
+            })
+        
+        # Cargar métricas si existen
+        metrics = {}
+        try:
+            with open(os.path.join(models_dir, 'metrics.json'), 'r') as f:
+                metrics = json.load(f)
+        except:
+            print("Archivo de métricas no encontrado, generando informe con datos limitados")
+        
+        # Importar librerías para generar PDFs
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import letter, landscape
+        from reportlab.lib.units import inch
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak
+        from reportlab.graphics.charts.barcharts import VerticalBarChart
+        from io import BytesIO
+        from datetime import datetime
+        
+        # Crear un buffer para el PDF
+        buffer = BytesIO()
+        
+        # Crear el documento
+        doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+        styles = getSampleStyleSheet()
+        
+        # Añadir estilos personalizados
+        styles.add(ParagraphStyle(
+            name='Title',
+            parent=styles['Heading1'],
+            fontName='Helvetica-Bold',
+            fontSize=16,
+            alignment=1,  # 0=Left, 1=Center, 2=Right
+            spaceAfter=12
+        ))
+        
+        styles.add(ParagraphStyle(
+            name='Subtitle',
+            parent=styles['Heading2'],
+            fontName='Helvetica-Bold',
+            fontSize=14,
+            spaceAfter=10
+        ))
+        
+        # Construir el contenido
+        elements = []
+        
+        # Título e información
+        elements.append(Paragraph("INFORME DE EVALUACIÓN DEL MODELO", styles['Title']))
+        elements.append(Spacer(1, 0.2*inch))
+        
+        # Info básica
+        fecha_generacion = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        elements.append(Paragraph(f"Modelo ID: {model_id}", styles['Normal']))
+        elements.append(Paragraph(f"Nombre: tiempo_estimator", styles['Normal']))
+        elements.append(Paragraph(f"Fecha generación: {fecha_generacion}", styles['Normal']))
+        elements.append(Spacer(1, 0.3*inch))
+        
+        # Sección de métricas
+        if include_metrics and metrics:
+            elements.append(Paragraph("MÉTRICAS DE EVALUACIÓN", styles['Subtitle']))
+            
+            # Tabla principal de métricas
+            metric_data = [['Métrica', 'Valor']]
+            main_metrics = [('MSE', 'Error Cuadrático Medio'), ('MAE', 'Error Absoluto Medio'), 
+                         ('RMSE', 'Raíz del Error Cuadrático Medio'), ('R2', 'Coeficiente R²')]
+            
+            for key, name in main_metrics:
+                if key in metrics:
+                    value = metrics[key]
+                    metric_data.append([name, f"{value:.4f}"])
+            
+            # Otras métricas adicionales
+            for key, value in metrics.items():
+                if key not in ['MSE', 'MAE', 'RMSE', 'R2'] and isinstance(value, (int, float)):
+                    metric_data.append([key, f"{value:.4f}"])
+            
+            # Crear tabla de métricas
+            if len(metric_data) > 1:
+                table = Table(metric_data, colWidths=[3*inch, 1.5*inch])
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.indigo),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 12),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.lightgrey),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ]))
+                elements.append(table)
+                elements.append(Spacer(1, 0.3*inch))
+        
+        # Añadir imágenes si están disponibles
+        if include_charts:
+            elements.append(Paragraph("GRÁFICOS DE EVALUACIÓN", styles['Subtitle']))
+            
+            # Primero gráfico: predicciones vs valores reales
+            evaluation_plots_path = os.path.join(static_dir, [f for f in os.listdir(static_dir) if 'evaluation_plots' in f][0]) if os.path.exists(static_dir) and any('evaluation_plots' in f for f in os.listdir(static_dir)) else None
+            
+            if evaluation_plots_path and os.path.exists(evaluation_plots_path):
+                img = Image(evaluation_plots_path)
+                img.drawHeight = 4*inch
+                img.drawWidth = 6*inch
+                elements.append(img)
+                elements.append(Spacer(1, 0.2*inch))
+                elements.append(Paragraph("Figura 1: Comparación de predicciones vs valores reales", styles['Normal']))
+                elements.append(Spacer(1, 0.3*inch))
+        
+        # Añadir importancia de características
+        if include_feature_importance:
+            feature_importance_path = os.path.join(static_dir, [f for f in os.listdir(static_dir) if 'feature_importance' in f][0]) if os.path.exists(static_dir) and any('feature_importance' in f for f in os.listdir(static_dir)) else None
+            
+            if feature_importance_path and os.path.exists(feature_importance_path):
+                elements.append(Paragraph("IMPORTANCIA DE CARACTERÍSTICAS", styles['Subtitle']))
+                img = Image(feature_importance_path)
+                img.drawHeight = 4*inch
+                img.drawWidth = 6*inch
+                elements.append(img)
+                elements.append(Spacer(1, 0.2*inch))
+                elements.append(Paragraph("Figura 2: Influencia de cada variable en las predicciones", styles['Normal']))
+                elements.append(Spacer(1, 0.3*inch))
+        
+        # Añadir métricas segmentadas si están disponibles
+        segmented_metrics_path = os.path.join(static_dir, [f for f in os.listdir(static_dir) if 'segmented_metrics' in f][0]) if os.path.exists(static_dir) and any('segmented_metrics' in f for f in os.listdir(static_dir)) else None
+        
+        if segmented_metrics_path and os.path.exists(segmented_metrics_path):
+            elements.append(Paragraph("ANÁLISIS POR SEGMENTOS", styles['Subtitle']))
+            img = Image(segmented_metrics_path)
+            img.drawHeight = 4*inch
+            img.drawWidth = 6*inch
+            elements.append(img)
+            elements.append(Spacer(1, 0.2*inch))
+            elements.append(Paragraph("Figura 3: Desempeño del modelo por categorías de tareas", styles['Normal']))
+        
+        # Construir el PDF
+        doc.build(elements)
+        
+        # Obtener el contenido del PDF
+        pdf = buffer.getvalue()
+        buffer.close()
+        
+        # Crear respuesta HTTP con el PDF
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="evaluacion_modelo_{model_id[:8]}.pdf"'
+        response.write(pdf)
+        
+        # Registrar actividad de usuario si está configurado el módulo de auditoría
+        try:
+            from auditoria.models import Actividad
+            Actividad.objects.create(
+                nombre=f"Generación de informe de evaluación",
+                descripcion=f"El usuario generó un informe de evaluación para el modelo {model_id}",
+                idusuario=request.user,
+                accion="CREACION",
+                es_automatica=True,
+                entidad_tipo="Modelo IA",
+                entidad_id=model_id
+            )
+        except:
+            # Si no está disponible el módulo de auditoría, continuar sin error
+            pass
+        
+        return response
+        
+    except Exception as e:
+        import traceback
+        print(f"Error al generar el informe: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al generar el informe: {str(e)}'
+        })
+
 
 @login_required
 def diagnosticar_entrenamiento(request):

@@ -43,7 +43,8 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- Panel de configuración que se ocultará -->
+    <div id="configurationPanel" class="grid grid-cols-1 md:grid-cols-3 gap-8 transition-all duration-500">
         <!-- Panel de configuración -->
         <div class="md:col-span-2">
             {% include 'redes_neuronales/partials/_configuracion_form.html' %}
@@ -55,14 +56,21 @@
         </div>
     </div>
 
+    <!-- Botón para volver a la configuración (inicialmente oculto) -->
+    <div id="backToConfigBtn" class="hidden mb-6 transition-all duration-300">
+        <button class="group px-5 py-3 bg-white border border-gray-200 hover:border-indigo-300 rounded-xl shadow-sm hover:shadow-md transition-all flex items-center gap-3">
+            <span class="w-8 h-8 rounded-full bg-indigo-100 group-hover:bg-indigo-200 flex items-center justify-center transition-colors">
+                <i class="fas fa-cog text-indigo-600"></i>
+            </span>
+            <span class="font-medium text-gray-700 group-hover:text-gray-900">Volver a configuración de entrenamiento</span>
+        </button>
+    </div>
 
     <!-- Resultados del entrenamiento -->
     {% include 'redes_neuronales/partials/_resultados_entrenamiento.html' %}
 
     <!-- Evaluación del modelo -->
     {% include 'redes_neuronales/partials/_evaluacion_modelo.html' %}
-
-
 </div>
 
 <script>
@@ -71,7 +79,8 @@
         iniciarEntrenamiento: "{% url 'redes_neuronales:iniciar_entrenamiento' %}",
         evaluarModelo: "{% url 'redes_neuronales:evaluar_modelo' %}",
         generarArchivos: "{% url 'redes_neuronales:generar_archivos_evaluacion' %}",
-        diagnosticarEntrenamiento: "{% url 'redes_neuronales:diagnosticar_entrenamiento' %}"
+        diagnosticarEntrenamiento: "{% url 'redes_neuronales:diagnosticar_entrenamiento' %}",
+        generarInforme: "{% url 'redes_neuronales:generar_informe_evaluacion' %}"
     };
 
     // Botón para evaluar el modelo
@@ -98,8 +107,13 @@
             }, 3000);
         });
     }
-    
+
+    // Botón para volver a la configuración
+    const backToConfigBtn = document.getElementById('backToConfigBtn');
+    if (backToConfigBtn) {
+        backToConfigBtn.addEventListener('click', function() {
+            showConfigPanel();
+        });
+    }
 </script>
-
-
 {% endblock %}
