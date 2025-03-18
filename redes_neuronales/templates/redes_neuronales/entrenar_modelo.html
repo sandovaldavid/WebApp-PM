@@ -112,7 +112,9 @@
     const backToConfigBtn = document.getElementById('backToConfigBtn');
     if (backToConfigBtn) {
         backToConfigBtn.addEventListener('click', function() {
-            showConfigPanel();
+            resetTrainingState(true);
+            location.reload();            
+            //showConfigPanel();
         });
     }
 </script>

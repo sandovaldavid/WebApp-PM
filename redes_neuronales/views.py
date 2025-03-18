@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 import joblib
 from datetime import datetime
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 import sys
@@ -1365,139 +1365,705 @@ def generar_informe_evaluacion(request):
         # Cargar métricas si existen
         metrics = {}
         try:
-            with open(os.path.join(models_dir, 'metrics.json'), 'r') as f:
+            with open(os.path.join(models_dir, 'evaluation_metrics.json'), 'r') as f:
                 metrics = json.load(f)
         except:
             print("Archivo de métricas no encontrado, generando informe con datos limitados")
         
         # Importar librerías para generar PDFs
         from reportlab.lib import colors
-        from reportlab.lib.pagesizes import letter, landscape
+        from reportlab.lib.pagesizes import letter
         from reportlab.lib.units import inch
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak
-        from reportlab.graphics.charts.barcharts import VerticalBarChart
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak, KeepTogether
+        from reportlab.platypus import Flowable, FrameBreak, NextPageTemplate, PageTemplate
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+        from reportlab.pdfgen.canvas import Canvas
+        from reportlab.platypus.frames import Frame
+        from reportlab.graphics.shapes import Drawing, Line
         from io import BytesIO
         from datetime import datetime
         
         # Crear un buffer para el PDF
         buffer = BytesIO()
         
-        # Crear el documento
-        doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+        # Definir paleta de colores moderna
+        colors_palette = {
+            'primary': colors.Color(59/255, 70/255, 229/255),  # Indigo-600
+            'secondary': colors.Color(79/255, 70/255, 229/255),  # Indigo-500
+            'accent': colors.Color(124/255, 58/255, 237/255),   # Purple-600
+            'text': colors.Color(31/255, 41/255, 55/255),       # Gray-800
+            'text_light': colors.Color(107/255, 114/255, 128/255),  # Gray-500
+            'light_bg': colors.Color(243/255, 244/255, 246/255), # Gray-100
+            'border': colors.Color(209/255, 213/255, 219/255),  # Gray-300
+            'success': colors.Color(5/255, 150/255, 105/255),   # Green-600
+            'warning': colors.Color(245/255, 158/255, 11/255),  # Amber-500
+        }
+
+        # Función para crear encabezado y pie de página
+        def add_page_number(canvas, doc):
+            canvas.saveState()
+            # Encabezado
+            header_height = 0.5*inch
+            canvas.setFillColor(colors_palette['primary'])
+            canvas.rect(0, doc.height + doc.topMargin - header_height,
+                        doc.width + doc.leftMargin + doc.rightMargin, header_height,
+                        fill=1, stroke=0)
+            
+            # Texto del encabezado
+            canvas.setFont("Helvetica-Bold", 10)
+            canvas.setFillColor(colors.white)
+            canvas.drawString(doc.leftMargin, doc.height + doc.topMargin - header_height + 15, 
+                            "INFORME DE EVALUACIÓN DEL MODELO RNN")
+            
+            # Logo o marca de agua en el encabezado (opcional)
+            canvas.setFont("Helvetica", 8)
+            canvas.drawRightString(doc.width + doc.leftMargin, doc.height + doc.topMargin - header_height + 15, 
+                                 f"Modelo ID: {model_id[:8]}")
+            
+            # Pie de página con número de página y fecha
+            footer_y = doc.bottomMargin - 20
+            canvas.setFillColor(colors_palette['text'])
+            canvas.setFont("Helvetica", 8)
+            page_num = f"Página {canvas.getPageNumber()}"
+            canvas.drawRightString(doc.width + doc.leftMargin, footer_y, page_num)
+            
+            # Fecha en pie de página
+            current_date = datetime.now().strftime("%d/%m/%Y %H:%M")
+            canvas.drawString(doc.leftMargin, footer_y, f"Generado: {current_date}")
+            
+            # Línea separadora en el pie de página
+            canvas.setStrokeColor(colors_palette['border'])
+            canvas.line(doc.leftMargin, footer_y + 10, doc.width + doc.leftMargin, footer_y + 10)
+            
+            canvas.restoreState()
+
+        # Crear el documento con plantillas de página
+        doc = SimpleDocTemplate(
+            buffer, 
+            pagesize=letter,
+            rightMargin=0.5*inch,
+            leftMargin=0.5*inch,
+            topMargin=0.75*inch,
+            bottomMargin=0.75*inch
+        )
+        
+        # Estilos personalizados para el documento
         styles = getSampleStyleSheet()
         
-        # Añadir estilos personalizados
+        # Título principal
         styles.add(ParagraphStyle(
-            name='Title',
-            parent=styles['Heading1'],
+            name='CustomTitle',
+            parent=styles['Title'],
             fontName='Helvetica-Bold',
-            fontSize=16,
-            alignment=1,  # 0=Left, 1=Center, 2=Right
-            spaceAfter=12
+            fontSize=24,
+            leading=30,
+            alignment=TA_CENTER,
+            textColor=colors_palette['primary'],
+            spaceAfter=24
         ))
         
+        # Subtítulo para secciones
         styles.add(ParagraphStyle(
-            name='Subtitle',
+            name='CustomSubtitle',
             parent=styles['Heading2'],
             fontName='Helvetica-Bold',
+            fontSize=16,
+            leading=20,
+            alignment=TA_LEFT,
+            textColor=colors_palette['primary'],
+            spaceBefore=15,
+            spaceAfter=10,
+            borderWidth=0,
+            borderPadding=7,
+            borderRadius=5,
+            borderColor=colors_palette['primary']
+        ))
+        
+        # Estilo para textos destacados
+        styles.add(ParagraphStyle(
+            name='Highlight',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=12,
+            textColor=colors_palette['accent']
+        ))
+        
+        # Estilo para pies de imagen
+        styles.add(ParagraphStyle(
+            name='Caption',
+            parent=styles['Normal'],
+            fontName='Helvetica-Oblique',
+            fontSize=9,
+            alignment=TA_CENTER,
+            textColor=colors_palette['text']
+        ))
+        
+        # Estilo para métricas principales
+        styles.add(ParagraphStyle(
+            name='MetricValue',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
             fontSize=14,
-            spaceAfter=10
+            alignment=TA_CENTER,
+            textColor=colors_palette['primary']
+        ))
+        
+        # Estilo para etiquetas de métricas
+        styles.add(ParagraphStyle(
+            name='MetricLabel',
+            parent=styles['Normal'],
+            fontName='Helvetica',
+            fontSize=9,
+            alignment=TA_CENTER,
+            textColor=colors_palette['text']
+        ))
+
+        styles.add(ParagraphStyle(
+            name='ModernBody',
+            parent=styles['Normal'],
+            fontName='Helvetica',
+            fontSize=11,
+            leading=14,
+            textColor=colors_palette['text']
+        ))
+
+        styles.add(ParagraphStyle(
+            name='MetricHeader',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=12,
+            leading=16,
+            textColor=colors.white,
+            alignment=TA_CENTER
         ))
         
         # Construir el contenido
         elements = []
         
-        # Título e información
-        elements.append(Paragraph("INFORME DE EVALUACIÓN DEL MODELO", styles['Title']))
-        elements.append(Spacer(1, 0.2*inch))
+        # Portada
+        elements.append(Paragraph("INFORME DE EVALUACIÓN", styles['CustomTitle']))
+        elements.append(Spacer(1, 0.5*inch))
         
-        # Info básica
+        # Información del modelo en caja destacada
+        model_info_data = [
+            ["MODELO DE RED NEURONAL RECURRENTE"],
+            [f"ID: {model_id}"],
+            ["ESTIMACIÓN DE TIEMPOS DE EJECUCIÓN"]
+        ]
+        
+        model_info = Table(model_info_data, colWidths=[5*inch])
+        model_info.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors_palette['light_bg']),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors_palette['text']),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (0, 0), 14),
+            ('FONTSIZE', (0, 1), (0, 1), 10),
+            ('FONTSIZE', (0, 2), (0, 2), 12),
+            ('TOPPADDING', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ROUNDEDCORNERS', [10, 10, 10, 10]),
+            ('BOX', (0, 0), (-1, -1), 1, colors_palette['border']),
+        ]))
+        elements.append(model_info)
+        
+        # Información básica
+        elements.append(Spacer(1, 0.5*inch))
         fecha_generacion = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        elements.append(Paragraph(f"Modelo ID: {model_id}", styles['Normal']))
-        elements.append(Paragraph(f"Nombre: tiempo_estimator", styles['Normal']))
         elements.append(Paragraph(f"Fecha generación: {fecha_generacion}", styles['Normal']))
-        elements.append(Spacer(1, 0.3*inch))
         
-        # Sección de métricas
-        if include_metrics and metrics:
-            elements.append(Paragraph("MÉTRICAS DE EVALUACIÓN", styles['Subtitle']))
+        # Añadir resumen ejecutivo con métricas principales en una tabla visual
+        if metrics:
+            elements.append(Spacer(1, 0.3*inch))
             
-            # Tabla principal de métricas
-            metric_data = [['Métrica', 'Valor']]
+            # Encabezado con diseño mejorado
+            elements.append(Paragraph("RESUMEN EJECUTIVO", ParagraphStyle(
+                name='ExecutiveSummaryTitle',
+                parent=styles['CustomSubtitle'],
+                fontSize=18,
+                leading=22,
+                textColor=colors_palette['primary'],
+                alignment=TA_CENTER,  # Centrado para mayor impacto visual
+                spaceAfter=15
+            )))
+            
+            # Línea decorativa bajo el título
+            line_table = Table([['']],
+                colWidths=[3*inch],
+                rowHeights=[2],
+                style=[
+                    ('BACKGROUND', (0,0), (0,0), colors_palette['primary']),
+                    ('ALIGN', (0,0), (0,0), 'CENTER'),
+                ])
+            elements.append(line_table)
+            elements.append(Spacer(1, 0.2*inch))
+            
+            # Descripción breve del resumen ejecutivo
+            elements.append(Paragraph(
+                "Este modelo de estimación de tiempos muestra los siguientes indicadores de rendimiento:",
+                ParagraphStyle(
+                    name='SummaryDescription',
+                    parent=styles['Normal'],
+                    fontSize=10,
+                    alignment=TA_CENTER,
+                    textColor=colors_palette['text'],
+                    spaceAfter=15
+                )
+            ))
+            elements.append(Spacer(1, 0.2*inch))
+            
+            # Métricas en tarjetas modernas (2x2 grid)
+            main_metrics = [
+                ('R2', 'Coeficiente R²', metrics.get('R2', 0)),
+                ('MAE', 'Error Abs. Medio', metrics.get('MAE', 0)),
+                ('RMSE', 'RMSE', metrics.get('RMSE', 0)),
+                ('ACC', 'Precisión Global', metrics.get('Accuracy', 0))
+            ]
+
+            # Crear una tabla 2x2 con tarjetas de métricas
+            metric_rows = []
+            for i in range(0, len(main_metrics), 2):
+                row = []
+                for j in range(2):
+                    if i + j < len(main_metrics):
+                        code, name, value = main_metrics[i + j]
+                        
+                        # Color para el valor de la métrica (verde si bueno, rojo si malo)
+                        value_color = colors_palette['primary']  # Color por defecto
+                        
+                        # Ajustar color según el tipo de métrica con gradiente más suave
+                        if code == 'R2' or code == 'ACC':  # Métricas donde más alto es mejor
+                            if value > 0.85:
+                                value_color = colors.Color(10/255, 150/255, 80/255)  # Verde elegante
+                            elif value > 0.7:
+                                value_color = colors.Color(30/255, 160/255, 90/255)  # Verde moderado
+                            elif value > 0.5:
+                                value_color = colors.Color(202/255, 138/255, 4/255)  # Ámbar
+                            else:
+                                value_color = colors.Color(220/255, 50/255, 50/255)  # Rojo suave
+                        
+                        metric_cell = [
+                            # Título de métrica
+                            Paragraph(name, ParagraphStyle(
+                                'MetricHeader',
+                                parent=styles['Normal'],
+                                fontName='Helvetica-Bold',
+                                fontSize=12,
+                                leading=16,
+                                textColor=colors.white,
+                                alignment=TA_CENTER
+                            )),
+                            # Valor
+                            Paragraph(f"{value:.4f}" if code != 'ACC' else f"{value:.2f}", 
+                                    ParagraphStyle(
+                                        'MetricValue',
+                                        parent=styles['Normal'],
+                                        fontName='Helvetica-Bold',
+                                        fontSize=22,  # Aumentar tamaño para mejor legibilidad
+                                        leading=28,
+                                        textColor=value_color,
+                                        alignment=TA_CENTER,
+                                        backColor=colors.white  # Añadir color de fondo para asegurar contraste
+                                    )),
+                            # Código
+                            Paragraph(code, ParagraphStyle(
+                                'CodeStyle',
+                                parent=styles['Normal'],
+                                fontName='Courier-Bold',
+                                fontSize=10,
+                                textColor=colors.white,
+                                alignment=TA_CENTER
+                            ))
+                        ]
+                        row.append(metric_cell)
+                    else:
+                        row.append(['', '', ''])  # Celda vacía para completar la tabla
+                metric_rows.append(row)
+
+            # Crear tabla de métricas con espaciado mejorado
+            metrics_table = Table(metric_rows, 
+                                colWidths=[2.75*inch, 2.75*inch], 
+                                rowHeights=[1.3*inch, 1.3*inch],
+                                hAlign='CENTER')
+
+            # Definir colores para un diseño más armonioso
+            base_colors = [
+                colors.HexColor('#4F46E5'),  # Indigo-600
+                colors.HexColor('#6366F1'),  # Indigo-500
+                colors.HexColor('#818CF8'),  # Indigo-400
+                colors.HexColor('#A5B4FC')   # Indigo-300
+            ]
+
+            # Aplicar estilo a cada celda con colores alternos
+            for row in range(len(metric_rows)):
+                for col in range(len(metric_rows[row])):
+                    cell_content = metric_rows[row][col]
+                    if cell_content[0]:  # Si hay contenido
+                        # Usar una paleta más sobria y profesional con mejor contraste
+                        color_index = (row * 2 + col) % len(base_colors)
+                        header_color = base_colors[color_index]
+                        footer_color = base_colors[(color_index + 2) % len(base_colors)]
+                        
+                        metrics_table.setStyle(TableStyle([
+                            # Cabecera con color elegante
+                            ('BACKGROUND', (col, row), (col, row), header_color),
+                            ('VALIGN', (col, row), (col, row), 'TOP'),
+                        ]))
+                        
+                        # Crear un estilo específico para el valor central con fondo blanco puro
+                        metrics_table.setStyle(TableStyle([
+                            # Valor centrado - usar LINEABOVE y LINEBELOW para separar visualmente las secciones
+                            ('BACKGROUND', (col, row), (col, row), colors.white),
+                            ('ALIGN', (col, row), (col, row), 'CENTER'),
+                            ('VALIGN', (col, row), (col, row), 'MIDDLE'),
+                            ('LINEABOVE', (col, row), (col, row), 1, colors.white),
+                            ('LINEBELOW', (col, row), (col, row), 1, colors.white),
+                        ]))
+                        
+                        # Código con color complementario
+                        metrics_table.setStyle(TableStyle([
+                            ('BACKGROUND', (col, row), (col, row), footer_color),
+                            ('VALIGN', (col, row), (col, row), 'BOTTOM'),
+                            ('TEXTCOLOR', (col, row), (col, row), colors.white),  # Asegurar texto claro en fondo oscuro
+                        ]))
+
+            
+            # Estilo global para todas las celdas
+            metrics_table.setStyle(TableStyle([
+                ('TOPPADDING', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('LEFTPADDING', (0, 0), (-1, -1), 12),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                ('BOX', (0, 0), (0, 0), 1, colors_palette['border']),
+                ('BOX', (1, 0), (1, 0), 1, colors_palette['border']),
+                ('BOX', (0, 1), (0, 1), 1, colors_palette['border']),
+                ('BOX', (1, 1), (1, 1), 1, colors_palette['border']),
+                ('ROUNDEDCORNERS', [8, 8, 8, 8]),
+            ]))
+
+            # Contenedor para garantizar centrado correcto
+            container_table = Table([[metrics_table]], colWidths=[6*inch])
+            container_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ]))
+
+            elements.append(container_table)
+            
+            # Añadir nota explicativa
+            elements.append(Spacer(1, 0.3*inch))
+            elements.append(Paragraph(
+                "<i>Nota: El coeficiente R² indica la capacidad predictiva del modelo, mientras que " +
+                "el Error Absoluto Medio (MAE) y RMSE indican la precisión de las estimaciones en horas.</i>",
+                ParagraphStyle(
+                    name='MetricsNote',
+                    parent=styles['Caption'],
+                    fontSize=9,
+                    alignment=TA_CENTER,
+                    textColor=colors_palette['text_light'],
+                )
+            ))
+            elements.append(Spacer(1, 0.5*inch))
+        
+        # Sección de métricas completas
+        if include_metrics and metrics:
+            elements.append(Paragraph("MÉTRICAS DE EVALUACIÓN", styles['CustomSubtitle']))
+            
+            # Notas explicativas
+            elements.append(Paragraph(
+                "Esta sección presenta las métricas detalladas de evaluación del modelo, "
+                "indicando el rendimiento en diferentes aspectos de la estimación.",
+                styles['Normal']
+            ))
+            elements.append(Spacer(1, 0.2*inch))
+            
+            # Tabla principal de métricas con diseño mejorado
+            metric_data = [['Métrica', 'Valor', 'Descripción']]
+            
+            # Mapeo de métricas con descripciones
+            metric_descriptions = {
+                'MSE': 'Promedio de los errores al cuadrado. Menor valor indica mejor ajuste.',
+                'MAE': 'Promedio del valor absoluto de los errores. Mide la magnitud promedio de los errores sin considerar su dirección.',
+                'RMSE': 'Raíz cuadrada del MSE. Proporciona una medida del error en las mismas unidades que la variable objetivo.',
+                'R2': 'Proporción de la varianza explicada por el modelo. Valor 1.0 indica predicción perfecta.',
+                'Accuracy': 'Porcentaje de predicciones dentro del margen de error aceptable.',
+                'MAPE': 'Error porcentual absoluto medio. Indica el error como porcentaje respecto al valor real.',
+                'Precision': 'Proporción de predicciones correctas entre todas las predicciones realizadas.',
+                'Recall': 'Proporción de predicciones correctas entre los valores reales positivos.',
+                'F1': 'Media armónica de precisión y recall. Mejor valor en 1.0.',
+            }
+            
             main_metrics = [('MSE', 'Error Cuadrático Medio'), ('MAE', 'Error Absoluto Medio'), 
                          ('RMSE', 'Raíz del Error Cuadrático Medio'), ('R2', 'Coeficiente R²')]
             
             for key, name in main_metrics:
                 if key in metrics:
                     value = metrics[key]
-                    metric_data.append([name, f"{value:.4f}"])
+                    metric_data.append([
+                        name, 
+                        f"{value:.4f}", 
+                        metric_descriptions.get(key, "")
+                    ])
             
             # Otras métricas adicionales
             for key, value in metrics.items():
                 if key not in ['MSE', 'MAE', 'RMSE', 'R2'] and isinstance(value, (int, float)):
-                    metric_data.append([key, f"{value:.4f}"])
-            
-            # Crear tabla de métricas
+                    metric_data.append([
+                        key, 
+                        f"{value:.4f}", 
+                        metric_descriptions.get(key, "")
+                    ])
+
+            # Crear tabla de métricas con estilo moderno
             if len(metric_data) > 1:
-                table = Table(metric_data, colWidths=[3*inch, 1.5*inch])
-                table.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.indigo),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                # 1. Convertir los textos de descripción en objetos Paragraph para mejor control del ajuste
+                for i in range(1, len(metric_data)):
+                    if len(metric_data[i]) > 2:  # Si tiene columna de descripción
+                        # Convertir el texto de la descripción a un Paragraph con estilo específico
+                        description_style = ParagraphStyle(
+                            'Description',
+                            parent=styles['Normal'],
+                            fontName='Helvetica',
+                            fontSize=9,
+                            leading=11,  # Espaciado entre líneas
+                            alignment=TA_LEFT,
+                            wordWrap='CJK'  # Modo de ajuste de texto más estricto
+                        )
+                        # Reemplazar el texto plano con un objeto Paragraph
+                        metric_data[i][2] = Paragraph(metric_data[i][2], description_style)
+                
+                # 2. Ajustar anchos de columnas - dar más espacio a la descripción
+                table = Table(metric_data, colWidths=[2.0*inch, 0.8*inch, 3.2*inch])
+                
+                # 3. Estilo para las filas con altura automática
+                table_style = [
+                    # Estilos de encabezado
+                    ('BACKGROUND', (0, 0), (-1, 0), colors_palette['primary']),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                     ('FONTSIZE', (0, 0), (-1, 0), 12),
                     ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.lightgrey),
-                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ]))
+                    ('TOPPADDING', (0, 0), (-1, 0), 12),
+                ]
+                
+                # 4. Aplicar estilos filas de datos con colores alternos y asegurar espacio vertical
+                for i in range(1, len(metric_data)):
+                    # Color alterno para filas
+                    if i % 2 == 1:  # Filas impares
+                        table_style.append(('BACKGROUND', (0, i), (-1, i), colors_palette['light_bg']))
+                    
+                    # Alineación y formato para cada columna
+                    table_style.extend([
+                        ('ALIGN', (0, i), (0, i), 'LEFT'),       # Nombre de métrica alineado a la izquierda
+                        ('ALIGN', (1, i), (1, i), 'CENTER'),     # Valor centrado
+                        ('VALIGN', (0, i), (-1, i), 'TOP'),      # Alineación vertical superior para todas las celdas
+                        ('FONTNAME', (1, i), (1, i), 'Helvetica-Bold'),  # Valor en negrita
+                        
+                        # Aumentar espacio interno para texto
+                        ('TOPPADDING', (0, i), (-1, i), 10),
+                        ('BOTTOMPADDING', (0, i), (-1, i), 10),
+                        ('LEFTPADDING', (2, i), (2, i), 10),     # Más padding izquierdo para descripción
+                        ('RIGHTPADDING', (2, i), (2, i), 10),    # Más padding derecho para descripción
+                    ])
+                
+                # 5. Estilo global de la tabla
+                table_style.extend([
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors_palette['border']),
+                    ('BOX', (0, 0), (-1, -1), 1, colors_palette['border']),
+                ])
+                
+                # Aplicar todos los estilos
+                table.setStyle(TableStyle(table_style))
+                
                 elements.append(table)
                 elements.append(Spacer(1, 0.3*inch))
+                
+                # Explicación de las métricas
+                elements.append(Paragraph(
+                    "<b>Nota:</b> Un modelo ideal tiene un valor R² cercano a 1.0, y valores bajos en MAE, RMSE y MSE.",
+                    styles['Caption']
+                ))
         
         # Añadir imágenes si están disponibles
         if include_charts:
-            elements.append(Paragraph("GRÁFICOS DE EVALUACIÓN", styles['Subtitle']))
+            elements.append(PageBreak())
+            elements.append(Paragraph("VISUALIZACIÓN DE RESULTADOS", styles['CustomSubtitle']))
+            
+            elements.append(Paragraph(
+                "Los siguientes gráficos muestran el rendimiento del modelo en términos "
+                "de precisión de predicciones y análisis de características importantes.",
+                styles['Normal']
+            ))
+            elements.append(Spacer(1, 0.2*inch))
             
             # Primero gráfico: predicciones vs valores reales
             evaluation_plots_path = os.path.join(static_dir, [f for f in os.listdir(static_dir) if 'evaluation_plots' in f][0]) if os.path.exists(static_dir) and any('evaluation_plots' in f for f in os.listdir(static_dir)) else None
             
             if evaluation_plots_path and os.path.exists(evaluation_plots_path):
+                # Título de la sección de gráficos
+                elements.append(Paragraph("Análisis de Predicciones", styles['Highlight']))
+                elements.append(Spacer(1, 0.1*inch))
+                
+                # Crear un contenedor para la imagen con borde
+                elements.append(Spacer(1, 0.1*inch))
                 img = Image(evaluation_plots_path)
-                img.drawHeight = 4*inch
-                img.drawWidth = 6*inch
-                elements.append(img)
-                elements.append(Spacer(1, 0.2*inch))
-                elements.append(Paragraph("Figura 1: Comparación de predicciones vs valores reales", styles['Normal']))
+                img.drawHeight = 4.5*inch
+                img.drawWidth = 6.5*inch
+                
+                # Crear tabla para poner borde y espacio alrededor de la imagen
+                img_table = Table([[img]], colWidths=[6.5*inch], rowHeights=[4.5*inch])
+                img_table.setStyle(TableStyle([
+                    ('BOX', (0, 0), (-1, -1), 1, colors_palette['border']),
+                    ('TOPPADDING', (0, 0), (-1, -1), 5),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                    ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ]))
+                
+                elements.append(img_table)
+                elements.append(Spacer(1, 0.1*inch))
+                elements.append(Paragraph(
+                    "Figura 1: Comparación entre valores reales y predicciones del modelo. "
+                    "La diagonal representa la predicción perfecta. Puntos más cercanos a esta línea indican mejor precisión.",
+                    styles['Caption']
+                ))
                 elements.append(Spacer(1, 0.3*inch))
         
-        # Añadir importancia de características
+        # Añadir importancia de características con diseño mejorado
         if include_feature_importance:
             feature_importance_path = os.path.join(static_dir, [f for f in os.listdir(static_dir) if 'feature_importance' in f][0]) if os.path.exists(static_dir) and any('feature_importance' in f for f in os.listdir(static_dir)) else None
             
             if feature_importance_path and os.path.exists(feature_importance_path):
-                elements.append(Paragraph("IMPORTANCIA DE CARACTERÍSTICAS", styles['Subtitle']))
-                img = Image(feature_importance_path)
-                img.drawHeight = 4*inch
-                img.drawWidth = 6*inch
-                elements.append(img)
+                elements.append(PageBreak())
+                elements.append(Paragraph("ANÁLISIS DE CARACTERÍSTICAS", styles['CustomSubtitle']))
+                
+                elements.append(Paragraph(
+                    "Este análisis identifica qué variables tienen mayor impacto en las predicciones "
+                    "del modelo, permitiendo una mejor interpretación de los factores que influyen en los tiempos de ejecución.",
+                    styles['Normal']
+                ))
                 elements.append(Spacer(1, 0.2*inch))
-                elements.append(Paragraph("Figura 2: Influencia de cada variable en las predicciones", styles['Normal']))
+                
+                # Título de la sección
+                elements.append(Paragraph("Importancia Relativa de Características", styles['Highlight']))
+                elements.append(Spacer(1, 0.1*inch))
+                
+                img = Image(feature_importance_path)
+                img.drawHeight = 4.5*inch
+                img.drawWidth = 6.5*inch
+                
+                # Tabla con borde para la imagen
+                img_table = Table([[img]], colWidths=[6.5*inch], rowHeights=[4.5*inch])
+                img_table.setStyle(TableStyle([
+                    ('BOX', (0, 0), (-1, -1), 1, colors_palette['border']),
+                    ('TOPPADDING', (0, 0), (-1, -1), 5),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                    ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ]))
+                
+                elements.append(img_table)
+                elements.append(Spacer(1, 0.1*inch))
+                elements.append(Paragraph(
+                    "Figura 2: Influencia de cada variable en las predicciones del modelo. "
+                    "Las características con mayor puntuación tienen un impacto más significativo en la predicción de tiempos.",
+                    styles['Caption']
+                ))
                 elements.append(Spacer(1, 0.3*inch))
         
-        # Añadir métricas segmentadas si están disponibles
+        # Añadir métricas segmentadas con diseño mejorado
         segmented_metrics_path = os.path.join(static_dir, [f for f in os.listdir(static_dir) if 'segmented_metrics' in f][0]) if os.path.exists(static_dir) and any('segmented_metrics' in f for f in os.listdir(static_dir)) else None
         
         if segmented_metrics_path and os.path.exists(segmented_metrics_path):
-            elements.append(Paragraph("ANÁLISIS POR SEGMENTOS", styles['Subtitle']))
-            img = Image(segmented_metrics_path)
-            img.drawHeight = 4*inch
-            img.drawWidth = 6*inch
-            elements.append(img)
+            elements.append(PageBreak())
+            elements.append(Paragraph("ANÁLISIS POR SEGMENTOS", styles['CustomSubtitle']))
+            
+            elements.append(Paragraph(
+                "Este análisis muestra cómo se comporta el modelo en diferentes categorías de tareas, "
+                "permitiendo identificar áreas específicas donde el modelo tiene mayor o menor precisión.",
+                styles['Normal']
+            ))
             elements.append(Spacer(1, 0.2*inch))
-            elements.append(Paragraph("Figura 3: Desempeño del modelo por categorías de tareas", styles['Normal']))
+            
+            # Título de la sección
+            elements.append(Paragraph("Rendimiento por Categorías", styles['Highlight']))
+            elements.append(Spacer(1, 0.1*inch))
+            
+            img = Image(segmented_metrics_path)
+            img.drawHeight = 4.5*inch
+            img.drawWidth = 6.5*inch
+            
+            # Tabla con borde para la imagen
+            img_table = Table([[img]], colWidths=[6.5*inch], rowHeights=[4.5*inch])
+            img_table.setStyle(TableStyle([
+                ('BOX', (0, 0), (-1, -1), 1, colors_palette['border']),
+                ('TOPPADDING', (0, 0), (-1, -1), 5),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+            ]))
+                    
+            elements.append(img_table)
+            elements.append(Spacer(1, 0.15*inch))
+            elements.append(Paragraph(
+                "Figura 3: Visualización del rendimiento del modelo por categorías de tareas, "
+                "mostrando las métricas de evaluación para diferentes segmentos del conjunto de datos.",
+                styles['Caption']
+            ))
+                    
+            # Conclusión final
+            elements.append(Spacer(1, 0.4*inch))
+            elements.append(Paragraph("Conclusión", styles['Heading3']))
+            elements.append(Spacer(1, 0.1*inch))
+                    
+            # Mostrar R2 o precisión global si está disponible
+            r2_value = metrics.get('R2', 0)
+            accuracy = metrics.get('Accuracy', 0)
+            conclusion_text = f"""
+            El modelo evaluado muestra un coeficiente de determinación (R²) de {r2_value:.4f} 
+            y una precisión global de {accuracy:.4f}. Esto indica que el modelo 
+            {"tiene un buen rendimiento" if r2_value > 0.7 else "requiere mejoras"} 
+            para la estimación de tiempos de ejecución de tareas.
+            """
+                    
+            elements.append(Paragraph(conclusion_text, styles['ModernBody']))
         
-        # Construir el PDF
-        doc.build(elements)
+        # Footer personalizado
+        def add_footer(canvas, doc):
+            canvas.saveState()
+            canvas.setFont('Helvetica', 8)
+            canvas.setFillColor(colors_palette['text_light'])
+            
+            # Dibujar línea
+            canvas.setStrokeColor(colors_palette['border'])
+            canvas.line(doc.leftMargin, 0.5*inch, doc.width + doc.leftMargin, 0.5*inch)
+            
+            # Texto del pie de página
+            footer_text = f"Informe generado el {datetime.now().strftime('%d-%m-%Y')} | Modelo #{model_id[:8]}"
+            canvas.drawRightString(doc.width + doc.leftMargin, 0.3*inch, footer_text)
+            
+            # Número de página
+            page_num = canvas.getPageNumber()
+            canvas.drawCentredString(doc.width/2 + doc.leftMargin, 0.3*inch, f"Página {page_num}")
+            
+            canvas.restoreState()
+        
+        # Construir el PDF con el pie de página personalizado
+        doc.build(elements, onFirstPage=add_footer, onLaterPages=add_footer)
         
         # Obtener el contenido del PDF
         pdf = buffer.getvalue()
@@ -1534,7 +2100,7 @@ def generar_informe_evaluacion(request):
             'success': False,
             'message': f'Error al generar el informe: {str(e)}'
         })
-
+    
 
 @login_required
 def diagnosticar_entrenamiento(request):

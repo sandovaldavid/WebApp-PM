@@ -61,7 +61,9 @@ function initializeUI() {
     if (backToConfigBtn) {
         backToConfigBtn.addEventListener('click', function() {
             // Usar true para reiniciar completamente (como una nueva carga de página)
-            showConfigPanel(true);
+            resetTrainingState(true);
+            location.reload();
+            //showConfigPanel(true);
         });
     }
 }
@@ -93,7 +95,9 @@ function setupEventHandlers() {
     if (newTrainingBtn) {
         newTrainingBtn.addEventListener('click', function() {
             // Usar true para reiniciar completamente (como una nueva carga de página)
-            showConfigPanel(true);
+            resetTrainingState(true);
+            location.reload();
+            //showConfigPanel(true);
         });
     }
 }
@@ -115,7 +119,7 @@ function updateUIState() {
     }
     
     // Asegurar que el panel de configuración esté visible
-    showConfigPanel();
+    //showConfigPanel();
     
     // Inicializar el estado del indicador de conexión SSE
     const sseStatusDot = document.getElementById('sseStatusDot');
@@ -1268,6 +1272,7 @@ function createEmptyChart(canvasId, message) {
 /**
  * Muestra el panel de configuración y oculta los resultados y evaluación
  * @param {boolean} resetTraining - Si es true, reinicia el estado como si fuera una nueva carga de página
+ * DEJADA FUERA DE FUNCIONAMIENTO POR PROBLEMAS DE VISUALIZACIÓN
  */
 function showConfigPanel(resetTraining = false) {
     // Mostrar panel de configuración
@@ -1381,6 +1386,30 @@ function showConfigPanel(resetTraining = false) {
         top: 0,
         behavior: 'smooth'
     });
+}
+
+/**
+ * Reinicia el estado del entrenamiento y muestra el panel de configuración
+ * @param {*} resetTraining 
+ */
+
+function resetTrainingState(resetTraining= false) {
+    if (resetTraining) {
+        // Reiniciar el estado del entrenamiento
+        if (trainingMonitor) {
+            trainingMonitor.stop();
+            trainingMonitor = null;
+        }
+        
+        // Limpiar ID de entrenamiento actual
+        currentTrainingId = null;
+        
+        // Reiniciar el estado de las gráficas
+        chartsInitialized = false;
+        lossChart = null;
+        predictionsChart = null;
+
+    }
 }
 
 /**
