@@ -355,33 +355,39 @@ class TrainingMonitor {
             }
         });
 
-        // Mejora para mensajes genéricos
+        // También capturar mensajes genéricos (para compatibilidad)
         this.source.onmessage = (event) => {
             try {
-                console.log("📩 Mensaje genérico recibido:", event.data);
+                console.log("Mensaje genérico recibido:", event.data);
                 const data = JSON.parse(event.data);
                 
-                // Procesar según el tipo si está disponible
+                // Procesar según el tipo o estructura del mensaje
                 if (data.type === 'complete' || (data.success === true && data.metrics)) {
-                    console.log("🔍 Detectado mensaje de tipo 'complete' en formato genérico");
-                    
-                    // Marcar como completado
-                    this.isComplete = true;
-                    
-                    // Actualizar interfaz
-                    this.updateTrainingStatus("Entrenamiento completado", 100);
-                    this._replaceSpinnerWithCheck();
-                    
-                    // IMPORTANTE: Llamar a AMBAS formas de finalización
-                    if (typeof window.handleTrainingComplete === 'function') {
-                        window.handleTrainingComplete(data);
-                    }
-                    
-                    if (this.callbacks.onComplete) {
-                        this.callbacks.onComplete(data);
-                    }
-                } else {
-                    this.addLogEntry(`Mensaje del servidor: ${JSON.stringify(data)}`, "info");
+                    // Disparar manualmente el evento complete para asegurarnos de procesarlo
+                    const customEvent = new MessageEvent('complete', { data: event.data });
+                    this.source.dispatchEvent(customEvent);
+                } 
+                // Detectar y procesar eventos de progreso
+                else if (data.type === 'progress' || (data.epoch !== undefined && data.total_epochs !== undefined)) {
+                    console.log("Redirigiendo mensaje como evento 'progress'");
+                    const progressEvent = new MessageEvent('progress', { data: event.data });
+                    this.source.dispatchEvent(progressEvent);
+                }
+                // Detectar y procesar mensajes de tipo log
+                else if (data.type === 'log' || data.message !== undefined) {
+                    console.log("Redirigiendo mensaje como evento 'log'");
+                    const logEvent = new MessageEvent('log', { data: event.data });
+                    this.source.dispatchEvent(logEvent);
+                }
+                // Filtrar eventos de heartbeat (estadísticas de monitoreo)
+                else if (data.stats || data.type === 'heartbeat') {
+                    // Estos son heartbeats, no mostrarlos en la UI
+                    console.log("Heartbeat detectado, omitiendo del log visual");
+                }
+                // Para cualquier otro mensaje no reconocido, usar un formato más resumido
+                else {
+                    const dataKeys = Object.keys(data).join(', ');
+                    this.addLogEntry(`Evento recibido: ${dataKeys}`, "info");
                 }
             } catch (e) {
                 console.error("Error al procesar mensaje:", e);
@@ -423,6 +429,21 @@ class TrainingMonitor {
             try {
                 console.log("🟢 Evento 'complete' recibido:", event.data);
                 const data = JSON.parse(event.data);
+
+                // Si los datos vienen anidados en 'result', extraerlos
+                if (data.result) {
+                    // Añadir todos los datos del result al objeto principal
+                    Object.assign(data, data.result);
+                }
+                
+                // Comprobar si tenemos los datos críticos
+                if (!data.metrics || Object.keys(data.metrics).length === 0) {
+                    console.warn("⚠️ Métricas vacías o no disponibles en evento 'complete'");
+                }
+                
+                if (!data.history || (!data.history.loss && !data.epoch_logs)) {
+                    console.warn("⚠️ Datos de historial o logs de época no disponibles");
+                }
                 
                 // Marcar como completado
                 this.isComplete = true;
@@ -576,25 +597,7 @@ class TrainingMonitor {
                 console.error("Error al procesar heartbeat:", e);
             }
         });
-
-        // También capturar mensajes genéricos (para compatibilidad)
-        this.source.onmessage = (event) => {
-            try {
-                console.log("Mensaje genérico recibido:", event.data);
-                const data = JSON.parse(event.data);
-                
-                // Procesar según el tipo si está disponible
-                if (data.type === 'complete') {
-                    // Disparar manualmente el evento complete para asegurar que se procese
-                    const customEvent = new MessageEvent('complete', { data: event.data });
-                    this.source.dispatchEvent(customEvent);
-                } else {
-                    this.addLogEntry(`Mensaje del servidor: ${JSON.stringify(data)}`, "info");
-                }
-            } catch (e) {
-                console.error("Error al procesar mensaje:", e);
-            }
-        };
+        
     }
     
     /**
@@ -948,14 +951,27 @@ class TrainingMonitor {
     _replaceSpinnerWithCheck() {
         const spinnerElement = document.getElementById('trainingSpinner');
         if (spinnerElement) {
-            // Reemplazar spinner con icono de check de verificación
-            spinnerElement.classList.remove('spinner');
-            spinnerElement.innerHTML = `
-                <svg class="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            `;
-            console.log("Spinner reemplazado por icono de verificación");
+            // CAMBIO CRUCIAL: Eliminar completamente la clase pulse-ring
+            spinnerElement.className = 'mr-3'; // Mantener solo el margen
+
+            // Añadir un estilo específico para evitar animaciones
+            spinnerElement.style.animation = 'none';
+            spinnerElement.style.position = 'relative';
+            spinnerElement.style.width = '30px';
+            spinnerElement.style.height = '30px';
+            
+            // Vaciar el contenido antes de agregar el nuevo ícono
+            spinnerElement.innerHTML = '';
+            
+            // Reemplazar con el icono de verificación
+            setTimeout(() => {
+                spinnerElement.innerHTML = `
+                    <svg class="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                `;
+                console.log("Spinner reemplazado por icono de verificación");
+            }, 10);
         }
     }
 }

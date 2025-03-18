@@ -172,6 +172,7 @@ def dashboard(request):
 
     return render(request, 'redes_neuronales/dashboard.html', context)
 
+
 #falta adaptar al nuevo modelo
 @login_required
 def estimate_time(request):
@@ -258,6 +259,7 @@ def estimate_time(request):
             )
 
     return JsonResponse({'error': 'Método no permitido', 'success': False})
+
 
 @login_required
 def estimacion_avanzada(request):
@@ -347,6 +349,7 @@ def estimacion_avanzada(request):
 
     return render(request, 'redes_neuronales/estimacion_avanzada.html', context)
 
+
 #endpoints para entrenar modelo
 @login_required
 def entrenar_modelo(request):
@@ -426,6 +429,7 @@ def entrenar_modelo(request):
     
     return render(request, 'redes_neuronales/entrenar_modelo.html', context)
 
+
 def safe_cache_set(key, value, timeout=None):
     """Función para almacenar datos en caché de manera segura con manejo de errores"""
     from django.core.cache import cache
@@ -438,6 +442,7 @@ def safe_cache_set(key, value, timeout=None):
         print(traceback.format_exc())
         return False
 
+
 def safe_cache_get(key):
     """Función para recuperar datos de caché de manera segura"""
     from django.core.cache import cache
@@ -448,6 +453,7 @@ def safe_cache_get(key):
         print(f"Error al leer de caché: {str(e)}")
         print(traceback.format_exc())
         return None
+
 
 @login_required
 def iniciar_entrenamiento(request):
@@ -576,6 +582,7 @@ def iniciar_entrenamiento(request):
         'error': 'Método no permitido o solicitud inválida',
     }, status=400)
 
+
 @login_required
 def monitor_entrenamiento(request):
     """Endpoint Server-Sent Events para monitorear el progreso del entrenamiento"""
@@ -612,225 +619,512 @@ def monitor_entrenamiento(request):
     
     return response
 
+
 def _stream_training_updates(training_id, session):
-    """Función generadora para enviar actualizaciones SSE con mejor responsividad"""
+    """
+    Generador de eventos para Server-Sent Events (SSE) que transmite actualizaciones 
+    de entrenamiento en tiempo real al cliente.
+    
+    Args:
+        training_id: ID único del proceso de entrenamiento a monitorear
+        session: Sesión de Django para acceso alternativo a datos
+        
+    Yields:
+        Eventos SSE formateados con los datos actualizados del entrenamiento
+    """
     import time
     import json
-    import re
-    import traceback
-    from redes_neuronales.ipc_utils import get_updates, dump_queue_status
-    from redes_neuronales.debug_utils import trace_log, inspect_queue, verify_connections
     from django.core.cache import cache
+    from redes_neuronales.ipc_utils import get_updates
     
-    # Diagnóstico inicial
-    trace_log(f"Iniciando stream para training_id={training_id}", category="STREAM")
+    # Configuración de monitoreo
+    poll_interval = 0.05           # Tiempo entre verificaciones (segundos)
+    heartbeat_interval = 1.0       # Tiempo entre heartbeats (segundos)
+    diagnostic_interval = 15.0     # Tiempo entre diagnósticos (segundos)
     
-    # Parámetros optimizados para máxima responsividad
-    poll_interval = 0.03  # Reducido para actualización más inmediata 
-    last_update_count = 0
-    last_heartbeat_time = 0
-    last_debug_time = 0
-    last_diagnostic_time = 0
-    start_monitoring_time = time.time()  # Registrar cuándo iniciamos el monitoreo
+    # Variables de seguimiento
+    last_update_index = 0          # Último índice de actualización enviado
+    last_heartbeat_time = 0        # Último momento en que se envió un heartbeat
+    last_diagnostic_time = 0       # Último momento en que se realizó un diagnóstico
+    last_check_time = time.time()  # Último momento en que se verificaron actualizaciones
+    start_time = time.time()       # Momento de inicio del monitoreo
+    epoch_logs_sent = set()        # Conjunto de logs de época ya enviados
+    updates_counter = 0            # Contador de actualizaciones enviadas
+    cycles_without_updates = 0     # Ciclos consecutivos sin actualizaciones
     
-    # Variables para seguimiento
-    cycles_without_updates = 0
-    total_epochs_seen = set()
-    total_updates_received = 0
-    total_epoch_logs_received = 0
-    
-    # NUEVO: Ajuste de umbrales para diagnósticos
-    warning_threshold = 1000  # AUMENTADO: De 200/300 a 1000 ciclos (30 segundos aprox.)
-    info_threshold = 500      # Nuevo umbral para logs informativos
-    
-    # Creamos conjunto para rastrear los logs de época ya enviados
-    epoch_logs_sent = set()
-    # Rastreo de la última época verificada para epoch_log_X claves especializadas
-    last_epoch_checked = 0
-    next_epoch_check_time = 0
-    
-    # Enviar estado inicial inmediatamente
-    initial_update = {
-        'type': 'log',
-        'message': 'Conexión establecida con el servidor',
-        'level': 'info',
+    # Enviar evento de conexión establecida
+    yield _format_sse_event('connection', {
+        'status': 'connected', 
+        'training_id': training_id,
         'timestamp': time.time()
-    }
-    yield f'event: log\ndata: {json.dumps(initial_update)}\n\n'
+    })
     
-    # Añadir mensaje de debug para saber que estamos iniciando el streaming
-    print(f"Iniciando streaming para training_id: {training_id}")
-    
-    # Enviar un mensaje de log explícito para verificar que la comunicación funciona
-    verification_msg = {
+    # Log para verificación de inicio
+    yield _format_sse_event('log', {
         'type': 'log',
         'message': 'Sistema de monitorización activo - esperando datos del entrenamiento',
         'level': 'info',
-        'timestamp': time.time() + 0.1
-    }
-    yield f'event: log\ndata: {json.dumps(verification_msg)}\n\n'
+        'timestamp': time.time()
+    })
     
-    # Enviar diagnóstico inicial como evento especial
-    diagnostics = {
-        'type': 'diagnostics',
-        'message': 'Iniciando diagnóstico de comunicación',
-        'timestamp': time.time(),
-        'queue_status': dump_queue_status()
-    }
-    yield f'event: diagnostics\ndata: {json.dumps(diagnostics)}\n\n'
-    
+    # Bucle principal de monitorización
     while True:
         current_time = time.time()
-        config_key = f'training_config_{training_id}'
-        updates = []
         
         try:
-            # Recuperar la configuración y actualizaciones desde la caché
-            config = cache.get(config_key)
-            
-            # MODIFICACIÓN 1: Verificar primero si hay actualizaciones en caché - OPTIMIZADO
-            if config and 'updates' in config:
-                cache_updates = config['updates']
+            # Limitar la frecuencia de verificación para no sobrecargar el servidor
+            if current_time - last_check_time < poll_interval:
+                time.sleep(0.01)  # Pequeña pausa para no usar CPU excesivamente
+                continue
                 
-                if len(cache_updates) > last_update_count:
-                    # Hay nuevas actualizaciones en caché
-                    new_updates = cache_updates[last_update_count:]
-                    updates.extend(new_updates)
-                    
-                    # Actualizar contador para la próxima verificación
-                    last_update_count = len(cache_updates)
-                    
-                    # Resetear contador de ciclos sin actualizaciones
-                    cycles_without_updates = 0
-                    
-                    # Registrar actualizaciones procesadas
-                    total_updates_received += len(new_updates)
-                    
-                    # Registrar épocas vistas
-                    for update in new_updates:
-                        if update.get('is_epoch_log') and update.get('epoch_number'):
-                            total_epochs_seen.add(update.get('epoch_number'))
-                            total_epoch_logs_received += 1
-                else:
-                    # No hay actualizaciones nuevas en caché, incrementar contador
-                    cycles_without_updates += 1
+            last_check_time = current_time
+            
+            # 1. Obtener actualizaciones desde el caché
+            updates = _get_cache_updates(training_id, last_update_index)
+            
+            # 2. Si no hay actualizaciones en caché, intentar la cola IPC
+            if not updates and cycles_without_updates % 5 == 0:
+                updates = _get_queue_updates(training_id)
+                
+            # 3. Procesar las actualizaciones obtenidas
+            if updates:
+                for update in updates:
+                    # Enviar actualizaciones según su tipo
+                    yield _process_update(update, training_id, epoch_logs_sent)
+                    updates_counter += 1
+                
+                # Actualizar índice tras procesar actualizaciones
+                config = cache.get(f'training_config_{training_id}')
+                if config and 'updates' in config:
+                    last_update_index = len(config['updates'])
+                
+                cycles_without_updates = 0
             else:
-                # No se encontró configuración o no tiene actualizaciones
                 cycles_without_updates += 1
             
-            # DIAGNÓSTICO: Ejecutar verificación periódica (cada 15 segundos)
-            if current_time - last_diagnostic_time > 15:
-                last_diagnostic_time = current_time
-                
-                # NUEVO: Evaluación progresiva según la gravedad
-                if cycles_without_updates > warning_threshold:
-                    # Solo reportar como advertencia después de muchos ciclos
-                    connections = verify_connections(training_id)
-                    
-                    # MODIFICADO: Usar nivel INFO en lugar de WARNING
-                    trace_log(f"Muchos ciclos sin actualizaciones: {cycles_without_updates}", 
-                             category="INFO", include_stack=False)
-                    
-                    # Solo mostrar WARN después de 2 minutos sin updates
-                    if current_time - start_monitoring_time > 120 and len(total_epochs_seen) == 0:
-                        trace_log(f"Posible problema de comunicación: {connections}", 
-                                 category="WARNING", include_stack=False)
-                
-                elif cycles_without_updates > info_threshold:
-                    # Reportar como INFO si supera el umbral informativo pero no el de advertencia
-                    trace_log(f"Varios ciclos sin actualizaciones: {cycles_without_updates}", 
-                             category="DEBUG", include_stack=False)
+            # 4. Verificar finalización del entrenamiento
+            status = _check_training_status(training_id)
+            if status in ['completed', 'failed']:
+                # Enviar un evento 'complete' con todos los datos necesarios
+                complete_data = _prepare_complete_event(training_id)
+                yield _format_sse_event('complete', complete_data)
+                yield _format_sse_event('close', {
+                    'status': status, 
+                    'message': 'Stream finalizado'
+                })
+                break
             
-            # MODIFICACIÓN 2: Solo intentar recuperar desde la cola cada 5 ciclos
-            if not updates and cycles_without_updates % 5 == 0:
-                # Intentar obtener desde la cola IPC solo ocasionalmente para reducir carga
-                ipc_updates = get_updates(training_id)
-                if ipc_updates:
-                    updates.extend(ipc_updates)
-                    cycles_without_updates = 0
-                    
-                    # Registrar actualizaciones procesadas
-                    total_updates_received += len(ipc_updates)
-            
-            # Enviar heartbeat cada segundo
-            if current_time - last_heartbeat_time >= 1.0:
-                heartbeat_data = {
-                    "timestamp": current_time,
-                    "stats": {
-                        "cycles": cycles_without_updates,
-                        "total_updates": total_updates_received,
-                        "epochs_seen": len(total_epochs_seen),
-                        "monitoring_time": int(current_time - start_monitoring_time)
+            # 5. Enviar heartbeat periódicamente
+            if current_time - last_heartbeat_time >= heartbeat_interval:
+                yield _format_sse_event('heartbeat', {
+                    'timestamp': current_time,
+                    'stats': {
+                        'cycles': cycles_without_updates,
+                        'total_updates': updates_counter,
+                        'monitoring_time': int(current_time - start_time)
                     }
-                }
-                yield f'event: heartbeat\ndata: {json.dumps(heartbeat_data)}\n\n'
+                })
                 last_heartbeat_time = current_time
             
-            # Procesar actualizaciones recibidas
-            for update in updates:
-                # Determinar el tipo de evento según el contenido
-                event_type = update.get('type', 'log')
-                
-                # Serializar la actualización a JSON y enviarla
-                update_json = json.dumps(update)
-                yield f'event: {event_type}\ndata: {update_json}\n\n'
+            # 6. Realizar diagnóstico periódico si es necesario
+            if cycles_without_updates > 300 and current_time - last_diagnostic_time >= diagnostic_interval:
+                diagnostic_data = _run_diagnostics(training_id, cycles_without_updates)
+                yield _format_sse_event('diagnostics', diagnostic_data)
+                last_diagnostic_time = current_time
             
-            # Verificar si el entrenamiento ha terminado
-            if config and config.get('status') in ['completed', 'failed']:
-                if not updates:  # Solo cerramos si no hay más actualizaciones
-                    trace_log(f"Entrenamiento terminado con estado: {config.get('status')}. Cerrando stream.", category="STREAM_END")
-                    
-                    # NUEVO: Enviar evento complete con los resultados finales antes de cerrar
-                    # Obtener métricas finales si están disponibles
-                    final_metrics = {}
-                    training_results = {}
-                    
-                    # Intentar obtener métricas finales desde la configuración
-                    if config.get('metrics'):
-                        final_metrics = config.get('metrics')
-                    if config.get('results'):
-                        training_results = config.get('results')
-                    
-                    # Construir respuesta de finalización completa
-                    complete_data = {
-                        'status': config.get('status'),
-                        'timestamp': time.time(),
-                        'training_id': training_id,
-                        'message': 'Entrenamiento finalizado',
-                        'metrics': final_metrics,
-                        'results': training_results,
-                        'model_id': training_id,
-                        'model_name': config.get('model_name', 'tiempo_estimator')
-                    }
-                    
-                    # Emitir evento complete con los resultados
-                    yield f'event: complete\ndata: {json.dumps(complete_data)}\n\n'
-                    
-                    # Emitir evento de cierre después del complete
-                    yield f'event: close\ndata: {json.dumps({"message": "Stream finalizado correctamente"})}\n\n'
-                    break
+            # 7. Pequeña pausa para evitar sobrecarga de CPU
+            time.sleep(poll_interval)
             
-            # Si no hay actualizaciones, añadir un pequeño retraso para evitar CPU al 100%
-            if not updates:
-                time.sleep(poll_interval)
-
         except Exception as e:
-            error_trace = traceback.format_exc()
-            trace_log(f"Error en stream de actualizaciones: {str(e)}\n{error_trace}", 
-                     category="STREAM_ERROR", include_stack=True)
-            
-            # Pequeño retraso antes de continuar
-            time.sleep(0.5)
+            # Registrar el error pero continuar monitoreando
+            import traceback
+            error_data = {
+                'type': 'error',
+                'message': f'Error en monitorización: {str(e)}',
+                'details': traceback.format_exc().split('\n')[-5:],
+                'timestamp': time.time()
+            }
+            yield _format_sse_event('error', error_data)
+            time.sleep(0.5)  # Pequeño retraso antes de continuar
+
+# Funciones auxiliares para mantener el código principal limpio
+
+def _format_sse_event(event_type, data):
+    """Formatea un evento SSE con sus datos correspondientes"""
+    import json
+    return f'event: {event_type}\ndata: {json.dumps(data)}\n\n'
+
+def _get_cache_updates(training_id, last_index):
+    """Obtiene actualizaciones nuevas desde el caché"""
+    from django.core.cache import cache
+    
+    config = cache.get(f'training_config_{training_id}')
+    if not config or 'updates' not in config:
+        return []
         
-        # Esperar un pequeño tiempo antes de la siguiente actualización
-        time.sleep(poll_interval)
+    if len(config['updates']) > last_index:
+        return config['updates'][last_index:]
+    
+    return []
+
+def _get_queue_updates(training_id):
+    """Obtiene actualizaciones desde la cola IPC"""
+    try:
+        from redes_neuronales.ipc_utils import get_updates
+        return get_updates(training_id)
+    except:
+        return []
+
+def _check_training_status(training_id):
+    """Verifica el estado actual del entrenamiento"""
+    from django.core.cache import cache
+    
+    config = cache.get(f'training_config_{training_id}')
+    if config:
+        return config.get('status', 'unknown')
+    return 'unknown'
+
+def _process_update(update, training_id, epoch_logs_sent):
+    """Procesa una actualización y la formatea como evento SSE"""
+    update_type = update.get('type', 'log')
+    
+    # Registrar log de época para no enviar duplicados
+    if update.get('is_epoch_log') and update.get('epoch_number'):
+        epoch_num = update.get('epoch_number')
+        if epoch_num in epoch_logs_sent:
+            # Solo enviar eventos de progreso, no duplicar logs
+            if update_type == 'progress':
+                return _format_sse_event(update_type, update)
+            return None
+        epoch_logs_sent.add(epoch_num)
+    
+    # Manejar tipos de eventos específicos
+    if update_type == 'batch_progress':
+        # Estos eventos son muy frecuentes, enviar ocasionalmente
+        if len(epoch_logs_sent) % 10 == 0:
+            return _format_sse_event(update_type, update)
+        return None
+    
+    # Para el resto de eventos, enviar normalmente
+    return _format_sse_event(update_type, update)
+
+def _prepare_complete_event(training_id):
+    """
+    Prepara un evento 'complete' con todos los datos necesarios para handleTrainingComplete
+    Asegura que contenga: metrics, history, predictions, y_test, epoch_logs, model_id, model_name
+    """
+    from django.core.cache import cache
+    import time
+    
+    # Obtener configuración y resultado del entrenamiento
+    config = cache.get(f'training_config_{training_id}')
+    
+    # Inicializar datos por defecto
+    complete_data = {
+        'status': 'completed',
+        'timestamp': time.time(),
+        'training_id': training_id,
+        'message': 'Entrenamiento finalizado exitosamente',
+        'metrics': {},
+        'history': {'loss': [], 'val_loss': []},
+        'predictions': [],
+        'y_test': [],
+        'epoch_logs': [],
+        'model_id': training_id,
+        'model_name': 'tiempo_estimator'
+    }
+    
+    if not config:
+        return complete_data
+        
+    # Intentar diferentes ubicaciones para losdef _stream_training_updates(training_id, session):
+    """
+    Generador de eventos para Server-Sent Events (SSE) que transmite actualizaciones 
+    de entrenamiento en tiempo real al cliente.
+    
+    Args:
+        training_id: ID único del proceso de entrenamiento a monitorear
+        session: Sesión de Django para acceso alternativo a datos
+        
+    Yields:
+        Eventos SSE formateados con los datos actualizados del entrenamiento
+    """
+    import time
+    import json
+    from django.core.cache import cache
+    from redes_neuronales.ipc_utils import get_updates
+    
+    # Configuración de monitoreo
+    poll_interval = 0.05           # Tiempo entre verificaciones (segundos)
+    heartbeat_interval = 1.0       # Tiempo entre heartbeats (segundos)
+    diagnostic_interval = 15.0     # Tiempo entre diagnósticos (segundos)
+    
+    # Variables de seguimiento
+    last_update_index = 0          # Último índice de actualización enviado
+    last_heartbeat_time = 0        # Último momento en que se envió un heartbeat
+    last_diagnostic_time = 0       # Último momento en que se realizó un diagnóstico
+    last_check_time = time.time()  # Último momento en que se verificaron actualizaciones
+    start_time = time.time()       # Momento de inicio del monitoreo
+    epoch_logs_sent = set()        # Conjunto de logs de época ya enviados
+    updates_counter = 0            # Contador de actualizaciones enviadas
+    cycles_without_updates = 0     # Ciclos consecutivos sin actualizaciones
+    
+    # Enviar evento de conexión establecida
+    yield _format_sse_event('connection', {
+        'status': 'connected', 
+        'training_id': training_id,
+        'timestamp': time.time()
+    })
+    
+    # Log para verificación de inicio
+    yield _format_sse_event('log', {
+        'type': 'log',
+        'message': 'Sistema de monitorización activo - esperando datos del entrenamiento',
+        'level': 'info',
+        'timestamp': time.time()
+    })
+    
+    # Bucle principal de monitorización
+    while True:
+        current_time = time.time()
+        
+        try:
+            # Limitar la frecuencia de verificación para no sobrecargar el servidor
+            if current_time - last_check_time < poll_interval:
+                time.sleep(0.01)  # Pequeña pausa para no usar CPU excesivamente
+                continue
+                
+            last_check_time = current_time
+            
+            # 1. Obtener actualizaciones desde el caché
+            updates = _get_cache_updates(training_id, last_update_index)
+            
+            # 2. Si no hay actualizaciones en caché, intentar la cola IPC
+            if not updates and cycles_without_updates % 5 == 0:
+                updates = _get_queue_updates(training_id)
+                
+            # 3. Procesar las actualizaciones obtenidas
+            if updates:
+                for update in updates:
+                    # Enviar actualizaciones según su tipo
+                    yield _process_update(update, training_id, epoch_logs_sent)
+                    updates_counter += 1
+                
+                # Actualizar índice tras procesar actualizaciones
+                config = cache.get(f'training_config_{training_id}')
+                if config and 'updates' in config:
+                    last_update_index = len(config['updates'])
+                
+                cycles_without_updates = 0
+            else:
+                cycles_without_updates += 1
+            
+            # 4. Verificar finalización del entrenamiento
+            status = _check_training_status(training_id)
+            if status in ['completed', 'failed']:
+                # Enviar un evento 'complete' con todos los datos necesarios
+                complete_data = _prepare_complete_event(training_id)
+                yield _format_sse_event('complete', complete_data)
+                yield _format_sse_event('close', {
+                    'status': status, 
+                    'message': 'Stream finalizado'
+                })
+                break
+            
+            # 5. Enviar heartbeat periódicamente
+            if current_time - last_heartbeat_time >= heartbeat_interval:
+                yield _format_sse_event('heartbeat', {
+                    'timestamp': current_time,
+                    'stats': {
+                        'cycles': cycles_without_updates,
+                        'total_updates': updates_counter,
+                        'monitoring_time': int(current_time - start_time)
+                    }
+                })
+                last_heartbeat_time = current_time
+            
+            # 6. Realizar diagnóstico periódico si es necesario
+            if cycles_without_updates > 300 and current_time - last_diagnostic_time >= diagnostic_interval:
+                diagnostic_data = _run_diagnostics(training_id, cycles_without_updates)
+                yield _format_sse_event('diagnostics', diagnostic_data)
+                last_diagnostic_time = current_time
+            
+            # 7. Pequeña pausa para evitar sobrecarga de CPU
+            time.sleep(poll_interval)
+            
+        except Exception as e:
+            # Registrar el error pero continuar monitoreando
+            import traceback
+            error_data = {
+                'type': 'error',
+                'message': f'Error en monitorización: {str(e)}',
+                'details': traceback.format_exc().split('\n')[-5:],
+                'timestamp': time.time()
+            }
+            yield _format_sse_event('error', error_data)
+            time.sleep(0.5)  # Pequeño retraso antes de continuar
+
+# Funciones auxiliares para mantener el código principal limpio
+
+def _format_sse_event(event_type, data):
+    """Formatea un evento SSE con sus datos correspondientes"""
+    import json
+    return f'event: {event_type}\ndata: {json.dumps(data)}\n\n'
+
+def _get_cache_updates(training_id, last_index):
+    """Obtiene actualizaciones nuevas desde el caché"""
+    from django.core.cache import cache
+    
+    config = cache.get(f'training_config_{training_id}')
+    if not config or 'updates' not in config:
+        return []
+        
+    if len(config['updates']) > last_index:
+        return config['updates'][last_index:]
+    
+    return []
+
+def _get_queue_updates(training_id):
+    """Obtiene actualizaciones desde la cola IPC"""
+    try:
+        from redes_neuronales.ipc_utils import get_updates
+        return get_updates(training_id)
+    except:
+        return []
+
+def _check_training_status(training_id):
+    """Verifica el estado actual del entrenamiento"""
+    from django.core.cache import cache
+    
+    config = cache.get(f'training_config_{training_id}')
+    if config:
+        return config.get('status', 'unknown')
+    return 'unknown'
+
+def _process_update(update, training_id, epoch_logs_sent):
+    """Procesa una actualización y la formatea como evento SSE"""
+    update_type = update.get('type', 'log')
+    
+    # Registrar log de época para no enviar duplicados
+    if update.get('is_epoch_log') and update.get('epoch_number'):
+        epoch_num = update.get('epoch_number')
+        if epoch_num in epoch_logs_sent:
+            # Solo enviar eventos de progreso, no duplicar logs
+            if update_type == 'progress':
+                return _format_sse_event(update_type, update)
+            return None
+        epoch_logs_sent.add(epoch_num)
+    
+    # Manejar tipos de eventos específicos
+    if update_type == 'batch_progress':
+        # Estos eventos son muy frecuentes, enviar ocasionalmente
+        if len(epoch_logs_sent) % 10 == 0:
+            return _format_sse_event(update_type, update)
+        return None
+    
+    # Para el resto de eventos, enviar normalmente
+    return _format_sse_event(update_type, update)
+
+def _prepare_complete_event(training_id):
+    """
+    Prepara un evento 'complete' con todos los datos necesarios para handleTrainingComplete
+    Asegura que contenga: metrics, history, predictions, y_test, epoch_logs, model_id, model_name
+    """
+    from django.core.cache import cache
+    import time
+    
+    # Obtener configuración y resultado del entrenamiento
+    config = cache.get(f'training_config_{training_id}')
+    
+    # Inicializar datos por defecto
+    complete_data = {
+        'status': 'completed',
+        'timestamp': time.time(),
+        'training_id': training_id,
+        'message': 'Entrenamiento finalizado exitosamente',
+        'metrics': {},
+        'history': {'loss': [], 'val_loss': []},
+        'predictions': [],
+        'y_test': [],
+        'epoch_logs': [],
+        'model_id': training_id,
+        'model_name': 'tiempo_estimator'
+    }
+    
+    if not config:
+        return complete_data
+        
+    # Intentar diferentes ubicaciones para los resultados
+    
+    # 1. Buscar en config['result'] (estructura primaria)
+    if 'result' in config:
+        result = config['result']
+        if isinstance(result, dict):
+            # Extraer datos según el esquema esperado
+            if 'metrics' in result:
+                complete_data['metrics'] = result['metrics']
+            if 'history' in result:
+                complete_data['history'] = result['history']
+            if 'predictions' in result:
+                complete_data['predictions'] = result['predictions']
+            if 'y_test' in result:
+                complete_data['y_test'] = result['y_test']
+            elif 'actual' in result:  # Compatibilidad con nombre alternativo
+                complete_data['y_test'] = result['actual']
+            if 'epoch_logs' in result:
+                complete_data['epoch_logs'] = result['epoch_logs']
+            if 'model_name' in result:
+                complete_data['model_name'] = result['model_name']
+            if 'model_id' in result:
+                complete_data['model_id'] = result['model_id']
+    
+    # 2. Buscar en config (nivel superior) si no se encontró en result
+    if not complete_data['metrics'] and 'metrics' in config:
+        complete_data['metrics'] = config['metrics']
+        
+    if 'model_name' in config:
+        complete_data['model_name'] = config['model_name']
+    
+    # 3. Recopilar épocas de logs de las actualizaciones si no se encontraron anteriormente
+    if not complete_data['epoch_logs'] and 'updates' in config:
+        complete_data['epoch_logs'] = [
+            u for u in config['updates'] 
+            if u.get('is_epoch_log', False) or 
+               (u.get('type') == 'progress' and 'epoch' in u)
+        ]
+    
+    # 4. Extraer datos de evaluación si existen
+    if 'evaluation' in config:
+        evaluation = config['evaluation']
+        if not complete_data['metrics'] and 'metrics' in evaluation:
+            complete_data['metrics'] = evaluation['metrics']
+        if not complete_data['predictions'] and 'predictions' in evaluation:
+            complete_data['predictions'] = evaluation['predictions']
+        if not complete_data['y_test'] and 'actual' in evaluation:
+            complete_data['y_test'] = evaluation['actual']
+    
+    # Asegurar que los campos críticos sean válidos
+    for field in ['metrics', 'history', 'predictions', 'y_test']:
+        if not complete_data[field] or not isinstance(complete_data[field], (dict, list)):
+            if field == 'metrics':
+                complete_data[field] = {'MSE': 0, 'MAE': 0, 'RMSE': 0, 'R2': 0}
+            elif field == 'history':
+                complete_data[field] = {'loss': [], 'val_loss': []}
+            else:
+                complete_data[field] = []
+    
+    # Registrar que enviamos datos completos
+    print(f"Preparando evento complete para {training_id} - métricas: {complete_data['metrics']}")
+    return complete_data
+
+
 
 @login_required
 def generar_archivos_evaluacion(request):
     """Vista para generar archivos de evaluación para un modelo existente"""
     if request.method == 'POST':
         try:
-            # Importar utilidades
+            # Usar la función utilitaria para generar los archivos
             from .views_utils import generate_evaluation_files, check_model_files
             
             # Primero verificar si existen los archivos necesarios
@@ -841,7 +1135,7 @@ def generar_archivos_evaluacion(request):
                     'message': f'Faltan archivos necesarios: {", ".join(model_check["missing_files"][:3])}'
                 })
             
-            # Generar archivos
+            # Generar archivos - ahora usa la implementación unificada
             result = generate_evaluation_files(request)
             return JsonResponse(result)
         except Exception as e:
@@ -856,6 +1150,7 @@ def generar_archivos_evaluacion(request):
         'success': False,
         'message': 'Método no permitido.'
     })
+
 
 @login_required
 @require_POST
@@ -1055,6 +1350,7 @@ def diagnosticar_entrenamiento(request):
             'error': str(e),
             'traceback': error_trace
         }, status=500)
+
 
 def diagnosticar_logs_epoca(training_id, request=None):
     """Realiza diagnóstico específico sobre los logs de época para un entrenamiento"""
@@ -1257,6 +1553,7 @@ def get_last_updates(training_id, limit=10):
         return sanitized_updates
     
     return None
+
 
 @login_required
 def model_status(request):

@@ -5,81 +5,7 @@
 
 {% block style %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-    .card-hover:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-    }
-    .bg-network {
-        background-image: url('{% static "img/neural-bg.svg" %}');
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: cover;
-        opacity: 0.05;
-    }
-    .spinner {
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border-left-color: #4f46e5;
-        animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    .progress-container {
-        height: 8px;
-        width: 100%;
-        background-color: #f3f4f6;
-        border-radius: 0.5rem;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-        overflow: hidden;
-    }
-    .progress-bar {
-        height: 100%;
-        border-radius: 0.5rem;
-        background-color: #4f46e5;
-        transition: width 0.3s ease;
-    }
-    
-    /* Estilos para el contenedor de logs - Definición única */
-    .log-container {
-        background-color: #1a1a1a;
-        color: #00ff00;
-        font-family: 'Courier New', monospace;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        max-height: 300px;
-        overflow-y: auto;
-        scrollbar-width: thin;
-        scrollbar-color: #4f46e5 #1a1a1a;
-    }
-    
-    /* Estilo para scrollbar en Chrome/Safari */
-    .log-container::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    .log-container::-webkit-scrollbar-track {
-        background: #1a1a1a;
-    }
-    
-    .log-container::-webkit-scrollbar-thumb {
-        background-color: #4f46e5;
-        border-radius: 8px;
-    }
-    
-    .log-line {
-        margin: 0;
-        padding: 2px 0;
-    }
-    
-    /* Nota: .text-update y .epoch-log-container se definen en training-monitor.js */
-</style>
+<link rel="stylesheet" href="{% static 'css/style-entrenar-modelo.css' %}">
 {% endblock %}
 
 {% block title_body %}
@@ -89,7 +15,7 @@
         <span>Entrenamiento de Red Neural</span>
     </div>
     <div class="flex space-x-2">
-        <a href="{% url 'redes_neuronales:dashboard' %}" class="px-3 py-1.5 ml-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm flex items-center">
+        <a href="{% url 'redes_neuronales:redes_dashboard' %}" class="px-3 py-1.5 ml-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm flex items-center">
             <i class="fas fa-chart-line mr-1.5"></i>
             Panel de Métricas
         </a>
@@ -104,417 +30,38 @@
 {% block script %}
 <script src="{% static 'js/training-monitor.js' %}"></script>
 <script src="{% static 'js/script-entrenar-modelo.js' %}"></script>
-<script src="{% static 'js/script-entrenar-modelo-pr2.js' %}"></script>
+<script src="{% static 'js/enhanced-charts.js' %}"></script>
 {% endblock %}
 
 {% block body %}
-<div class="p-6">
-    <div class="mb-8 text-center relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 p-8 text-white">
+<div class="p-6 bg-gray-50 min-h-screen">
+    <div class="mb-8 text-center relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-white shadow-xl">
         <div class="absolute inset-0 bg-network"></div>
         <div class="relative z-10">
-            <h2 class="text-2xl font-bold mb-2">Entrenamiento de Red Neuronal Recurrente</h2>
-            <p class="max-w-2xl mx-auto">Sube tu conjunto de datos, configura los parámetros y entrena tu modelo para estimar con precisión los tiempos de ejecución de tareas.</p>
+            <h2 class="text-3xl font-bold mb-3">Entrenamiento de Red Neuronal Recurrente</h2>
+            <p class="max-w-2xl mx-auto text-indigo-100">Sube tu conjunto de datos, configura los parámetros y entrena tu modelo para estimar con precisión los tiempos de ejecución de tareas.</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Panel de configuración -->
         <div class="md:col-span-2">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Configuración de Entrenamiento</h3>
-                
-                <form id="trainingForm" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    <!-- Selección de datos -->
-                    <div class="mb-6 border p-4 rounded-lg bg-gray-50">
-                        <h4 class="font-semibold text-lg mb-3">Datos de Entrenamiento</h4>
-                        
-                        <div class="mb-3">
-                            <label for="training_method" class="block text-sm font-medium text-gray-700 mb-1">Método de entrenamiento</label>
-                            <select id="training_method" name="training_method" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <option value="csv">Subir archivo CSV</option>
-                                <option value="db">Usar datos de la base de datos</option>
-                            </select>
-                        </div>
-                        
-                        <div id="csv_upload_section" class="mb-3">
-                            <label for="csv_file" class="block text-sm font-medium text-gray-700 mb-1">Archivo CSV</label>
-                            <input type="file" id="csv_file" name="csv_file" accept=".csv" 
-                                   class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                            <p class="mt-1 text-xs text-gray-500">
-                                El archivo CSV debe contener columnas como: Complejidad, Tipo_Tarea, Fase_Tarea, Cantidad_Recursos, etc.
-                            </p>
-                        </div>
-                        
-                        <div id="db_options_section" class="hidden">
-                            <div class="flex items-center mb-3">
-                                <input type="checkbox" name="use_synthetic" id="use_synthetic" class="rounded text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" checked>
-                                <label for="use_synthetic" class="ml-2 text-sm text-gray-700">Aumentar con datos sintéticos</label>
-                            </div>
-                            
-                            <p class="text-sm text-gray-600 mb-2">
-                                Se recopilarán datos de todas las tareas completadas en la base de datos para entrenar el modelo.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <!-- Configuración del modelo -->
-                    <div class="mb-6 border p-4 rounded-lg bg-gray-50">
-                        <h4 class="font-semibold text-lg mb-3">Arquitectura del Modelo</h4>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label for="rnn_type" class="block text-sm font-medium text-gray-700 mb-1">Tipo de capa recurrente</label>
-                                <select id="rnn_type" name="rnn_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    <option value="GRU" selected>GRU (Gated Recurrent Unit)</option>
-                                    <option value="LSTM">LSTM (Long Short-Term Memory)</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label for="bidirectional" class="block text-sm font-medium text-gray-700 mb-1">Tipo de red</label>
-                                <select id="bidirectional" name="bidirectional" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    <option value="1" selected>Bidireccional</option>
-                                    <option value="0">Unidireccional</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label for="rnn_units" class="block text-sm font-medium text-gray-700 mb-1">Unidades RNN</label>
-                                <input type="number" id="rnn_units" name="rnn_units" min="16" max="256" value="64"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="dropout_rate" class="block text-sm font-medium text-gray-700 mb-1">Tasa de dropout</label>
-                                <input type="number" id="dropout_rate" name="dropout_rate" min="0.1" max="0.7" step="0.05" value="0.3"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="learning_rate" class="block text-sm font-medium text-gray-700 mb-1">Tasa de aprendizaje</label>
-                                <input type="number" id="learning_rate" name="learning_rate" min="0.0001" max="0.01" step="0.0001" value="0.001"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Parámetros de entrenamiento -->
-                    <div class="mb-6 border p-4 rounded-lg bg-gray-50">
-                        <h4 class="font-semibold text-lg mb-3">Parámetros de Entrenamiento</h4>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="epochs" class="block text-sm font-medium text-gray-700 mb-1">Número de épocas</label>
-                                <input type="number" id="epochs" name="epochs" min="10" max="500" value="100"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="batch_size" class="block text-sm font-medium text-gray-700 mb-1">Tamaño de batch</label>
-                                <input type="number" id="batch_size" name="batch_size" min="8" max="128" value="32"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="test_size" class="block text-sm font-medium text-gray-700 mb-1">Porcentaje de datos de prueba</label>
-                                <input type="number" id="test_size" name="test_size" min="10" max="40" value="20"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            </div>
-                            
-                            <div>
-                                <label for="validation_size" class="block text-sm font-medium text-gray-700 mb-1">Porcentaje de validación</label>
-                                <input type="number" id="validation_size" name="validation_size" min="10" max="30" value="15"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Opciones de salida -->
-                    <div class="mb-6 border p-4 rounded-lg bg-gray-50">
-                        <h4 class="font-semibold text-lg mb-3">Opciones de Salida</h4>
-                        
-                        <div class="mb-3">
-                            <label for="model_name" class="block text-sm font-medium text-gray-700 mb-1">Nombre del modelo</label>
-                            <input type="text" id="model_name" name="model_name" value="tiempo_estimator"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        </div>
-                        
-                        <div class="flex items-center">
-                            <input type="checkbox" id="save_as_main" name="save_as_main" class="rounded text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" checked>
-                            <label for="save_as_main" class="ml-2 text-sm text-gray-700">Establecer como modelo principal</label>
-                        </div>
-                    </div>
-                    
-                    <!-- Botones de acción -->
-                    <div class="flex items-center justify-end">
-                        <button type="button" id="startTrainingBtn" class="px-6 py-2.5 bg-indigo-600 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-0 active:bg-indigo-800 transition duration-150 ease-in-out">
-                            <i class="fas fa-cogs mr-1"></i> Iniciar Entrenamiento
-                        </button>
-                    </div>
-                </form>
-            </div>
+            {% include 'redes_neuronales/partials/_configuracion_form.html' %}
         </div>
         
         <!-- Panel de información -->
         <div class="md:col-span-1">
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Información</h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <h4 class="font-medium text-gray-700 mb-1">Estado del Modelo</h4>
-                        <p class="text-sm text-gray-600">
-                            <span id="modelStatus" class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                                Modelo activo
-                            </span>
-                        </p>
-                    </div>
-                    
-                    <div>
-                        <h4 class="font-medium text-gray-700 mb-1">Última Actualización</h4>
-                        <p id="lastUpdate" class="text-sm text-gray-600">{% now "j F Y, H:i" %}</p>
-                    </div>
-                    
-                    <div>
-                        <h4 class="font-medium text-gray-700 mb-1">Precisión Actual</h4>
-                        <p id="currentPrecision" class="text-sm text-gray-600">R²: {{ global_precision|floatformat:4 }}</p>
-                    </div>
-                </div>
-                
-                <div class="mt-6 pt-4 border-t">
-                    <h4 class="font-medium text-gray-700 mb-2">Recomendaciones</h4>
-                    <ul class="text-sm text-gray-600 space-y-1 list-disc list-inside">
-                        <li>Use GRU para mejor rendimiento en series temporales más cortas</li>
-                        <li>Use LSTM para capturar dependencias a largo plazo</li>
-                        <li>Valores altos de dropout (>0.5) pueden afectar el rendimiento</li>
-                        <li>Para datasets pequeños, reduzca el número de unidades RNN</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <!-- Panel de requisitos -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Requisitos de Datos</h3>
-                
-                <div class="space-y-1 mb-4 text-sm text-gray-600">
-                    <p>El archivo CSV debe contener las siguientes columnas:</p>
-                    <ul class="list-disc list-inside space-y-1 mt-2">
-                        <li>Complejidad</li>
-                        <li>Tipo_Tarea</li>
-                        <li>Fase_Tarea</li>
-                        <li>Cantidad_Recursos</li>
-                        <li>Carga_Trabajo_R1</li>
-                        <li>Experiencia_R1</li>
-                        <li>Experiencia_Equipo</li>
-                        <li>Claridad_Requisitos</li>
-                        <li>Tamaño_Tarea</li>
-                        <li>Tiempo_Ejecucion</li>
-                    </ul>
-                </div>
-                
-                <a href="{% static 'files/plantilla_entrenamiento.csv' %}" download class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    <i class="fas fa-download mr-2"></i> Descargar Plantilla
-                </a>
-            </div>
+            {% include 'redes_neuronales/partials/_panel_info.html' %}
         </div>
     </div>
 
-    <!-- Resultados del entrenamiento (inicialmente oculto) -->
-    <div id="trainingResults" class="mt-8 hidden">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b">Progreso del Entrenamiento</h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                <!-- Panel de estado -->
-                <div class="md:col-span-4">
-                    <div class="flex items-center mb-4">
-                        <div class="spinner mr-3" id="trainingSpinner"></div>
-                        <span id="trainingStatus" class="text-sm font-medium">Preparando entrenamiento...</span>
-                    </div>
-                    
-                    <div class="progress-container">
-                        <div id="trainingProgress" class="progress-bar" style="width: 0%"></div>
-                    </div>
-                    
-                    <div class="mt-4 grid grid-cols-2 gap-4">
-                        <div class="bg-gray-50 p-3 rounded-lg">
-                            <div class="text-sm text-gray-500">Época actual</div>
-                            <div id="currentEpoch" class="text-xl font-semibold text-indigo-700">0/100</div>
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded-lg">
-                            <div class="text-sm text-gray-500">Tiempo restante</div>
-                            <div id="remainingTime" class="text-xl font-semibold text-indigo-700">--:--</div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <h4 class="font-medium text-gray-700 mb-2">Pérdida actual</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-gray-50 p-3 rounded-lg">
-                                <div class="text-sm text-gray-500">Entrenamiento</div>
-                                <div id="trainLoss" class="text-xl font-semibold text-indigo-700">0.000</div>
-                            </div>
-                            <div class="bg-gray-50 p-3 rounded-lg">
-                                <div class="text-sm text-gray-500">Validación</div>
-                                <div id="valLoss" class="text-xl font-semibold text-indigo-700">0.000</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Añadimos un indicador de estado de comunicación -->
-                    <div class="mt-4 text-xs text-gray-500 flex items-center" id="sseStatus">
-                        <span class="w-2 h-2 rounded-full bg-green-500 inline-block mr-2" id="sseStatusDot"></span>
-                        <span id="sseStatusText">Conexión SSE activa</span>
-                    </div>
-                </div>
 
-                <!-- Log del entrenamiento -->
-                <div class="md:col-span-8">
-                    <h4 class="font-medium text-gray-700 mb-2 flex items-center justify-between">
-                        <span>Registro de entrenamiento</span>
-                        <button id="clearLogBtn" class="text-xs text-gray-500 hover:text-gray-700 ml-2">
-                            <i class="fas fa-eraser mr-1"></i> Limpiar registros
-                        </button>
-                    </h4>
-                    <div id="trainingLog" class="log-container">
-                        <p class="log-line">Iniciando proceso de entrenamiento...</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Resultados finales (se mostrarán al completar) -->
-            <div id="finalMetrics" class="mt-6 hidden">
-                <h3 class="text-xl font-bold text-gray-800 mb-4 pt-4 border-t">Resultados del Entrenamiento</h3>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white border rounded-lg p-4 shadow-sm">
-                        <p class="text-sm text-gray-500">Error Cuadrático Medio</p>
-                        <p id="metricMSE" class="text-xl font-bold text-indigo-600">--</p>
-                    </div>
-                    <div class="bg-white border rounded-lg p-4 shadow-sm">
-                        <p class="text-sm text-gray-500">Error Absoluto Medio</p>
-                        <p id="metricMAE" class="text-xl font-bold text-indigo-600">--</p>
-                    </div>
-                    <div class="bg-white border rounded-lg p-4 shadow-sm">
-                        <p class="text-sm text-gray-500">Raíz del Error Cuadrático Medio</p>
-                        <p id="metricRMSE" class="text-xl font-bold text-indigo-600">--</p>
-                    </div>
-                    <div class="bg-white border rounded-lg p-4 shadow-sm">
-                        <p class="text-sm text-gray-500">Coeficiente de Determinación R²</p>
-                        <p id="metricR2" class="text-xl font-bold text-indigo-600">--</p>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Gráfico de pérdida -->
-                    <div class="bg-white border rounded-lg p-4 shadow-sm">
-                        <h4 class="font-medium text-gray-700 mb-3">Historial de Pérdida</h4>
-                        <canvas id="lossChart" height="250"></canvas>
-                    </div>
-                    
-                    <!-- Gráfico de predicciones -->
-                    <div class="bg-white border rounded-lg p-4 shadow-sm">
-                        <h4 class="font-medium text-gray-700 mb-3">Predicciones vs. Valores Reales</h4>
-                        <canvas id="predictionsChart" height="250"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Más información y acciones -->
-                <div class="mt-6 pt-4 border-t flex justify-between items-center">
-                    <div>
-                        <p class="text-sm text-gray-600">El modelo ha sido guardado correctamente como <span id="savedModelName" class="font-semibold">tiempo_estimator</span>.</p>
-                        <p id="setAsMainModel" class="text-sm text-green-600 hidden">
-                            <i class="fas fa-check-circle mr-1"></i> Establecido como modelo principal
-                        </p>
-                    </div>
-                    <div>
-                        <a href="{% url 'redes_neuronales:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            Ver Dashboard
-                        </a>
-                        <a href="{% url 'redes_neuronales:estimacion_avanzada' %}" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            Ir a Estimación
-                        </a>
-                    </div>
-                </div>
-            </div>
+    <!-- Resultados del entrenamiento -->
+    {% include 'redes_neuronales/partials/_resultados_entrenamiento.html' %}
 
-            <div class="mb-4">
-                <h5 class="text-sm font-medium text-gray-700 mb-2">Herramientas de administración</h5>
-                <button id="generar-archivos-btn" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm flex items-center border border-indigo-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Regenerar archivos de evaluación
-                </button>
-                <small class="text-xs text-gray-500 ml-2">Usar solo si faltan archivos de evaluación</small>
-            </div>
-            
-            <div class="mt-2">
-                <button id="diagnosticar-entrenamiento-btn" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-md text-sm flex items-center border border-amber-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Diagnosticar comunicación de logs
-                </button>
-                <small class="text-xs text-gray-500 ml-2">Resolver problemas con los logs de época</small>
-            </div>
-            
-        </div>
-    </div>
+    <!-- Evaluación del modelo -->
+    {% include 'redes_neuronales/partials/_evaluacion_modelo.html' %}
 
-    <!-- Después de la sección de "Resultados del Entrenamiento" -->
-    <div id="evaluationSection" class="mt-6 hidden">
-        <h3 class="text-xl font-bold text-gray-800 mb-4 pt-4 border-t">Evaluación del Modelo</h3>
-        
-        <div id="evaluationProgress" class="mb-6">
-            <div class="flex items-center mb-2">
-                <div class="mr-3">
-                    <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </div>
-                <span class="text-sm text-gray-700">Realizando evaluación completa del modelo...</span>
-            </div>
-        </div>
-        
-        <div id="evaluationResults" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h4 class="font-medium text-gray-700 mb-4">Métricas de rendimiento</h4>
-                    <div id="metricsDisplay" class="text-sm"></div>
-                </div>
-                
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h4 class="font-medium text-gray-700 mb-4">Importancia de características</h4>
-                    <div id="featureImportanceDisplay" class="text-sm">
-                        <img id="featureImportanceImg" class="w-full" src="" alt="Importancia de características">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-6 grid grid-cols-1 gap-6">
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h4 class="font-medium text-gray-700 mb-4">Gráficos de evaluación</h4>
-                    <img id="evaluationPlotsImg" class="w-full" src="" alt="Gráficos de evaluación">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="mt-2">
-        <button id="evaluar-modelo-btn" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md text-sm flex items-center border border-blue-200">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Evaluar modelo
-        </button>
-        <small class="text-xs text-gray-500 ml-2">Ejecutar evaluación manual del modelo</small>
-    </div>
 
 </div>
 

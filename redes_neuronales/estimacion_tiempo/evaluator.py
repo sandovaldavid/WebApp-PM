@@ -16,6 +16,7 @@ from sklearn.metrics import (
 from datetime import datetime
 import json
 import joblib
+import traceback
 
 class ModelEvaluator:
     """Clase para evaluar el rendimiento de los modelos de estimación de tiempo"""
@@ -34,6 +35,17 @@ class ModelEvaluator:
         
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
+        
+        # Configuración de estilo para visualizaciones
+        self._setup_visualization_style()
+    
+    def _setup_visualization_style(self):
+        """Configura el estilo para todas las visualizaciones"""
+        # Configuración global para gráficos
+        plt.style.use('seaborn-v0_8-whitegrid')
+        sns.set_palette('viridis')
+        plt.rcParams['figure.figsize'] = (10, 6)
+        plt.rcParams['font.size'] = 12
 
     def calculate_classification_metrics(self, y_true, y_pred, threshold_percentage=0.2):
         """Calcula métricas de clasificación adaptadas para regresión
@@ -256,7 +268,7 @@ class ModelEvaluator:
         num_numeric_features = 11  # Complejidad hasta Tamaño_Tarea
         tipo_indices = list(range(num_numeric_features, num_numeric_features + self.feature_dims['tipo_tarea']))
         fase_indices = list(range(num_numeric_features + self.feature_dims['tipo_tarea'], 
-                                 num_numeric_features + self.feature_dims['tipo_tarea'] + self.feature_dims['fase']))
+                                 num_numeric_features + self.feature_dims['fase']))
         
         # Definir características agrupadas para análisis
         feature_groups = {

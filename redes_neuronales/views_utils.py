@@ -21,62 +21,13 @@ def generate_evaluation_files(request):
         }
     
     try:
-        # Importar el evaluador
-        from redes_neuronales.estimacion_tiempo.evaluator import ModelEvaluator
-        from redes_neuronales.estimacion_tiempo.rnn_model import AdvancedRNNEstimator
-        import joblib
-        import numpy as np
+        # Delegar a la función principal en generate_evaluation_files.py
+        from redes_neuronales.estimacion_tiempo.generate_evaluation_files import main        
         
-        # Rutas de archivos
-        models_dir = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models')
+        # Llamar a la función principal
+        result = main()
         
-        # Cargar el modelo
-        estimator = AdvancedRNNEstimator.load(models_dir, 'tiempo_estimator')
-        
-        # Cargar feature_dims
-        feature_dims = joblib.load(os.path.join(models_dir, 'feature_dims.pkl'))
-        
-        # Cargar datos de validación
-        X_val = np.load(os.path.join(models_dir, 'X_val.npy'))
-        y_val = np.load(os.path.join(models_dir, 'y_val.npy'))
-        
-        # Crear el evaluador
-        evaluator = ModelEvaluator(estimator, feature_dims, models_dir)
-        
-        # Realizar evaluación completa
-        metrics, _ = evaluator.evaluate_model(X_val, y_val)
-        
-        # Generar gráficos de evaluación
-        evaluator.plot_predictions(y_val, estimator.predict(X_val, feature_dims))
-        
-        # Generar análisis de importancia de características
-        feature_names = [
-            'Complejidad', 'Cantidad_Recursos', 'Carga_Trabajo_R1', 
-            'Experiencia_R1', 'Carga_Trabajo_R2', 'Experiencia_R2', 
-            'Carga_Trabajo_R3', 'Experiencia_R3', 'Experiencia_Equipo', 
-            'Claridad_Requisitos', 'Tamaño_Tarea'
-        ]
-        
-        # Añadir nombres para características categóricas
-        for i in range(feature_dims['tipo_tarea']):
-            feature_names.append(f'Tipo_Tarea_{i+1}')
-        for i in range(feature_dims['fase']):
-            feature_names.append(f'Fase_{i+1}')
-            
-        evaluator.analyze_feature_importance(X_val, y_val, feature_names)
-        
-        # Realizar evaluación segmentada
-        segments = {
-            'pequeñas': lambda y: y <= 10,
-            'medianas': lambda y: (y > 10) & (y <= 30),
-            'grandes': lambda y: y > 30
-        }
-        evaluator.segmented_evaluation(X_val, y_val, segments)
-        
-        return {
-            'success': True,
-            'message': 'Archivos de evaluación generados correctamente.'
-        }
+        return result
         
     except Exception as e:
         import traceback
@@ -112,13 +63,18 @@ def run_manual_evaluation():
         matplotlib.use('Agg')
         os.environ['MPLBACKEND'] = 'Agg'
         
-        # Ejecutar la generación de archivos
-        from .estimacion_tiempo.run_evaluation import run_manual_evaluation as run_eval
-        success = run_eval()
+        # Delegar a la función principal en generate_evaluation_files.py
+        from redes_neuronales.estimacion_tiempo.generate_evaluation_files import generate_files
+        
+        # Obtener el directorio de modelos
+        models_dir = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models')
+        
+        # Llamar a la función principal
+        result = generate_files(model_dir=models_dir)
         
         return {
-            'success': success,
-            'message': 'Evaluación manual completada exitosamente' if success else 'Error durante la evaluación manual'
+            'success': result['success'],
+            'message': result['message']
         }
     except Exception as e:
         traceback.print_exc()

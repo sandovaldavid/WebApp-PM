@@ -1,0 +1,234 @@
+<div id="trainingResults" class="mt-8 hidden">
+    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 transition-all">
+        <h3 class="text-xl font-bold text-gray-800 mb-5 pb-3 border-b flex items-center">
+            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-500 mr-2">
+                <i class="fas fa-chart-line"></i>
+            </span>
+            Progreso del Entrenamiento
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <!-- Panel de estado -->
+            <div class="md:col-span-4">
+                <div class="p-4 rounded-xl bg-gradient-to-br from-gray-50 to-white shadow-sm border border-gray-100">
+                    <div class="flex items-center mb-4">
+                        <div class="pulse-ring mr-3" id="trainingSpinner"></div>
+                        <span id="trainingStatus" class="text-sm font-medium">Preparando entrenamiento...</span>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div id="trainingProgress" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="mt-5 grid grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 transform transition-transform hover:scale-105">
+                            <div class="text-xs font-medium uppercase tracking-wider text-gray-500">Época actual</div>
+                            <div id="currentEpoch" class="text-xl font-semibold text-indigo-700 mt-1">0/100</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 transform transition-transform hover:scale-105">
+                            <div class="text-xs font-medium uppercase tracking-wider text-gray-500">Tiempo restante</div>
+                            <div id="remainingTime" class="text-xl font-semibold text-indigo-700 mt-1">--:--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="text-xs font-medium uppercase tracking-wider text-gray-500 mb-2">Pérdida actual</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 transform transition-transform hover:scale-105">
+                                <div class="text-xs font-medium uppercase tracking-wider text-gray-500">Entrenamiento</div>
+                                <div id="trainLoss" class="text-xl font-semibold text-indigo-700 mt-1">0.000</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 transform transition-transform hover:scale-105">
+                                <div class="text-xs font-medium uppercase tracking-wider text-gray-500">Validación</div>
+                                <div id="valLoss" class="text-xl font-semibold text-indigo-700 mt-1">0.000</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status de comunicación -->
+                    <div class="mt-4 flex items-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
+                        <span class="pulse-dot" id="sseStatusDot"></span>
+                        <span id="sseStatusText" class="text-sm ml-2">Esperando conexión...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log del entrenamiento -->
+            <div class="md:col-span-8">
+                <div class="flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-medium text-gray-700 flex items-center">
+                            <span class="w-5 h-5 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 mr-2">
+                                <i class="fas fa-terminal text-xs"></i>
+                            </span>
+                            Registro de entrenamiento
+                        </h4>
+                        <button id="clearLogBtn" class="text-xs flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                            <i class="fas fa-eraser mr-1"></i> Limpiar
+                        </button>
+                    </div>
+                    <div id="trainingLog" class="log-container flex-grow h-96">
+                        <p class="log-line">Iniciando proceso de entrenamiento...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resultados finales (se mostrarán al completar) -->
+        <div id="finalMetrics" class="mt-8 hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-5 pt-4 pb-3 border-t border-b flex items-center">
+                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 mr-2">
+                    <i class="fas fa-check"></i>
+                </span>
+                Resultados del Entrenamiento
+            </h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white border rounded-lg p-5 shadow-sm hover:shadow-md transition-all transform hover:scale-105 cursor-help" 
+                    title="El Error Cuadrático Medio (MSE) mide el promedio de los errores al cuadrado. Valores más cercanos a cero indican un mejor ajuste del modelo.">
+                    <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Error Cuadrático Medio</p>
+                    <p id="metricMSE" class="text-2xl font-bold text-indigo-600 mt-2">--</p>
+                </div>
+                <div class="bg-white border rounded-lg p-5 shadow-sm hover:shadow-md transition-all transform hover:scale-105 cursor-help"
+                    title="El Error Absoluto Medio (MAE) representa la diferencia promedio entre las predicciones y los valores reales. Ideal para entender el error en las mismas unidades que los datos originales.">
+                    <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Error Absoluto Medio</p>
+                    <p id="metricMAE" class="text-2xl font-bold text-indigo-600 mt-2">--</p>
+                </div>
+                <div class="bg-white border rounded-lg p-5 shadow-sm hover:shadow-md transition-all transform hover:scale-105 cursor-help"
+                    title="La Raíz del Error Cuadrático Medio (RMSE) es la raíz cuadrada del MSE. Penaliza errores grandes y está en la misma escala que los datos originales.">
+                    <p class="text-xs font-medium uppercase tracking-wider text-gray-500">RMSE</p>
+                    <p id="metricRMSE" class="text-2xl font-bold text-indigo-600 mt-2">--</p>
+                </div>
+                <div class="bg-white border rounded-lg p-5 shadow-sm hover:shadow-md transition-all transform hover:scale-105 cursor-help"
+                    title="El Coeficiente de Determinación (R²) indica qué proporción de la varianza en los datos es explicada por el modelo. Un valor de 1.0 significa predicción perfecta, mientras que 0 indica que el modelo no explica nada de la variabilidad.">
+                    <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Coeficiente R²</p>
+                    <p id="metricR2" class="text-2xl font-bold text-indigo-600 mt-2">--</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Gráfico de pérdida -->
+                <div class="bg-gradient-to-br from-white to-indigo-50 border rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-2">
+                        <button class="chart-download-btn text-indigo-500 hover:text-indigo-700 bg-white rounded-full w-8 h-8 shadow-sm flex items-center justify-center" data-chart="lossChart" title="Descargar imagen">
+                            <i class="fas fa-download text-xs"></i>
+                        </button>
+                        <button class="chart-fullscreen-btn text-indigo-500 hover:text-indigo-700 bg-white rounded-full w-8 h-8 shadow-sm flex items-center justify-center" data-chart="lossChart" title="Vista ampliada">
+                            <i class="fas fa-expand text-xs"></i>
+                        </button>
+                    </div>
+                    <h4 class="font-medium text-gray-800 mb-4 flex items-center">
+                        <span class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 mr-2">
+                            <i class="fas fa-chart-line text-xs"></i>
+                        </span>
+                        Historial de Pérdida
+                    </h4>
+                    <div class="stats-summary grid grid-cols-2 gap-3 mb-4 text-xs">
+                        <div class="bg-white p-2 rounded-lg shadow-sm text-center">
+                            <span class="block text-gray-500">Pérdida Final (Train)</span>
+                            <span class="font-semibold text-indigo-700" id="finalTrainLoss">--</span>
+                        </div>
+                        <div class="bg-white p-2 rounded-lg shadow-sm text-center">
+                            <span class="block text-gray-500">Pérdida Final (Val)</span>
+                            <span class="font-semibold text-pink-600" id="finalValLoss">--</span>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="position: relative; height: 240px; width: 100%;">
+                        <canvas id="lossChart"></canvas>
+                    </div>
+                    <div class="mt-3 flex justify-end gap-2">
+                        <button class="chart-scale-btn px-2 py-1 text-xs border rounded bg-white text-gray-600 hover:bg-gray-50 active" data-scale="linear" data-chart="lossChart">Lineal</button>
+                        <button class="chart-scale-btn px-2 py-1 text-xs border rounded bg-white text-gray-600 hover:bg-gray-50" data-scale="logarithmic" data-chart="lossChart">Log</button>
+                    </div>
+                </div>
+                
+                <!-- Gráfico de predicciones -->
+                <div class="bg-gradient-to-br from-white to-blue-50 border rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-2">
+                        <button class="chart-download-btn text-blue-500 hover:text-blue-700 bg-white rounded-full w-8 h-8 shadow-sm flex items-center justify-center" data-chart="lossChart" title="Descargar imagen">
+                            <i class="fas fa-download text-xs"></i>
+                        </button>
+                        <button class="chart-fullscreen-btn text-blue-500 hover:text-blue-700 bg-white rounded-full w-8 h-8 shadow-sm flex items-center justify-center" data-chart="lossChart" title="Vista ampliada">
+                            <i class="fas fa-expand text-xs"></i>
+                        </button>
+                    </div>
+                    <h4 class="font-medium text-gray-800 mb-4 flex items-center">
+                        <span class="flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-600 mr-2">
+                            <i class="fas fa-bullseye text-xs"></i>
+                        </span>
+                        Predicciones vs. Valores Reales
+                    </h4>
+                    <div class="stats-summary grid grid-cols-2 gap-3 mb-4 text-xs">
+                        <div class="bg-white p-2 rounded-lg shadow-sm text-center">
+                            <span class="block text-gray-500">Precisión</span>
+                            <span class="font-semibold text-blue-700" id="predictionAccuracy">--</span>
+                        </div>
+                        <div class="bg-white p-2 rounded-lg shadow-sm text-center">
+                            <span class="block text-gray-500">Correlación</span>
+                            <span class="font-semibold text-green-600" id="predictionCorrelation">--</span>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="position: relative; height: 240px; width: 100%;">
+                        <canvas id="predictionsChart"></canvas>
+                    </div>
+                    <div class="mt-3 flex justify-end">
+                        <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                            <i class="fas fa-info-circle mr-1"></i> Ideal: puntos sobre la línea punteada
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal de vista ampliada -->
+            <div id="chartFullscreenModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center">
+                <div class="bg-white rounded-xl p-6 shadow-xl w-11/12 max-w-4xl max-h-[90vh] overflow-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800" id="modalChartTitle">Vista ampliada</h3>
+                        <button id="closeChartModal" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="h-[60vh]">
+                        <canvas id="modalChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Más información y acciones -->
+            <div class="mt-6 pt-4 border-t flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div class="p-3 bg-green-50 border border-green-100 rounded-lg">
+                        <p class="text-sm text-gray-600">El modelo ha sido guardado como <span id="savedModelName" class="font-semibold">tiempo_estimator</span></p>
+                        <p id="setAsMainModel" class="text-sm text-green-600 hidden mt-1 flex items-center">
+                            <i class="fas fa-check-circle mr-1"></i> Establecido como modelo principal
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{% url 'redes_neuronales:redes_dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                        <i class="fas fa-tachometer-alt mr-2"></i> Ver Dashboard
+                    </a>
+                    <a href="{% url 'redes_neuronales:estimacion_avanzada' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                        <i class="fas fa-calculator mr-2"></i> Ir a Estimación
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-5 border-t">
+            <h5 class="text-sm font-medium text-gray-700 mb-3">Herramientas de administración</h5>
+            <div class="flex flex-wrap gap-3">
+                <button id="diagnosticar-entrenamiento-btn" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-sm flex items-center border border-amber-200 transition-all hover:shadow-sm">
+                    <i class="fas fa-stethoscope mr-2"></i>
+                    Diagnosticar comunicación
+                </button>
+                <button id="generar-archivos-btn" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-sm flex items-center border border-indigo-200 transition-all hover:shadow-sm">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    Regenerar archivos
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Estas herramientas son para resolver problemas técnicos con el entrenamiento.</p>
+        </div>
+        
+    </div>
+</div>

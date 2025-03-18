@@ -310,6 +310,10 @@ function handleTrainingComplete(data) {
     if (sseStatusDot) sseStatusDot.className = "w-2 h-2 rounded-full bg-green-500 inline-block mr-2";
     if (sseStatusText) sseStatusText.textContent = "Entrenamiento completado";
     
+
+    // Mostrar nombre del modelo
+    document.getElementById('savedModelName').textContent = data.model_name;
+
     // Mostrar métricas finales
     const finalMetrics = document.getElementById('finalMetrics');
     if (finalMetrics) {
@@ -335,6 +339,7 @@ function handleTrainingComplete(data) {
         updateMetricElement('metricRMSE', metrics.RMSE);
         updateMetricElement('metricR2', metrics.R2);
     } else {
+        loadLatestMetrics();
         console.warn('No se encontraron métricas en los datos recibidos');
     }
     
@@ -387,33 +392,9 @@ function handleTrainingComplete(data) {
         createEmptyChart('predictionsChart', 'Error al crear el gráfico: ' + error.message);
     }
     
-    // Solicitar evaluación automática después de un breve retraso
-    setTimeout(async () => {
-        try {
-            const enrichedData = await enrichTrainingData(data);
-            
-            // Intentar inicializar gráficos con los datos enriquecidos
-            if (!chartsInitialized && (enrichedData.history || enrichedData.predictions)) {
-                try {
-                    if (enrichedData.history && enrichedData.history.loss) {
-                        initializeCharts(enrichedData.history);
-                    }
-                    if (enrichedData.predictions && enrichedData.y_test) {
-                        initializePredictionsChart(enrichedData.predictions, enrichedData.y_test);
-                    }
-                    console.log('Gráficos inicializados exitosamente con datos enriquecidos');
-                } catch (chartError) {
-                    console.error('Error al inicializar gráficos con datos enriquecidos:', chartError);
-                }
-            }
-            
-            // Continuar con la evaluación normal para mostrar las imágenes
-            requestModelEvaluation(currentTrainingId);
-        } catch (err) {
-            console.error('Error al procesar datos enriquecidos:', err);
-            requestModelEvaluation(currentTrainingId);
-        }
-    }, 3000);
+    setTimeout(() => {
+        requestModelEvaluation(currentTrainingId);
+    }, 1000);
 }
 
 /**
@@ -525,44 +506,109 @@ function updateTrainingStatus(status, progress) {
 }
 
 /**
- * Inicializa los gráficos de pérdida
+ * Inicializa los gráficos de pérdida mejorados
  */
 function initializeCharts(history) {
-    // Gráfico de pérdida
+    // Calcular estadísticas
+    const lastTrainLoss = history.loss[history.loss.length - 1];
+    const lastValLoss = history.val_loss[history.val_loss.length - 1];
+    
+    // Actualizar resumen de estadísticas
+    document.getElementById('finalTrainLoss').textContent = lastTrainLoss.toFixed(4);
+    document.getElementById('finalValLoss').textContent = lastValLoss.toFixed(4);
+    
+    // Gráfico de pérdida con diseño mejorado
     const lossCtx = document.getElementById('lossChart').getContext('2d');
     lossChart = new Chart(lossCtx, {
         type: 'line',
         data: {
             labels: Array.from({ length: history.loss.length }, (_, i) => i + 1),
             datasets: [{
-                label: 'Pérdida de entrenamiento',
+                label: 'Entrenamiento',
                 data: history.loss,
                 borderColor: 'rgba(79, 70, 229, 1)',
                 backgroundColor: 'rgba(79, 70, 229, 0.1)',
                 borderWidth: 2,
-                tension: 0.1
+                tension: 0.2,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: 'rgba(79, 70, 229, 1)',
             }, {
-                label: 'Pérdida de validación',
+                label: 'Validación',
                 data: history.val_loss,
                 borderColor: 'rgba(236, 72, 153, 1)',
                 backgroundColor: 'rgba(236, 72, 153, 0.1)',
                 borderWidth: 2,
-                tension: 0.1
+                tension: 0.2,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: 'rgba(236, 72, 153, 1)',
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
             plugins: {
-                title: {
-                    display: false
-                },
                 legend: {
                     position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 10,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    titleColor: '#6B7280',
+                    bodyColor: '#111827',
+                    borderColor: '#E5E7EB',
+                    borderWidth: 1,
+                    padding: 10,
+                    boxPadding: 5,
+                    usePointStyle: true,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y.toFixed(6)}`;
+                        }
+                    }
                 }
             },
             scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Época',
+                        color: '#6B7280',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
                 y: {
-                    beginAtZero: true
+                    type: 'linear',
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Pérdida',
+                        color: '#6B7280',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(243, 244, 246, 1)'
+                    }
                 }
             }
         }
@@ -570,35 +616,45 @@ function initializeCharts(history) {
 }
 
 /**
- * Inicializa el gráfico de predicciones vs valores reales
+ * Inicializa el gráfico de predicciones vs valores reales mejorado
  */
 function initializePredictionsChart(predictions, yTest) {
+    // Calcular estadísticas
+    const correlation = calculateCorrelation(predictions, yTest);
+    document.getElementById('predictionCorrelation').textContent = correlation.toFixed(2);
+    
+    // Calcular precisión personalizada (usando R2)
+    const accuracy = calculateR2Score(predictions, yTest);
+    document.getElementById('predictionAccuracy').textContent = accuracy.toFixed(2);
+    
     const predictionsCtx = document.getElementById('predictionsChart').getContext('2d');
     predictionsChart = new Chart(predictionsCtx, {
         type: 'scatter',
         data: {
             datasets: [{
-                label: 'Predicciones vs. Reales',
+                label: 'Predicciones',
                 data: yTest.map((real, i) => ({
                     x: real,
                     y: predictions[i]
                 })),
-                backgroundColor: 'rgba(79, 70, 229, 0.7)',
-                borderColor: 'rgba(79, 70, 229, 1)',
+                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                borderColor: 'rgba(59, 130, 246, 1)',
                 borderWidth: 1,
-                pointRadius: 4
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointStyle: 'circle'
             },
             {
                 // Línea ideal (y=x)
-                label: 'Ideal',
+                label: 'Línea ideal',
                 data: (() => {
                     const min = Math.min(...yTest);
                     const max = Math.max(...yTest);
                     return [{ x: min, y: min }, { x: max, y: max }];
                 })(),
                 type: 'line',
-                backgroundColor: 'rgba(156, 163, 175, 0.2)',
-                borderColor: 'rgba(156, 163, 175, 1)',
+                backgroundColor: 'transparent',
+                borderColor: 'rgba(156, 163, 175, 0.8)',
                 borderWidth: 2,
                 borderDash: [5, 5],
                 pointRadius: 0
@@ -606,30 +662,100 @@ function initializePredictionsChart(predictions, yTest) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: false
-                },
                 legend: {
                     position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 10,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    titleColor: '#6B7280',
+                    bodyColor: '#111827',
+                    borderColor: '#E5E7EB',
+                    borderWidth: 1,
+                    padding: 10,
+                    boxPadding: 5,
+                    callbacks: {
+                        label: function(context) {
+                            return `Real: ${context.parsed.x.toFixed(2)}, Predicho: ${context.parsed.y.toFixed(2)}`;
+                        },
+                        afterLabel: function(context) {
+                            const error = context.parsed.y - context.parsed.x;
+                            return `Error: ${error.toFixed(2)} (${(error*100/context.parsed.x).toFixed(1)}%)`;
+                        }
+                    }
                 }
             },
             scales: {
                 x: {
                     title: {
                         display: true,
-                        text: 'Valores reales'
+                        text: 'Valores reales',
+                        color: '#6B7280',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(243, 244, 246, 0.8)'
                     }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Predicciones'
+                        text: 'Predicciones',
+                        color: '#6B7280',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(243, 244, 246, 0.8)'
                     }
                 }
             }
         }
     });
+}
+
+/**
+ * Calcula el coeficiente de correlación de Pearson
+ */
+function calculateCorrelation(x, y) {
+    const xMean = x.reduce((a, b) => a + b, 0) / x.length;
+    const yMean = y.reduce((a, b) => a + b, 0) / y.length;
+    
+    const numerator = x.map((xi, i) => (xi - xMean) * (y[i] - yMean))
+                       .reduce((a, b) => a + b, 0);
+    
+    const xDev = Math.sqrt(x.map(xi => Math.pow(xi - xMean, 2))
+                            .reduce((a, b) => a + b, 0));
+    const yDev = Math.sqrt(y.map(yi => Math.pow(yi - yMean, 2))
+                            .reduce((a, b) => a + b, 0));
+    
+    return numerator / (xDev * yDev);
+}
+
+/**
+ * Calcula el R² score (coeficiente de determinación)
+ */
+function calculateR2Score(pred, actual) {
+    const mean = actual.reduce((a, b) => a + b, 0) / actual.length;
+    
+    const totalSS = actual.map(y => Math.pow(y - mean, 2))
+                         .reduce((a, b) => a + b, 0);
+    
+    const residualSS = actual.map((y, i) => Math.pow(y - pred[i], 2))
+                            .reduce((a, b) => a + b, 0);
+    
+    return 1 - (residualSS / totalSS);
 }
 
 /**
@@ -984,53 +1110,28 @@ function showDiagnosticResults(data) {
 }
 
 /**
- * Enriquece los datos recibidos del backend con datos completos de evaluación
+ * Función para cargar las métricas más recientes cuando sea necesario
  */
-async function enrichTrainingData(data) {
-    console.log('Enriqueciendo datos de entrenamiento con evaluación completa...');
-    
-    try {
-        // Hacer solicitud de evaluación
-        const response = await fetch(`${URLS.evaluarModelo}`, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({ model_id: data.model_id || data.training_id })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Error al obtener métricas de evaluación');
-        }
-        
-        const evaluationData = await response.json();
-        
-        if (!evaluationData.success) {
-            throw new Error(evaluationData.message || 'Error en evaluación');
-        }
-        
-        // Combinar datos
-        const enrichedData = { ...data };
-        
-        // Añadir métricas si no existen o están vacías
-        if (!enrichedData.metrics || Object.keys(enrichedData.metrics).length === 0) {
-            enrichedData.metrics = evaluationData.metrics || {};
-        }
-        
-        // Añadir historia, predicciones y datos de prueba
-        enrichedData.history = evaluationData.history || {};
-        enrichedData.predictions = evaluationData.predictions || [];
-        enrichedData.y_test = evaluationData.y_test || [];
-        
-        console.log('Datos enriquecidos:', enrichedData);
-        return enrichedData;
-        
-    } catch (error) {
-        console.error('Error al enriquecer datos:', error);
-        return data; // Devolver datos originales si falla
-    }
+function loadLatestMetrics() {
+    fetch('/redes-neuronales/model-status/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.metrics) {
+                // Actualizar métricas en la interfaz
+                const metrics = data.metrics;
+                
+                document.getElementById('metricMSE').textContent = metrics.MSE ? metrics.MSE.toFixed(2) : '--';
+                document.getElementById('metricMAE').textContent = metrics.MAE ? metrics.MAE.toFixed(2) : '--';
+                document.getElementById('metricRMSE').textContent = metrics.RMSE ? metrics.RMSE.toFixed(2) : '--';
+                document.getElementById('metricR2').textContent = metrics.R2 ? metrics.R2.toFixed(4) : '--';
+                
+                // Si el modelo es principal, mostrar indicación
+                document.getElementById('setAsMainModel').classList.remove('hidden');
+                
+                console.log("✓ Métricas actualizadas manualmente");
+            }
+        })
+        .catch(error => console.error('Error al cargar métricas:', error));
 }
 
 /**

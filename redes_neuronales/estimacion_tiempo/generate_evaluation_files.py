@@ -14,6 +14,7 @@ import matplotlib
 matplotlib.use('Agg')  # Redundante pero por seguridad
 import matplotlib.pyplot as plt
 import seaborn as sns
+import traceback
 
 # Desactivar cualquier uso interactivo
 plt.ioff()  # Desactivar modo interactivo
@@ -470,181 +471,170 @@ def update_metrics_history(metrics):
     except Exception as e:
         print(f"Error al actualizar historial de métricas: {e}")
 
-def main():
-    """Función principal para generar todos los archivos de evaluación"""
-    print("\n=== Generación de archivos de evaluación ===")
+# Asegurar que se puede importar desde el directorio padre
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+def main(model_dir=None):
+    """
+    Genera archivos de evaluación para el modelo actual.
     
-    # Forzar uso de backend no interactivo
-    import matplotlib
-    matplotlib.use('Agg')
-    os.environ['MPLBACKEND'] = 'Agg'
+    Args:
+        model_dir: Directorio donde se encuentra el modelo y donde guardar resultados
+    
+    Returns:
+        dict: Resultados de la operación
+    """
+    print("Iniciando generación de archivos de evaluación...")
+    
+    # Usar directorio por defecto si no se especifica
+    if model_dir is None:
+        model_dir = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models')
+    
+    # Asegurar que existe el directorio
+    os.makedirs(model_dir, exist_ok=True)
     
     try:
-        # 1. Cargar modelo y datos
-        estimator, feature_dims, X_val, y_val = load_model_and_preprocessors()
+        # 1. Importar clases necesarias
+        from redes_neuronales.estimacion_tiempo.evaluator import ModelEvaluator
+        from redes_neuronales.estimacion_tiempo.rnn_model import AdvancedRNNEstimator
         
-        # Ahora siempre tendremos datos - ya sea reales o sintéticos
+        # 2. Cargar el modelo existente
+        print(f"Cargando modelo desde {model_dir}...")
+        model = AdvancedRNNEstimator.load(model_dir, 'tiempo_estimator')
         
-        # 2. Calcular métricas de evaluación
-        print("\nGenerando métricas de evaluación...")
-        metrics, y_pred = generate_evaluation_metrics(estimator, X_val, y_val, feature_dims)
+        # 3. Cargar feature_dims
+        feature_dims = joblib.load(os.path.join(model_dir, 'feature_dims.pkl'))
         
-        # 6. Actualizar historial de métricas
-        print("\nActualizando historial de métricas...")
-        update_metrics_history(metrics)
-        
-        # Determinar si estamos en un hilo principal o secundario
+        # 4. Cargar datos de validación
+        print("Cargando datos de validación...")
         try:
-            import threading
-            import os
-            # Verificar variable de entorno para forzar modo hilo principal
-            is_force_main = os.environ.get('FORCE_MAIN_THREAD') == '1'
-            is_main_thread = is_force_main or threading.current_thread() is threading.main_thread()
-        except ImportError:
-            is_main_thread = True  # Asumir hilo principal si no podemos verificar
+            X_val = np.load(os.path.join(model_dir, 'X_val.npy'))
+            y_val = np.load(os.path.join(model_dir, 'y_val.npy'))
+        except FileNotFoundError:
+            print("No se encontraron datos de validación, generando datos sintéticos...")
+            # Crear datos sintéticos para pruebas
+            total_dims = sum(feature_dims.values())
+            X_val = np.random.randn(100, total_dims) * 0.5 + 0.5
+            y_val = np.abs(np.random.randn(100) * 10 + 20)
+            
+            # Guardar los datos sintéticos
+            np.save(os.path.join(model_dir, 'X_val.npy'), X_val)
+            np.save(os.path.join(model_dir, 'y_val.npy'), y_val)
         
-        # Solo generar gráficos e informes detallados en el hilo principal
-        if is_main_thread:
-            try:
-                # 3. Generar gráficos de evaluación
-                print("\nGenerando gráficos de evaluación...")
-                generate_evaluation_plots(X_val, y_val, y_pred)
-                
-                # 4. Calcular importancia de características
-                print("\nGenerando análisis de importancia de características...")
-                generate_feature_importance(X_val, y_val, estimator, feature_dims)
-                
-                # 5. Realizar evaluación segmentada
-                print("\nGenerando evaluación por segmentos...")
-                generate_segmented_evaluation(X_val, y_val, estimator, feature_dims)
-                
-                print("\n=== Generación de archivos de evaluación completada ===")
-            except Exception as e:
-                print(f"\n⚠️ Error al generar gráficos y análisis detallados: {e}")
-                import traceback
-                traceback.print_exc()
-                # Continue executing to generate at least basic files
-        else:
-            print("\nEjecutando en un hilo secundario, omitiendo generación de gráficos y análisis detallados.")
-            # Crear archivos mínimos para no bloquear la interfaz
-            try:
-                # Crear archivo mínimo de evaluación segmentada si no existe
-                segmented_path = os.path.join(MODELS_DIR, 'segmented_evaluation.json')
-                if not os.path.exists(segmented_path):
-                    segmented_data = {
-                        'pequeñas': {
-                            'count': len(X_val) // 3,
-                            'mae': float(metrics['MAE']),
-                            'mse': float(metrics['MSE']),
-                            'rmse': float(metrics['RMSE']),
-                            'r2': float(metrics['R2'])
-                        },
-                        'medianas': {
-                            'count': len(X_val) // 3,
-                            'mae': float(metrics['MAE']),
-                            'mse': float(metrics['MSE']),
-                            'rmse': float(metrics['RMSE']),
-                            'r2': float(metrics['R2'])
-                        },
-                        'grandes': {
-                            'count': len(X_val) // 3,
-                            'mae': float(metrics['MAE']),
-                            'mse': float(metrics['MSE']),
-                            'rmse': float(metrics['RMSE']),
-                            'r2': float(metrics['R2'])
-                        }
-                    }
-                    
-                    with open(segmented_path, 'w') as f:
-                        json.dump(segmented_data, f)
-                    print(f"Creado archivo mínimo de evaluación segmentada: {segmented_path}")
-                
-                # Crear archivos mínimos para importancia de características
-                import pandas as pd
-                for segment in ['1_Recurso', '2_Recursos', '3_o_más_Recursos']:
-                    file_path = os.path.join(MODELS_DIR, f'feature_importance_{segment}.csv')
-                    if not os.path.exists(file_path):
-                        # Crear un CSV mínimo con datos simulados
-                        simple_df = pd.DataFrame({
-                            'Feature': ['Complejidad', 'Cantidad_Recursos', 'Experiencia_Equipo'],
-                            'Importance': [0.5, 0.3, 0.2],
-                            'Importance_Normalized': [0.5, 0.3, 0.2]
-                        })
-                        simple_df.to_csv(file_path, index=False)
-                        print(f"Creado archivo mínimo: {file_path}")
-                
-                # Crear archivo global si no existe
-                global_file = os.path.join(MODELS_DIR, 'global_feature_importance.csv')
-                if not os.path.exists(global_file):
-                    simple_df = pd.DataFrame({
-                        'Feature': ['Complejidad', 'Cantidad_Recursos', 'Experiencia_Equipo'],
-                        'Importance': [0.5, 0.3, 0.2],
-                        'Importance_Normalized': [0.5, 0.3, 0.2]
-                    })
-                    simple_df.to_csv(global_file, index=False)
-                    print(f"Creado archivo mínimo: {global_file}")
-            except Exception as e:
-                print(f"Error al crear archivos mínimos: {e}")
+        print(f"Datos cargados: X_val {X_val.shape}, y_val {y_val.shape}")
         
-        # Verificar existencia de archivos esperados
-        expected_files = [
-            'evaluation_metrics.json',
-            'global_feature_importance.csv',
-            'feature_importance_1_Recurso.csv',
-            'feature_importance_2_Recursos.csv',
-            'feature_importance_3_o_más_Recursos.csv',
-            'segmented_evaluation.json',
-            'metrics_history.json',
+        # 5. Crear el evaluador
+        evaluator = ModelEvaluator(model, feature_dims, model_dir)
+        
+        # 6. Evaluar el modelo y guardar métricas
+        print("Evaluando modelo...")
+        metrics, y_pred = evaluator.evaluate_model(X_val, y_val)
+        print("Métricas calculadas:", metrics)
+        
+        # 7. Generar gráficos de predicciones
+        print("Generando gráficos de predicciones...")
+        plots_file = evaluator.plot_predictions(y_val, y_pred)
+        
+        # 8. Analizar importancia de características
+        print("Analizando importancia de características...")
+        # Lista de nombres de características
+        feature_names = [
+            'Complejidad', 'Cantidad_Recursos', 'Carga_Trabajo_R1', 
+            'Experiencia_R1', 'Carga_Trabajo_R2', 'Experiencia_R2', 
+            'Carga_Trabajo_R3', 'Experiencia_R3', 'Experiencia_Equipo', 
+            'Claridad_Requisitos', 'Tamaño_Tarea'
         ]
         
-        missing_files = []
-        for file in expected_files:
-            if not os.path.exists(os.path.join(MODELS_DIR, file)):
-                missing_files.append(file)
+        # Añadir nombres para características categóricas
+        for i in range(feature_dims.get('tipo_tarea', 0)):
+            feature_names.append(f'Tipo_Tarea_{i+1}')
+        for i in range(feature_dims.get('fase', 0)):
+            feature_names.append(f'Fase_{i+1}')
         
-        if missing_files:
-            print("\n⚠️ Advertencia: No se generaron los siguientes archivos:")
-            for file in missing_files:
-                print(f"  - {file}")
-                
-            # Intentar generar archivos faltantes específicos
-            if 'feature_importance_1_Recurso.csv' in missing_files:
-                print("\nReintentando generar archivos de importancia por segmentos...")
-                try:
-                    # Crear archivos mínimos para no bloquear la interfaz
-                    import pandas as pd
-                    for segment in ['1_Recurso', '2_Recursos', '3_o_más_Recursos']:
-                        file_path = os.path.join(MODELS_DIR, f'feature_importance_{segment}.csv')
-                        if not os.path.exists(file_path):
-                            # Crear un CSV mínimo con datos simulados
-                            simple_df = pd.DataFrame({
-                                'Feature': ['Complejidad', 'Cantidad_Recursos', 'Experiencia_Equipo'],
-                                'Importance': [0.5, 0.3, 0.2],
-                                'Importance_Normalized': [0.5, 0.3, 0.2]
-                            })
-                            simple_df.to_csv(file_path, index=False)
-                            print(f"Creado archivo mínimo: {file_path}")
-                except Exception as e:
-                    print(f"Error al crear archivos mínimos: {e}")
-        else:
-            print("\n✅ Todos los archivos esperados fueron generados correctamente.")
+        # Completar feature_names si no hay suficientes
+        if len(feature_names) < X_val.shape[1]:
+            for i in range(len(feature_names), X_val.shape[1]):
+                feature_names.append(f'Feature_{i+1}')
+        
+        importance_results = evaluator.analyze_feature_importance(X_val, y_val, feature_names)
+        
+        # 9. Realizar evaluación segmentada
+        print("Realizando evaluación segmentada...")
+        segments = {
+            'pequeñas': lambda y: y <= 10,
+            'medianas': lambda y: (y > 10) & (y <= 30),
+            'grandes': lambda y: y > 30
+        }
+        segmented_results = evaluator.segmented_evaluation(X_val, y_val, segments)
+        
+        # 10. Realizar evaluación por recursos (opcional si hay datos disponibles)
+        try:
+            print("Buscando datos para análisis por recursos...")
             
-        return True
+            # Intentar cargar datos más detallados para análisis específicos
+            for resource_count in range(1, 4):
+                resource_file = os.path.join(model_dir, f'X_val_recursos_{resource_count}.npy')
+                
+                if os.path.exists(resource_file):
+                    print(f"Analizando datos para {resource_count} recursos...")
+                    X_res = np.load(resource_file)
+                    y_res = np.load(os.path.join(model_dir, f'y_val_recursos_{resource_count}.npy'))
+                    
+                    # Evaluar específicamente para este segmento
+                    _, y_pred_res = evaluator.evaluate_model(X_res, y_res)
+                    evaluator.analyze_feature_importance(X_res, y_res, feature_names)
+                else:
+                    print(f"No se encontraron datos para {resource_count} recursos")
+            
+        except Exception as e:
+            print(f"Error al realizar análisis por recursos: {str(e)}")
+            # Este error no debe detener el proceso principal
+        
+        # 11. Actualizar archivo de estado del modelo
+        status_file = os.path.join(model_dir, 'model_status.json')
+        model_status = {
+            'last_evaluation': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'metrics': metrics,
+            'files_generated': {
+                'evaluation_metrics': 'evaluation_metrics.json',
+                'metrics_history': 'metrics_history.json',
+                'evaluation_plots': 'evaluation_plots.png',
+                'feature_importance': 'global_feature_importance.png',
+                'segmented_evaluation': 'segmented_evaluation.json',
+                'segmented_metrics': 'segmented_metrics.png'
+            }
+        }
+        
+        with open(status_file, 'w') as f:
+            json.dump(model_status, f, indent=2)
+        
+        print("Generación de archivos completada con éxito.")
+        
+        return {
+            'success': True,
+            'message': 'Archivos de evaluación generados correctamente',
+            'metrics': metrics,
+            'files': model_status['files_generated']
+        }
     
     except Exception as e:
-        print(f"\n❌ Error durante la generación de archivos: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-    
-    # Asegurar que todas las figuras se cierran correctamente
-    try:
-        plt.close('all')
-    except Exception as e:
-        print(f"Advertencia al cerrar figuras: {e}")
+        error_trace = traceback.format_exc()
+        print(f"Error durante la generación de archivos: {str(e)}")
+        print(error_trace)
+        
+        return {
+            'success': False,
+            'message': f'Error al generar archivos: {str(e)}',
+            'error_trace': error_trace
+        }
 
 if __name__ == "__main__":
-    # Ejecutar generación de archivos
-    success = main()
-    print(f"\nEjecución {'exitosa ✅' if success else 'fallida ❌'}")
+    # Ejecutar directamente si se llama como script
+    result = main()
+    print("Resultado:", result['message'])
+    print(f"\nEjecución {'exitosa ✅' if result else 'fallida ❌'}")
+
+
 
