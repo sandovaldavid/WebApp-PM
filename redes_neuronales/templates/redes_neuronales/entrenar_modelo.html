@@ -80,7 +80,9 @@
         evaluarModelo: "{% url 'redes_neuronales:evaluar_modelo' %}",
         generarArchivos: "{% url 'redes_neuronales:generar_archivos_evaluacion' %}",
         diagnosticarEntrenamiento: "{% url 'redes_neuronales:diagnosticar_entrenamiento' %}",
-        generarInforme: "{% url 'redes_neuronales:generar_informe_evaluacion' %}"
+        generarInforme: "{% url 'redes_neuronales:generar_informe_evaluacion' %}",
+        openTensorBoard: "{% url 'redes_neuronales:open_tensorboard' %}",
+        reloadModel: "{% url 'redes_neuronales:reload_model' %}"
     };
 
     // Botón para evaluar el modelo
@@ -115,6 +117,38 @@
             resetTrainingState(true);
             location.reload();            
             //showConfigPanel();
+        });
+    }
+
+    // Event listener para el botón de recargar modelo
+    const reloadModelBtn = document.getElementById('reload-model-btn');
+    if (reloadModelBtn) {
+        reloadModelBtn.addEventListener('click', function() {
+            // Mostrar indicador de carga
+            const originalContent = reloadModelBtn.innerHTML;
+            reloadModelBtn.disabled = true;
+            reloadModelBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Recargando...';
+            
+            // Llamar al endpoint de recarga
+            fetch(URLS.reloadModel)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Éxito
+                        showNotification('Modelo recargado correctamente. Ya puedes usar el nuevo modelo sin reiniciar.', 'success');
+                    } else {
+                        // Error
+                        showNotification('Error al recargar el modelo: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showNotification('Error de conexión: ' + error.message, 'error');
+                })
+                .finally(() => {
+                    // Restaurar el botón
+                    reloadModelBtn.disabled = false;
+                    reloadModelBtn.innerHTML = originalContent;
+                });
         });
     }
 </script>

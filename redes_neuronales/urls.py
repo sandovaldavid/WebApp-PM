@@ -24,4 +24,7 @@ urlpatterns = [
     # Rutas para acceder a archivos de evaluación (estáticas y seguras)
     # Estas rutas serán manejadas por el servidor web en producción
     path('estimacion/', include('redes_neuronales.estimacion_tiempo.urls')),
+
+    path('open-tensorboard/', views.open_tensorboard, name='open_tensorboard'),
+    path('reload-model/', views.reload_model, name='reload_model'),
 ]

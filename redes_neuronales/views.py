@@ -336,7 +336,7 @@ def estimacion_avanzada(request):
             'redes_neuronales/estimacion_tiempo/models/feature_importance_2_Recursos.csv'
         )
         feature_importance_data['recurso_3'] = load_feature_importance(
-            'redes_neuronales/estimacion_tiempo/models/feature_importance_3_o_más_Recursos.csv'
+            'redes_neuronales/estimacion_tiempo/models/feature_importance_3_Recursos.csv'
         )
         
         context['feature_importance_data'] = feature_importance_data
@@ -496,9 +496,19 @@ def iniciar_entrenamiento(request):
             'model_name': request.POST.get('model_name', 'tiempo_estimator'),
             'save_as_main': request.POST.get('save_as_main') == 'on',
             'status': 'pending',
+            'optimizer': request.POST.get('optimizer', 'adam'),
+            'use_layer_norm': request.POST.get('use_layer_norm') is not None,
+            'use_residual': request.POST.get('use_residual') is not None,
+            'early_stopping_patience': int(request.POST.get('early_stopping_patience', '30')),
             'updates': [],  # IMPORTANTE: Inicializar array de actualizaciones vacío
             'timestamp': timezone.now().isoformat()  # Usar timezone para consistencia
         }
+
+        # Mostrar la configuración en la terminal
+        print("\nConfiguración del entrenamiento:")
+        for key, value in config.items():
+            print(f"{key}: {value}")
+        print("------------------------")
         
         # Guardar configuración en la sesión (primer método de respaldo)
         request.session[f'training_config_{training_id}'] = config
@@ -1283,7 +1293,7 @@ def evaluar_modelo(request):
             )
             
             segmented_metrics_url = copy_and_get_url(
-                os.path.join(models_dir, 'segmented_feature_importance.png'),
+                os.path.join(models_dir, 'feature_importance_metrics.png'),
                 'segmented_metrics'
             )
 
@@ -2410,3 +2420,79 @@ def model_status(request):
             'status': 'error',
             'message': str(e)
         })
+
+
+@login_required
+def open_tensorboard(request):
+    """Inicia TensorBoard para visualizar el entrenamiento de un modelo específico"""
+    model_id = request.GET.get('model_id')
+    
+    if not model_id:
+        return JsonResponse({'success': False, 'message': 'ID de modelo no proporcionado'})
+    
+    try:
+        # Directorio donde se almacenan los logs de TensorBoard
+        log_dir = os.path.join('logs')
+        
+        # Verificar si el directorio existe
+        if not os.path.exists(log_dir):
+            return JsonResponse({
+                'success': False, 
+                'message': f'No se encontraron logs de TensorBoard para el modelo {model_id}'
+            })
+        
+        # Iniciar TensorBoard en un proceso separado
+        # Esto usa el módulo tensorboard.manager para iniciar un servidor en segundo plano
+        from tensorboard import program
+        tb = program.TensorBoard()
+        tb.configure(argv=[None, '--logdir', log_dir, '--port', '6006'])
+        url = tb.launch()
+        
+        # Alternativamente, puedes usar un puerto fijo configurado en settings:
+        # tb_port = getattr(settings, 'TENSORBOARD_PORT', 6006)
+        # url = f"http://localhost:{tb_port}"
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'TensorBoard iniciado correctamente',
+            'url': url
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al iniciar TensorBoard: {str(e)}'
+        })
+    
+
+@login_required
+def reload_model(request):
+    """Recarga el modelo sin reiniciar la aplicación"""
+    from redes_neuronales.estimacion_tiempo import estimacion_service
+    try:
+        # Reinicializar el servicio para cargar el nuevo modelo
+        estimacion_service = None  # Liberar el modelo actual
+        from redes_neuronales.estimacion_tiempo import get_estimacion_service
+        service = get_estimacion_service()
+        service.initialize()  # Volver a cargar el modelo
+        
+        # Registrar en log para auditoria
+        print("[ModelReload] Modelo recargado correctamente por usuario:", request.user)
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Modelo recargado correctamente',
+            'timestamp': timezone.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+    except Exception as e:
+        import traceback
+        print("[ModelReload] Error:", str(e))
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error al recargar el modelo: {str(e)}'
+        }, status=500)
+    
+    

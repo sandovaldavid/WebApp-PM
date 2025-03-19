@@ -395,21 +395,26 @@ def _configurar_modelo(training_id, config, feature_dims):
         'level': 'info'
     })
     
-    # Configurar el modelo
-    model_config = {
+    # Primero crear una instancia con la configuración predeterminada
+    temp_estimator = AdvancedRNNEstimator()
+    base_config = temp_estimator.default_config
+    
+    # Configurar el modelo sobreescribiendo los valores específicos
+    model_config = base_config.copy()
+    model_config.update({
         'rnn_units': config['rnn_units'],
-        'dense_units': [128, 64, 32],
         'dropout_rate': config['dropout_rate'],
         'learning_rate': config['learning_rate'],
-        'l2_reg': 0.001,
         'use_bidirectional': config['bidirectional'],
         'rnn_type': config['rnn_type'],
-        'activation': 'relu',
         'batch_size': config['batch_size'],
-        'epochs': config['epochs']
-    }
+        'epochs': config['epochs'],
+        # Parámetros adicionales que podrías querer exponer en la interfaz
+        'optimizer': config.get('optimizer', 'adam'),
+        'activation': config.get('activation', 'relu')
+    })
     
-    # Crear y construir el modelo
+    # Crear y construir el modelo con la configuración completa
     estimator = AdvancedRNNEstimator(model_config)
     estimator.build_model(feature_dims)
     
@@ -724,6 +729,7 @@ def _completar_entrenamiento(training_id, config, metrics, history, predictions,
         'epoch_logs': epoch_logs,
         'model_id': training_id,
         'model_name': config['model_name'],
+        'save_as_main': config['save_as_main'],
         'message': 'Entrenamiento finalizado exitosamente.'
     })
     

@@ -144,6 +144,7 @@ function startTraining() {
     // Obtener los datos del formulario
     const form = document.getElementById('trainingForm');
     const formData = new FormData(form);
+    console.log('Datos del formulario:', formData);
     
     // Deshabilitar botón de inicio
     const startTrainingBtn = document.getElementById('startTrainingBtn');
@@ -424,6 +425,24 @@ function handleTrainingComplete(data) {
         // Crear gráficos de error para que el usuario sepa qué sucedió
         createEmptyChart('lossChart', 'Error al crear el gráfico: ' + error.message);
         createEmptyChart('predictionsChart', 'Error al crear el gráfico: ' + error.message);
+    }
+
+    if (data.save_as_main) {
+        // Mostrar notificación sobre la opción de recargar
+        showNotification(
+            'Entrenamiento completado. Para usar el nuevo modelo inmediatamente sin reiniciar, haz click en "Recargar modelo sin reiniciar"', 
+            'info', 
+            10000  // 10 segundos
+        );
+        
+        // Resaltar el botón de recarga
+        const reloadBtn = document.getElementById('reload-model-btn');
+        if (reloadBtn) {
+            reloadBtn.classList.add('animate-pulse', 'bg-green-100', 'border-green-400');
+            setTimeout(() => {
+                reloadBtn.classList.remove('animate-pulse', 'bg-green-100', 'border-green-400');
+            }, 5000);
+        }
     }
     
     setTimeout(() => {
@@ -1565,6 +1584,51 @@ function showNotification(message, type = 'info') {
         setTimeout(() => notification.remove(), 500);
     }, 4000);
 }
+
+
+function mostrarResultadosImportancia(data) {
+    // Mostrar gráfico de importancia
+    document.getElementById('featureImportanceImg').src = '/static/media/evaluacion/' + data.model_id + '/global_feature_importance.png';
+    
+    // Mostrar también métricas por característica
+    document.getElementById('metricsImportanceImg').src = '/static/media/evaluacion/' + data.model_id + '/feature_importance_metrics.png';
+    
+    // Mostrar interacciones si están disponibles
+    if (data.has_interactions) {
+        document.getElementById('interactionsImg').src = '/static/media/evaluacion/' + data.model_id + '/feature_interactions.png';
+        document.getElementById('interactions-section').classList.remove('hidden');
+    }
+}
+
+// Agregar cerca de los otros event listeners, al final del DOMContentLoaded
+document.getElementById('open-tensorboard').addEventListener('click', function() {
+    const modelId = currentTrainingId || lastTrainingId;
+    
+    // Mostrar indicador de carga
+    this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Iniciando...';
+    this.disabled = true;
+    
+    // Llamar al endpoint para iniciar/abrir TensorBoard
+    fetch(URLS.openTensorBoard + '?model_id=' + modelId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.url) {
+                // Abrir TensorBoard en una nueva pestaña
+                window.open(data.url, '_blank');
+            } else {
+                // Mostrar error si hay problemas
+                showNotification(data.message || 'Error al iniciar TensorBoard', 'error');
+            }
+        })
+        .catch(err => {
+            showNotification('Error de conexión: ' + err.message, 'error');
+        })
+        .finally(() => {
+            // Restaurar el botón
+            this.innerHTML = '<i class="fas fa-chart-line mr-2"></i>Abrir TensorBoard';
+            this.disabled = false;
+        });
+});
 
 // Añadir estilos para las animaciones
 (function() {

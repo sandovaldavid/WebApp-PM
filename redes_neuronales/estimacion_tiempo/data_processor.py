@@ -181,10 +181,11 @@ class DataProcessor:
             if val_size <= 0:
                 X_val, X_test, y_val, y_test = X_temp, [], y_temp, []
             else:
-                # val_size relativo al tamaño de X_temp
-                val_ratio = val_size / test_size if test_size > 0 else 0.5
+                # Calcular proporción adecuada entre validación y prueba
+                total_size = test_size + val_size
+                test_ratio_in_temp = min(0.999, test_size / total_size) if total_size > 0 else 0.5
                 X_val, X_test, y_val, y_test = train_test_split(
-                    X_temp, y_temp, test_size=val_ratio, random_state=42
+                    X_temp, y_temp, test_size=test_ratio_in_temp, random_state=42
                 )
             
             # Almacenar también los datos de prueba por si se necesitan

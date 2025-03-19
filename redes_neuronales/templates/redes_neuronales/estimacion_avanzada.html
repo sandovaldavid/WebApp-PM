@@ -43,6 +43,11 @@
             <i class="fas fa-robot text-blue-600 text-xl mb-1 mr-1.5"></i>
             Entrenar Modelo
         </a>
+
+        <button id="reload-model-btn" class="px-3 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-sm flex items-center border border-green-200 transition-all hover:shadow-sm">
+            <i class="fas fa-refresh mr-2"></i>
+            Recargar modelo sin reiniciar
+        </button>
     </div>
 </div>
 {% endblock %}
@@ -1071,6 +1076,42 @@
                 }
             });
         }
+    
+
+        // 6. Event listener para el botón de recargar modelo
+        const reloadModelBtn = document.getElementById('reload-model-btn');
+        if (reloadModelBtn) {
+            reloadModelBtn.addEventListener('click', function() {
+                // Mostrar indicador de carga
+                const originalContent = reloadModelBtn.innerHTML;
+                reloadModelBtn.disabled = true;
+                reloadModelBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i>Recargando...';
+                
+                // Llamar al endpoint de recarga
+                fetch("{% url 'redes_neuronales:reload_model' %}")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Éxito
+                            showNotification('Modelo recargado correctamente. Ya puedes usar el nuevo modelo sin reiniciar.', 'success');
+                        } else {
+                            // Error
+                            showNotification('Error al recargar el modelo: ' + data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showNotification('Error de conexión: ' + error.message, 'error');
+                    })
+                    .finally(() => {
+                        // Restaurar el botón
+                        reloadModelBtn.disabled = false;
+                        reloadModelBtn.innerHTML = originalContent;
+                    });
+            });
+        }
+    
+    
+    
     });
 </script>
 {% endblock %}
