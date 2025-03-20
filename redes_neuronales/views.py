@@ -327,7 +327,7 @@ def estimacion_avanzada(request):
         feature_importance_data = {}
         
         feature_importance_data['global'] = load_feature_importance(
-            'redes_neuronales/estimacion_tiempo/models/global_feature_importance.csv'
+            'redes_neuronales/estimacion_tiempo/models/global_feature_importance_detailed.csv'
         )
         feature_importance_data['recurso_1'] = load_feature_importance(
             'redes_neuronales/estimacion_tiempo/models/feature_importance_1_Recurso.csv'

@@ -483,7 +483,7 @@ class ModelEvaluator:
         # Normalizar importancia absoluta
         sum_importance = importance_df['Importance'].sum()
         if sum_importance > 0:
-            importance_df['Importance_Normalized'] = importance_df['Importance'] / sum_importance * 100
+            importance_df['Importance_Normalized'] = importance_df['Importance'] / sum_importance
         else:
             importance_df['Importance_Normalized'] = 0
         
