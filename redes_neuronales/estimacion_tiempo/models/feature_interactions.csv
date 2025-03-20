@@ -1,0 +1,9 @@
+Feature1,Feature2,Interaction,Normalized_Interaction
+Complejidad,Experiencia_R1,58.92627830505364,0.10127123653329699
+Claridad_Requisitos,Experiencia_Equipo,-28.81966667175294,-0.10457517478892502
+Experiencia_Equipo,Experiencia_R1,-29.420962142944347,-0.20623334068634383
+Claridad_Requisitos,Experiencia_R1,-36.28777046203612,-0.15201099601796533
+Tamaño_Tarea,Complejidad,-544.8905643463131,-0.13579821796172922
+Tamaño_Tarea,Claridad_Requisitos,-1495.0379016876218,-0.4074390212462743
+Tamaño_Tarea,Experiencia_Equipo,-1563.2654384613033,-0.4374857781586089
+Tamaño_Tarea,Experiencia_R1,-1891.252157974243,-0.5347922025736447
