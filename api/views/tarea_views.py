@@ -10,6 +10,9 @@ from dashboard.models import (
     Tarearecurso,
     Recurso,
     Monitoreotarea,
+    Requerimiento,
+    Proyecto,
+    Usuario,
 )
 from api.permissions import IsAdminOrReadOnly
 from api.serializers.tarea_serializers import TareaSerializer, TareaListSerializer
@@ -111,3 +114,120 @@ class TareaViewSet(viewsets.ModelViewSet):
             )
 
         return Response(tareas_comunes)
+
+    @action(detail=False, methods=["get"])
+    def por_proyecto(self, request):
+        """Get tasks filtered by project ID"""
+        proyecto_id = request.query_params.get("idproyecto")
+        if not proyecto_id:
+            return Response(
+                {"error": "Se requiere el parámetro 'idproyecto'"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # Verify the project exists
+            proyecto = Proyecto.objects.get(idproyecto=proyecto_id)
+
+            # Get requirements for this project
+            requerimientos = Requerimiento.objects.filter(idproyecto=proyecto)
+
+            if not requerimientos.exists():
+                return Response(
+                    {"detail": "Este proyecto no tiene requerimientos asociados."},
+                    status=status.HTTP_200_OK,
+                    data=[],
+                )
+
+            # Get tasks for these requirements
+            tareas = Tarea.objects.filter(idrequerimiento__in=requerimientos)
+
+            # Apply additional filters if provided
+            estado = request.query_params.get("estado")
+            if estado:
+                tareas = tareas.filter(estado=estado)
+
+            prioridad = request.query_params.get("prioridad")
+            if prioridad:
+                tareas = tareas.filter(prioridad=prioridad)
+
+            fase = request.query_params.get("fase")
+            if fase:
+                tareas = tareas.filter(fase=fase)
+
+            # Order by provided parameter or default to creation date
+            ordering = request.query_params.get("ordering", "-fechacreacion")
+            tareas = tareas.order_by(ordering)
+
+            # Use pagination
+            page = self.paginate_queryset(tareas)
+            if page is not None:
+                serializer = TareaListSerializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = TareaListSerializer(tareas, many=True)
+            return Response(serializer.data)
+
+        except Proyecto.DoesNotExist:
+            return Response(
+                {"detail": "El proyecto especificado no existe."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {"detail": f"Error al obtener tareas: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(
+        detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated]
+    )
+    def cambiar_estado(self, request, pk=None):
+        """Update the status of a task"""
+        tarea = self.get_object()
+        nuevo_estado = request.data.get("estado")
+
+        if not nuevo_estado:
+            return Response(
+                {"error": "Se requiere el campo 'estado'"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        estados_validos = [
+            "pendiente",
+            "en_progreso",
+            "completada",
+            "pausada",
+            "cancelada",
+        ]
+        if nuevo_estado not in estados_validos:
+            return Response(
+                {
+                    "error": f"Estado inválido. Valores permitidos: {', '.join(estados_validos)}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Guardar estado anterior para actividad
+        estado_anterior = tarea.estado
+
+        # Actualizar estado
+        tarea.estado = nuevo_estado
+        tarea.save(update_fields=["estado", "fechamodificacion"])
+
+        # Registrar actividad si es posible
+        try:
+            from dashboard.models import Actividad
+
+            Actividad.objects.create(
+                nombre=f"Cambio de estado de tarea #{tarea.idtarea}",
+                descripcion=f"Estado actualizado de '{estado_anterior}' a '{nuevo_estado}'",
+                idusuario=request.user,
+                accion="cambio_estado",
+                entidad_tipo="Tarea",
+                entidad_id=tarea.idtarea,
+            )
+        except Exception:
+            pass  # No interrumpir el flujo si falla el registro de actividad
+
+        return Response({"detail": "Estado actualizado con éxito"})
