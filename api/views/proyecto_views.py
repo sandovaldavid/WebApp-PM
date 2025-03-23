@@ -9,6 +9,7 @@ from api.serializers.proyecto_serializers import (
     ProyectoSerializer,
     ProyectoListSerializer,
 )
+from api.pagination import CustomPagination
 
 
 class ProyectoViewSet(viewsets.ModelViewSet):
@@ -21,6 +22,7 @@ class ProyectoViewSet(viewsets.ModelViewSet):
     serializer_class = ProyectoSerializer
     permission_classes = [IsAdminOrReadOnly]
     authentication_classes = [TokenAuthentication, SessionAuthentication]
+    pagination_class = CustomPagination
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -46,13 +48,47 @@ class ProyectoViewSet(viewsets.ModelViewSet):
         proyecto = self.get_object()
         from dashboard.models import Tarea, Requerimiento
 
-        requerimientos = Requerimiento.objects.filter(idproyecto=proyecto)
-        tareas = Tarea.objects.filter(idrequerimiento__in=requerimientos)
+        try:
+            # Get requirements associated with this project
+            requerimientos = Requerimiento.objects.filter(idproyecto=proyecto)
 
-        from api.serializers.tarea_serializers import TareaListSerializer
+            if not requerimientos.exists():
+                return Response(
+                    {"detail": "Este proyecto no tiene requerimientos asociados."},
+                    status=status.HTTP_200_OK,
+                )
 
-        serializer = TareaListSerializer(tareas, many=True)
-        return Response(serializer.data)
+            # Get tasks associated with these requirements
+            tareas = Tarea.objects.filter(idrequerimiento__in=requerimientos).order_by(
+                "-fechacreacion"
+            )
+
+            # Apply filters from query params if they exist
+            estado = request.query_params.get("estado")
+            if estado:
+                tareas = tareas.filter(estado=estado)
+
+            prioridad = request.query_params.get("prioridad")
+            if prioridad:
+                tareas = tareas.filter(prioridad=prioridad)
+
+            # Use pagination if available
+            page = self.paginate_queryset(tareas)
+
+            from api.serializers.tarea_serializers import TareaListSerializer
+
+            if page is not None:
+                serializer = TareaListSerializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = TareaListSerializer(tareas, many=True)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response(
+                {"detail": f"Error al obtener tareas: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     @action(detail=True, methods=["get"])
     def equipo(self, request, pk=None):
