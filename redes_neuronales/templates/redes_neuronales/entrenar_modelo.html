@@ -82,7 +82,8 @@
         diagnosticarEntrenamiento: "{% url 'redes_neuronales:diagnosticar_entrenamiento' %}",
         generarInforme: "{% url 'redes_neuronales:generar_informe_evaluacion' %}",
         openTensorBoard: "{% url 'redes_neuronales:open_tensorboard' %}",
-        reloadModel: "{% url 'redes_neuronales:reload_model' %}"
+        reloadModel: "{% url 'redes_neuronales:reload_model' %}",
+        checkActiveTraining: "{% url 'redes_neuronales:check_active_training' %}"
     };
 
     // Botón para evaluar el modelo
@@ -151,5 +152,54 @@
                 });
         });
     }
+
+    // Función auxiliar para configurar la interfaz de entrenamiento
+    function setupTrainingInterface(trainingId, modelName) {
+        // Ocultar panel de configuración
+        const configPanel = document.getElementById('configurationPanel');
+        if (configPanel) {
+            configPanel.classList.add('hidden');
+        }
+        
+        // Mostrar resultados de entrenamiento
+        const trainingResults = document.getElementById('trainingResults');
+        if (trainingResults) {
+            trainingResults.classList.remove('hidden');
+        }
+        
+        // Mostrar botón para volver a configuración
+        const backToConfigBtn = document.getElementById('backToConfigBtn');
+        if (backToConfigBtn) {
+            backToConfigBtn.classList.remove('hidden');
+        }
+        
+        // Inicializar monitor con el ID de entrenamiento existente
+        currentTrainingId = trainingId;
+        initializeTrainingMonitor(trainingId, modelName);
+        
+        // Actualizar nombre del modelo en la interfaz
+        const savedModelName = document.getElementById('savedModelName');
+        if (savedModelName) {
+            savedModelName.textContent = modelName;
+        }
+    }
+
+    // Función para verificar otros entrenamientos activos en el servidor
+    function checkForOtherActiveTrainings(data) {
+        if (data.success && data.active_trainings && data.active_trainings.length > 0) {
+            // Tomar el primer entrenamiento activo
+            const activeTraining = data.active_trainings[0];
+            
+            // Guardar este entrenamiento en localStorage
+            saveTrainingState(activeTraining.training_id, activeTraining.model_name);
+            
+            // Configurar interfaz para este entrenamiento
+            setupTrainingInterface(activeTraining.training_id, activeTraining.model_name);
+        } else {
+            // No hay entrenamientos activos - mostrar panel de configuración
+            showConfigPanel();
+        }
+    }
+
 </script>
 {% endblock %}

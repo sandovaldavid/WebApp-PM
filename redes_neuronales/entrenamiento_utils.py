@@ -640,15 +640,24 @@ def _actualizar_registro_bd(training_id, config, metrics):
         from dashboard.models import Modeloestimacionrnn
         timestamp = datetime.now().strftime("%Y%m%d")
         
+        # Definir los defaults básicos
+        defaults = {
+            'descripcionmodelo': f'Modelo entrenado desde la interfaz web ({config["rnn_type"]} {"bidireccional" if config["bidirectional"] else "unidireccional"})',
+            'versionmodelo': f"1.0.{timestamp}",
+            'precision': metrics.get('R2', 0.8),
+            'fechamodificacion': timezone.now()
+        }
+        
+        # Si es una creación, también establecer la fecha de creación
         modelo, created = Modeloestimacionrnn.objects.update_or_create(
-            nombremodelo='RNN Avanzado',
-            defaults={
-                'descripcionmodelo': f'Modelo entrenado desde la interfaz web ({config["rnn_type"]} {"bidireccional" if config["bidirectional"] else "unidireccional"})',
-                'versionmodelo': f"1.0.{timestamp}",
-                'precision': metrics.get('R2', 0.8),
-                'fechamodificacion': timezone.now()
-            }
+            nombremodelo=config['model_name'],
+            defaults=defaults
         )
+        
+        # Si se acaba de crear, establecer la fecha de creación
+        if created:
+            modelo.fechacreacion = timezone.now()
+            modelo.save()
         
         _add_update(training_id, {
             'type': 'log',

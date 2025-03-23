@@ -1129,6 +1129,66 @@ def _prepare_complete_event(training_id):
 
 
 @login_required
+def check_active_training(request):
+    """Verifica si hay entrenamientos activos para el usuario actual"""
+    from django.core.cache import cache
+    
+    try:
+        usuario_id = request.user.idusuario
+        active_trainings = []
+        
+        # Buscar claves de configuración de entrenamiento en caché
+        keys_pattern = f'training_config_*'
+        all_keys = cache.keys(keys_pattern)
+        
+        if not all_keys:
+            # Si no podemos obtener las claves directamente, probamos con la sesión
+            for key in request.session.keys():
+                if key.startswith('training_config_'):
+                    training_id = key.replace('training_config_', '')
+                    config = request.session.get(key)
+                    if config and config.get('status') in ['running', 'pending']:
+                        active_trainings.append({
+                            'training_id': training_id,
+                            'model_name': config.get('model_name', 'tiempo_estimator'),
+                            'status': config.get('status'),
+                            'timestamp': config.get('timestamp')
+                        })
+        else:
+            # Procesar claves de caché
+            for key in all_keys:
+                if key.startswith('training_config_'):
+                    training_id = key.replace('training_config_', '')
+                    config = cache.get(key)
+                    
+                    # Verificar si este entrenamiento pertenece al usuario actual
+                    training_user_key = f'training_user_{training_id}'
+                    training_user_id = cache.get(training_user_key)
+                    
+                    if (training_user_id == usuario_id and 
+                        config and config.get('status') in ['running', 'pending']):
+                        active_trainings.append({
+                            'training_id': training_id,
+                            'model_name': config.get('model_name', 'tiempo_estimator'),
+                            'status': config.get('status'),
+                            'timestamp': config.get('timestamp')
+                        })
+        
+        return JsonResponse({
+            'success': True,
+            'active_trainings': active_trainings
+        })
+    except Exception as e:
+        import traceback
+        print(f"Error al verificar entrenamientos activos: {e}")
+        print(traceback.format_exc())
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error: {str(e)}'
+        })
+
+
+@login_required
 def generar_archivos_evaluacion(request):
     """Vista para generar archivos de evaluación para un modelo existente"""
     if request.method == 'POST':

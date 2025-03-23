@@ -106,21 +106,55 @@ function setupEventHandlers() {
  * Actualiza el estado de la interfaz según las condiciones actuales
  */
 function updateUIState() {
-    // Inicialmente ocultar la sección de resultados
-    const trainingResults = document.getElementById('trainingResults');
-    if (trainingResults) {
-        trainingResults.classList.add('hidden');
+
+    // Verificar si hay un entrenamiento activo
+    const storedTraining = getStoredTrainingState();
+
+    if (!storedTraining) {
+        // Si no hay entrenamiento activo, mostrar panel de configuración
+        // Inicialmente ocultar la sección de resultados
+        const trainingResults = document.getElementById('trainingResults');
+        if (trainingResults) {
+            trainingResults.classList.add('hidden');
+        }
+        
+        // Ocultar la sección de evaluación
+        const evaluationSection = document.getElementById('evaluationSection');
+        if (evaluationSection) {
+            evaluationSection.classList.add('hidden');
+        }
+        
+        // Asegurar que el panel de configuración esté visible
+        //showConfigPanel();        
+    } else {
+        console.log("Recuperando entrenamiento almacenado:", storedTraining);
+        
+        // Verificar si el entrenamiento sigue activo en el servidor antes de restaurarlo
+        fetch(URLS.checkActiveTraining)
+            .then(response => response.json())
+            .then(data => {
+                const serverTrainings = data.success ? data.active_trainings : [];
+                const trainingStillActive = serverTrainings.some(
+                    t => t.training_id === storedTraining.trainingId
+                );
+                
+                if (trainingStillActive) {
+                    // El entrenamiento sigue activo, restaurar interfaz
+                    setupTrainingInterface(storedTraining.trainingId, storedTraining.modelName);
+                    showNotification('Entrenamiento en curso restaurado', 'info');
+                } else {
+                    // El entrenamiento ya no está activo, mostrar panel de configuración
+                    clearTrainingState();
+                    showConfigPanel();
+                }
+            })
+            .catch(error => {
+                // En caso de error, mostrar el panel de configuración
+                console.error("Error al verificar entrenamientos:", error);
+                showConfigPanel();
+            });
     }
-    
-    // Ocultar la sección de evaluación
-    const evaluationSection = document.getElementById('evaluationSection');
-    if (evaluationSection) {
-        evaluationSection.classList.add('hidden');
-    }
-    
-    // Asegurar que el panel de configuración esté visible
-    //showConfigPanel();
-    
+
     // Inicializar el estado del indicador de conexión SSE
     const sseStatusDot = document.getElementById('sseStatusDot');
     const sseStatusText = document.getElementById('sseStatusText');
@@ -128,6 +162,7 @@ function updateUIState() {
         sseStatusDot.className = "w-2 h-2 rounded-full bg-gray-500 inline-block mr-2";
         sseStatusText.textContent = "Sin conexión";
     }
+   
 }
 
 /**
@@ -187,6 +222,7 @@ function startTraining() {
         if (data.success) {
             // Guardar ID de entrenamiento
             currentTrainingId = data.training_id;
+            saveTrainingState(data.training_id, data.model_name);
             
             // Inicializar monitor de entrenamiento
             initializeTrainingMonitor(data.training_id, data.model_name);
@@ -227,6 +263,9 @@ function initializeTrainingMonitor(trainingId, modelName) {
     if (trainingMonitor) {
         trainingMonitor.stop(); // Detener monitor anterior si existe
     }
+
+    // Guardar ID de entrenamiento actual
+    currentTrainingId = trainingId;
     
     // Crear instancia de TrainingMonitor con los selectores correctos
     trainingMonitor = new TrainingMonitor(trainingId, {
@@ -428,6 +467,10 @@ function handleTrainingComplete(data) {
     }
 
     if (data.save_as_main) {
+
+        // Limpiar estado de entrenamiento activo
+        clearTrainingState();
+
         // Mostrar notificación sobre la opción de recargar
         showNotification(
             'Entrenamiento completado. Para usar el nuevo modelo inmediatamente sin reiniciar, haz click en "Recargar modelo sin reiniciar"', 
@@ -1598,6 +1641,35 @@ function mostrarResultadosImportancia(data) {
         document.getElementById('interactionsImg').src = '/static/media/evaluacion/' + data.model_id + '/feature_interactions.png';
         document.getElementById('interactions-section').classList.remove('hidden');
     }
+}
+
+// Funciones para almacenamiento del estado de entrenamiento
+function saveTrainingState(trainingId, modelName) {
+    localStorage.setItem('activeTrainingId', trainingId);
+    localStorage.setItem('activeModelName', modelName);
+    localStorage.setItem('trainingTimestamp', Date.now());
+}
+
+function clearTrainingState() {
+    localStorage.removeItem('activeTrainingId');
+    localStorage.removeItem('activeModelName');
+    localStorage.removeItem('trainingTimestamp');
+}
+
+function getStoredTrainingState() {
+    const trainingId = localStorage.getItem('activeTrainingId');
+    const modelName = localStorage.getItem('activeModelName');
+    const timestamp = localStorage.getItem('trainingTimestamp');
+    
+    if (trainingId && modelName) {
+        return {
+            trainingId,
+            modelName,
+            timestamp
+        };
+    }
+    
+    return null;
 }
 
 // Agregar cerca de los otros event listeners, al final del DOMContentLoaded

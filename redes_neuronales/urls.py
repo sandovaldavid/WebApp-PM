@@ -16,7 +16,7 @@ urlpatterns = [
     path('generar-archivos-evaluacion/', views.generar_archivos_evaluacion, name='generar_archivos_evaluacion'),
     path('evaluar-modelo/', views.evaluar_modelo, name='evaluar_modelo'),
     path('generar-informe-evaluacion/', views.generar_informe_evaluacion, name='generar_informe_evaluacion'),
-    
+    path('check-active-training/', views.check_active_training, name='check_active_training'),
     # Endpoints de diagnóstico y estado
     path('diagnosticar-entrenamiento/', views.diagnosticar_entrenamiento, name='diagnosticar_entrenamiento'),
     path('model-status/', views.model_status, name='model_status'),
