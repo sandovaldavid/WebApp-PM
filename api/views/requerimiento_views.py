@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Count
 from dashboard.models import Requerimiento, Tarea, Proyecto, Actividad
 from api.permissions import IsAdminOrReadOnly
 from api.serializers.requerimiento_serializers import (
@@ -145,13 +146,13 @@ class RequerimientoViewSet(viewsets.ModelViewSet):
         # Requerimientos por proyecto
         por_proyecto = (
             Proyecto.objects.values("idproyecto", "nombreproyecto")
-            .annotate(total_requerimientos=models.Count("requerimiento"))
+            .annotate(total_requerimientos=Count("requerimiento"))
             .order_by("-total_requerimientos")
         )
 
         # Requerimientos con más tareas
         con_mas_tareas = (
-            Requerimiento.objects.annotate(total_tareas=models.Count("tarea"))
+            Requerimiento.objects.annotate(total_tareas=Count("tarea"))
             .values("idrequerimiento", "descripcion", "total_tareas")
             .order_by("-total_tareas")[:5]
         )
