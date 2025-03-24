@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from api.views import usuario_views, proyecto_views, tarea_views, equipo_views, requerimiento_views
 from api.views.auth_views import LoginView
+from api.views.health_views import health_check
 from rest_framework.authtoken import views as token_views
 
 # Create a router and register our viewsets with it
@@ -18,4 +19,5 @@ urlpatterns = [
     path("auth/", include("rest_framework.urls")),
     path("login/", LoginView.as_view(), name="api-login"),
     path("token-auth/", token_views.obtain_auth_token, name="api-token-auth"),
+    path("health/", health_check, name="api-health-check"),
 ]
