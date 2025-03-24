@@ -1,5 +1,0 @@
-﻿ID,Experiencia del Encuestado,Tarea,Descripcion_Tarea,Proyecto en el que se RealizÃ³ la Tarea:,Complejidad,Tipo_Tarea,Fase_Tarea,Cantidad_Recursos,Carga_Trabajo_R1,Experiencia_R1,Carga_Trabajo_R2,Experiencia_R2,Carga_Trabajo_R3,Experiencia_R3,Experiencia_Equipo,Claridad_Requisitos,TamaÃ±o_Tarea,Tiempo_Ejecucion
-1,Senior,Integracion con proveedor de pagos online,Integracion de formulario seguro de metodo de pago y servicio de confirmacion de depositos de transaccion,Sistema de comercio electronico,3,Backend,Transición/Implementación,1,3,5,,,,,4,3,5,80
-2,Mid-Level,Checkout para Cuenta Sueldo,"Crear una versión del flujo de checkout específica para el programa Cuenta Sueldo. Los clientes de cuenta sueldo van a poder canjear sus productos según corresponda.
-La principal diferencia con el flujo principal de compra, es la validación por DNI.",Webcheckout y Gateway,3,Backend,Transición/Implementación,2,2,5,2,3,,,4,3,8,106
-3,Senior,Desarrollo de arquitectura mono-repo,Unificar varios proyectos basados en packages y workspace,RedSea,5,Arquitectura,Transición/Implementación,3,2,4,2,5,3,5,5,4,13,96
