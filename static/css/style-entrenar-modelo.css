@@ -1,0 +1,296 @@
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Corregir referencia a la imagen de fondo - usar URL absoluta */
+.bg-network {
+    background-image: url('/static/img/neural-bg.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    opacity: 0.03;
+}
+.spinner {
+    border: 3px solid rgba(79, 70, 229, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-top-color: #4f46e5;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.progress-container {
+    height: 8px;
+    width: 100%;
+    background-color: #f3f4f6;
+    border-radius: 1rem;
+    margin: 1rem 0;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+.progress-bar {
+    height: 100%;
+    border-radius: 1rem;
+    background: linear-gradient(to right, #4f46e5, #6366f1);
+    transition: width 0.5s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para el contenedor de logs - Definición única */
+.log-container {
+    background-color: #1a1a1a;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    height: 300px;
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #4f46e5 #1a1a1a;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Estilo para scrollbar en Chrome/Safari */
+.log-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.log-container::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+.log-container::-webkit-scrollbar-thumb {
+    background-color: #4f46e5;
+    border-radius: 8px;
+}
+
+.log-line {
+    margin: 0;
+    padding: 2px 0;
+    word-wrap: break-word;
+}
+
+/* Pulso con anillos - Para el spinner de entrenamiento */
+.pulse-ring {
+    position: relative;
+    width: 30px;
+    height: 30px;
+}
+
+.pulse-ring:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border: 3px solid rgba(79, 70, 229, 0.2);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-out infinite;
+}
+
+.pulse-ring:after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 15px;
+    height: 15px;
+    background-color: #4f46e5;
+    border-radius: 50%;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 1;
+    }
+    70% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* Punto de estado con pulso */
+.pulse-dot {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #9ca3af; /* Color gris por defecto */
+    display: inline-block;
+}
+
+#sseStatusDot.connecting {
+    background-color: #f59e0b; /* Color ámbar para conectando */
+}
+
+#sseStatusDot.connected {
+    background-color: #10b981; /* Color verde para conectado */
+}
+
+#sseStatusDot.error {
+    background-color: #ef4444; /* Color rojo para error */
+}
+
+#sseStatusDot.connected:before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: #10b981;
+    opacity: 0.5;
+    animation: pulse-dot 1.5s ease-out infinite;
+}
+
+@keyframes pulse-dot {
+    0% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+    70% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+/* Estilos para el toggle switch */
+.toggle-checkbox:checked {
+    right: 0;
+    border-color: #4f46e5;
+}
+
+.toggle-checkbox:checked + .toggle-label {
+    background-color: #4f46e5;
+}
+
+.toggle-label {
+    transition: background-color 0.3s ease;
+}
+
+/* Estilos para contenedores de gráficos */
+.chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+
+/* Animación para actualización de métricas */
+.highlight-update {
+    animation: metric-update 1.5s ease;
+}
+
+@keyframes metric-update {
+    0% { background-color: rgba(79, 70, 229, 0); }
+    30% { background-color: rgba(79, 70, 229, 0.2); }
+    100% { background-color: rgba(79, 70, 229, 0); }
+}
+
+/* Estilos para mejorar las gráficas */
+.chart-container {
+    transition: all 0.3s ease;
+  }
+  
+  .chart-scale-btn.active {
+    font-weight: 500;
+  }
+  
+  .chart-download-btn,
+  .chart-fullscreen-btn {
+    transition: all 0.2s ease;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .chart-download-btn:hover,
+  .chart-fullscreen-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* Efecto de loading para las gráficas */
+  .chart-loading {
+    position: relative;
+  }
+  
+  .chart-loading::after {
+    content: "Cargando...";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #6B7280;
+  }
+
+/* Estilos específicos para la sección de evaluación del modelo */
+.evaluation-image {
+  transition: transform 0.2s ease-in-out;
+}
+
+.image-zoom-btn:hover + .image-container .evaluation-image,
+.image-container:hover .evaluation-image {
+  transform: scale(1.02);
+}
+
+.metric-value {
+  transition: all 0.3s ease;
+}
+
+#evaluationProgress .animate-pulse {
+  animation: progress-pulse 1.5s infinite;
+}
+
+@keyframes progress-pulse {
+  0%, 100% {
+    width: 60%;
+    opacity: 0.6;
+  }
+  50% {
+    width: 90%;
+    opacity: 0.9;
+  }
+}
+
+/* Efectos sutiles para hover en tarjetas de métricas */
+.metric-value {
+  background: linear-gradient(120deg, transparent 0%, transparent 100%);
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  transition: all 0.3s ease;
+}
+
+.metric-value.highlighted {
+  animation: highlight-metric 2s ease;
+}
+
+@keyframes highlight-metric {
+  0% { background-position: 100% 0; }
+  50% { 
+    background-position: 0 0;
+    background-image: linear-gradient(120deg, rgba(79, 70, 229, 0.1) 0%, transparent 100%);
+  }
+  100% { background-position: 100% 0; }
+}

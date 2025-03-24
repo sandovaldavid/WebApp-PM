@@ -560,9 +560,11 @@
                                     <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-800 rounded-full">{{ alerta.tipoalerta }}</span>
                                 </div>
                             </div>
-                            <button data-id="{{ alerta.idalerta }}" class="resolve-alert ml-2 text-sm p-1 text-red-600 hover:text-red-800">
-                                <i class="fas fa-times-circle"></i>
-                            </button>
+                            <!-- Botón Ver Detalle -->
+                            <a href="{% url 'notificaciones:detalle_alerta' alerta.idalerta %}"
+                                class="text-sm text-red-600 hover:text-red-800 ml-2 flex items-center">
+                                <i class="fas fa-eye mr-1"></i>
+                            </a>
                         </div>
                     {% endfor %}
                 {% else %}
@@ -803,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.parentNode.removeChild(this);
             
             // Llamada AJAX para marcar como leída usando la URL existente
-            fetch(`/notificaciones/notificacion/marcar-leida/${notificacionId}/`, {
+            fetch(`/gestion-notificaciones/notificacion/marcar-leida/${notificacionId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),
@@ -848,13 +850,57 @@ document.addEventListener('DOMContentLoaded', function() {
     resolveAlertBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const alertaId = this.dataset.id;
-            // Implementar llamada AJAX para resolver alerta
-            const alertaElement = this.closest('.flex.items-start');
-            alertaElement.style.height = alertaElement.offsetHeight + 'px';
-            alertaElement.classList.add('opacity-0');
-            setTimeout(() => {
-                alertaElement.style.display = 'none';
-            }, 300);
+            
+            // Obtener el token CSRF del cookie
+            const csrftoken = getCookie('csrftoken');
+            
+            // Crear un FormData para enviar como form-data en lugar de JSON
+            const formData = new FormData();
+            
+            // Implementar llamada AJAX para resolver alerta (corregida)
+            fetch(`/gestion-notificaciones/alerta/resolver/${alertaId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    // No establecemos 'Content-Type' para que el navegador configure automáticamente
+                    // el boundary correcto para form-data
+                },
+                body: formData,  // Enviar como form-data
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Animación visual cuando la alerta se resuelve exitosamente
+                    const alertaElement = this.closest('.flex.items-start');
+                    alertaElement.style.height = alertaElement.offsetHeight + 'px';
+                    alertaElement.classList.add('opacity-0');
+                    setTimeout(() => {
+                        alertaElement.style.display = 'none';
+                    }, 300);
+                    
+                    // Opcional: Actualizar contador de alertas si existe
+                    const contadorAlertas = document.querySelector('.alertas-contador');
+                    if (contadorAlertas) {
+                        const valorActual = parseInt(contadorAlertas.textContent);
+                        if (valorActual > 0) {
+                            contadorAlertas.textContent = valorActual - 1;
+                        }
+                    }
+                } else {
+                    console.error('Error al resolver alerta:', data.message || 'Error desconocido');
+                    alert('No se pudo resolver la alerta');
+                }
+            })
+            .catch(error => {
+                console.error('Error en la petición:', error);
+                alert('Error de conexión al intentar resolver la alerta');
+            });
         });
     });
     
