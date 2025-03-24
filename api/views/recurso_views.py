@@ -19,12 +19,18 @@ from dashboard.models import (
 from api.permissions import IsAdminOrReadOnly
 from api.serializers.recurso_serializers import RecursoSerializer, RecursoListSerializer
 from api.pagination import CustomPagination
+from api.filters import RecursoFilter  # Importar el filtro personalizado
 
 
 class RecursoViewSet(viewsets.ModelViewSet):
     """
     API endpoint para recursos que permite CRUD completo.
     Solo admin puede crear/actualizar/eliminar recursos.
+
+    Filtros disponibles:
+     - disponibilidad: Filtrar por disponibilidad (true/false)
+     - idtiporecurso: Filtrar por ID del tipo de recurso
+     - tipo: Filtrar por tipo de recurso ('humano' o 'material')
     """
 
     queryset = Recurso.objects.all().order_by("-fechacreacion")
@@ -37,7 +43,9 @@ class RecursoViewSet(viewsets.ModelViewSet):
         filters.SearchFilter,
         filters.OrderingFilter,
     ]
-    filterset_fields = ["disponibilidad", "idtiporecurso"]
+    filterset_class = (
+        RecursoFilter  # Usar el filtro personalizado en lugar de filterset_fields
+    )
     search_fields = ["nombrerecurso"]
     ordering_fields = ["nombrerecurso", "fechacreacion", "carga_trabajo"]
 
@@ -321,7 +329,11 @@ class RecursoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def por_tipo(self, request):
-        """Get resources filtered by type (Humano, Material)"""
+        """Get resources filtered by type (Humano, Material)
+
+        Nota: Esta funcionalidad también está disponible usando:
+        GET /recursos/?tipo=humano  o  GET /recursos/?tipo=material
+        """
         tipo = request.query_params.get("tipo")
 
         if not tipo:
