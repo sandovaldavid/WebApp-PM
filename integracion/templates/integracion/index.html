@@ -69,31 +69,32 @@
                 </div>
             </div>
 
-            <!-- Google Sheets -->
+            <!-- GitHub -->
+            <!-- GitHub -->
             <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div class="p-6 bg-gradient-to-r from-green-500 to-green-600">
-                    <img src="https://cdn.worldvectorlogo.com/logos/google-sheets.svg" alt="Google Sheets Logo"
+                <div class="p-6 bg-gradient-to-r from-purple-800 to-purple-900">
+                    <img src="https://cdn.worldvectorlogo.com/logos/github-icon-1.svg" alt="GitHub Logo"
                          class="h-12 mb-4">
-                    <h3 class="text-xl font-bold text-white">Google Sheets</h3>
-                    <p class="text-green-100 mt-2">Sincroniza datos con hojas de cálculo</p>
+                    <h3 class="text-xl font-bold text-white">GitHub</h3>
+                    <p class="text-purple-100 mt-2">Integra tu código y flujo de trabajo con GitHub</p>
                 </div>
                 <div class="p-6 space-y-4">
                     <div class="flex items-center text-gray-600">
                         <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                        <span>Importación/Exportación</span>
+                        <span>Gestión de repositorios</span>
                     </div>
                     <div class="flex items-center text-gray-600">
                         <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                        <span>Actualización automática</span>
+                        <span>Seguimiento de issues y PRs</span>
                     </div>
                     <div class="flex items-center text-gray-600">
                         <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                        <span>Reportes personalizados</span>
+                        <span>Integración con CI/CD</span>
                     </div>
-                    <button onclick="configureIntegration('sheets')"
-                            class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                    <button onclick="configureIntegration('github')"
+                            class="w-full bg-purple-800 hover:bg-purple-900 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
                         <i class="fas fa-plug mr-2"></i>
-                        Configurar Sheets
+                        Configurar GitHub
                     </button>
                 </div>
             </div>
@@ -158,6 +159,9 @@
                         break;
                     case 'sheets':
                         modalTitle.textContent = 'Configurar Integración con Google Sheets';
+                        break;
+                    case 'github':
+                        modalTitle.textContent = 'Configurar Integración con GitHub';
                         break;
                 }
             }
