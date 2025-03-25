@@ -7,6 +7,7 @@ from api.views import (
     equipo_views,
     requerimiento_views,
     recurso_views,
+    estimacion_views,  # Importar nuevas vistas
 )
 from api.views.auth_views import LoginView
 from api.views.health_views import health_check
@@ -28,4 +29,13 @@ urlpatterns = [
     path("login/", LoginView.as_view(), name="api-login"),
     path("token-auth/", token_views.obtain_auth_token, name="api-token-auth"),
     path("health/", health_check, name="api-health-check"),
+    # Rutas para estimación de tiempo
+    path(
+        "estimacion/tarea/",
+        estimacion_views.EstimacionTareaView.as_view(),
+        name="estimacion-tarea",
+    ),
+    path(
+        "estimacion/bulk/", estimacion_views.estimar_tiempo_bulk, name="estimacion-bulk"
+    ),
 ]
