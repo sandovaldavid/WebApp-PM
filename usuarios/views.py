@@ -162,7 +162,7 @@ def confirmar_cuenta(request, token):
 @csrf_protect
 def login(request):
     if request.user.is_authenticated:
-        return redirect("dashboard:index")
+        return redirect("dashboard:panel_control")
 
     if request.method == "POST":
         email = request.POST.get("email")
@@ -219,7 +219,7 @@ def login(request):
                 # Redireccionar al dashboard después del login exitoso
                 messages.success(request, f"¡Bienvenido {usuario.nombreusuario}!")
 
-                return redirect("dashboard:index")
+                return redirect("dashboard:panel_control")
             else:
                 # Emitir señal de login fallido por contraseña incorrecta
                 user_login_failed.send(

@@ -1,0 +1,360 @@
+{% extends 'layout_notificaciones.html' %}
+
+{% block title %}Generar Alertas{% endblock %}
+
+{% block title_body %}
+    <div class="flex flex-col md:flex-row items-center justify-between">
+        <div class="flex items-center mb-4 md:mb-0 mr-4">
+            <div class="bg-white bg-opacity-20 p-3 rounded-lg backdrop-blur-sm mr-4">
+                <i class="fas fa-bell text-yellow-300 text-2xl animate-pulse"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-white">Generación de Alertas</h1>
+                <p class="text-blue-100 text-sm mt-1">Sistema de monitoreo y notificaciones</p>
+            </div>
+        </div>
+        <a href="{% url 'notificaciones:lista_alertas' %}" class="transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg backdrop-blur-sm flex items-center text-sm font-medium">
+            <i class="fas fa-list mr-2"></i>
+            Ver todas las alertas
+        </a>
+    </div>
+{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Breadcrumb mejorado -->
+    <nav class="flex mb-6 bg-white rounded-lg shadow-sm p-3" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3 w-full">
+            <li class="inline-flex items-center">
+                <a href="{% url 'dashboard:index' %}" class="text-blue-600 hover:text-blue-800 inline-flex items-center group transition-all duration-200">
+                    <i class="fas fa-home text-gray-500 group-hover:text-blue-600 transition-colors duration-200"></i>
+                    <span class="ml-2">Inicio</span>
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <a href="{% url 'notificaciones:index' %}" class="text-blue-600 hover:text-blue-800 ml-1 md:ml-2 group transition-all duration-200">
+                        <span>Notificaciones</span>
+                    </a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="text-gray-500 ml-1 md:ml-2 font-medium">Generar Alertas</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Banner informativo elegante -->
+    <div class="mb-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-md overflow-hidden transform transition-all duration-300 hover:shadow-lg border border-blue-100">
+        <div class="md:flex">
+            <div class="md:flex-shrink-0 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center w-full md:w-48 py-6 md:py-0">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-white bg-opacity-20 rounded-full animate-ping opacity-75" style="animation-duration: 3s;"></div>
+                    <i class="fas fa-lightbulb text-yellow-300 text-4xl relative z-10"></i>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="text-sm font-semibold text-indigo-600 uppercase tracking-wider mb-1">Herramienta Administrativa</div>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Generación Manual de Alertas</h2>
+                <p class="mt-2 text-gray-600 leading-relaxed">
+                    Esta herramienta permite la generación manual de alertas para tareas que cumplen con criterios específicos.
+                    Las alertas generadas notificarán automáticamente a los usuarios relacionados con las tareas afectadas.
+                </p>
+                <div class="mt-4 flex items-center text-sm text-gray-500 bg-white bg-opacity-70 p-3 rounded-lg border border-blue-100">
+                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                    <span>Use esta función con precaución para evitar exceso de notificaciones en el sistema.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de estadísticas mejorado -->
+    <div class="mb-8">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center pl-2 border-l-4 border-indigo-500">
+            <i class="fas fa-chart-pie text-indigo-500 mr-2"></i>
+            Dashboard de Alertas
+        </h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- Columna izquierda para alertas Total y Activas -->
+            <div class="space-y-5">
+                <!-- Total Alertas -->
+                <div class="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-md overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg p-3 shadow-md">
+                                <i class="fas fa-bell text-white text-xl"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Total Alertas</dt>
+                                    <dd class="flex items-baseline">
+                                        <div class="text-2xl font-semibold text-gray-900">{{ stats.total_alertas }}</div>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-5 py-3">
+                        <div class="text-sm"></div>
+                            <a href="{% url 'notificaciones:lista_alertas' %}" class="font-medium text-blue-600 hover:text-blue-800 flex items-center justify-between group transition-colors duration-200">
+                                <span>Ver detalles</span> 
+                                <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform duration-200"></i>
+                            </a>
+                        </div>
+                
+                </div>
+
+                <!-- Alertas Activas -->
+                <div class="bg-gradient-to-br from-white to-yellow-50 rounded-xl shadow-md overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg p-3 shadow-md">
+                                <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Alertas Activas</dt>
+                                    <dd class="flex items-baseline">
+                                        <div class="text-2xl font-semibold text-gray-900">{{ stats.alertas_activas }}</div>
+                                        {% with porcentaje=stats.alertas_activas|default:0|floatformat:0|add:"0" %}
+                                        <div class="ml-2 flex items-baseline text-sm font-semibold {% if porcentaje > 50 %}text-red-600{% else %}text-green-600{% endif %}">
+                                            <span>{{ porcentaje }}%</span>
+                                        </div>
+                                        {% endwith %}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-5 py-3">
+                        <div class="text-sm"></div>
+                            <a href="{% url 'notificaciones:lista_alertas' %}?estado=activa" class="font-medium text-amber-600 hover:text-amber-800 flex items-center justify-between group transition-colors duration-200">
+                                <span>Ver activas</span>
+                                <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform duration-200"></i>
+                            </a>
+                        </div>
+                    
+                </div>
+            </div>
+
+            <!-- Tipos de Alertas -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden transform transition-all duration-300 hover:shadow-lg">
+                <div class="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-sm font-semibold text-gray-700">Distribución por tipo</h3>
+                    <span class="text-xs text-gray-500">Última actualización: {% now "j F, Y H:i" %}</span>
+                </div>
+                <div class="p-5 space-y-5">
+                    <!-- Retraso -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm font-medium flex items-center text-gray-700">
+                                <i class="fas fa-clock text-red-500 mr-2"></i>Retraso
+                            </span>
+                            <span class="text-sm font-semibold text-red-600">{{ stats.alertas_retraso }}</span>
+                        </div>
+                        <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full transition-all duration-500 ease-out" style="width: {{ stats.alertas_retraso|default:0 }}%;"></div>
+                        </div>
+                    </div>
+                    <!-- Presupuesto -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm font-medium flex items-center text-gray-700">
+                                <i class="fas fa-dollar-sign text-emerald-500 mr-2"></i>Presupuesto
+                            </span>
+                            <span class="text-sm font-semibold text-emerald-600">{{ stats.alertas_presupuesto }}</span>
+                        </div>
+                        <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full transition-all duration-500 ease-out" style="width: {{ stats.alertas_presupuesto|default:0 }}%;"></div>
+                        </div>
+                    </div>
+                    <!-- Bloqueo -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm font-medium flex items-center text-gray-700">
+                                <i class="fas fa-ban text-amber-500 mr-2"></i>Bloqueo
+                            </span>
+                            <span class="text-sm font-semibold text-amber-600">{{ stats.alertas_bloqueo }}</span>
+                        </div>
+                        <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-500 ease-out" style="width: {{ stats.alertas_bloqueo|default:0 }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <!-- Formulario de generación -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden lg:col-span-2 transform transition-all duration-300 hover:shadow-lg">
+            <div class="px-5 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center">
+                <div class="bg-white bg-opacity-20 p-2 rounded-lg mr-3">
+                    <i class="fas fa-bolt text-yellow-300 text-lg"></i>
+                </div>
+                <h2 class="text-white font-medium">Generar Alertas</h2>
+            </div>
+            <div class="p-6">
+                <form method="post" class="space-y-5">
+                    {% csrf_token %}
+                    <div>
+                        <label for="tipo-alerta" class="block text-sm font-medium text-gray-700 mb-2">Tipo de alertas a generar</label>
+                        <div class="relative">
+                            <select id="tipo-alerta" name="tipo" class="appearance-none block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-200 bg-gray-50 hover:bg-white">
+                                <option value="todas">Todas las alertas</option>
+                                <option value="retrasadas">Solo tareas retrasadas</option>
+                                <option value="presupuesto">Solo presupuesto excedido</option>
+                                <option value="bloqueo">Solo tareas bloqueadas</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-500 rounded-lg shadow-sm">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-circle text-amber-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-amber-800">Precaución</h3>
+                                <p class="text-sm text-amber-700 mt-1">
+                                    Esta acción generará alertas que notificarán a los usuarios del sistema. Las notificaciones se enviarán automáticamente por correo electrónico.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform transition-all duration-200 hover:-translate-y-1">
+                        <i class="fas fa-sync mr-2 animate-spin" style="animation-duration: 3s;"></i>
+                        Generar Alertas Automáticamente
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Información -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden lg:col-span-3 transform transition-all duration-300 hover:shadow-lg">
+            <div class="px-5 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                <h2 class="text-sm font-medium text-gray-700 flex items-center">
+                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                    Documentación del Sistema de Alertas
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Tipos de Alertas</h3>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <!-- Retraso -->
+                            <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1">
+                                <div class="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                                    <i class="fas fa-clock text-red-500 text-xl"></i>
+                                </div>
+                                <h4 class="text-base font-medium text-gray-800 mb-2">Retraso</h4>
+                                <p class="text-sm text-gray-600">
+                                    Alertas para tareas cuya fecha de finalización ya pasó pero no están completadas.
+                                </p>
+                            </div>
+                            
+                            <!-- Presupuesto -->
+                            <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1">
+                                <div class="bg-emerald-100 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                                    <i class="fas fa-dollar-sign text-emerald-500 text-xl"></i>
+                                </div>
+                                <h4 class="text-base font-medium text-gray-800 mb-2">Presupuesto</h4>
+                                <p class="text-sm text-gray-600">
+                                    Alertas para tareas que han excedido su presupuesto estimado en más de un 10%.
+                                </p>
+                            </div>
+
+                            <!-- Bloqueo -->
+                            <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1">
+                                <div class="bg-amber-100 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                                    <i class="fas fa-ban text-amber-500 text-xl"></i>
+                                </div>
+                                <h4 class="text-base font-medium text-gray-800 mb-2">Bloqueo</h4>
+                                <p class="text-sm text-gray-600">
+                                    Alertas para tareas con poco avance (menos del 10%) después de una semana de inicio.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg shadow-sm">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-blue-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-700">
+                                    Normalmente, estas alertas se generan automáticamente cada 6 horas.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mensajes -->
+    {% if messages %}
+    <div class="mt-8"></div>
+        {% for message in messages %}
+        <div class="rounded-xl shadow-md overflow-hidden mb-5 transform transition-all duration-300 hover:shadow-lg {% if message.tags == 'success' %}bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100{% elif message.tags == 'error' %}bg-gradient-to-br from-red-50 to-rose-50 border border-red-100{% else %}bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100{% endif %}" role="alert">
+            <div class="flex p-4">
+                <div class="flex-shrink-0 {% if message.tags == 'success' %}bg-gradient-to-r from-green-500 to-emerald-500{% elif message.tags == 'error' %}bg-gradient-to-r from-red-500 to-rose-500{% else %}bg-gradient-to-r from-blue-500 to-indigo-500{% endif %} rounded-lg p-2 shadow-sm">
+                    {% if message.tags == 'success' %}
+                    <i class="fas fa-check-circle text-white text-lg"></i>
+                    {% elif message.tags == 'error' %}
+                    <i class="fas fa-exclamation-circle text-white text-lg"></i>
+                    {% else %}
+                    <i class="fas fa-info-circle text-white text-lg"></i>
+                    {% endif %}
+                </div>
+                <div class="ml-4 flex-1 pt-1">
+                    <p class="text-sm font-medium {% if message.tags == 'success' %}text-green-800{% elif message.tags == 'error' %}text-red-800{% else %}text-blue-800{% endif %}">{{ message }}</p>
+                </div>
+                <div class="ml-auto pl-3">
+                    <button type="button" class="inline-flex rounded-full p-1.5 {% if message.tags == 'success' %}text-green-600 hover:bg-green-100{% elif message.tags == 'error' %}text-red-600 hover:bg-red-100{% else %}text-blue-600 hover:bg-blue-100{% endif %} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 transition-all duration-200 transform hover:scale-110" data-dismiss="alert" aria-label="Close">
+                        <span class="sr-only">Cerrar</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 01.707.293 1 1 01.293.707 1 1 01-.293.707L11.414 10l4.293 4.293a1 1 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 01-1.414-1.414L8.586 10 4.293 5.707a1 1 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cerrar alertas
+        document.querySelectorAll('[data-dismiss="alert"]').forEach(button => {
+            button.addEventListener('click', () => {
+                const alert = button.closest('[role="alert"]');
+                alert.classList.add('opacity-0');
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -3,7 +3,17 @@
 {% block title %}Panel de Notificaciones{% endblock %}
 
 {% block title_body %}
-    <i class="fas fa-bell header-icon"></i> Centro de Notificaciones
+    <div class="flex justify-between items-center">
+        <div class="flex items-center">
+            <i class="fas fa-bell header-icon"></i>
+            <span>Centro de Notificaciones</span>
+        </div>
+        <a href="{% url 'notificaciones:generar_alertas' %}"
+           class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
+            <i class="fas fa-robot mr-2"></i>
+            Auto-generar Alertas
+        </a>
+    </div>
 {% endblock %}
 
 {% block body %}

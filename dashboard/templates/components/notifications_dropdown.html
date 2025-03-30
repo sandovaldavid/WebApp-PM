@@ -1,0 +1,54 @@
+{% if user_notifications %}
+    <div class="divide-y divide-gray-100">
+        {% for notification in user_notifications %}
+            <div class="px-4 py-3 hover:bg-gray-50 transition-colors">
+                <a href="{% url 'notificaciones:detalle_notificacion' notification.idnotificacion %}" class="block">
+                    <div class="flex items-start">
+                        <!-- Indicador de prioridad -->
+                        <div class="flex-shrink-0 mr-2 mt-1">
+                            {% if notification.prioridad == 'alta' %}
+                                <div class="h-3 w-3 rounded-full bg-red-500"></div>
+                            {% elif notification.prioridad == 'media' %}
+                                <div class="h-3 w-3 rounded-full bg-yellow-500"></div>
+                            {% else %}
+                                <div class="h-3 w-3 rounded-full bg-blue-500"></div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Contenido -->
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">
+                                {{ notification.categoria|default:"Notificación" }}
+                            </p>
+                            <p class="text-xs text-gray-600 line-clamp-2 break-words">
+                                {{ notification.mensaje|truncatechars:60 }}
+                            </p>
+                            <p class="text-xs text-gray-400 mt-1">
+                                {{ notification.fechacreacion|timesince }}
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% empty %}
+            <div class="px-4 py-6 text-center text-gray-500">
+                <p class="text-sm">No tienes notificaciones nuevas</p>
+            </div>
+        {% endfor %}
+    </div>
+    
+    {% if user_notifications %}
+        <div class="border-t border-gray-100 p-2">
+            <form method="POST" action="{% url 'notificaciones:marcar_todas_leidas' %}" class="flex justify-center">
+                {% csrf_token %}
+                <button type="submit" class="text-xs text-gray-600 hover:text-gray-800">
+                    Marcar todas como leídas
+                </button>
+            </form>
+        </div>
+    {% endif %}
+{% else %}
+    <div class="px-4 py-6 text-center text-gray-500">
+        <p class="text-sm">No tienes notificaciones nuevas</p>
+    </div>
+{% endif %}
