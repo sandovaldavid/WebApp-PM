@@ -107,8 +107,20 @@
             </div>
         </div>
 
-        <!-- Sección de mapeo de proyectos con Jira -->
-        <div id="projectMappingSection" class="{% if not jira_config %}hidden{% endif %}"></div>
+        <!-- Secciones para contenido de pestañas -->
+        <div id="tabContents">
+            <!-- Contenedor para mapeo de proyectos -->
+            <div id="projectMappingSection" class="hidden"></div>
+            
+            <!-- Contenedor para mapeo de usuarios -->
+            <div id="userMappingSection" class="hidden"></div>
+            
+            <!-- Contenedor para estado de salud -->
+            <div id="healthCheckSection" class="hidden"></div>
+            
+            <!-- Contenedor para reportes -->
+            <div id="syncReportSection" class="hidden"></div>
+        </div>
 
         <!-- Modal de Configuración de Jira -->
         <div id="jiraConfigModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 modal">
@@ -181,41 +193,61 @@
             </div>
         </div>
 
-        <!-- Modal de Configuración -->
-        <div id="configurationModal"
-             class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <!-- Modal para Configuración Avanzada -->
+        <div id="advancedConfigModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 modal">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
                 <div class="mt-3">
-                    <h3 class="text-lg font-medium text-gray-900" id="modalTitle">Configurar Integración</h3>
-                    <form class="mt-4 space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">URL del Servidor</label>
-                            <input type="url" id="serverUrl"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <div class="flex justify-between items-center pb-3 border-b">
+                        <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                            <i class="fas fa-cogs mr-2 text-blue-500"></i>
+                            Configuración Avanzada de Jira
+                        </h3>
+                        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-500">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <form id="jiraAdvancedConfigForm" class="mt-4">
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="importarIssues" name="importarIssues" class="rounded text-blue-500 focus:ring-blue-500" 
+                                       {% if jira_config.importar_issues %}checked{% endif %}>
+                                <label for="importarIssues" class="ml-2 block text-sm text-gray-700">
+                                    Importar issues desde Jira
+                                </label>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" id="exportarTareas" name="exportarTareas" class="rounded text-blue-500 focus:ring-blue-500"
+                                       {% if jira_config.exportar_tareas %}checked{% endif %}>
+                                <label for="exportarTareas" class="ml-2 block text-sm text-gray-700">
+                                    Exportar tareas locales a Jira
+                                </label>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" id="syncComentarios" name="syncComentarios" class="rounded text-blue-500 focus:ring-blue-500"
+                                       {% if jira_config.sync_comentarios %}checked{% endif %}>
+                                <label for="syncComentarios" class="ml-2 block text-sm text-gray-700">
+                                    Sincronizar comentarios
+                                </label>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input type="checkbox" id="sincronizarAdjuntos" name="sincronizarAdjuntos" class="rounded text-blue-500 focus:ring-blue-500"
+                                       {% if jira_config.sincronizar_adjuntos %}checked{% endif %}>
+                                <label for="sincronizarAdjuntos" class="ml-2 block text-sm text-gray-700">
+                                    Sincronizar archivos adjuntos
+                                </label>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">API Key</label>
-                            <input type="password" id="apiKey"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Frecuencia de Sincronización</label>
-                            <select id="syncFrequency"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="manual">Manual</option>
-                                <option value="hourly">Cada hora</option>
-                                <option value="daily">Diaria</option>
-                                <option value="weekly">Semanal</option>
-                            </select>
-                        </div>
-                        <div class="flex justify-end space-x-3 mt-6">
-                            <button type="button" onclick="closeModalGeneral()"
-                                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+
+                        <div class="flex justify-between pt-4 mt-4 border-t">
+                            <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
                                 Cancelar
                             </button>
-                            <button type="submit"
-                                    class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
-                                Guardar Configuración
+                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-save mr-1"></i> Guardar Configuración
                             </button>
                         </div>
                     </form>
@@ -225,13 +257,18 @@
 
         <!-- Elemento oculto para estado de configuración -->
         <div id="jiraConfigStatus" class="hidden" 
-             data-configured="{% if jira_config %}true{% else %}false{% endif %}"></div>
+             data-configured="{% if jira_config %}true{% else %}false{% endif %}"
+             {% if jira_config %}
+             data-importar-issues="{{ jira_config.importar_issues|lower }}"
+             data-exportar-tareas="{{ jira_config.exportar_tareas|lower }}"
+             data-sync-comentarios="{{ jira_config.sync_comentarios|lower }}"
+             data-sincronizar-adjuntos="{{ jira_config.sincronizar_adjuntos|lower }}"
+             {% endif %}
+             >
+        </div>
 
         <!-- Área para notificaciones -->
         <div id="notificationArea" class="fixed top-4 right-4 z-50 space-y-2"></div>
-
-
-        
     </div>
 
     {% block extra_js %}
