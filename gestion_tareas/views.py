@@ -25,7 +25,7 @@ from dashboard.models import (
     Requerimiento,
     Historialalerta,
     TipoTarea,  # Nuevo modelo importado
-    Fase,  # Nuevo modelo importado
+    Fase,        # Nuevo modelo importado
 )
 
 
@@ -196,7 +196,7 @@ def crear_tarea(request):
             duracion_estimada = request.POST.get("duracion_estimada")
             fecha_inicio = request.POST.get("fecha_inicio")
             fecha_fin = request.POST.get("fecha_fin")
-
+            
             # Nuevos campos
             descripcion = request.POST.get("descripcion", "")
             tags = request.POST.get("tags", "")
@@ -268,25 +268,23 @@ def crear_tarea(request):
     try:
         # Obtener y contar los tipos de tarea y fases para diagnóstico
         tipos_tarea = TipoTarea.objects.all()
-        fases = Fase.objects.all().order_by("orden")
-
+        fases = Fase.objects.all().order_by('orden')
+        
         # Añadir diagnóstico en los logs
         print(f"Tipos de tarea encontrados: {tipos_tarea.count()}")
         for tipo in tipos_tarea:
             print(f"  - ID: {tipo.idtipotarea}, Nombre: {tipo.nombre}")
-
+        
         print(f"Fases encontradas: {fases.count()}")
         for fase in fases:
             print(f"  - ID: {fase.idfase}, Nombre: {fase.nombre}, Orden: {fase.orden}")
-
+        
         # Si no hay datos, podríamos mostrar un mensaje de error
         if tipos_tarea.count() == 0:
-            messages.warning(
-                request, "No hay tipos de tarea disponibles en la base de datos."
-            )
+            messages.warning(request, "No hay tipos de tarea disponibles en la base de datos.")
         if fases.count() == 0:
             messages.warning(request, "No hay fases disponibles en la base de datos.")
-
+            
         context = {
             "requerimientos": Requerimiento.objects.all(),
             "tipos_tarea": tipos_tarea,
@@ -381,19 +379,15 @@ def detalle_tarea(request, id):
     elif tarea.estado == "En Progreso":
         if tarea.duracionactual and tarea.duracionestimada:
             # Si hay un campo de porcentaje completado manual, usarlo
-            if hasattr(tarea, "porcentaje_completado") and tarea.porcentaje_completado:
+            if hasattr(tarea, 'porcentaje_completado') and tarea.porcentaje_completado:
                 progreso = float(tarea.porcentaje_completado)
             else:
                 # Estimación basada en el tiempo transcurrido respecto al plan
                 fecha_actual = timezone.now().date()
-                dias_totales = (
-                    tarea.fechafin - tarea.fechainicio
-                ).days or 1  # Evitar div por 0
+                dias_totales = (tarea.fechafin - tarea.fechainicio).days or 1  # Evitar div por 0
                 dias_transcurridos = (fecha_actual - tarea.fechainicio).days
-                progreso = min(
-                    95, (float(dias_transcurridos) / float(dias_totales)) * 100
-                )
-
+                progreso = min(95, (float(dias_transcurridos) / float(dias_totales)) * 100)
+    
     # Calcular desviación de tiempo
     # Desviación de tiempo (porcentual en lugar de absoluta)
     # Añadir esta línea antes del bloque condicional (aproximadamente línea 391)
@@ -401,17 +395,11 @@ def detalle_tarea(request, id):
     evaluacion_tiempo = {"estado": "No disponible", "clase": "text-gray-600"}
 
     # Calcular desviación de tiempo
-    if (
-        tarea.duracionactual
-        and tarea.duracionestimada
-        and float(tarea.duracionestimada) > 0
-    ):
+    if tarea.duracionactual and tarea.duracionestimada and float(tarea.duracionestimada) > 0:
         # Desviación porcentual para mejor interpretación
-        desviacion_tiempo = (
-            (float(tarea.duracionactual) - float(tarea.duracionestimada))
-            / float(tarea.duracionestimada)
-        ) * 100
-
+        desviacion_tiempo = ((float(tarea.duracionactual) - float(tarea.duracionestimada)) 
+                            / float(tarea.duracionestimada)) * 100
+        
         # Evaluación cualitativa de la desviación
         if desviacion_tiempo <= -10:
             evaluacion_tiempo = {"estado": "Adelantado", "clase": "text-green-600"}
@@ -420,23 +408,19 @@ def detalle_tarea(request, id):
         elif desviacion_tiempo <= 25:
             evaluacion_tiempo = {"estado": "Leve retraso", "clase": "text-yellow-600"}
         else:
-            evaluacion_tiempo = {
-                "estado": "Retraso significativo",
-                "clase": "text-red-600",
-            }
-
+            evaluacion_tiempo = {"estado": "Retraso significativo", "clase": "text-red-600"}
+        
     # Calcular desviación de costos
     desviacion_costos = 0
     if tarea.costoactual and tarea.costoestimado:
         desviacion_costos = (
-            (float(tarea.costoactual) - float(tarea.costoestimado))
-            / float(tarea.costoestimado)
+            (float(tarea.costoactual) - float(tarea.costoestimado)) / float(tarea.costoestimado)
         ) * 100
-
+    
     # Etiquetas como lista
     etiquetas = []
     if tarea.tags:
-        etiquetas = [tag.strip() for tag in tarea.tags.split(",")]
+        etiquetas = [tag.strip() for tag in tarea.tags.split(',')]
 
     # Convertir claridad de requisitos a porcentaje (0-100%)
     claridad_porcentaje = 0
@@ -451,11 +435,11 @@ def detalle_tarea(request, id):
         4: {"label": "Alta", "color": "bg-red-200 text-red-800"},
         5: {"label": "Muy Alta", "color": "bg-purple-200 text-purple-800"},
     }
-
+    
     # Obtener el nivel actual de dificultad
     nivel_dificultad = niveles_dificultad.get(
-        int(tarea.dificultad) if tarea.dificultad else 3,
-        {"label": "Media", "color": "bg-yellow-100 text-yellow-800"},
+        int(tarea.dificultad) if tarea.dificultad else 3, 
+        {"label": "Media", "color": "bg-yellow-100 text-yellow-800"}
     )
 
     context = {
@@ -494,7 +478,7 @@ def editar_tarea(request, id):
             costo_actual = request.POST.get("costo_actual")
             fecha_inicio = request.POST.get("fecha_inicio")
             fecha_fin = request.POST.get("fecha_fin")
-
+            
             # Campos adicionales
             descripcion = request.POST.get("descripcion", "")
             tags = request.POST.get("tags", "")
@@ -567,7 +551,7 @@ def editar_tarea(request, id):
             "tarea": tarea,
             "requerimientos": Requerimiento.objects.all(),
             "tipos_tarea": TipoTarea.objects.all(),
-            "fases": Fase.objects.all().order_by("orden"),
+            "fases": Fase.objects.all().order_by('orden'),
             "estados_tarea": ["Pendiente", "En Progreso", "Completada"],
             "prioridades": ["Baja", "Media", "Alta"],
             "fecha_minima": timezone.now().date(),
@@ -1026,7 +1010,7 @@ def estimar_tarea(request):
             # Configurar rutas relativas
             # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            REDES_DIR = os.path.join(BASE_DIR, "redes_neuronales")
+            REDES_DIR = os.path.join(BASE_DIR, 'redes_neuronales')
             MODEL_DIR = os.path.join(BASE_DIR, "redes_neuronales", "models")
 
             # Verificar que existe el directorio
@@ -1057,9 +1041,9 @@ def estimar_tarea(request):
                     raise FileNotFoundError(f"No se encuentra el archivo: {path}")
 
             # Obtener datos del formulario
-            complejidad = int(request.POST.get("complejidad", 2))
-            prioridad = int(request.POST.get("prioridad", 2))
-            tipo_tarea = request.POST.get("tipo_tarea", "backend")
+            complejidad = int(request.POST.get('complejidad', 2))
+            prioridad = int(request.POST.get('prioridad', 2))
+            tipo_tarea = request.POST.get('tipo_tarea', 'backend')
 
             # Prints de debug
             print("\nDatos recibidos para estimación:")
@@ -1104,20 +1088,20 @@ def estimar_tarea(request):
             )
 
             # Obtener el tiempo estimado y redondear a entero
-            tiempo_estimado = max(1, round(float(resultado["tiempo_estimado"])))
+            tiempo_estimado = max(1, round(float(resultado['tiempo_estimado'])))
 
-            return JsonResponse({"duracion_estimada": tiempo_estimado, "success": True})
+            return JsonResponse({'duracion_estimada': tiempo_estimado, 'success': True})
 
         except FileNotFoundError as e:
             return JsonResponse(
-                {"error": f"Error de archivo: {str(e)}", "success": False}
+                {'error': f"Error de archivo: {str(e)}", 'success': False}
             )
         except Exception as e:
             return JsonResponse(
-                {"error": f"Error inesperado: {str(e)}", "success": False}
+                {'error': f"Error inesperado: {str(e)}", 'success': False}
             )
 
-    return JsonResponse({"error": "Método no permitido", "success": False})
+    return JsonResponse({'error': 'Método no permitido', 'success': False})
 
 
 @login_required
@@ -1125,40 +1109,41 @@ def api_tarea_por_id(request, id):
     """API para obtener detalles de una tarea por ID"""
     try:
         tarea = get_object_or_404(Tarea, idtarea=id)
-
+        
         # Crear respuesta con datos de la tarea
         data = {
-            "idtarea": tarea.idtarea,
-            "nombretarea": tarea.nombretarea,
-            "descripcion": tarea.descripcion,
-            "estado": tarea.estado,
-            "prioridad": tarea.prioridad,
-            "dificultad": tarea.dificultad,
-            "fechainicio": (
-                tarea.fechainicio.strftime("%Y-%m-%d") if tarea.fechainicio else None
-            ),
-            "fechafin": tarea.fechafin.strftime("%Y-%m-%d") if tarea.fechafin else None,
-            "duracionestimada": tarea.duracionestimada,
-            "costoestimado": tarea.costoestimado,
-            "tags": tarea.tags,
+            'idtarea': tarea.idtarea,
+            'nombretarea': tarea.nombretarea,
+            'descripcion': tarea.descripcion,
+            'estado': tarea.estado,
+            'prioridad': tarea.prioridad,
+            'dificultad': tarea.dificultad,
+            'fechainicio': tarea.fechainicio.strftime('%Y-%m-%d') if tarea.fechainicio else None,
+            'fechafin': tarea.fechafin.strftime('%Y-%m-%d') if tarea.fechafin else None,
+            'duracionestimada': tarea.duracionestimada,
+            'costoestimado': tarea.costoestimado,
+            'tags': tarea.tags,
         }
-
+        
         # Incluir tipo de tarea si existe
         if tarea.tipo_tarea:
-            data["tipo_tarea"] = {
-                "id": tarea.tipo_tarea.idtipotarea,
-                "nombre": tarea.tipo_tarea.nombre,
+            data['tipo_tarea'] = {
+                'id': tarea.tipo_tarea.idtipotarea,
+                'nombre': tarea.tipo_tarea.nombre
             }
-
+            
         # Incluir fase si existe
         if tarea.fase:
-            data["fase"] = {
-                "id": tarea.fase.idfase,
-                "nombre": tarea.fase.nombre,
-                "orden": tarea.fase.orden,
+            data['fase'] = {
+                'id': tarea.fase.idfase,
+                'nombre': tarea.fase.nombre,
+                'orden': tarea.fase.orden
             }
-
+            
         return JsonResponse(data)
-
+        
     except Exception as e:
-        return JsonResponse({"error": f"Error al obtener tarea: {str(e)}"}, status=500)
+        return JsonResponse(
+            {'error': f"Error al obtener tarea: {str(e)}"}, 
+            status=500
+        )

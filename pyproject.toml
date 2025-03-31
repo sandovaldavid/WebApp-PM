@@ -16,4 +16,4 @@ exclude = '''
   | .*/migrations/*
 )/
 '''
-skip-string-normalization = false
+skip-string-normalization = true

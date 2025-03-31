@@ -107,8 +107,7 @@ python manage.py runserver
 ### Docker 🐳
 
 ```sh
-# Contenedor de Desarrollo
-docker-compose -f docker-compose.development.yml up -d
+docker-compose up --build
 ```
 
 ### Kubernetes ☸️

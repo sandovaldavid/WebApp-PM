@@ -6,7 +6,6 @@ weasyprint==63.1
 Faker==33.1.0
 black==25.1.0
 djangorestframework==3.15.2
-django-filter==25.1
 redis==5.2.1
 django-redis==5.4.0
 reportlab==4.3.1
