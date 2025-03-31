@@ -1,0 +1,162 @@
+<form method="POST" action="{% url 'gestionUsuarios:cambiar_contrasena' %}" class="space-y-6">
+    {% csrf_token %}
+    
+    <div class="space-y-2">
+        <div class="flex justify-between">
+            <label for="contrasena_actual" class="block text-sm font-medium text-gray-700">Contraseña actual</label>
+            <span class="text-xs text-gray-500">Requerido</span>
+        </div>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-lock text-gray-400"></i>
+            </div>
+            <input type="password" id="contrasena_actual" name="contrasena_actual" 
+                   class="pl-10 w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors"
+                   required>
+            <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 toggle-password">
+                <i class="fas fa-eye"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+            <div class="flex justify-between">
+                <label for="nueva_contrasena" class="block text-sm font-medium text-gray-700">Nueva contraseña</label>
+                <span class="text-xs text-gray-500">Requerido</span>
+            </div>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-key text-gray-400"></i>
+                </div>
+                <input type="password" id="nueva_contrasena" name="nueva_contrasena" 
+                       class="pl-10 w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors"
+                       required>
+                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 toggle-password">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="space-y-2">
+            <div class="flex justify-between">
+                <label for="confirmar_contrasena" class="block text-sm font-medium text-gray-700">Confirmar contraseña</label>
+                <span class="text-xs text-gray-500">Requerido</span>
+            </div>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-key text-gray-400"></i>
+                </div>
+                <input type="password" id="confirmar_contrasena" name="confirmar_contrasena" 
+                       class="pl-10 w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors"
+                       required>
+                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 toggle-password">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    La contraseña debe tener al menos 8 caracteres, incluir números, letras mayúsculas y minúsculas.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="password-strength" class="hidden">
+        <h4 class="text-sm font-medium text-gray-700 mb-2">Fortaleza de la contraseña:</h4>
+        <div class="bg-gray-200 rounded-full h-2.5 mb-2">
+            <div class="bg-green-500 h-2.5 rounded-full" style="width: 0%"></div>
+        </div>
+        <p class="text-xs text-gray-500">Añade caracteres especiales para mejorar la seguridad.</p>
+    </div>
+    
+    <div class="flex justify-end pt-4">
+        <button type="submit" class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+            <i class="fas fa-key mr-2"></i>
+            Actualizar Contraseña
+        </button>
+    </div>
+</form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Validar coincidencia de contraseñas
+        const password1 = document.getElementById('nueva_contrasena');
+        const password2 = document.getElementById('confirmar_contrasena');
+        
+        function checkPasswordMatch() {
+            if (password2.value && password1.value !== password2.value) {
+                password2.setCustomValidity("Las contraseñas no coinciden");
+                password2.classList.add('border-red-500');
+            } else {
+                password2.setCustomValidity('');
+                password2.classList.remove('border-red-500');
+            }
+        }
+        
+        password1.addEventListener('input', checkPasswordMatch);
+        password2.addEventListener('input', checkPasswordMatch);
+        
+        // Mostrar/ocultar contraseña
+        const toggleButtons = document.querySelectorAll('.toggle-password');
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const input = this.parentElement.querySelector('input');
+                const icon = this.querySelector('i');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+        });
+        
+        // Medidor de fortaleza de contraseña
+        const strengthMeter = document.getElementById('password-strength');
+        const strengthBar = strengthMeter.querySelector('.bg-green-500');
+        
+        password1.addEventListener('input', function() {
+            const value = this.value;
+            if (value) {
+                strengthMeter.classList.remove('hidden');
+                
+                // Calcular fortaleza (ejemplo simple)
+                let strength = 0;
+                if (value.length >= 8) strength += 25;
+                if (value.match(/[A-Z]/)) strength += 25;
+                if (value.match(/[0-9]/)) strength += 25;
+                if (value.match(/[^A-Za-z0-9]/)) strength += 25;
+                
+                // Actualizar barra de progreso
+                strengthBar.style.width = strength + '%';
+                
+                // Cambiar color según fortaleza
+                if (strength < 50) {
+                    strengthBar.classList.remove('bg-yellow-500', 'bg-green-500');
+                    strengthBar.classList.add('bg-red-500');
+                } else if (strength < 75) {
+                    strengthBar.classList.remove('bg-red-500', 'bg-green-500');
+                    strengthBar.classList.add('bg-yellow-500');
+                } else {
+                    strengthBar.classList.remove('bg-red-500', 'bg-yellow-500');
+                    strengthBar.classList.add('bg-green-500');
+                }
+            } else {
+                strengthMeter.classList.add('hidden');
+            }
+        });
+    });
+</script>
