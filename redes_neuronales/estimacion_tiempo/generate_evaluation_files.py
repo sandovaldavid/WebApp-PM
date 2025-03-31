@@ -471,170 +471,185 @@ def update_metrics_history(metrics):
     except Exception as e:
         print(f"Error al actualizar historial de métricas: {e}")
 
+
 # Asegurar que se puede importar desde el directorio padre
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
+
 
 def main(model_dir=None):
     """
     Genera archivos de evaluación para el modelo actual.
-    
+
     Args:
         model_dir: Directorio donde se encuentra el modelo y donde guardar resultados
-    
+
     Returns:
         dict: Resultados de la operación
     """
     print("Iniciando generación de archivos de evaluación...")
-    
+
     # Usar directorio por defecto si no se especifica
     if model_dir is None:
-        model_dir = os.path.join('redes_neuronales', 'estimacion_tiempo', 'models')
-    
+        model_dir = os.path.join("redes_neuronales", "estimacion_tiempo", "models")
+
     # Asegurar que existe el directorio
     os.makedirs(model_dir, exist_ok=True)
-    
+
     try:
         # 1. Importar clases necesarias
         from redes_neuronales.estimacion_tiempo.evaluator import ModelEvaluator
         from redes_neuronales.estimacion_tiempo.rnn_model import AdvancedRNNEstimator
-        
+
         # 2. Cargar el modelo existente
         print(f"Cargando modelo desde {model_dir}...")
-        model = AdvancedRNNEstimator.load(model_dir, 'tiempo_estimator')
-        
+        model = AdvancedRNNEstimator.load(model_dir, "tiempo_estimator")
+
         # 3. Cargar feature_dims
-        feature_dims = joblib.load(os.path.join(model_dir, 'feature_dims.pkl'))
-        
+        feature_dims = joblib.load(os.path.join(model_dir, "feature_dims.pkl"))
+
         # 4. Cargar datos de validación
         print("Cargando datos de validación...")
         try:
-            X_val = np.load(os.path.join(model_dir, 'X_val.npy'))
-            y_val = np.load(os.path.join(model_dir, 'y_val.npy'))
+            X_val = np.load(os.path.join(model_dir, "X_val.npy"))
+            y_val = np.load(os.path.join(model_dir, "y_val.npy"))
         except FileNotFoundError:
-            print("No se encontraron datos de validación, generando datos sintéticos...")
+            print(
+                "No se encontraron datos de validación, generando datos sintéticos..."
+            )
             # Crear datos sintéticos para pruebas
             total_dims = sum(feature_dims.values())
             X_val = np.random.randn(100, total_dims) * 0.5 + 0.5
             y_val = np.abs(np.random.randn(100) * 10 + 20)
-            
+
             # Guardar los datos sintéticos
-            np.save(os.path.join(model_dir, 'X_val.npy'), X_val)
-            np.save(os.path.join(model_dir, 'y_val.npy'), y_val)
-        
+            np.save(os.path.join(model_dir, "X_val.npy"), X_val)
+            np.save(os.path.join(model_dir, "y_val.npy"), y_val)
+
         print(f"Datos cargados: X_val {X_val.shape}, y_val {y_val.shape}")
-        
+
         # 5. Crear el evaluador
         evaluator = ModelEvaluator(model, feature_dims, model_dir)
-        
+
         # 6. Evaluar el modelo y guardar métricas
         print("Evaluando modelo...")
         metrics, y_pred = evaluator.evaluate_model(X_val, y_val)
         print("Métricas calculadas:", metrics)
-        
+
         # 7. Generar gráficos de predicciones
         print("Generando gráficos de predicciones...")
         plots_file = evaluator.plot_predictions(y_val, y_pred)
-        
+
         # 8. Analizar importancia de características
         print("Analizando importancia de características...")
         # Lista de nombres de características
         feature_names = [
-            'Complejidad', 'Cantidad_Recursos', 'Carga_Trabajo_R1', 
-            'Experiencia_R1', 'Carga_Trabajo_R2', 'Experiencia_R2', 
-            'Carga_Trabajo_R3', 'Experiencia_R3', 'Experiencia_Equipo', 
-            'Claridad_Requisitos', 'Tamaño_Tarea'
+            "Complejidad",
+            "Cantidad_Recursos",
+            "Carga_Trabajo_R1",
+            "Experiencia_R1",
+            "Carga_Trabajo_R2",
+            "Experiencia_R2",
+            "Carga_Trabajo_R3",
+            "Experiencia_R3",
+            "Experiencia_Equipo",
+            "Claridad_Requisitos",
+            "Tamaño_Tarea",
         ]
-        
+
         # Añadir nombres para características categóricas
-        for i in range(feature_dims.get('tipo_tarea', 0)):
-            feature_names.append(f'Tipo_Tarea_{i+1}')
-        for i in range(feature_dims.get('fase', 0)):
-            feature_names.append(f'Fase_{i+1}')
-        
+        for i in range(feature_dims.get("tipo_tarea", 0)):
+            feature_names.append(f"Tipo_Tarea_{i+1}")
+        for i in range(feature_dims.get("fase", 0)):
+            feature_names.append(f"Fase_{i+1}")
+
         # Completar feature_names si no hay suficientes
         if len(feature_names) < X_val.shape[1]:
             for i in range(len(feature_names), X_val.shape[1]):
-                feature_names.append(f'Feature_{i+1}')
-        
-        importance_results = evaluator.analyze_feature_importance(X_val, y_val, feature_names)
-        
+                feature_names.append(f"Feature_{i+1}")
+
+        importance_results = evaluator.analyze_feature_importance(
+            X_val, y_val, feature_names
+        )
+
         # 9. Realizar evaluación segmentada
         print("Realizando evaluación segmentada...")
         segments = {
-            'pequeñas': lambda y: y <= 10,
-            'medianas': lambda y: (y > 10) & (y <= 30),
-            'grandes': lambda y: y > 30
+            "pequeñas": lambda y: y <= 10,
+            "medianas": lambda y: (y > 10) & (y <= 30),
+            "grandes": lambda y: y > 30,
         }
         segmented_results = evaluator.segmented_evaluation(X_val, y_val, segments)
-        
+
         # 10. Realizar evaluación por recursos (opcional si hay datos disponibles)
         try:
             print("Buscando datos para análisis por recursos...")
-            
+
             # Intentar cargar datos más detallados para análisis específicos
             for resource_count in range(1, 4):
-                resource_file = os.path.join(model_dir, f'X_val_recursos_{resource_count}.npy')
-                
+                resource_file = os.path.join(
+                    model_dir, f"X_val_recursos_{resource_count}.npy"
+                )
+
                 if os.path.exists(resource_file):
                     print(f"Analizando datos para {resource_count} recursos...")
                     X_res = np.load(resource_file)
-                    y_res = np.load(os.path.join(model_dir, f'y_val_recursos_{resource_count}.npy'))
-                    
+                    y_res = np.load(
+                        os.path.join(model_dir, f"y_val_recursos_{resource_count}.npy")
+                    )
+
                     # Evaluar específicamente para este segmento
                     _, y_pred_res = evaluator.evaluate_model(X_res, y_res)
                     evaluator.analyze_feature_importance(X_res, y_res, feature_names)
                 else:
                     print(f"No se encontraron datos para {resource_count} recursos")
-            
+
         except Exception as e:
             print(f"Error al realizar análisis por recursos: {str(e)}")
             # Este error no debe detener el proceso principal
-        
+
         # 11. Actualizar archivo de estado del modelo
-        status_file = os.path.join(model_dir, 'model_status.json')
+        status_file = os.path.join(model_dir, "model_status.json")
         model_status = {
-            'last_evaluation': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'metrics': metrics,
-            'files_generated': {
-                'evaluation_metrics': 'evaluation_metrics.json',
-                'metrics_history': 'metrics_history.json',
-                'evaluation_plots': 'evaluation_plots.png',
-                'feature_importance': 'global_feature_importance.png',
-                'segmented_evaluation': 'segmented_evaluation.json',
-                'segmented_metrics': 'segmented_metrics.png'
-            }
+            "last_evaluation": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "metrics": metrics,
+            "files_generated": {
+                "evaluation_metrics": "evaluation_metrics.json",
+                "metrics_history": "metrics_history.json",
+                "evaluation_plots": "evaluation_plots.png",
+                "feature_importance": "global_feature_importance.png",
+                "segmented_evaluation": "segmented_evaluation.json",
+                "segmented_metrics": "segmented_metrics.png",
+            },
         }
-        
-        with open(status_file, 'w') as f:
+
+        with open(status_file, "w") as f:
             json.dump(model_status, f, indent=2)
-        
+
         print("Generación de archivos completada con éxito.")
-        
+
         return {
-            'success': True,
-            'message': 'Archivos de evaluación generados correctamente',
-            'metrics': metrics,
-            'files': model_status['files_generated']
+            "success": True,
+            "message": "Archivos de evaluación generados correctamente",
+            "metrics": metrics,
+            "files": model_status["files_generated"],
         }
-    
+
     except Exception as e:
         error_trace = traceback.format_exc()
         print(f"Error durante la generación de archivos: {str(e)}")
         print(error_trace)
-        
+
         return {
-            'success': False,
-            'message': f'Error al generar archivos: {str(e)}',
-            'error_trace': error_trace
+            "success": False,
+            "message": f"Error al generar archivos: {str(e)}",
+            "error_trace": error_trace,
         }
+
 
 if __name__ == "__main__":
     # Ejecutar directamente si se llama como script
     result = main()
-    print("Resultado:", result['message'])
+    print("Resultado:", result["message"])
     print(f"\nEjecución {'exitosa ✅' if result else 'fallida ❌'}")
-
-
-

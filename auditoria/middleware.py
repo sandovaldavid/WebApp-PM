@@ -98,7 +98,11 @@ class AuditoriaMiddleware:
             return True
         
         # No auditar favicon, robots.txt y similares
-        if request.path in ['/favicon.ico', '/robots.txt', '/sitemap.xml']:
+        if request.path in ["/favicon.ico", "/robots.txt", "/sitemap.xml"]:
+            return True
+
+        # Excluir todas las rutas de la API de la auditoría
+        if request.path.startswith("/api/"):
             return True
         
         return False
@@ -239,6 +243,10 @@ def usuario_login_fallido(sender, credentials, request, **kwargs):
     Registra intentos fallidos de inicio de sesión con información detallada.
     """
     try:
+        # Skip audit for API requests
+        if request and request.path.startswith("/api/"):
+            return
+
         middleware = AuditoriaMiddleware(None)
         
         # Obtener la dirección IP y la información del sistema
