@@ -398,7 +398,7 @@ def entrenar_modelo(request):
         
     if not os.path.exists(neural_bg_path):
         with open(neural_bg_path, 'w') as f:
-            f.write('''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+            f.write("""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
             <defs>
                 <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
                     <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#8080ff" stroke-width="0.5"/>
