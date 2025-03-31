@@ -518,3 +518,23 @@ def diagnosticar_campos_jira(request):
             'success': False,
             'message': str(e)
         }, status=500)
+
+@login_required
+def project_mapping_template(request):
+    """Vista para el componente de mapeo de proyectos"""
+    return render(request, "integracion/components/project_mapping.html")
+
+@login_required
+def user_mapping_template(request):
+    """Vista para el componente de mapeo de usuarios"""
+    return render(request, "integracion/components/user_mapping.html")
+
+@login_required
+def health_check_template(request):
+    """Vista para el componente de verificación de salud"""
+    return render(request, "integracion/components/health_check.html")
+
+@login_required
+def sync_report_template(request):
+    """Vista para el componente de reporte de sincronización"""
+    return render(request, "integracion/components/sync_report.html")

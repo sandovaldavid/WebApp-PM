@@ -19,4 +19,10 @@ urlpatterns = [
     path("jira/reporte-sincronizacion/", views.generar_reporte_sincronizacion, name="generar_reporte_sincronizacion"),
     path("jira/configuracion-avanzada/", views.configuracion_avanzada_jira, name="configuracion_avanzada_jira"),
     path("jira/diagnostico-campos/", views.diagnosticar_campos_jira, name="diagnosticar_campos_jira"),
+    
+    # Rutas para componentes HTML
+    path("templates/project-mapping/", views.project_mapping_template, name="project_mapping_template"),
+    path("templates/user-mapping/", views.user_mapping_template, name="user_mapping_template"),
+    path("templates/health-check/", views.health_check_template, name="health_check_template"),
+    path("templates/sync-report/", views.sync_report_template, name="sync_report_template"),
 ]

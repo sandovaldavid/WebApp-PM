@@ -1,5 +1,6 @@
 /**
- * Gestión de la integración con Jira
+ * Gestión de la integración con Jira - Versión Refactorizada
+ * Esta versión utiliza componentes para manipular el DOM sin innerHTML
  */
 
 // Token CSRF para peticiones POST
@@ -16,7 +17,7 @@ const URLS = {
     mapearUsuarios: '/integracion/jira/mapear-usuarios/',
     limpiarMapeos: '/integracion/jira/limpiar-mapeos/',
     estadoSalud: '/integracion/jira/estado-salud/',
-    reporteSincronizacion: '/integracion/jira/reporte-sincronizacion/'
+    reporteSincronizacion: '/integracion/jira/reporte-sincronizacion/',
 };
 
 /**
@@ -40,17 +41,17 @@ async function configurarJira(formData) {
         }
         
         // Mostrar notificación de éxito
-        showNotification('success', 'Configuración guardada correctamente');
+        NotificationComponent.show('success', 'Configuración guardada correctamente');
         
         // Cerrar modal y actualizar interfaz
-        closeModal();
+        ModalComponent.close();
         
         // Mostrar panel de mapeo de proyectos
         loadJiraProjects();
         
         return data;
     } catch (error) {
-        showNotification('error', error.message);
+        NotificationComponent.show('error', error.message);
         console.error('Error:', error);
     }
 }
@@ -75,12 +76,12 @@ async function updateAdvancedConfig(formData) {
             throw new Error(data.message || 'Error al actualizar configuración avanzada');
         }
         
-        showNotification('success', 'Configuración avanzada actualizada correctamente');
-        closeModal();
+        NotificationComponent.show('success', 'Configuración avanzada actualizada correctamente');
+        ModalComponent.close();
         
         return data;
     } catch (error) {
-        showNotification('error', error.message);
+        NotificationComponent.show('error', error.message);
         console.error('Error:', error);
     }
 }
@@ -92,15 +93,12 @@ async function loadJiraProjects() {
     try {
         // Verificar si estamos en la pestaña correcta, si no, cambiar a ella
         const projectsTab = document.getElementById('projectsTab');
-        if (projectsTab.classList.contains('hidden')) {
+        if (projectsTab && projectsTab.classList.contains('hidden')) {
             switchTab('projectsTab');
         }
         
-        const projectMappingSection = document.getElementById('projectMappingSection');
-        
-        // Mostrar indicador de carga solo en la pestaña de proyectos
-        projectMappingSection.innerHTML = '<div class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>';
-        projectMappingSection.classList.remove('hidden', 'unloaded');
+        // Mostrar indicador de carga
+        ProjectComponent.showLoader();
         
         const response = await fetch(URLS.listarProyectos);
         const data = await response.json();
@@ -109,16 +107,14 @@ async function loadJiraProjects() {
             throw new Error(data.message || 'Error al obtener proyectos');
         }
         
-        // Renderizar los datos del mapeo
-        renderProjectMapping(data.jira_projects, data.local_projects);
+        // Cargar template si es necesario
+        await TemplateLoader.loadTemplate('projectMappingSection', 'components/project_mapping.html');
+        
+        // Actualizar UI con los componentes
+        ProjectComponent.updateProjectMapping(data.jira_projects, data.local_projects);
         
     } catch (error) {
-        document.getElementById('projectMappingSection').innerHTML = `
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 my-4">
-                <p>${error.message || 'Error al cargar proyectos'}</p>
-                <button onclick="loadJiraProjects()" class="mt-2 text-sm text-blue-600 hover:underline">Reintentar</button>
-            </div>
-        `;
+        ProjectComponent.showError(error.message || 'Error al cargar proyectos');
         console.error('Error:', error);
     }
 }
@@ -133,24 +129,31 @@ function switchTab(tabId) {
     });
     
     // Mostrar la pestaña seleccionada
-    document.getElementById(tabId).classList.remove('hidden');
+    const selectedTab = document.getElementById(tabId);
+    if (selectedTab) {
+        selectedTab.classList.remove('hidden');
+    }
     
     // Actualizar estado de los botones de pestañas
     document.querySelectorAll('#integrationTabs a').forEach(btn => {
-        btn.classList.remove('border-blue-500', 'text-blue-600');
+        btn.classList.remove('border-blue-500', 'text-blue-600', 'integration-tab-active');
         btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-600', 'hover:border-gray-300');
     });
     
-    // Marcar el botón activo
-    document.getElementById(tabId + 'Btn').classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-600', 'hover:border-gray-300');
-    document.getElementById(tabId + 'Btn').classList.add('border-blue-500', 'text-blue-600');
+    // Marcar el botón activo con clases más modernas
+    const activeButton = document.getElementById(tabId + 'Btn');
+    if (activeButton) {
+        activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-600', 'hover:border-gray-300');
+        activeButton.classList.add('border-blue-500', 'text-blue-600', 'integration-tab-active');
+    }
     
-    // Ocultar TODOS los paneles específicos primero
+    // Gestionar visibilidad de secciones específicas según la pestaña
     const projectMappingSection = document.getElementById('projectMappingSection');
     const userMappingSection = document.getElementById('userMappingSection');
     const healthCheckSection = document.getElementById('healthCheckSection');
     const syncReportSection = document.getElementById('syncReportSection');
     
+    // Por defecto, ocultar todos los paneles específicos
     if (projectMappingSection) projectMappingSection.classList.add('hidden');
     if (userMappingSection) userMappingSection.classList.add('hidden');
     if (healthCheckSection) healthCheckSection.classList.add('hidden');
@@ -183,84 +186,16 @@ function switchTab(tabId) {
 }
 
 /**
- * Renderiza la interfaz de mapeo de proyectos
- */
-function renderProjectMapping(jiraProjects, localProjects) {
-    const container = document.getElementById('projectMappingSection');
-    
-    // Construir HTML para la tabla de mapeos
-    let html = `
-        <div class="bg-white shadow-md rounded-lg p-6 my-6">
-            <h2 class="text-xl font-semibold mb-4">Mapeo de Proyectos</h2>
-            <p class="text-gray-600 mb-4">Selecciona qué proyectos de Jira corresponden a tus proyectos locales.</p>
-            
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="py-3 px-4 text-left">Proyecto Local</th>
-                            <th class="py-3 px-4 text-left">Proyecto Jira</th>
-                            <th class="py-3 px-4 text-left">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-    `;
-    
-    // Generar filas para cada proyecto local
-    localProjects.forEach(localProject => {
-        const mappedTo = localProject.mapped_to;
-        const mappedProject = mappedTo ? 
-            jiraProjects.find(p => p.key === mappedTo) : null;
-        
-        html += `
-            <tr class="border-b hover:bg-gray-50">
-                <td class="py-3 px-4">${localProject.name}</td>
-                <td class="py-3 px-4">
-                    <select id="jira-project-${localProject.id}" class="form-select rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Seleccionar proyecto Jira</option>
-                        ${jiraProjects.map(jiraProject => `
-                            <option value="${jiraProject.key}" 
-                                data-jira-id="${jiraProject.id}"
-                                ${mappedTo === jiraProject.key ? 'selected' : ''}>
-                                ${jiraProject.name} (${jiraProject.key})
-                            </option>
-                        `).join('')}
-                    </select>
-                </td>
-                <td class="py-3 px-4">
-                    <button onclick="mapProject(${localProject.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                        ${mappedTo ? 'Actualizar' : 'Mapear'}
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    html += `
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="mt-6 flex justify-end">
-                <button onclick="sincronizarJira(event)" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center">
-                    <i class="fas fa-sync-alt mr-2"></i> Sincronizar Ahora
-                </button>
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
-
-/**
  * Mapea un proyecto local con uno de Jira
  */
 async function mapProject(localProjectId) {
     const selectElement = document.getElementById(`jira-project-${localProjectId}`);
+    if (!selectElement) return;
+    
     const jiraProjectKey = selectElement.value;
     
     if (!jiraProjectKey) {
-        showNotification('warning', 'Selecciona un proyecto de Jira');
+        NotificationComponent.show('warning', 'Selecciona un proyecto de Jira');
         return;
     }
     
@@ -287,10 +222,10 @@ async function mapProject(localProjectId) {
             throw new Error(data.message || 'Error al mapear proyecto');
         }
         
-        showNotification('success', 'Proyecto mapeado correctamente');
+        NotificationComponent.show('success', 'Proyecto mapeado correctamente');
         
     } catch (error) {
-        showNotification('error', error.message);
+        NotificationComponent.show('error', error.message);
         console.error('Error:', error);
     }
 }
@@ -299,14 +234,26 @@ async function mapProject(localProjectId) {
  * Inicia la sincronización con Jira
  */
 async function sincronizarJira(event) {
+    const syncButton = event ? 
+        (event.target.tagName === 'BUTTON' ? event.target : event.target.closest('button')) :
+        document.getElementById('sync-projects-btn');
+        
+    if (!syncButton) return;
+        
     try {
-        // Obtener el botón de forma más segura
-        const sincButton = event ? 
-            (event.target.tagName === 'BUTTON' ? event.target : event.target.closest('button')) :
-            document.querySelector('button[onclick="sincronizarJira()"]');
-            
-        sincButton.disabled = true;
-        sincButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sincronizando...';
+        // Cambiar estado del botón
+        const originalContent = syncButton.innerHTML;
+        syncButton.disabled = true;
+        
+        // Crear y agregar el icono de carga
+        const loadingIcon = document.createElement('i');
+        loadingIcon.className = 'fas fa-spinner fa-spin mr-2';
+        
+        const loadingText = document.createTextNode(' Sincronizando...');
+        
+        syncButton.innerHTML = '';
+        syncButton.appendChild(loadingIcon);
+        syncButton.appendChild(loadingText);
         
         const response = await fetch(URLS.sincronizar, {
             method: 'POST',
@@ -321,35 +268,52 @@ async function sincronizarJira(event) {
             throw new Error(data.message || 'Error en la sincronización');
         }
         
-        showNotification('success', 'Sincronización completada correctamente');
+        NotificationComponent.show('success', 'Sincronización completada correctamente');
+        
+        // Actualizar estado de salud después de la sincronización
+        checkIntegrationHealth();
         
     } catch (error) {
-        showNotification('error', error.message);
+        NotificationComponent.show('error', error.message);
         console.error('Error:', error);
     } finally {
         // Restaurar botón
-        sincButton.disabled = false;
-        sincButton.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Sincronizar Ahora';
+        syncButton.disabled = false;
+        
+        // Recrear el SVG para el botón
+        const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svgIcon.setAttribute('class', 'w-5 h-5 mr-2');
+        svgIcon.setAttribute('fill', 'none');
+        svgIcon.setAttribute('stroke', 'currentColor');
+        svgIcon.setAttribute('viewBox', '0 0 24 24');
+        
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('stroke-linejoin', 'round');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('d', 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15');
+        
+        svgIcon.appendChild(path);
+        
+        syncButton.innerHTML = '';
+        syncButton.appendChild(svgIcon);
+        syncButton.appendChild(document.createTextNode(' Sincronizar Ahora'));
     }
 }
-
 
 /**
  * Carga usuarios de Jira y usuarios locales para mapeo
  */
 async function loadJiraUsers() {
     try {
-        // Verificar si estamos en la pestaña correcta, si no, cambiar a ella
+        // Verificar si estamos en la pestaña correcta
         const usersTab = document.getElementById('usersTab');
-        if (usersTab.classList.contains('hidden')) {
+        if (usersTab && usersTab.classList.contains('hidden')) {
             switchTab('usersTab');
         }
         
-        const userMappingSection = document.getElementById('userMappingSection');
-        
         // Mostrar indicador de carga
-        userMappingSection.innerHTML = '<div class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>';
-        userMappingSection.classList.remove('hidden', 'unloaded');
+        UserComponent.showLoader();
         
         const response = await fetch(URLS.listarUsuarios);
         const data = await response.json();
@@ -358,94 +322,16 @@ async function loadJiraUsers() {
             throw new Error(data.message || 'Error al obtener usuarios');
         }
         
-        // Mostrar panel de mapeo de usuarios
-        renderUserMapping(data.jira_users, data.local_users);
+        // Cargar template si es necesario
+        await TemplateLoader.loadTemplate('userMappingSection', 'components/user_mapping.html');
+        
+        // Actualizar UI con los componentes
+        UserComponent.updateUserMapping(data.jira_users, data.local_users);
         
     } catch (error) {
-        document.getElementById('userMappingSection').innerHTML = `
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 my-4">
-                <p>${error.message || 'Error al cargar usuarios'}</p>
-                <button onclick="loadJiraUsers()" class="mt-2 text-sm text-blue-600 hover:underline">Reintentar</button>
-            </div>
-        `;
+        UserComponent.showError(error.message || 'Error al cargar usuarios');
         console.error('Error:', error);
     }
-}
-
-/**
- * Renderiza la interfaz de mapeo de usuarios
- */
-function renderUserMapping(jiraUsers, localUsers) {
-    const container = document.getElementById('userMappingSection');
-    
-    // Construir HTML para la tabla de mapeos
-    let html = `
-        <div class="bg-white shadow-md rounded-lg p-6 my-6">
-            <h2 class="text-xl font-semibold mb-4">Mapeo de Usuarios</h2>
-            <p class="text-gray-600 mb-4">Selecciona qué usuarios de Jira corresponden a tus usuarios locales.</p>
-            
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="py-3 px-4 text-left">Usuario Local</th>
-                            <th class="py-3 px-4 text-left">Usuario Jira</th>
-                            <th class="py-3 px-4 text-left">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-    `;
-    
-    // Generar filas para cada usuario local
-    localUsers.forEach(localUser => {
-        const mappedTo = localUser.mapped_to;
-        
-        html += `
-            <tr class="border-b hover:bg-gray-50">
-                <td class="py-3 px-4">${localUser.username} (${localUser.email})</td>
-                <td class="py-3 px-4">
-                    <select id="jira-user-${localUser.id}" class="form-select rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Seleccionar usuario Jira</option>
-                        ${jiraUsers.map(jiraUser => `
-                            <option value="${jiraUser.accountId}" 
-                                data-display-name="${jiraUser.displayName}"
-                                ${mappedTo && mappedTo.jira_user_id === jiraUser.accountId ? 'selected' : ''}>
-                                ${jiraUser.displayName} ${jiraUser.emailAddress ? `(${jiraUser.emailAddress})` : ''}
-                            </option>
-                        `).join('')}
-                    </select>
-                </td>
-                <td class="py-3 px-4">
-                    <button onclick="mapUser(${localUser.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                        ${mappedTo ? 'Actualizar' : 'Mapear'}
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    html += `
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="mt-6 flex justify-between">
-                <button onclick="mapAllUsersAuto()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
-                    <i class="fas fa-user-plus mr-2"></i> Mapeo Automático
-                </button>
-                <div class="flex space-x-3">
-                    <button onclick="checkIntegrationHealth()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md flex items-center">
-                        <i class="fas fa-heartbeat mr-2"></i> Verificar Estado
-                    </button>
-                    <button onclick="cleanOrphanedMappings()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md flex items-center">
-                        <i class="fas fa-broom mr-2"></i> Limpiar Mapeos
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
 }
 
 /**
@@ -453,10 +339,12 @@ function renderUserMapping(jiraUsers, localUsers) {
  */
 async function mapUser(localUserId) {
     const selectElement = document.getElementById(`jira-user-${localUserId}`);
+    if (!selectElement) return;
+    
     const jiraUserId = selectElement.value;
     
     if (!jiraUserId) {
-        showNotification('warning', 'Selecciona un usuario de Jira');
+        NotificationComponent.show('warning', 'Selecciona un usuario de Jira');
         return;
     }
     
@@ -485,10 +373,10 @@ async function mapUser(localUserId) {
             throw new Error(data.message || 'Error al mapear usuario');
         }
         
-        showNotification('success', 'Usuario mapeado correctamente');
+        NotificationComponent.show('success', 'Usuario mapeado correctamente');
         
     } catch (error) {
-        showNotification('error', error.message);
+        NotificationComponent.show('error', error.message);
         console.error('Error:', error);
     }
 }
@@ -498,6 +386,14 @@ async function mapUser(localUserId) {
  */
 async function mapAllUsersAuto() {
     try {
+        const autoMapBtn = document.getElementById('auto-map-users-btn');
+        if (autoMapBtn) {
+            // Desactivar botón durante el mapeo
+            const originalContent = autoMapBtn.innerHTML;
+            autoMapBtn.disabled = true;
+            autoMapBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mapeando...';
+        }
+        
         const response = await fetch(URLS.mapearUsuarios, {
             method: 'POST',
             headers: {
@@ -515,14 +411,39 @@ async function mapAllUsersAuto() {
             throw new Error(data.message || 'Error en el mapeo automático');
         }
         
-        showNotification('success', data.message || 'Mapeo automático completado');
+        NotificationComponent.show('success', data.message || 'Mapeo automático completado');
         
         // Recargar la lista de usuarios para mostrar los nuevos mapeos
         loadJiraUsers();
         
     } catch (error) {
-        showNotification('error', error.message);
+        NotificationComponent.show('error', error.message);
         console.error('Error:', error);
+    } finally {
+        // Restaurar botón
+        const autoMapBtn = document.getElementById('auto-map-users-btn');
+        if (autoMapBtn) {
+            autoMapBtn.disabled = false;
+            
+            // Recrear el SVG para el botón
+            const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svgIcon.setAttribute('class', 'w-5 h-5 mr-2');
+            svgIcon.setAttribute('fill', 'none');
+            svgIcon.setAttribute('stroke', 'currentColor');
+            svgIcon.setAttribute('viewBox', '0 0 24 24');
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('d', 'M12 6v6m0 0v6m0-6h6m-6 0H6');
+            
+            svgIcon.appendChild(path);
+            
+            autoMapBtn.innerHTML = '';
+            autoMapBtn.appendChild(svgIcon);
+            autoMapBtn.appendChild(document.createTextNode(' Mapeo Automático'));
+        }
     }
 }
 
@@ -535,6 +456,13 @@ async function cleanOrphanedMappings() {
     }
     
     try {
+        const cleanBtn = document.getElementById('clean-mappings-btn');
+        if (cleanBtn) {
+            // Desactivar botón durante la limpieza
+            cleanBtn.disabled = true;
+            cleanBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Limpiando...';
+        }
+        
         const response = await fetch(URLS.limpiarMapeos, {
             method: 'POST',
             headers: {
@@ -548,11 +476,39 @@ async function cleanOrphanedMappings() {
             throw new Error(data.message || 'Error al limpiar mapeos');
         }
         
-        showNotification('success', `Limpieza completada. Se eliminaron ${data.total_cleaned} mapeos huérfanos.`);
+        NotificationComponent.show('success', `Limpieza completada. Se eliminaron ${data.total_cleaned} mapeos huérfanos.`);
+        
+        // Recargar usuarios para reflejar los cambios
+        loadJiraUsers();
         
     } catch (error) {
-        showNotification('error', error.message);
+        NotificationComponent.show('error', error.message);
         console.error('Error:', error);
+    } finally {
+        // Restaurar botón
+        const cleanBtn = document.getElementById('clean-mappings-btn');
+        if (cleanBtn) {
+            cleanBtn.disabled = false;
+            
+            // Recrear el SVG para el botón
+            const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svgIcon.setAttribute('class', 'w-5 h-5 mr-2');
+            svgIcon.setAttribute('fill', 'none');
+            svgIcon.setAttribute('stroke', 'currentColor');
+            svgIcon.setAttribute('viewBox', '0 0 24 24');
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('d', 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16');
+            
+            svgIcon.appendChild(path);
+            
+            cleanBtn.innerHTML = '';
+            cleanBtn.appendChild(svgIcon);
+            cleanBtn.appendChild(document.createTextNode(' Limpiar Mapeos'));
+        }
     }
 }
 
@@ -561,16 +517,14 @@ async function cleanOrphanedMappings() {
  */
 async function checkIntegrationHealth() {
     try {
-        // Verificar si estamos en la pestaña correcta, si no, cambiar a ella
+        // Verificar si estamos en la pestaña correcta
         const reportsTab = document.getElementById('reportsTab');
-        if (reportsTab.classList.contains('hidden')) {
+        if (reportsTab && reportsTab.classList.contains('hidden')) {
             switchTab('reportsTab');
         }
         
         // Mostrar indicador de carga
-        const healthSection = document.getElementById('healthCheckSection');
-        healthSection.innerHTML = '<div class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>';
-        healthSection.classList.remove('hidden', 'unloaded');
+        HealthComponent.showLoader();
         
         const response = await fetch(URLS.estadoSalud);
         const data = await response.json();
@@ -579,107 +533,32 @@ async function checkIntegrationHealth() {
             throw new Error(data.message || 'Error al verificar estado');
         }
         
-        renderHealthReport(data.health_report);
+        // Cargar template si es necesario
+        await TemplateLoader.loadTemplate('healthCheckSection', 'components/health_check.html');
+        
+        // Actualizar UI con los componentes
+        HealthComponent.updateHealthReport(data.health_report);
         
     } catch (error) {
-        document.getElementById('healthCheckSection').innerHTML = `
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 my-4">
-                <p>${error.message || 'Error al verificar estado'}</p>
-                <button onclick="checkIntegrationHealth()" class="mt-2 text-sm text-blue-600 hover:underline">Reintentar</button>
-            </div>
-        `;
+        HealthComponent.showError(error.message || 'Error al verificar estado');
         console.error('Error:', error);
     }
 }
 
 /**
- * Renderiza el informe de estado de salud
- */
-function renderHealthReport(report) {
-    const container = document.getElementById('healthCheckSection');
-    
-    // Determinar color para el estado general
-    const statusColors = {
-        'healthy': 'green',
-        'warning': 'yellow',
-        'error': 'red',
-        'unknown': 'gray'
-    };
-    
-    const overallColor = statusColors[report.overall_status] || 'gray';
-    
-    // Formatear fecha de última sincronización
-    const lastSyncDate = report.last_sync ? 
-        new Date(report.last_sync).toLocaleString() : 
-        'Nunca';
-    
-    // Construir HTML para el informe
-    let html = `
-        <div class="bg-white shadow-md rounded-lg p-6 my-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold">Estado de la Integración</h2>
-                <span class="px-3 py-1 rounded-full text-white bg-${overallColor}-500">
-                    ${report.overall_status === 'healthy' ? 'Saludable' : 
-                      report.overall_status === 'warning' ? 'Con advertencias' : 
-                      report.overall_status === 'error' ? 'Con errores' : 'Desconocido'}
-                </span>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="border rounded-lg p-4">
-                    <h3 class="font-medium mb-2 text-gray-700">Conexión</h3>
-                    <p class="text-${statusColors[report.connection.status]}-600">
-                        ${report.connection.message}
-                    </p>
-                </div>
-                
-                <div class="border rounded-lg p-4">
-                    <h3 class="font-medium mb-2 text-gray-700">Mapeos</h3>
-                    <p class="text-${statusColors[report.mappings.status]}-600">
-                        ${report.mappings.message}
-                    </p>
-                </div>
-                
-                <div class="border rounded-lg p-4">
-                    <h3 class="font-medium mb-2 text-gray-700">Estado Sincronización</h3>
-                    <p class="text-${statusColors[report.sync_status.status]}-600">
-                        ${report.sync_status.message}
-                    </p>
-                </div>
-            </div>
-            
-            <div class="border-t pt-4">
-                <p><strong>Última sincronización:</strong> ${lastSyncDate}</p>
-                <div class="mt-4 flex justify-between">
-                    <button onclick="generateSyncReport()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
-                        <i class="fas fa-file-alt mr-2"></i> Generar Reporte Completo
-                    </button>
-                    <button onclick="openAdvancedConfigModal()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md">
-                        <i class="fas fa-cog mr-2"></i> Configuración Avanzada
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
-
-/**
  * Genera y muestra un reporte completo de sincronización
+ * @param {Number} days - Días a incluir en el reporte (por defecto 30)
  */
 async function generateSyncReport(days = 30) {
     try {
-        // Verificar si estamos en la pestaña correcta, si no, cambiar a ella
+        // Verificar si estamos en la pestaña correcta
         const reportsTab = document.getElementById('reportsTab');
-        if (reportsTab.classList.contains('hidden')) {
+        if (reportsTab && reportsTab.classList.contains('hidden')) {
             switchTab('reportsTab');
         }
         
         // Mostrar indicador de carga
-        const reportSection = document.getElementById('syncReportSection');
-        reportSection.innerHTML = '<div class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>';
-        reportSection.classList.remove('hidden', 'unloaded');
+        SyncReportComponent.showLoader();
         
         const response = await fetch(`${URLS.reporteSincronizacion}?days=${days}`);
         const data = await response.json();
@@ -688,179 +567,16 @@ async function generateSyncReport(days = 30) {
             throw new Error(data.message || 'Error al generar reporte');
         }
         
-        renderSyncReport(data.report);
+        // Cargar template si es necesario
+        await TemplateLoader.loadTemplate('syncReportSection', 'components/sync_report.html');
+        
+        // Actualizar UI con los componentes
+        SyncReportComponent.updateSyncReport(data.report);
         
     } catch (error) {
-        document.getElementById('syncReportSection').innerHTML = `
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 my-4">
-                <p>${error.message || 'Error al generar reporte'}</p>
-                <button onclick="generateSyncReport()" class="mt-2 text-sm text-blue-600 hover:underline">Reintentar</button>
-            </div>
-        `;
+        SyncReportComponent.showError(error.message || 'Error al generar reporte');
         console.error('Error:', error);
     }
-}
-
-/**
- * Renderiza el reporte de sincronización
- */
-function renderSyncReport(report) {
-    const container = document.getElementById('syncReportSection');
-    
-    // Formatear fechas
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleString();
-    };
-    
-    // Construir HTML del reporte
-    let html = `
-        <div class="bg-white shadow-md rounded-lg p-6 my-6">
-            <h2 class="text-xl font-semibold mb-2">Reporte de Sincronización</h2>
-            <p class="text-gray-600 mb-4">Período: ${formatDate(report.periodo.inicio)} - ${formatDate(report.periodo.fin)}</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                    <h3 class="text-lg font-medium text-blue-800">Proyectos</h3>
-                    <p class="text-2xl font-bold">${report.estadisticas.proyectos_sincronizados}</p>
-                </div>
-                
-                <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                    <h3 class="text-lg font-medium text-green-800">Tareas Exportadas</h3>
-                    <p class="text-2xl font-bold">${report.estadisticas.tareas_exportadas}</p>
-                </div>
-                
-                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
-                    <h3 class="text-lg font-medium text-purple-800">Issues Importados</h3>
-                    <p class="text-2xl font-bold">${report.estadisticas.issues_importados}</p>
-                </div>
-                
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                    <h3 class="text-lg font-medium text-gray-800">Última Sincronización</h3>
-                    <p class="text-gray-600">${formatDate(report.estadisticas.ultima_sincronizacion)}</p>
-                </div>
-            </div>
-            
-            <h3 class="text-lg font-semibold mt-6 mb-3 border-b pb-2">Proyectos Sincronizados</h3>
-            
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="py-3 px-4 text-left">Proyecto Local</th>
-                            <th class="py-3 px-4 text-left">Proyecto Jira</th>
-                            <th class="py-3 px-4 text-left">Tareas Exportadas</th>
-                            <th class="py-3 px-4 text-left">Issues Importados</th>
-                            <th class="py-3 px-4 text-left">% Sincronizado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-    `;
-    
-    // Añadir filas para cada proyecto
-    if (report.proyectos && report.proyectos.length > 0) {
-        report.proyectos.forEach(proyecto => {
-            html += `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="py-3 px-4">${proyecto.proyecto_local.nombre}</td>
-                    <td class="py-3 px-4">${proyecto.proyecto_jira.key}</td>
-                    <td class="py-3 px-4">${proyecto.sincronizacion.tareas_exportadas}</td>
-                    <td class="py-3 px-4">${proyecto.sincronizacion.issues_importados}</td>
-                    <td class="py-3 px-4">
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${proyecto.sincronizacion.porcentaje}%"></div>
-                        </div>
-                        <span class="text-xs text-gray-600">${proyecto.sincronizacion.porcentaje}%</span>
-                    </td>
-                </tr>
-            `;
-        });
-    } else {
-        html += `
-            <tr>
-                <td colspan="5" class="py-4 px-4 text-center text-gray-500">No hay proyectos sincronizados en este período</td>
-            </tr>
-        `;
-    }
-    
-    html += `
-                    </tbody>
-                </table>
-            </div>
-            
-            <h3 class="text-lg font-semibold mt-6 mb-3 border-b pb-2">Historial de Sincronizaciones</h3>
-    `;
-    
-    // Añadir historial de sincronizaciones si existe
-    if (report.historial_sincronizaciones && report.historial_sincronizaciones.length > 0) {
-        html += `
-            <div class="overflow-y-auto max-h-64 border rounded-lg">
-                <table class="min-w-full bg-white">
-                    <thead class="sticky top-0 bg-white shadow-sm">
-                        <tr class="bg-gray-50">
-                            <th class="py-2 px-4 text-left">Fecha</th>
-                            <th class="py-2 px-4 text-left">Tipo</th>
-                            <th class="py-2 px-4 text-left">Descripción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-        
-        report.historial_sincronizaciones.forEach(item => {
-            html += `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="py-2 px-4 text-sm">${formatDate(item.fecha)}</td>
-                    <td class="py-2 px-4 text-sm">${item.tipo}</td>
-                    <td class="py-2 px-4 text-sm">${item.descripcion}</td>
-                </tr>
-            `;
-        });
-        
-        html += `
-                    </tbody>
-                </table>
-            </div>
-        `;
-    } else {
-        html += `
-            <div class="text-center py-8 text-gray-500">
-                No hay registros de sincronización en este período
-            </div>
-        `;
-    }
-    
-    html += `
-            <div class="mt-6 flex justify-between">
-                <button onclick="generateSyncReport(7)" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm">
-                    Últimos 7 días
-                </button>
-                <button onclick="generateSyncReport(30)" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm">
-                    Últimos 30 días
-                </button>
-                <button onclick="generateSyncReport(90)" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm">
-                    Últimos 90 días
-                </button>
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
-
-/**
- * Crea una nueva sección en la interfaz
- */
-function createSection(id, title) {
-    const mainContainer = document.querySelector('.p-8.space-y-8');
-    
-    const section = document.createElement('div');
-    section.id = id;
-    section.className = 'mt-8';
-    section.innerHTML = `<h2 class="text-xl font-semibold mb-4">${title}</h2>`;
-    
-    mainContainer.appendChild(section);
-    
-    return section;
 }
 
 /**
@@ -873,64 +589,70 @@ function openAdvancedConfigModal() {
         modal.id = 'advancedConfigModal';
         modal.className = 'hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 modal';
         
-        modal.innerHTML = `
-            <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
-                <div class="mt-3">
-                    <div class="flex justify-between items-center pb-3 border-b">
-                        <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                            <i class="fas fa-cogs mr-2 text-blue-500"></i>
-                            Configuración Avanzada de Jira
-                        </h3>
-                        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-500">
-                            <i class="fas fa-times"></i>
-                        </button>
+        const modalContent = document.createElement('div');
+        modalContent.className = 'relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white';
+        
+        modalContent.innerHTML = `
+            <div class="mt-3">
+                <div class="flex justify-between items-center pb-3 border-b">
+                    <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                        <i class="fas fa-cogs mr-2 text-blue-500"></i>
+                        Configuración Avanzada de Jira
+                    </h3>
+                    <button type="button" id="closeAdvancedConfigBtn" class="text-gray-400 hover:text-gray-500">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <form id="jiraAdvancedConfigForm" class="mt-4">
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="importarIssues" name="importarIssues" class="rounded text-blue-500 focus:ring-blue-500">
+                            <label for="importarIssues" class="ml-2 block text-sm text-gray-700">
+                                Importar issues desde Jira
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="exportarTareas" name="exportarTareas" class="rounded text-blue-500 focus:ring-blue-500">
+                            <label for="exportarTareas" class="ml-2 block text-sm text-gray-700">
+                                Exportar tareas locales a Jira
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="syncComentarios" name="syncComentarios" class="rounded text-blue-500 focus:ring-blue-500">
+                            <label for="syncComentarios" class="ml-2 block text-sm text-gray-700">
+                                Sincronizar comentarios
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="sincronizarAdjuntos" name="sincronizarAdjuntos" class="rounded text-blue-500 focus:ring-blue-500">
+                            <label for="sincronizarAdjuntos" class="ml-2 block text-sm text-gray-700">
+                                Sincronizar archivos adjuntos
+                            </label>
+                        </div>
                     </div>
 
-                    <form id="jiraAdvancedConfigForm" class="mt-4">
-                        <div class="space-y-4">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="importarIssues" name="importarIssues" class="rounded text-blue-500 focus:ring-blue-500">
-                                <label for="importarIssues" class="ml-2 block text-sm text-gray-700">
-                                    Importar issues desde Jira
-                                </label>
-                            </div>
-                            
-                            <div class="flex items-center">
-                                <input type="checkbox" id="exportarTareas" name="exportarTareas" class="rounded text-blue-500 focus:ring-blue-500">
-                                <label for="exportarTareas" class="ml-2 block text-sm text-gray-700">
-                                    Exportar tareas locales a Jira
-                                </label>
-                            </div>
-                            
-                            <div class="flex items-center">
-                                <input type="checkbox" id="syncComentarios" name="syncComentarios" class="rounded text-blue-500 focus:ring-blue-500">
-                                <label for="syncComentarios" class="ml-2 block text-sm text-gray-700">
-                                    Sincronizar comentarios
-                                </label>
-                            </div>
-                            
-                            <div class="flex items-center">
-                                <input type="checkbox" id="sincronizarAdjuntos" name="sincronizarAdjuntos" class="rounded text-blue-500 focus:ring-blue-500">
-                                <label for="sincronizarAdjuntos" class="ml-2 block text-sm text-gray-700">
-                                    Sincronizar archivos adjuntos
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-between pt-4 mt-4 border-t">
-                            <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
-                                Cancelar
-                            </button>
-                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
-                                <i class="fas fa-save mr-1"></i> Guardar Configuración
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="flex justify-between pt-4 mt-4 border-t">
+                        <button type="button" id="cancelAdvancedConfigBtn" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-save mr-1"></i> Guardar Configuración
+                        </button>
+                    </div>
+                </form>
             </div>
         `;
         
+        modal.appendChild(modalContent);
         document.body.appendChild(modal);
+        
+        // Configurar eventos del modal
+        document.getElementById('closeAdvancedConfigBtn').onclick = () => ModalComponent.close('advancedConfigModal');
+        document.getElementById('cancelAdvancedConfigBtn').onclick = () => ModalComponent.close('advancedConfigModal');
         
         // Configurar el formulario
         document.getElementById('jiraAdvancedConfigForm').addEventListener('submit', function(e) {
@@ -951,7 +673,7 @@ function openAdvancedConfigModal() {
     fetchCurrentAdvancedConfig();
     
     // Mostrar modal
-    document.getElementById('advancedConfigModal').classList.remove('hidden');
+    ModalComponent.open('advancedConfigModal');
 }
 
 /**
@@ -977,6 +699,7 @@ async function fetchCurrentAdvancedConfig() {
         
     } catch (error) {
         console.error('Error al cargar configuración avanzada:', error);
+        NotificationComponent.show('error', 'Error al cargar la configuración avanzada');
     }
 }
 
@@ -993,200 +716,208 @@ function setupIntegrationTabs() {
         tabsContainer.id = 'integrationTabs';
         tabsContainer.className = 'border-b border-gray-200 mb-6';
         
-        tabsContainer.innerHTML = `
-            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
-                <li class="mr-2">
-                    <a href="#" onclick="switchTab('configTab')" id="configTabBtn" class="inline-block p-4 rounded-t-lg border-b-2 border-blue-500 text-blue-600 active">
-                        <i class="fas fa-cog mr-2"></i>Configuración
-                    </a>
-                </li>
-                <li class="mr-2">
-                    <a href="#" onclick="switchTab('projectsTab')" id="projectsTabBtn" class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-600">
-                        <i class="fas fa-project-diagram mr-2"></i>Proyectos
-                    </a>
-                </li>
-                <li class="mr-2">
-                    <a href="#" onclick="switchTab('usersTab')" id="usersTabBtn" class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-600">
-                        <i class="fas fa-users mr-2"></i>Usuarios
-                    </a>
-                </li>
-                <li class="mr-2">
-                    <a href="#" onclick="switchTab('reportsTab')" id="reportsTabBtn" class="inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-600">
-                        <i class="fas fa-chart-bar mr-2"></i>Reportes
-                    </a>
-                </li>
-            </ul>
-        `;
+        // Crear el contenido de las pestañas usando DOM API en lugar de innerHTML
+        const tabsList = document.createElement('ul');
+        tabsList.className = 'flex flex-wrap -mb-px text-sm font-medium text-center';
+        
+        // Añadir pestaña de configuración
+        const configTab = createTabElement('configTab', 'Configuración', 'cog');
+        tabsList.appendChild(configTab);
+        
+        // Añadir pestaña de proyectos
+        const projectsTab = createTabElement('projectsTab', 'Proyectos', 'project-diagram');
+        tabsList.appendChild(projectsTab);
+        
+        // Añadir pestaña de usuarios
+        const usersTab = createTabElement('usersTab', 'Usuarios', 'users');
+        tabsList.appendChild(usersTab);
+        
+        // Añadir pestaña de reportes
+        const reportsTab = createTabElement('reportsTab', 'Reportes', 'chart-bar');
+        tabsList.appendChild(reportsTab);
+        
+        tabsContainer.appendChild(tabsList);
         
         // Insertar al principio del contenedor principal
         container.insertBefore(tabsContainer, container.firstChild);
         
         // Crear contenedores de contenido para cada pestaña
-        const contentContainers = document.createElement('div');
-        contentContainers.id = 'tabContents';
-        
-        contentContainers.innerHTML = `
-            <div id="configTab" class="tab-content">
-                <!-- El contenido de configuración (tarjetas de herramientas) se mostrará aquí -->
-            </div>
-            <div id="projectsTab" class="tab-content hidden">
-                <div id="projectTabContent">
-                    <button onclick="loadJiraProjects()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center mb-6">
-                        <i class="fas fa-sync-alt mr-2"></i> Cargar Proyectos
-                    </button>
-                    <div id="projectMappingSection" class="mt-4 hidden unloaded">
-                        <!-- El contenido de mapeo de proyectos se mostrará aquí -->
-                    </div>
-                </div>
-            </div>
-            <div id="usersTab" class="tab-content hidden">
-                <div id="userTabContent">
-                    <button onclick="loadJiraUsers()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center mb-6">
-                        <i class="fas fa-sync-alt mr-2"></i> Cargar Usuarios
-                    </button>
-                    <div id="userMappingSection" class="mt-4 hidden unloaded">
-                        <!-- El contenido de mapeo de usuarios se mostrará aquí -->
-                    </div>
-                </div>
-            </div>
-            <div id="reportsTab" class="tab-content hidden">
-                <div id="reportsTabContent">
-                    <div class="flex space-x-4 mb-6">
-                        <button onclick="checkIntegrationHealth()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md flex items-center">
-                            <i class="fas fa-heartbeat mr-2"></i> Verificar Estado
-                        </button>
-                        <button onclick="generateSyncReport()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
-                            <i class="fas fa-file-alt mr-2"></i> Generar Reporte
-                        </button>
-                    </div>
-                    <div id="healthCheckSection" class="hidden unloaded"></div>
-                    <div id="syncReportSection" class="hidden unloaded"></div>
-                </div>
-            </div>
-        `;
-        
+        const contentContainers = createTabContentContainers();
         container.appendChild(contentContainers);
         
         // Mover contenido existente a la pestaña de configuración
-        const configTab = document.getElementById('configTab');
+        const configTabContent = document.getElementById('configTab');
         const tools = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-3.gap-6');
         
-        if (tools && configTab) {
-            configTab.appendChild(tools);
+        if (tools && configTabContent) {
+            configTabContent.appendChild(tools);
         }
+        
+        // Configurar pestaña activa por defecto
+        switchTab('configTab');
     }
 }
 
 /**
- * Cambia entre las pestañas de la interfaz
+ * Crea un elemento de pestaña
+ * @param {String} id - ID de la pestaña
+ * @param {String} label - Etiqueta de la pestaña
+ * @param {String} iconName - Nombre del icono de FontAwesome
+ * @returns {HTMLLIElement} - Elemento de pestaña
  */
-function switchTab(tabId) {
-    // Ocultar todos los contenidos de pestañas
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.add('hidden');
-    });
+function createTabElement(id, label, iconName) {
+    const tabItem = document.createElement('li');
+    tabItem.className = 'mr-2';
     
-    // Mostrar la pestaña seleccionada
-    document.getElementById(tabId).classList.remove('hidden');
+    const tabLink = document.createElement('a');
+    tabLink.href = '#';
+    tabLink.id = id + 'Btn';
+    tabLink.className = 'inline-block p-4 rounded-t-lg border-b-2 border-transparent hover:border-gray-300 text-gray-500 hover:text-gray-600';
+    tabLink.onclick = function(e) {
+        e.preventDefault();
+        switchTab(id);
+    };
     
-    // Actualizar estado de los botones de pestañas
-    document.querySelectorAll('#integrationTabs a').forEach(btn => {
-        btn.classList.remove('border-blue-500', 'text-blue-600');
-        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-600', 'hover:border-gray-300');
-    });
+    const icon = document.createElement('i');
+    icon.className = `fas fa-${iconName} mr-2`;
     
-    // Marcar el botón activo
-    document.getElementById(tabId + 'Btn').classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-600', 'hover:border-gray-300');
-    document.getElementById(tabId + 'Btn').classList.add('border-blue-500', 'text-blue-600');
+    tabLink.appendChild(icon);
+    tabLink.appendChild(document.createTextNode(label));
     
-    // Gestionar visibilidad de secciones específicas según la pestaña
-    const projectMappingSection = document.getElementById('projectMappingSection');
-    const userMappingSection = document.getElementById('userMappingSection');
-    const healthCheckSection = document.getElementById('healthCheckSection');
-    const syncReportSection = document.getElementById('syncReportSection');
+    tabItem.appendChild(tabLink);
     
-    // Por defecto, ocultar todos los paneles específicos
-    if (projectMappingSection) projectMappingSection.classList.add('hidden');
-    if (userMappingSection) userMappingSection.classList.add('hidden');
-    if (healthCheckSection) healthCheckSection.classList.add('hidden');
-    if (syncReportSection) syncReportSection.classList.add('hidden');
-    
-    // Mostrar solo los paneles correspondientes a la pestaña activa
-    // pero solo si ya han sido cargados (no tienen clase 'unloaded')
-    switch(tabId) {
-        case 'projectsTab':
-            // Si el panel de mapeo ya ha sido cargado, mostrarlo
-            if (projectMappingSection && !projectMappingSection.classList.contains('unloaded') &&
-                projectMappingSection.innerHTML.trim() !== '') {
-                projectMappingSection.classList.remove('hidden');
-            }
-            break;
-            
-        case 'usersTab':
-            // Si el panel de usuarios ya ha sido cargado, mostrarlo
-            if (userMappingSection && !userMappingSection.classList.contains('unloaded') &&
-                userMappingSection.innerHTML.trim() !== '') {
-                userMappingSection.classList.remove('hidden');
-            }
-            break;
-            
-        case 'reportsTab':
-            // Si alguno de los paneles de reporte ya ha sido cargado, mostrarlos
-            if (healthCheckSection && !healthCheckSection.classList.contains('unloaded') &&
-                healthCheckSection.innerHTML.trim() !== '') {
-                healthCheckSection.classList.remove('hidden');
-            }
-            if (syncReportSection && !syncReportSection.classList.contains('unloaded') &&
-                syncReportSection.innerHTML.trim() !== '') {
-                syncReportSection.classList.remove('hidden');
-            }
-            break;
-    }
+    return tabItem;
 }
 
 /**
- * Muestra una notificación en pantalla
+ * Crea los contenedores para el contenido de las pestañas
+ * @returns {HTMLDivElement} - Contenedor de contenido de pestañas
  */
-function showNotification(type, message) {
-    const notificationArea = document.getElementById('notificationArea') || createNotificationArea();
+function createTabContentContainers() {
+    const tabContents = document.createElement('div');
+    tabContents.id = 'tabContents';
     
-    // Crear notificación
-    const toast = document.createElement('div');
-    toast.className = `px-4 py-3 rounded-md shadow-lg flex items-center max-w-xs animate-fade-in-right ${
-        type === 'success' ? 'bg-green-500 text-white' : 
-        type === 'error' ? 'bg-red-500 text-white' : 
-        'bg-yellow-500 text-white'
-    }`;
+    // Pestaña de configuración
+    const configTab = document.createElement('div');
+    configTab.id = 'configTab';
+    configTab.className = 'tab-content';
+    tabContents.appendChild(configTab);
     
-    const icon = type === 'success' ? 'check-circle' : 
-               type === 'error' ? 'exclamation-circle' : 'exclamation-triangle';
+    // Pestaña de proyectos
+    const projectsTab = document.createElement('div');
+    projectsTab.id = 'projectsTab';
+    projectsTab.className = 'tab-content hidden';
     
-    toast.innerHTML = `
-        <i class="fas fa-${icon} mr-2"></i>
-        <span>${message}</span>
-        <button class="ml-auto text-white opacity-75 hover:opacity-100" onclick="this.parentElement.remove()">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
+    const projectTabContent = document.createElement('div');
+    projectTabContent.id = 'projectTabContent';
     
-    notificationArea.appendChild(toast);
+    const loadProjectsBtn = document.createElement('button');
+    loadProjectsBtn.className = 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-md flex items-center mb-6';
+    loadProjectsBtn.onclick = loadJiraProjects;
     
-    // Eliminar después de 5 segundos
-    setTimeout(() => {
-        toast.classList.add('animate-fade-out');
-        setTimeout(() => toast.remove(), 500);
-    }, 5000);
+    const projectBtnIcon = document.createElement('i');
+    projectBtnIcon.className = 'fas fa-sync-alt mr-2';
+    
+    loadProjectsBtn.appendChild(projectBtnIcon);
+    loadProjectsBtn.appendChild(document.createTextNode('Cargar Proyectos'));
+    projectTabContent.appendChild(loadProjectsBtn);
+    
+    const projectMappingSection = document.createElement('div');
+    projectMappingSection.id = 'projectMappingSection';
+    projectMappingSection.className = 'mt-4 hidden unloaded';
+    projectTabContent.appendChild(projectMappingSection);
+    
+    projectsTab.appendChild(projectTabContent);
+    tabContents.appendChild(projectsTab);
+    
+    // Pestaña de usuarios
+    const usersTab = document.createElement('div');
+    usersTab.id = 'usersTab';
+    usersTab.className = 'tab-content hidden';
+    
+    const userTabContent = document.createElement('div');
+    userTabContent.id = 'userTabContent';
+    
+    const loadUsersBtn = document.createElement('button');
+    loadUsersBtn.className = 'bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white px-4 py-2 rounded-md flex items-center mb-6';
+    loadUsersBtn.onclick = loadJiraUsers;
+    
+    const userBtnIcon = document.createElement('i');
+    userBtnIcon.className = 'fas fa-sync-alt mr-2';
+    
+    loadUsersBtn.appendChild(userBtnIcon);
+    loadUsersBtn.appendChild(document.createTextNode('Cargar Usuarios'));
+    userTabContent.appendChild(loadUsersBtn);
+    
+    const userMappingSection = document.createElement('div');
+    userMappingSection.id = 'userMappingSection';
+    userMappingSection.className = 'mt-4 hidden unloaded';
+    userTabContent.appendChild(userMappingSection);
+    
+    usersTab.appendChild(userTabContent);
+    tabContents.appendChild(usersTab);
+    
+    // Pestaña de reportes
+    const reportsTab = document.createElement('div');
+    reportsTab.id = 'reportsTab';
+    reportsTab.className = 'tab-content hidden';
+    
+    const reportsTabContent = document.createElement('div');
+    reportsTabContent.id = 'reportsTabContent';
+    
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.className = 'flex space-x-4 mb-6';
+    
+    const checkHealthBtn = document.createElement('button');
+    checkHealthBtn.className = 'btn-gradient bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-4 py-2 rounded-md flex items-center';
+    checkHealthBtn.id = 'check-health-btn';
+    checkHealthBtn.style.backgroundImage = 'linear-gradient(to right, rgb(245, 158, 11), rgb(217, 119, 6))';
+    checkHealthBtn.onclick = checkIntegrationHealth;
+    
+    const healthBtnIcon = document.createElement('i');
+    healthBtnIcon.className = 'fas fa-heartbeat mr-2';
+    
+    checkHealthBtn.appendChild(healthBtnIcon);
+    checkHealthBtn.appendChild(document.createTextNode('Verificar Estado'));
+    buttonsContainer.appendChild(checkHealthBtn);
+    
+    const genReportBtn = document.createElement('button');
+    genReportBtn.className = 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-md flex items-center';
+    genReportBtn.onclick = () => generateSyncReport();
+    
+    const reportBtnIcon = document.createElement('i');
+    reportBtnIcon.className = 'fas fa-file-alt mr-2';
+    
+    genReportBtn.appendChild(reportBtnIcon);
+    genReportBtn.appendChild(document.createTextNode('Generar Reporte'));
+    buttonsContainer.appendChild(genReportBtn);
+    
+    reportsTabContent.appendChild(buttonsContainer);
+    
+    const healthCheckSection = document.createElement('div');
+    healthCheckSection.id = 'healthCheckSection';
+    healthCheckSection.className = 'hidden unloaded';
+    reportsTabContent.appendChild(healthCheckSection);
+    
+    const syncReportSection = document.createElement('div');
+    syncReportSection.id = 'syncReportSection';
+    syncReportSection.className = 'hidden unloaded';
+    reportsTabContent.appendChild(syncReportSection);
+    
+    reportsTab.appendChild(reportsTabContent);
+    tabContents.appendChild(reportsTab);
+    
+    return tabContents;
 }
 
 /**
- * Crea el área de notificaciones si no existe
+ * Carga una plantilla HTML desde el servidor
+ * @param {String} containerId - ID del contenedor donde cargar la plantilla
+ * @param {String} templateName - Nombre del archivo de plantilla
+ * @returns {Promise<Boolean>} - True si se cargó correctamente
  */
-function createNotificationArea() {
-    const notifDiv = document.createElement('div');
-    notifDiv.id = 'notificationArea';
-    notifDiv.className = 'fixed top-10 right-4 z-50 space-y-2';
-    document.body.appendChild(notifDiv);
-    return notifDiv;
+async function loadTemplate(containerId, templateName) {
+    return TemplateLoader.loadTemplate(containerId, templateName);
 }
 
 /**
@@ -1211,35 +942,46 @@ function setupJiraForm() {
     }
 }
 
-// Inicializar cuando se carga la página
-document.addEventListener('DOMContentLoaded', function() {
-    setupJiraForm();
+/**
+ * Abre el modal de configuración Jira
+ */
+function openJiraModal() {
+    ModalComponent.open('jiraConfigModal');
+}
+
+/**
+ * Inicializa la interfaz de integración
+ */
+function initIntegration() {
+    // Configurar pestañas de navegación
     setupIntegrationTabs();
     
-    // Cerrar modales con Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeModal();
-        }
-    });
+    // Configurar formulario de Jira
+    setupJiraForm();
     
-    // Cerrar modales al hacer clic fuera
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
+    // Inicializar eventos para modales
+    ModalComponent.initEvents();
+    
+    // Verificar si Jira está configurado y mostrar el panel correspondiente
+    const configStatus = document.getElementById('jiraConfigStatus');
+    //if (configStatus && configStatus.dataset.configured === 'true') {
+    //    checkIntegrationHealth(); // Si ya está configurado, mostrar el estado de salud
+    //}
+    // Siempre iniciar en la pestaña de configuración
+    switchTab('configTab');
+}
+
+// Inicializar cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    initIntegration();
+    
+    // Conectar eventos para los botones de herramientas
+    document.querySelectorAll('[data-tool]').forEach(button => {
+        button.addEventListener('click', function() {
+            const tool = this.getAttribute('data-tool');
+            if (tool === 'jira') {
+                openJiraModal();
             }
         });
     });
 });
-
-// Funciones para manejar modales
-function openJiraModal() {
-    document.getElementById('jiraConfigModal').classList.remove('hidden');
-}
-
-function closeModal() {
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.classList.add('hidden');
-    });
-}

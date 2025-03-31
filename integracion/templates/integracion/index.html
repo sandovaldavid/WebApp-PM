@@ -18,7 +18,7 @@
         <!-- Herramientas Disponibles -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Jira -->
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden integration-card">
                 <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
                     <img src="https://cdn.worldvectorlogo.com/logos/jira-1.svg" alt="Jira Logo" class="h-12 mb-4">
                     <h3 class="text-xl font-bold text-white">Jira Software</h3>
@@ -37,8 +37,8 @@
                         <i class="fas fa-check-circle text-green-500 mr-2"></i>
                         <span>Actualización en tiempo real</span>
                     </div>
-                    <button onclick="openJiraModal()"
-                            class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                    <button onclick="openJiraModal()" data-tool="jira"
+                            class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center btn-gradient">
                         <i class="fas fa-plug mr-2"></i>
                         {% if jira_config %}
                             Configurar Jira (Configurado)
@@ -50,7 +50,7 @@
             </div>
 
             <!-- Trello (Futuras integraciones) -->
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden integration-card">
                 <div class="p-6 bg-gradient-to-r from-blue-400 to-blue-500">
                     <img src="https://cdn.worldvectorlogo.com/logos/trello.svg" alt="Trello Logo" class="h-12 mb-4">
                     <h3 class="text-xl font-bold text-white">Trello</h3>
@@ -69,8 +69,9 @@
                         <i class="fas fa-check-circle text-green-500 mr-2"></i>
                         <span>Vista Kanban</span>
                     </div>
-                    <button onclick="configureIntegration('trello')"
-                            class="w-full bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                    <button data-tool="trello"
+                            onclick="configureIntegration('trello')"
+                            class="w-full bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center btn-gradient">
                         <i class="fas fa-plug mr-2"></i>
                         Configurar Trello
                     </button>
@@ -78,7 +79,7 @@
             </div>
 
             <!-- GitHub (Futuras integraciones) -->
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden integration-card">
                 <div class="p-6 bg-gradient-to-r from-purple-800 to-purple-900">
                     <img src="https://cdn.worldvectorlogo.com/logos/github-icon-1.svg" alt="GitHub Logo"
                          class="h-12 mb-4">
@@ -98,8 +99,9 @@
                         <i class="fas fa-check-circle text-green-500 mr-2"></i>
                         <span>Integración con commits</span>
                     </div>
-                    <button onclick="configureIntegration('github')"
-                            class="w-full bg-purple-800 hover:bg-purple-900 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                    <button data-tool="github"
+                            onclick="configureIntegration('github')"
+                            class="w-full bg-purple-800 hover:bg-purple-900 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center btn-gradient">
                         <i class="fas fa-plug mr-2"></i>
                         Configurar GitHub
                     </button>
@@ -110,16 +112,16 @@
         <!-- Secciones para contenido de pestañas -->
         <div id="tabContents">
             <!-- Contenedor para mapeo de proyectos -->
-            <div id="projectMappingSection" class="hidden"></div>
+            <div id="projectMappingSection" class="hidden unloaded"></div>
             
             <!-- Contenedor para mapeo de usuarios -->
-            <div id="userMappingSection" class="hidden"></div>
+            <div id="userMappingSection" class="hidden unloaded"></div>
             
             <!-- Contenedor para estado de salud -->
-            <div id="healthCheckSection" class="hidden"></div>
+            <div id="healthCheckSection" class="hidden unloaded"></div>
             
             <!-- Contenedor para reportes -->
-            <div id="syncReportSection" class="hidden"></div>
+            <div id="syncReportSection" class="hidden unloaded"></div>
         </div>
 
         <!-- Modal de Configuración de Jira -->
@@ -131,7 +133,7 @@
                             <img src="https://cdn.worldvectorlogo.com/logos/jira-1.svg" alt="Jira Logo" class="h-6 mr-2">
                             Configurar Jira
                         </h3>
-                        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-500">
+                        <button type="button" onclick="ModalComponent.close('jiraConfigModal')" class="text-gray-400 hover:text-gray-500">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -140,7 +142,7 @@
                         <div class="mb-4">
                             <label for="serverUrl" class="block text-sm font-medium text-gray-700 mb-1">URL del Servidor Jira</label>
                             <input type="url" id="serverUrl" name="serverUrl" placeholder="https://tu-dominio.atlassian.net"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 custom-input"
                                    value="{{ jira_config.url_servidor|default:'' }}" required>
                             <small class="text-gray-500">La URL de tu instancia de Jira (ej: https://tu-dominio.atlassian.net)</small>
                         </div>
@@ -148,7 +150,7 @@
                         <div class="mb-4">
                             <label for="jiraUser" class="block text-sm font-medium text-gray-700 mb-1">Usuario de Jira</label>
                             <input type="email" id="jiraUser" name="jiraUser" placeholder="tu-email@ejemplo.com"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 custom-input"
                                    value="{{ jira_config.usuario_jira|default:'' }}" required>
                             <small class="text-gray-500">El email con el que te registraste en Jira</small>
                         </div>
@@ -156,7 +158,7 @@
                         <div class="mb-4">
                             <label for="apiKey" class="block text-sm font-medium text-gray-700 mb-1">API Key o Token</label>
                             <input type="password" id="apiKey" name="apiKey" placeholder="••••••••••••••••"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 custom-input"
                                    value="{{ jira_config.api_key|default:'' }}" required>
                             <small class="text-gray-500">
                                 <a href="https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/" 
@@ -169,7 +171,7 @@
                         <div class="mb-4">
                             <label for="syncFrequency" class="block text-sm font-medium text-gray-700 mb-1">Frecuencia de Sincronización</label>
                             <select id="syncFrequency" name="syncFrequency"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 custom-input">
                                 <option value="manual" {% if jira_config.frecuencia_sync == 'manual' %}selected{% endif %}>Manual</option>
                                 <option value="hourly" {% if jira_config.frecuencia_sync == 'hourly' %}selected{% endif %}>Cada hora</option>
                                 <option value="daily" {% if jira_config.frecuencia_sync == 'daily' %}selected{% endif %}>Diaria</option>
@@ -179,12 +181,12 @@
                         </div>
 
                         <div class="flex justify-between pt-4 border-t">
-                            <button type="button" onclick="closeModal()"
+                            <button type="button" onclick="ModalComponent.close('jiraConfigModal')"
                                     class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
                                 Cancelar
                             </button>
                             <button type="submit"
-                                    class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                                    class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors btn-gradient">
                                 <i class="fas fa-save mr-1"></i> Guardar Configuración
                             </button>
                         </div>
@@ -193,67 +195,48 @@
             </div>
         </div>
 
-        <!-- Modal para Configuración Avanzada -->
-        <div id="advancedConfigModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 modal">
-            <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+        <!-- Modal de Configuración para otras herramientas -->
+        <div id="configurationModal"
+             class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
                 <div class="mt-3">
-                    <div class="flex justify-between items-center pb-3 border-b">
-                        <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                            <i class="fas fa-cogs mr-2 text-blue-500"></i>
-                            Configuración Avanzada de Jira
-                        </h3>
-                        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-500">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <form id="jiraAdvancedConfigForm" class="mt-4">
-                        <div class="space-y-4">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="importarIssues" name="importarIssues" class="rounded text-blue-500 focus:ring-blue-500" 
-                                       {% if jira_config.importar_issues %}checked{% endif %}>
-                                <label for="importarIssues" class="ml-2 block text-sm text-gray-700">
-                                    Importar issues desde Jira
-                                </label>
-                            </div>
-                            
-                            <div class="flex items-center">
-                                <input type="checkbox" id="exportarTareas" name="exportarTareas" class="rounded text-blue-500 focus:ring-blue-500"
-                                       {% if jira_config.exportar_tareas %}checked{% endif %}>
-                                <label for="exportarTareas" class="ml-2 block text-sm text-gray-700">
-                                    Exportar tareas locales a Jira
-                                </label>
-                            </div>
-                            
-                            <div class="flex items-center">
-                                <input type="checkbox" id="syncComentarios" name="syncComentarios" class="rounded text-blue-500 focus:ring-blue-500"
-                                       {% if jira_config.sync_comentarios %}checked{% endif %}>
-                                <label for="syncComentarios" class="ml-2 block text-sm text-gray-700">
-                                    Sincronizar comentarios
-                                </label>
-                            </div>
-                            
-                            <div class="flex items-center">
-                                <input type="checkbox" id="sincronizarAdjuntos" name="sincronizarAdjuntos" class="rounded text-blue-500 focus:ring-blue-500"
-                                       {% if jira_config.sincronizar_adjuntos %}checked{% endif %}>
-                                <label for="sincronizarAdjuntos" class="ml-2 block text-sm text-gray-700">
-                                    Sincronizar archivos adjuntos
-                                </label>
-                            </div>
+                    <h3 class="text-lg font-medium text-gray-900" id="modalTitle">Configurar Integración</h3>
+                    <form class="mt-4 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">URL del Servidor</label>
+                            <input type="url" id="serverUrl"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
-
-                        <div class="flex justify-between pt-4 mt-4 border-t">
-                            <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">API Key</label>
+                            <input type="password" id="apiKey"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Frecuencia de Sincronización</label>
+                            <select id="syncFrequency"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="manual">Manual</option>
+                                <option value="hourly">Cada hora</option>
+                                <option value="daily">Diaria</option>
+                                <option value="weekly">Semanal</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-end space-x-3 mt-6">
+                            <button type="button" onclick="closeModalGeneral()"
+                                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
                                 Cancelar
                             </button>
-                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
-                                <i class="fas fa-save mr-1"></i> Guardar Configuración
+                            <button type="submit"
+                                    class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                                Guardar Configuración
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
+    </div>
 
         <!-- Elemento oculto para estado de configuración -->
         <div id="jiraConfigStatus" class="hidden" 
@@ -266,13 +249,9 @@
              {% endif %}
              >
         </div>
-
-        <!-- Área para notificaciones -->
-        <div id="notificationArea" class="fixed top-4 right-4 z-50 space-y-2"></div>
     </div>
 
     {% block extra_js %}
-        <script src="{% static 'img/integracion/index.js' %}"></script>
         <script>
             function configureIntegration(tool) {
                 const modal = document.getElementById('configurationModal');
@@ -299,9 +278,11 @@
             // Cerrar modal con Escape
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') {
-                    closeModal();
+                    closeModalGeneral();
                 }
             });
         </script>
+        <script src="{% static 'js/integracion/components.js' %}"></script>
+        <script src="{% static 'js/integracion/index.js' %}"></script>        
     {% endblock %}
 {% endblock %}
