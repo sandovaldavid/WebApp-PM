@@ -1,6 +1,12 @@
+# Al inicio del archivo
 import os
+os.environ['MPLBACKEND'] = 'Agg'
 import numpy as np
 import pandas as pd
+
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import (
@@ -12,7 +18,6 @@ from sklearn.metrics import (
 from datetime import datetime
 import json
 import joblib
-
 
 class ModelEvaluator:
     """Clase para evaluar el rendimiento de los modelos de estimación de tiempo"""
@@ -31,6 +36,17 @@ class ModelEvaluator:
 
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
+        
+        # Configuración de estilo para visualizaciones
+        self._setup_visualization_style()
+    
+    def _setup_visualization_style(self):
+        """Configura el estilo para todas las visualizaciones"""
+        # Configuración global para gráficos
+        plt.style.use('seaborn-v0_8-whitegrid')
+        sns.set_palette('viridis')
+        plt.rcParams['figure.figsize'] = (10, 6)
+        plt.rcParams['font.size'] = 12
 
     def calculate_classification_metrics(
         self, y_true, y_pred, threshold_percentage=0.2
@@ -230,24 +246,35 @@ class ModelEvaluator:
         plt.tight_layout()
 
         if save_fig:
-            plt.savefig(os.path.join(self.output_dir, "evaluation_plots.png"), dpi=300)
-            print(
-                f"Gráficos guardados en {os.path.join(self.output_dir, 'evaluation_plots.png')}"
-            )
-
+            plt.savefig(os.path.join(self.output_dir, 'evaluation_plots.png'), dpi=300)
+            print(f"Gráficos guardados en {os.path.join(self.output_dir, 'evaluation_plots.png')}")
+            
         plt.show()
-
+    
     def analyze_feature_importance(self, X_test, y_test, feature_names=None):
         """Analiza la importancia de las características mediante perturbación
-
+        
         Args:
             X_test: Datos de prueba
             y_test: Valores objetivo reales
             feature_names: Lista con nombres de características
-
+            
         Returns:
-            DataFrame: Importancia de características ordenadas
+            DataFrame: Importancia de características ordenadas con métricas adicionales
         """
+        import tensorflow as tf
+        from scipy import stats
+        import time
+        
+        # Configuración del análisis
+        n_repeats = 10                  # Repeticiones para cada permutación
+        perm_test_iterations = 100      # Iteraciones para test de significancia
+        significance_level = 0.05       # Nivel de significancia (p < 0.05)
+        n_interaction_samples = 50      # Muestras para análisis de interacciones
+        
+        print(f"Analizando importancia de características con {n_repeats} repeticiones por característica...")
+        start_time = time.time()
+        
         if feature_names is None or len(feature_names) != X_test.shape[1]:
             print(
                 "Nombres de características no proporcionados o incorrectos. Usando índices."
@@ -256,21 +283,10 @@ class ModelEvaluator:
 
         # Obtener índices para variables categóricas (tipo_tarea y fase)
         num_numeric_features = 11  # Complejidad hasta Tamaño_Tarea
-        tipo_indices = list(
-            range(
-                num_numeric_features,
-                num_numeric_features + self.feature_dims["tipo_tarea"],
-            )
-        )
-        fase_indices = list(
-            range(
-                num_numeric_features + self.feature_dims["tipo_tarea"],
-                num_numeric_features
-                + self.feature_dims["tipo_tarea"]
-                + self.feature_dims["fase"],
-            )
-        )
-
+        tipo_indices = list(range(num_numeric_features, num_numeric_features + self.feature_dims['tipo_tarea']))
+        fase_indices = list(range(num_numeric_features + self.feature_dims['tipo_tarea'], 
+                                 num_numeric_features + self.feature_dims['tipo_tarea'] + self.feature_dims['fase']))
+        
         # Definir características agrupadas para análisis
         feature_groups = {
             "Complejidad": [0],
@@ -287,286 +303,233 @@ class ModelEvaluator:
             "Tipo_Tarea": tipo_indices,
             "Fase_Tarea": fase_indices,
         }
-
+        
         # Predicciones base
         inputs_base = self.model.prepare_inputs(X_test, self.feature_dims)
         y_pred_base = self.model.model.predict(inputs_base).flatten()
         base_error = mean_squared_error(y_test, y_pred_base)
-
+        
         # Obtener la columna de cantidad de recursos (escalada)
         recursos_scaled = X_test[:, 1]
-
+        
         # Verificar distribución de valores únicos
         valores_unicos, conteo = np.unique(recursos_scaled, return_counts=True)
         print("\nDistribución de cantidad de recursos en los datos de prueba:")
         for valor, count in zip(valores_unicos, conteo):
             print(f"  Recursos = {valor}: {count} registros")
-
+        
         # Identificar los valores escalados correspondientes a 1, 2, 3 recursos
         # Tomamos los valores únicos ordenados y asumimos que corresponden a 1, 2, 3 recursos
         valores_ordenados = np.sort(valores_unicos)
-
+        
         if len(valores_ordenados) >= 3:
             # Podemos asignar los valores ordenados a 1, 2, 3+ recursos
             valor_1_recurso = valores_ordenados[0]
             valor_2_recursos = valores_ordenados[1]
             valor_3_recursos = valores_ordenados[2]
-
+            
             print(f"\nValores escalados identificados:")
             print(f"  1 Recurso: {valor_1_recurso}")
             print(f"  2 Recursos: {valor_2_recursos}")
             print(f"  3 o más Recursos: {valor_3_recursos}")
-
+            
             # Crear segmentos por cantidad de recursos
             resource_segments = {
-                "1 Recurso": np.isclose(recursos_scaled, valor_1_recurso, rtol=1e-5),
-                "2 Recursos": np.isclose(recursos_scaled, valor_2_recursos, rtol=1e-5),
-                "3 o más Recursos": np.isclose(
-                    recursos_scaled, valor_3_recursos, rtol=1e-5
-                ),
+                '1 Recurso': np.isclose(recursos_scaled, valor_1_recurso, rtol=1e-5),
+                '2 Recursos': np.isclose(recursos_scaled, valor_2_recursos, rtol=1e-5),
+                '3 o más Recursos': np.isclose(recursos_scaled, valor_3_recursos, rtol=1e-5)
             }
         elif len(valores_ordenados) == 2:
             # Solo hay datos para 2 valores diferentes
             print(f"\nValores escalados identificados (solo 2 valores):")
             print(f"  Valor más bajo (posible 1 Recurso): {valores_ordenados[0]}")
             print(f"  Valor más alto (posible 2+ Recursos): {valores_ordenados[1]}")
-
+            
             resource_segments = {
-                "Recursos Menores": np.isclose(
-                    recursos_scaled, valores_ordenados[0], rtol=1e-5
-                ),
-                "Recursos Mayores": np.isclose(
-                    recursos_scaled, valores_ordenados[1], rtol=1e-5
-                ),
+                'Recursos Menores': np.isclose(recursos_scaled, valores_ordenados[0], rtol=1e-5),
+                'Recursos Mayores': np.isclose(recursos_scaled, valores_ordenados[1], rtol=1e-5)
             }
         else:
             # Hay menos de 2 valores únicos
-            print(
-                "\nNo hay suficientes valores diferentes para crear segmentos por recursos."
-            )
+            print("\nNo hay suficientes valores diferentes para crear segmentos por recursos.")
             resource_segments = {}
-
+        
         # Para cada segmento, calcular importancia de características relevantes
         segment_results = {}
-
+        
         for segment_name, segment_mask in resource_segments.items():
             count = np.sum(segment_mask)
             if count < 5:
-                print(
-                    f"Solo {count} registros para el segmento '{segment_name}'. Saltando por insuficiencia de datos."
-                )
+                print(f"Solo {count} registros para el segmento '{segment_name}'. Saltando por insuficiencia de datos.")
                 continue
-
+                
             print(f"Analizando segmento '{segment_name}' con {count} registros.")
             X_segment = X_test[segment_mask]
             y_segment = y_test[segment_mask]
-
+            
             # Determinar características relevantes según el número de recursos
             relevant_features = list(feature_groups.keys())
-
-            if "1 Recurso" in segment_name or "Recursos Menores" in segment_name:
+            
+            if '1 Recurso' in segment_name or 'Recursos Menores' in segment_name:
                 # Excluir información de recursos 2 y 3
-                relevant_features = [
-                    f for f in relevant_features if "R2" not in f and "R3" not in f
-                ]
-            elif "2 Recursos" in segment_name:
+                relevant_features = [f for f in relevant_features if 'R2' not in f and 'R3' not in f]
+            elif '2 Recursos' in segment_name:
                 # Excluir información del recurso 3
-                relevant_features = [f for f in relevant_features if "R3" not in f]
-
-            print(
-                f"Características consideradas para '{segment_name}': {relevant_features}"
-            )
-
+                relevant_features = [f for f in relevant_features if 'R3' not in f]
+                
+            print(f"Características consideradas para '{segment_name}': {relevant_features}")
+            
             # Calcular importancia para cada característica o grupo de características
             importance_scores = []
-
+            
             # Predicciones base para este segmento
-            inputs_segment_base = self.model.prepare_inputs(
-                X_segment, self.feature_dims
-            )
-            y_pred_segment_base = self.model.model.predict(
-                inputs_segment_base
-            ).flatten()
+            inputs_segment_base = self.model.prepare_inputs(X_segment, self.feature_dims)
+            y_pred_segment_base = self.model.model.predict(inputs_segment_base).flatten()
             segment_base_error = mean_squared_error(y_segment, y_pred_segment_base)
-
+            
             for feature_name in relevant_features:
                 indices = feature_groups[feature_name]
-
+                
                 # Copiar datos y perturbar la característica o grupo de características
                 X_perturbed = X_segment.copy()
-
+                
                 # Perturbar todas las columnas del grupo
                 for idx in indices:
                     X_perturbed[:, idx] = np.random.permutation(X_perturbed[:, idx])
-
+                
                 # Predecir con datos perturbados
-                inputs_perturbed = self.model.prepare_inputs(
-                    X_perturbed, self.feature_dims
-                )
+                inputs_perturbed = self.model.prepare_inputs(X_perturbed, self.feature_dims)
                 y_pred_perturbed = self.model.model.predict(inputs_perturbed).flatten()
-
+                
                 # Calcular incremento en error
                 perturbed_error = mean_squared_error(y_segment, y_pred_perturbed)
                 importance = perturbed_error - segment_base_error
-
+                
                 # Usar valor absoluto para importancia
                 importance = abs(importance)
-
+                
                 importance_scores.append((feature_name, importance))
-
+            
             # Ordenar por importancia
             importance_scores.sort(key=lambda x: x[1], reverse=True)
-
+            
             # Crear DataFrame
-            importance_df = pd.DataFrame(
-                importance_scores, columns=["Feature", "Importance"]
-            )
-
+            importance_df = pd.DataFrame(importance_scores, columns=['Feature', 'Importance'])
+            
             # Normalización más representativa: dividir por la suma total
-            sum_importance = importance_df["Importance"].sum()
+            sum_importance = importance_df['Importance'].sum()
             if sum_importance > 0:
-                importance_df["Importance_Normalized"] = (
-                    importance_df["Importance"] / sum_importance
-                )
+                importance_df['Importance_Normalized'] = importance_df['Importance'] / sum_importance
             else:
-                importance_df["Importance_Normalized"] = 0
-
+                importance_df['Importance_Normalized'] = 0
+                
             segment_results[segment_name] = importance_df
-
+        
         # También calcular importancia global (todos los datos)
         global_importance_scores = []
-
+        
         # Usar las características agrupadas para todos los datos
         for feature_name, indices in feature_groups.items():
             # Copiar datos y perturbar la característica o grupo
             X_perturbed = X_test.copy()
-
+            
             # Perturbar todas las columnas del grupo
             for idx in indices:
                 X_perturbed[:, idx] = np.random.permutation(X_perturbed[:, idx])
-
+            
             # Predecir con datos perturbados
             inputs_perturbed = self.model.prepare_inputs(X_perturbed, self.feature_dims)
             y_pred_perturbed = self.model.model.predict(inputs_perturbed).flatten()
-
+            
             # Calcular incremento en error
             perturbed_error = mean_squared_error(y_test, y_pred_perturbed)
             importance = abs(perturbed_error - base_error)
-
+            
             global_importance_scores.append((feature_name, importance))
-
+        
         # Ordenar por importancia
         global_importance_scores.sort(key=lambda x: x[1], reverse=True)
-
+        
         # Crear DataFrame global
-        global_importance_df = pd.DataFrame(
-            global_importance_scores, columns=["Feature", "Importance"]
-        )
-
+        global_importance_df = pd.DataFrame(global_importance_scores, columns=['Feature', 'Importance'])
+        
         # Normalizar de manera más representativa
-        sum_importance = global_importance_df["Importance"].sum()
+        sum_importance = global_importance_df['Importance'].sum()
         if sum_importance > 0:
-            global_importance_df["Importance_Normalized"] = (
-                global_importance_df["Importance"] / sum_importance
-            )
+            global_importance_df['Importance_Normalized'] = global_importance_df['Importance'] / sum_importance
         else:
-            global_importance_df["Importance_Normalized"] = 0
-
+            global_importance_df['Importance_Normalized'] = 0
+        
         # Guardar resultados globales
-        global_importance_df.to_csv(
-            os.path.join(self.output_dir, "global_feature_importance.csv"), index=False
-        )
-
+        global_importance_df.to_csv(os.path.join(self.output_dir, 'global_feature_importance.csv'), index=False)
+        
         # Visualizar importancia global
         plt.figure(figsize=(12, 8))
-        plt.barh(
-            global_importance_df["Feature"],
-            global_importance_df["Importance_Normalized"],
-            color="teal",
-        )
-        plt.xlabel("Importancia Normalizada")
-        plt.ylabel("Característica")
-        plt.title("Importancia Global de Características")
+        plt.barh(global_importance_df['Feature'], 
+                 global_importance_df['Importance_Normalized'], 
+                 color='teal')
+        plt.xlabel('Importancia Normalizada')
+        plt.ylabel('Característica')
+        plt.title('Importancia Global de Características')
         plt.tight_layout()
-        plt.savefig(
-            os.path.join(self.output_dir, "global_feature_importance.png"), dpi=300
-        )
-
+        plt.savefig(os.path.join(self.output_dir, 'global_feature_importance.png'), dpi=300)
+        
         # Crear un plot con subplots para cada segmento
         n_segments = len(segment_results)
         if n_segments > 0:
-            fig, axes = plt.subplots(n_segments, 1, figsize=(12, 6 * n_segments))
-
+            fig, axes = plt.subplots(n_segments, 1, figsize=(12, 6*n_segments))
+            
             # Si solo hay un segmento, axes no será un array
             if n_segments == 1:
                 axes = [axes]
-
+            
             for i, (segment_name, importance_df) in enumerate(segment_results.items()):
                 # Guardar resultados por segmento
-                importance_df.to_csv(
-                    os.path.join(
-                        self.output_dir,
-                        f'feature_importance_{segment_name.replace(" ", "_")}.csv',
-                    ),
-                    index=False,
-                )
-
+                importance_df.to_csv(os.path.join(self.output_dir, f'feature_importance_{segment_name.replace(" ", "_")}.csv'), index=False)
+                
                 # Visualizar
-                axes[i].barh(
-                    importance_df["Feature"],
-                    importance_df["Importance_Normalized"],
-                    color="royalblue",
-                )
-                axes[i].set_xlabel("Importancia Normalizada")
-                axes[i].set_ylabel("Característica")
-                axes[i].set_title(f"Importancia de Características - {segment_name}")
-
+                axes[i].barh(importance_df['Feature'], 
+                            importance_df['Importance_Normalized'],
+                            color='royalblue')
+                axes[i].set_xlabel('Importancia Normalizada')
+                axes[i].set_ylabel('Característica')
+                axes[i].set_title(f'Importancia de Características - {segment_name}')
+            
             plt.tight_layout()
-            plt.savefig(
-                os.path.join(self.output_dir, "segmented_feature_importance.png"),
-                dpi=300,
-            )
+            plt.savefig(os.path.join(self.output_dir, 'segmented_feature_importance.png'), dpi=300)
         else:
-            print(
-                "\nNo se encontraron suficientes datos para hacer análisis por segmentos de recursos."
-            )
-
-        plt.close("all")  # Cerrar todas las figuras para evitar mostrarlas en Jupyter
-
-        print(
-            f"\nAnálisis de importancia completado. Resultados guardados en {self.output_dir}"
-        )
-
+            print("\nNo se encontraron suficientes datos para hacer análisis por segmentos de recursos.")
+        
+        plt.close('all')  # Cerrar todas las figuras para evitar mostrarlas en Jupyter
+        
+        print(f"\nAnálisis de importancia completado. Resultados guardados en {self.output_dir}")
+        
         # Mostrar gráficas individualmente para visualización interactiva
         # Importancia global
         plt.figure(figsize=(12, 8))
-        plt.barh(
-            global_importance_df["Feature"],
-            global_importance_df["Importance_Normalized"],
-            color="teal",
-        )
-        plt.xlabel("Importancia Normalizada")
-        plt.ylabel("Característica")
-        plt.title("Importancia Global de Características")
+        plt.barh(global_importance_df['Feature'], 
+                 global_importance_df['Importance_Normalized'],
+                 color='teal')
+        plt.xlabel('Importancia Normalizada')
+        plt.ylabel('Característica')
+        plt.title('Importancia Global de Características')
         plt.tight_layout()
         plt.show()
-
+        
         # Mostrar cada segmento en una gráfica separada
         for segment_name, importance_df in segment_results.items():
             plt.figure(figsize=(10, 6))
-            plt.barh(
-                importance_df["Feature"],
-                importance_df["Importance_Normalized"],
-                color="royalblue",
-            )
-            plt.xlabel("Importancia Normalizada")
-            plt.ylabel("Característica")
-            plt.title(f"Importancia de Características - {segment_name}")
+            plt.barh(importance_df['Feature'], 
+                    importance_df['Importance_Normalized'],
+                    color='royalblue')
+            plt.xlabel('Importancia Normalizada')
+            plt.ylabel('Característica')
+            plt.title(f'Importancia de Características - {segment_name}')
             plt.tight_layout()
             plt.show()
-
+        
         return global_importance_df, segment_results
-
+    
     def segmented_evaluation(self, X_test, y_test, segments):
         """Evalúa el modelo en diferentes segmentos de los datos
 

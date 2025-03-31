@@ -186,18 +186,18 @@ class EstimacionModel:
         """Predice considerando el contexto del requerimiento"""
         prediction = self.model.predict([X_num, X_req, X_task])
         return {
-            "tiempo_estimado": prediction[0][0],
-            "complejidad": X_num[0][0],
-            "prioridad": X_num[0][1],
-            "tipo_tarea": X_task[0],
-            "contexto_req": X_req[0][0],
+            'tiempo_estimado': prediction[0][0],
+            'complejidad': X_num[0][0],
+            'prioridad': X_num[0][1],
+            'tipo_tarea': X_task[0],
+            'contexto_req': X_req[0][0],
         }
 
     def get_callbacks(self):
         return [
-            EarlyStopping(monitor="val_loss", patience=15, restore_best_weights=True),
-            ReduceLROnPlateau(monitor="val_loss", factor=0.2, patience=5),
-            ModelCheckpoint("best_model.h5", monitor="val_loss", save_best_only=True),
+            EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True),
+            ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5),
+            ModelCheckpoint('best_model.h5', monitor='val_loss', save_best_only=True),
         ]
 
     def train(self, inputs, targets, validation_data=None, epochs=100):
@@ -230,8 +230,8 @@ class EstimacionModel:
         )
         self.model.save(
             save_path,
-            save_format="keras",
-            options=tf.saved_model.SaveOptions(experimental_io_device="/job:localhost"),
+            save_format='keras',
+            options=tf.saved_model.SaveOptions(experimental_io_device='/job:localhost'),
         )
         return history
 

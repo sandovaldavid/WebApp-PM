@@ -10,49 +10,27 @@ from evaluator import ModelEvaluator
 import matplotlib.pyplot as plt
 import joblib
 import json
-
 # from datetime import datetime
 from django.utils import timezone
 
-
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Entrenar modelo RNN para estimación de tiempos"
-    )
-    parser.add_argument(
-        "--data-path",
-        type=str,
-        default="estimacion_tiempos_optimizado.csv",
-        help="Ruta al archivo CSV con datos de entrenamiento",
-    )
-    parser.add_argument(
-        "--use-db",
-        action="store_true",
-        help="Usar categorías de la base de datos en lugar del CSV",
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=str,
-        default="models",
-        help="Directorio para guardar el modelo y resultados",
-    )
-    parser.add_argument(
-        "--epochs", type=int, default=100, help="Número de épocas para entrenar"
-    )
-    parser.add_argument(
-        "--bidirectional", action="store_true", help="Usar capa RNN bidireccional"
-    )
-    parser.add_argument(
-        "--rnn-type",
-        type=str,
-        default="GRU",
-        choices=["GRU", "LSTM"],
-        help="Tipo de capa recurrente a usar",
-    )
-    parser.add_argument(
-        "--test-size", type=float, default=0.2, help="Proporción de datos para prueba"
-    )
-
+    parser = argparse.ArgumentParser(description='Entrenar modelo RNN para estimación de tiempos')
+    parser.add_argument('--data-path', type=str, 
+                        default='estimacion_tiempos_optimizado.csv',
+                        help='Ruta al archivo CSV con datos de entrenamiento')
+    parser.add_argument('--use-db', action='store_true',
+                        help='Usar categorías de la base de datos en lugar del CSV')
+    parser.add_argument('--output-dir', type=str, default='models',
+                        help='Directorio para guardar el modelo y resultados')
+    parser.add_argument('--epochs', type=int, default=100,
+                        help='Número de épocas para entrenar')
+    parser.add_argument('--bidirectional', action='store_true',
+                        help='Usar capa RNN bidireccional')
+    parser.add_argument('--rnn-type', type=str, default='GRU', choices=['GRU', 'LSTM'],
+                        help='Tipo de capa recurrente a usar')
+    parser.add_argument('--test-size', type=float, default=0.2,
+                        help='Proporción de datos para prueba')
+                        
     return parser.parse_args()
 
 
@@ -66,15 +44,13 @@ def main():
     output_dir = args.output_dir
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-
+        
     print("\n=== Iniciando proceso de estimación de tiempos con RNN ===")
     print(f"Archivo de datos: {args.data_path}")
     print(f"Usando datos de BD: {args.use_db}")
     print(f"Directorio de salida: {output_dir}")
-    print(
-        f"Tipo de RNN: {args.rnn_type} {'bidireccional' if args.bidirectional else 'unidireccional'}"
-    )
-
+    print(f"Tipo de RNN: {args.rnn_type} {'bidireccional' if args.bidirectional else 'unidireccional'}")
+    
     # 1. Cargar y procesar datos
     print("\n[1/5] Cargando y procesando datos...")
     processor = DataProcessor(data_path=args.data_path, use_db=args.use_db)
@@ -92,28 +68,28 @@ def main():
     except Exception as e:
         print(f"Error al preprocesar datos: {str(e)}")
         return
-
+    
     # 3. Configurar e inicializar el modelo
     print("\n[3/5] Configurando modelo...")
     model_config = {
-        "rnn_units": 64,
-        "dense_units": [128, 64, 32],
-        "dropout_rate": 0.3,
-        "learning_rate": 0.001,
-        "l2_reg": 0.001,
-        "use_bidirectional": args.bidirectional,
-        "rnn_type": args.rnn_type,
-        "activation": "relu",
-        "batch_size": 32,
-        "epochs": args.epochs,
+        'rnn_units': 64,
+        'dense_units': [128, 64, 32],
+        'dropout_rate': 0.3,
+        'learning_rate': 0.001,
+        'l2_reg': 0.001,
+        'use_bidirectional': args.bidirectional,
+        'rnn_type': args.rnn_type,
+        'activation': 'relu',
+        'batch_size': 32,
+        'epochs': args.epochs
     }
-
+    
     estimator = AdvancedRNNEstimator(model_config)
     estimator.build_model(feature_dims)
 
     # Resumen del modelo
     estimator.model.summary()
-
+    
     # 4. Entrenar el modelo
     print("\n[4/5] Entrenando modelo...")
     history = estimator.train(X_train, y_train, X_val, y_val, feature_dims)
@@ -143,16 +119,16 @@ def main():
     np.save(os.path.join(output_dir, "y_test.npy"), y_test)
 
     print(f"Datos de validación guardados en {validation_path}")
-
+    
     # Guardar el modelo
-    estimator.save(model_dir=output_dir, name="tiempo_estimator")
-
+    estimator.save(model_dir=output_dir, name='tiempo_estimator')
+    
     # Plot del entrenamiento
-    estimator.plot_history(save_path=os.path.join(output_dir, "training_history.png"))
-
+    estimator.plot_history(save_path=os.path.join(output_dir, 'training_history.png'))
+    
     # 5. Evaluar el modelo
     print("\n[5/5] Evaluando modelo...")
-
+    
     # Crear evaluador
     evaluator = ModelEvaluator(estimator, feature_dims, output_dir)
 
@@ -160,29 +136,29 @@ def main():
     metrics, y_pred = evaluator.evaluate_model(X_test, y_test)
 
     # Guardar métricas con información de entrenamiento inicial
-    metrics_history_path = os.path.join(output_dir, "metrics_history.json")
+    metrics_history_path = os.path.join(output_dir, 'metrics_history.json')
+    
 
     # Registrar modelo en la base de datos
     from dashboard.models import Modeloestimacionrnn
-    from datetime import datetime
-
+    
     timestamp = datetime.now().strftime("%Y%m%d")
     modelo, created = Modeloestimacionrnn.objects.update_or_create(
-        nombremodelo="RNN Avanzado",
+        nombremodelo='RNN Avanzado',
         defaults={
-            "descripcionmodelo": "Modelo de red neuronal recurrente para estimación de tiempo (entrenamiento inicial)",
-            "versionmodelo": f"1.0.{timestamp}",
-            "precision": metrics.get("r2", 0.8),
-            "fechacreacion": timezone.now(),
-            "fechamodificacion": timezone.now(),
-        },
+            'descripcionmodelo': 'Modelo de red neuronal recurrente para estimación de tiempo (entrenamiento inicial)',
+            'versionmodelo': f"1.0.{timestamp}",
+            'precision': metrics.get('r2', 0.8),
+            'fechacreacion': timezone.now(),
+            'fechamodificacion': timezone.now()
+        }
     )
 
     print(
         f"Modelo {'creado' if created else 'actualizado'} en la base de datos con ID {modelo.idmodelo}"
     )
 
-    # Corregir el acceso al historial de entrenamiento
+    # Obtener información detallada del entrenamiento
     try:
         # Intentar obtener el número de épocas entrenadas
         if hasattr(estimator, "history") and estimator.history is not None:
@@ -203,7 +179,7 @@ def main():
     except Exception as e:
         print(f"No se pudo determinar el número de épocas entrenadas: {e}")
         epochs_trained = args.epochs
-
+    
     # Añadir información extra sobre este entrenamiento
     dataset_stats = {
         "total_samples": len(X_train) + len(X_val) + len(X_test),
@@ -211,16 +187,16 @@ def main():
         "validation_samples": len(X_val),
         "test_samples": len(X_test),
     }
-
+    
     training_info = {
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "metrics": metrics,
-        "training_type": "initial",
-        "model_config": model_config,
-        "dataset_stats": dataset_stats,
-        "epochs_trained": epochs_trained,
+        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'metrics': metrics,
+        'training_type': 'initial',
+        'model_config': model_config,
+        'dataset_stats': dataset_stats,
+        'epochs_trained': epochs_trained
     }
-
+    
     # Cargar historial existente o crear uno nuevo (formato compatible con evaluate_metrics.py)
     try:
         if os.path.exists(metrics_history_path):
@@ -240,11 +216,11 @@ def main():
 
     # Añadir esta evaluación al historial
     metrics_history.append(training_info)
-
+    
     # Guardar historial actualizado
-    with open(metrics_history_path, "w") as f:
+    with open(metrics_history_path, 'w') as f:
         json.dump(metrics_history, f, indent=4)
-
+    
     # Visualizar predicciones
     evaluator.plot_predictions(y_test, y_pred)
 
@@ -268,9 +244,9 @@ def main():
         + [f"Tipo_{i}" for i in range(feature_dims["tipo_tarea"])]
         + [f"Fase_{i}" for i in range(feature_dims["fase"])]
     )
-
+    
     evaluator.analyze_feature_importance(X_test, y_test, feature_names)
-
+    
     # Evaluación por segmentos (tareas pequeñas, medianas, grandes)
     print("\n[Extra] Evaluando por segmentos de tamaño...")
     segments = {
@@ -280,7 +256,7 @@ def main():
     }
 
     evaluator.segmented_evaluation(X_test, y_test, segments)
-
+    
     print("\n=== Proceso completado exitosamente ===")
     print(f"Todos los archivos han sido guardados en: {output_dir}")
     print(

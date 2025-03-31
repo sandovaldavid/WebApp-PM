@@ -1,24 +1,22 @@
 """
 Script para ejecutar tareas posteriores al entrenamiento del modelo.
 """
-
 # Al inicio del archivo, antes de cualquier importación
 import os
-
-os.environ["MPLBACKEND"] = "Agg"  # Forzar backend no interactivo
+os.environ['MPLBACKEND'] = 'Agg'  # Forzar backend no interactivo
 import sys
 import time
+import json  # Añadir importación de json que faltaba
 import traceback
 from datetime import datetime
-from multiprocessing import Process  # Importar Process en lugar de Thread
+from threading import Thread  # Usar Thread en lugar de Process
 
 # Luego de las importaciones iniciales
 import matplotlib
-
-matplotlib.use("Agg")  # Redundante pero por seguridad
+matplotlib.use('Agg')  # Redundante pero por seguridad
 
 # Asegurar que se puede importar desde el directorio padre
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
@@ -27,16 +25,13 @@ def run_evaluation_in_background(training_id=None):
     """
     Ejecuta la generación de archivos de evaluación en segundo plano
     """
-    print(
-        f"[PostTraining] Iniciando generación de archivos de evaluación en segundo plano"
-    )
-
+    print(f"[PostTraining] Iniciando generación de archivos de evaluación en segundo plano")
+    
     # Configuración de matplotlib
     import matplotlib
-
-    matplotlib.use("Agg")
-    os.environ["MPLBACKEND"] = "Agg"
-
+    matplotlib.use('Agg')
+    os.environ['MPLBACKEND'] = 'Agg'
+    
     # Esperar para asegurarse de que el modelo se haya guardado
     time.sleep(5)
 
@@ -92,19 +87,18 @@ def run_evaluation_in_background(training_id=None):
         evaluator._save_metrics_history(metrics)
 
         print("[PostTraining] ✅ Métricas básicas generadas correctamente.")
-        _notify_completion(
-            training_id,
-            True,
-            "Métricas generadas correctamente. Puede visualizar detalles en el panel de métricas.",
-        )
+        _notify_completion(training_id, True, "Métricas generadas correctamente. Puede visualizar detalles en el panel de métricas.")
         return True
 
     except Exception as e:
         print(f"[PostTraining] ❌ Error durante la generación de archivos: {e}")
         traceback.print_exc()
         _notify_completion(training_id, False, f"Error: {str(e)}")
-        return False
 
+        # También limpiar recursos en caso de excepción
+        import matplotlib.pyplot as plt
+        plt.close('all')        
+        return False
 
 def _notify_completion(training_id, success, message):
     """Notifica la finalización del proceso de post-entrenamiento al cliente"""
@@ -114,47 +108,39 @@ def _notify_completion(training_id, success, message):
     try:
         # Importamos aquí para evitar problemas de importación circular
         from django.core.cache import cache
-
+        
         # Obtener configuración del entrenamiento
         config_key = f"training_config_{training_id}"
         config = cache.get(config_key)
 
         if config:
             # Añadir notificación de finalización del post-procesamiento
-            if "updates" not in config:
-                config["updates"] = []
-
+            if 'updates' not in config:
+                config['updates'] = []
+                
             # Añadir actualización con estado de post-procesamiento
-            status_type = "success" if success else "warning"
-            config["updates"].append(
-                {
-                    "type": "log",
-                    "message": f"Post-procesamiento: {message}",
-                    "level": status_type,
-                    "timestamp": (
-                        datetime.now().isoformat()
-                        if "datetime" in sys.modules
-                        else time.time()
-                    ),
-                    "is_post_processing": True,
-                }
-            )
-
+            status_type = 'success' if success else 'warning'
+            config['updates'].append({
+                'type': 'log',
+                'message': f"Post-procesamiento: {message}",
+                'level': status_type,
+                'timestamp': datetime.now().isoformat() if 'datetime' in sys.modules else time.time(),
+                'is_post_processing': True
+            })
+            
             # Si fue exitoso, añadir evento de cierre explícito
             if success:
-                config["updates"].append(
-                    {
-                        "type": "post_processing_complete",
-                        "success": True,
-                        "message": "Procesamiento posterior completado con éxito.",
-                        "timestamp": time.time(),
-                    }
-                )
-
+                config['updates'].append({
+                    'type': 'post_processing_complete',
+                    'success': True,
+                    'message': "Procesamiento posterior completado con éxito.",
+                    'timestamp': time.time()
+                })
+                
             # Actualizar en caché
             cache.set(config_key, config, 7200)  # 2 horas
             print(f"[PostTraining] Notificación enviada al cliente: {message}")
-
+            
     except Exception as e:
         print(f"[PostTraining] Error al notificar finalización: {str(e)}")
         traceback.print_exc()
@@ -167,7 +153,10 @@ def start_background_tasks(training_id=None):
     Args:
         training_id: ID del proceso de entrenamiento
     """
-    process = Process(target=run_evaluation_in_background, args=(training_id,))
+    process = Process(
+        target=run_evaluation_in_background,
+        args=(training_id,)
+    )
     process.daemon = True
     process.start()
     return process
@@ -175,5 +164,9 @@ def start_background_tasks(training_id=None):
 
 # Punto de entrada para ejecutar manualmente
 if __name__ == "__main__":
+    # Forzar matplotlib a usar backend no interactivo nuevamente para mayor seguridad
+    os.environ['MPLBACKEND'] = 'Agg'
+    import matplotlib
+    matplotlib.use('Agg')
     print("Ejecutando tareas post-entrenamiento manualmente...")
     run_evaluation_in_background()
