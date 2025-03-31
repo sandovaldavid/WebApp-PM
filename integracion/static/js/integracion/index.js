@@ -90,8 +90,17 @@ async function updateAdvancedConfig(formData) {
  */
 async function loadJiraProjects() {
     try {
-        // Mostrar indicador de carga
-        document.getElementById('projectMappingSection').innerHTML = '<div class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>';
+        // Verificar si estamos en la pestaña correcta, si no, cambiar a ella
+        const projectsTab = document.getElementById('projectsTab');
+        if (projectsTab.classList.contains('hidden')) {
+            switchTab('projectsTab');
+        }
+        
+        const projectMappingSection = document.getElementById('projectMappingSection');
+        
+        // Mostrar indicador de carga solo en la pestaña de proyectos
+        projectMappingSection.innerHTML = '<div class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>';
+        projectMappingSection.classList.remove('hidden', 'unloaded');
         
         const response = await fetch(URLS.listarProyectos);
         const data = await response.json();
@@ -100,8 +109,7 @@ async function loadJiraProjects() {
             throw new Error(data.message || 'Error al obtener proyectos');
         }
         
-        // Mostrar panel de mapeo
-        document.getElementById('projectMappingSection').classList.remove('hidden');
+        // Renderizar los datos del mapeo
         renderProjectMapping(data.jira_projects, data.local_projects);
         
     } catch (error) {
@@ -112,6 +120,65 @@ async function loadJiraProjects() {
             </div>
         `;
         console.error('Error:', error);
+    }
+}
+
+/**
+ * Cambia entre las pestañas de la interfaz
+ */
+function switchTab(tabId) {
+    // Ocultar todos los contenidos de pestañas
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    
+    // Mostrar la pestaña seleccionada
+    document.getElementById(tabId).classList.remove('hidden');
+    
+    // Actualizar estado de los botones de pestañas
+    document.querySelectorAll('#integrationTabs a').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-600', 'hover:border-gray-300');
+    });
+    
+    // Marcar el botón activo
+    document.getElementById(tabId + 'Btn').classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-600', 'hover:border-gray-300');
+    document.getElementById(tabId + 'Btn').classList.add('border-blue-500', 'text-blue-600');
+    
+    // Ocultar TODOS los paneles específicos primero
+    const projectMappingSection = document.getElementById('projectMappingSection');
+    const userMappingSection = document.getElementById('userMappingSection');
+    const healthCheckSection = document.getElementById('healthCheckSection');
+    const syncReportSection = document.getElementById('syncReportSection');
+    
+    if (projectMappingSection) projectMappingSection.classList.add('hidden');
+    if (userMappingSection) userMappingSection.classList.add('hidden');
+    if (healthCheckSection) healthCheckSection.classList.add('hidden');
+    if (syncReportSection) syncReportSection.classList.add('hidden');
+    
+    // Mostrar solo los paneles correspondientes a la pestaña activa
+    // pero solo si ya han sido cargados (no tienen clase 'unloaded')
+    switch(tabId) {
+        case 'projectsTab':
+            if (projectMappingSection && !projectMappingSection.classList.contains('unloaded')) {
+                projectMappingSection.classList.remove('hidden');
+            }
+            break;
+            
+        case 'usersTab':
+            if (userMappingSection && !userMappingSection.classList.contains('unloaded')) {
+                userMappingSection.classList.remove('hidden');
+            }
+            break;
+            
+        case 'reportsTab':
+            if (healthCheckSection && !healthCheckSection.classList.contains('unloaded')) {
+                healthCheckSection.classList.remove('hidden');
+            }
+            if (syncReportSection && !syncReportSection.classList.contains('unloaded')) {
+                syncReportSection.classList.remove('hidden');
+            }
+            break;
     }
 }
 
@@ -272,8 +339,17 @@ async function sincronizarJira(event) {
  */
 async function loadJiraUsers() {
     try {
+        // Verificar si estamos en la pestaña correcta, si no, cambiar a ella
+        const usersTab = document.getElementById('usersTab');
+        if (usersTab.classList.contains('hidden')) {
+            switchTab('usersTab');
+        }
+        
+        const userMappingSection = document.getElementById('userMappingSection');
+        
         // Mostrar indicador de carga
-        document.getElementById('userMappingSection').innerHTML = '<div class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>';
+        userMappingSection.innerHTML = '<div class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>';
+        userMappingSection.classList.remove('hidden', 'unloaded');
         
         const response = await fetch(URLS.listarUsuarios);
         const data = await response.json();
@@ -283,7 +359,6 @@ async function loadJiraUsers() {
         }
         
         // Mostrar panel de mapeo de usuarios
-        document.getElementById('userMappingSection').classList.remove('hidden');
         renderUserMapping(data.jira_users, data.local_users);
         
     } catch (error) {
@@ -486,12 +561,16 @@ async function cleanOrphanedMappings() {
  */
 async function checkIntegrationHealth() {
     try {
+        // Verificar si estamos en la pestaña correcta, si no, cambiar a ella
+        const reportsTab = document.getElementById('reportsTab');
+        if (reportsTab.classList.contains('hidden')) {
+            switchTab('reportsTab');
+        }
+        
         // Mostrar indicador de carga
-        const healthSection = document.getElementById('healthCheckSection') || 
-            createSection('healthCheckSection', 'Estado de la Integración');
-            
+        const healthSection = document.getElementById('healthCheckSection');
         healthSection.innerHTML = '<div class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>';
-        healthSection.classList.remove('hidden');
+        healthSection.classList.remove('hidden', 'unloaded');
         
         const response = await fetch(URLS.estadoSalud);
         const data = await response.json();
@@ -591,12 +670,16 @@ function renderHealthReport(report) {
  */
 async function generateSyncReport(days = 30) {
     try {
+        // Verificar si estamos en la pestaña correcta, si no, cambiar a ella
+        const reportsTab = document.getElementById('reportsTab');
+        if (reportsTab.classList.contains('hidden')) {
+            switchTab('reportsTab');
+        }
+        
         // Mostrar indicador de carga
-        const reportSection = document.getElementById('syncReportSection') ||
-            createSection('syncReportSection', 'Reporte de Sincronización');
-            
+        const reportSection = document.getElementById('syncReportSection');
         reportSection.innerHTML = '<div class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>';
-        reportSection.classList.remove('hidden');
+        reportSection.classList.remove('hidden', 'unloaded');
         
         const response = await fetch(`${URLS.reporteSincronizacion}?days=${days}`);
         const data = await response.json();
@@ -951,7 +1034,7 @@ function setupIntegrationTabs() {
                     <button onclick="loadJiraProjects()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center mb-6">
                         <i class="fas fa-sync-alt mr-2"></i> Cargar Proyectos
                     </button>
-                    <div id="projectMappingSection" class="mt-4">
+                    <div id="projectMappingSection" class="mt-4 hidden unloaded">
                         <!-- El contenido de mapeo de proyectos se mostrará aquí -->
                     </div>
                 </div>
@@ -961,7 +1044,7 @@ function setupIntegrationTabs() {
                     <button onclick="loadJiraUsers()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center mb-6">
                         <i class="fas fa-sync-alt mr-2"></i> Cargar Usuarios
                     </button>
-                    <div id="userMappingSection" class="mt-4">
+                    <div id="userMappingSection" class="mt-4 hidden unloaded">
                         <!-- El contenido de mapeo de usuarios se mostrará aquí -->
                     </div>
                 </div>
@@ -976,8 +1059,8 @@ function setupIntegrationTabs() {
                             <i class="fas fa-file-alt mr-2"></i> Generar Reporte
                         </button>
                     </div>
-                    <div id="healthCheckSection" class="hidden"></div>
-                    <div id="syncReportSection" class="hidden"></div>
+                    <div id="healthCheckSection" class="hidden unloaded"></div>
+                    <div id="syncReportSection" class="hidden unloaded"></div>
                 </div>
             </div>
         `;
@@ -1015,6 +1098,50 @@ function switchTab(tabId) {
     // Marcar el botón activo
     document.getElementById(tabId + 'Btn').classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-600', 'hover:border-gray-300');
     document.getElementById(tabId + 'Btn').classList.add('border-blue-500', 'text-blue-600');
+    
+    // Gestionar visibilidad de secciones específicas según la pestaña
+    const projectMappingSection = document.getElementById('projectMappingSection');
+    const userMappingSection = document.getElementById('userMappingSection');
+    const healthCheckSection = document.getElementById('healthCheckSection');
+    const syncReportSection = document.getElementById('syncReportSection');
+    
+    // Por defecto, ocultar todos los paneles específicos
+    if (projectMappingSection) projectMappingSection.classList.add('hidden');
+    if (userMappingSection) userMappingSection.classList.add('hidden');
+    if (healthCheckSection) healthCheckSection.classList.add('hidden');
+    if (syncReportSection) syncReportSection.classList.add('hidden');
+    
+    // Mostrar solo los paneles correspondientes a la pestaña activa
+    // pero solo si ya han sido cargados (no tienen clase 'unloaded')
+    switch(tabId) {
+        case 'projectsTab':
+            // Si el panel de mapeo ya ha sido cargado, mostrarlo
+            if (projectMappingSection && !projectMappingSection.classList.contains('unloaded') &&
+                projectMappingSection.innerHTML.trim() !== '') {
+                projectMappingSection.classList.remove('hidden');
+            }
+            break;
+            
+        case 'usersTab':
+            // Si el panel de usuarios ya ha sido cargado, mostrarlo
+            if (userMappingSection && !userMappingSection.classList.contains('unloaded') &&
+                userMappingSection.innerHTML.trim() !== '') {
+                userMappingSection.classList.remove('hidden');
+            }
+            break;
+            
+        case 'reportsTab':
+            // Si alguno de los paneles de reporte ya ha sido cargado, mostrarlos
+            if (healthCheckSection && !healthCheckSection.classList.contains('unloaded') &&
+                healthCheckSection.innerHTML.trim() !== '') {
+                healthCheckSection.classList.remove('hidden');
+            }
+            if (syncReportSection && !syncReportSection.classList.contains('unloaded') &&
+                syncReportSection.innerHTML.trim() !== '') {
+                syncReportSection.classList.remove('hidden');
+            }
+            break;
+    }
 }
 
 /**
@@ -1088,12 +1215,6 @@ function setupJiraForm() {
 document.addEventListener('DOMContentLoaded', function() {
     setupJiraForm();
     setupIntegrationTabs();
-    
-    // Si hay configuración, cargar proyectos
-    if (document.getElementById('jiraConfigStatus') && 
-        document.getElementById('jiraConfigStatus').dataset.configured === 'true') {
-        loadJiraProjects();
-    }
     
     // Cerrar modales con Escape
     document.addEventListener('keydown', function(e) {
