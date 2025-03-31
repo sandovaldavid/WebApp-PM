@@ -4,15 +4,12 @@ import numpy as np
 import tensorflow as tf
 import joblib
 from datetime import datetime
-from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 import sys
 import os
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
 
-import traceback
 
 def normalize_metric(value, metric_name, metrics_history):
     """Normaliza métricas usando Min-Max scaling con valores observados"""
@@ -182,7 +179,7 @@ def estimate_time(request):
             REDES_DIR = os.path.join(BASE_DIR, 'redes_neuronales')
             MODEL_DIR = os.path.join(BASE_DIR, "redes_neuronales", "models")
 
-            if (REDES_DIR not in sys.path):
+            if REDES_DIR not in sys.path:
                 sys.path.append(REDES_DIR)
 
             from ml_model import EstimacionModel, DataPreprocessor
@@ -616,7 +613,6 @@ def monitor_entrenamiento(request):
         }, status=404)
     
     # Configurar la respuesta de streaming con eventos del servidor
-    # IMPORTANTE: No añadir ningún header de tipo hop-by-hop
     response = StreamingHttpResponse(
         _stream_training_updates(training_id, request.session),
         content_type='text/event-stream'
@@ -631,17 +627,7 @@ def monitor_entrenamiento(request):
 
 
 def _stream_training_updates(training_id, session):
-    """
-    Generador de eventos para Server-Sent Events (SSE) que transmite actualizaciones 
-    de entrenamiento en tiempo real al cliente.
-    
-    Args:
-        training_id: ID único del proceso de entrenamiento a monitorear
-        session: Sesión de Django para acceso alternativo a datos
-        
-    Yields:
-        Eventos SSE formateados con los datos actualizados del entrenamiento
-    """
+    """Función generadora para enviar actualizaciones SSE con mejor responsividad"""
     import time
     import json
     from django.core.cache import cache
@@ -1193,7 +1179,7 @@ def generar_archivos_evaluacion(request):
     """Vista para generar archivos de evaluación para un modelo existente"""
     if request.method == 'POST':
         try:
-            # Usar la función utilitaria para generar los archivos
+            # Importar utilidades
             from .views_utils import generate_evaluation_files, check_model_files
             
             # Primero verificar si existen los archivos necesarios
@@ -1222,7 +1208,6 @@ def generar_archivos_evaluacion(request):
 
 
 @login_required
-@require_POST
 def evaluar_modelo(request):
     """
     Vista para evaluar un modelo existente y generar visualizaciones

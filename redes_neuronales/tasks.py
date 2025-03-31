@@ -16,18 +16,17 @@ import time
 import uuid
 import traceback
 import logging
-import signal
-import atexit
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 from datetime import datetime
 
 from django.utils import timezone
 from django.core.cache import cache
 
-from redes_neuronales.ipc_utils import get_queue_for_training, clear_queue_for_training, send_update
-
 # Configuración de logging
 logger = logging.getLogger(__name__)
+
+# Importar funciones de entrenamiento
+from .entrenamiento_utils import ejecutar_entrenamiento
 
 # Almacenamiento global para tareas activas
 _ACTIVE_TASKS = {}
@@ -126,9 +125,6 @@ class AsyncTask:
             result = self.target_func(*args, **kwargs)
             
             # Registrar finalización exitosa
-            trace_log(f"Función {self.target_func.__name__} completada exitosamente para task_id={task_id}", 
-                      category="PROCESS_COMPLETE")
-            
             if task_id in _ACTIVE_TASKS:
                 _ACTIVE_TASKS[task_id]['status'] = TaskStatus.COMPLETED
                 _ACTIVE_TASKS[task_id]['end_time'] = datetime.now()
@@ -180,9 +176,6 @@ class AsyncTask:
         Returns:
             AsyncResult: Objeto que simula AsyncResult de Celery
         """
-        if not self.target_func:
-            raise ValueError("No se ha especificado una función objetivo para esta tarea")
-            
         task_id = str(uuid.uuid4())
         
         # Registrar la nueva tarea con mejor diagnóstico

@@ -14,7 +14,6 @@ import matplotlib
 matplotlib.use('Agg')  # Redundante pero por seguridad
 import matplotlib.pyplot as plt
 import seaborn as sns
-import traceback
 
 # Desactivar cualquier uso interactivo
 plt.ioff()  # Desactivar modo interactivo

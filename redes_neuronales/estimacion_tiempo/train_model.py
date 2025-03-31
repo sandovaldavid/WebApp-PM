@@ -247,7 +247,8 @@ def main():
     
     # Registrar modelo en la base de datos
     from dashboard.models import Modeloestimacionrnn
-    
+    from datetime import datetime
+
     timestamp = datetime.now().strftime("%Y%m%d")
     modelo, created = Modeloestimacionrnn.objects.update_or_create(
         nombremodelo='RNN Avanzado Optimizado',
@@ -262,7 +263,7 @@ def main():
 
     print(f"Modelo {'creado' if created else 'actualizado'} en la base de datos con ID {modelo.idmodelo}")
 
-    # Obtener información detallada del entrenamiento
+    # Corregir el acceso al historial de entrenamiento
     try:
         # Intentar obtener el número de épocas entrenadas
         if hasattr(estimator, 'history') and estimator.history is not None:

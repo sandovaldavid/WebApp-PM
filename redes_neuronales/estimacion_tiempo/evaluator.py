@@ -1,12 +1,6 @@
-# Al inicio del archivo
 import os
-os.environ['MPLBACKEND'] = 'Agg'
 import numpy as np
 import pandas as pd
-
-import matplotlib
-matplotlib.use('Agg')
-
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import (
@@ -258,21 +252,8 @@ class ModelEvaluator:
             feature_names: Lista con nombres de características
                 
         Returns:
-            DataFrame: Importancia de características ordenadas con métricas adicionales
+            DataFrame: Importancia de características ordenadas
         """
-        import tensorflow as tf
-        from scipy import stats
-        import time
-        
-        # Configuración del análisis
-        n_repeats = 10                  # Repeticiones para cada permutación
-        perm_test_iterations = 100      # Iteraciones para test de significancia
-        significance_level = 0.05       # Nivel de significancia (p < 0.05)
-        n_interaction_samples = 50      # Muestras para análisis de interacciones
-        
-        print(f"Analizando importancia de características con {n_repeats} repeticiones por característica...")
-        start_time = time.time()
-        
         if feature_names is None or len(feature_names) != X_test.shape[1]:
             print("Nombres de características no proporcionados o incorrectos. Usando índices.")
             feature_names = [f"Feature_{i}" for i in range(X_test.shape[1])]

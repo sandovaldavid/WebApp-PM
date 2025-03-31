@@ -9,10 +9,9 @@ matplotlib.use('Agg')  # Establecer explícitamente antes de cualquier otra impo
 
 import sys
 import time
-import json  # Añadir importación de json que faltaba
 import traceback
 from datetime import datetime
-from threading import Thread  # Usar Thread en lugar de Process
+from multiprocessing import Process  # Importar Process en lugar de Thread
 
 # Asegurar que matplotlib no intente usar Tkinter
 matplotlib.rcParams['figure.max_open_warning'] = 0  # Evitar advertencias por exceso de figuras
@@ -91,10 +90,6 @@ def run_evaluation_in_background(training_id=None):
         print(f"[PostTraining] ❌ Error durante la generación de archivos: {e}")
         traceback.print_exc()
         _notify_completion(training_id, False, f"Error: {str(e)}")
-
-        # También limpiar recursos en caso de excepción
-        import matplotlib.pyplot as plt
-        plt.close('all')        
         return False
     finally:
         # Código de limpieza que siempre debe ejecutarse
@@ -245,9 +240,5 @@ def start_background_tasks(training_id=None):
 
 # Punto de entrada para ejecutar manualmente
 if __name__ == "__main__":
-    # Forzar matplotlib a usar backend no interactivo nuevamente para mayor seguridad
-    os.environ['MPLBACKEND'] = 'Agg'
-    import matplotlib
-    matplotlib.use('Agg')
     print("Ejecutando tareas post-entrenamiento manualmente...")
     run_evaluation_in_background()

@@ -7,9 +7,9 @@ from tensorflow.keras.layers import (
     Concatenate, Embedding, Flatten, Bidirectional, TimeDistributed,
     LayerNormalization, PReLU, LeakyReLU
 )
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, TensorBoard
-from tensorflow.keras.optimizers import Adam, RMSprop, Nadam, SGD
-from tensorflow.keras.regularizers import l2, l1, l1_l2
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.regularizers import l2
 import matplotlib.pyplot as plt
 import joblib
 import json
@@ -25,7 +25,7 @@ class AdvancedRNNEstimator:
         Args:
             config: Diccionario de parámetros de configuración
         """
-        # Configuración por defecto mejorada
+        # Configuración por defecto
         self.default_config = {
             'rnn_units': 64,
             'dense_units': [128, 64, 32],
@@ -351,6 +351,7 @@ class AdvancedRNNEstimator:
         # Combinar con callbacks proporcionados
         all_callbacks = default_callbacks.copy()
         if callbacks:
+            # Asegurarnos que los callbacks del usuario se ejecutan después
             all_callbacks.extend(callbacks)
 
         print(f"Iniciando entrenamiento con {self.config['batch_size']} muestras por batch")
@@ -540,7 +541,6 @@ class AdvancedRNNEstimator:
         
         Args:
             save_path: Ruta donde guardar la gráfica (opcional)
-            figsize: Tamaño de la figura
         """
         if self.history is None:
             raise ValueError("No hay historia de entrenamiento. Ejecute train primero.")
@@ -595,54 +595,7 @@ class AdvancedRNNEstimator:
         
         # Guardar gráfica si se proporciona ruta
         if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            plt.savefig(save_path)
             print(f"Gráfica guardada en {save_path}")
             
         plt.show()
-        
-    def feature_importance(self, X, y, feature_dims, feature_names=None, n_samples=1000):
-        """Calcula la importancia de las características usando permutación
-        
-        Args:
-            X: Datos de test
-            y: Valores reales
-            feature_dims: Dimensiones de features
-            feature_names: Lista de nombres de características
-            n_samples: Número de muestras para el análisis
-            
-        Returns:
-            DataFrame con importancia de características
-        """
-        import pandas as pd
-        from sklearn.inspection import permutation_importance
-        
-        # Limitar número de muestras para eficiencia
-        if len(X) > n_samples:
-            idx = np.random.choice(len(X), n_samples, replace=False)
-            X_sample = X[idx]
-            y_sample = y[idx]
-        else:
-            X_sample = X
-            y_sample = y
-            
-        # Crear función de predicción para scikit-learn
-        def predict_func(X):
-            return self.predict(X, feature_dims)
-            
-        # Calcular importancia por permutación
-        perm_importance = permutation_importance(
-            predict_func, X_sample, y_sample,
-            n_repeats=10, random_state=42, n_jobs=-1
-        )
-        
-        # Crear DataFrame con resultados
-        if feature_names is None:
-            feature_names = [f'feature_{i}' for i in range(X.shape[1])]
-            
-        importance_df = pd.DataFrame({
-            'feature': feature_names,
-            'importance_mean': perm_importance.importances_mean,
-            'importance_std': perm_importance.importances_std
-        }).sort_values('importance_mean', ascending=False)
-        
-        return importance_df

@@ -67,7 +67,7 @@ def _validate_complete_data(update_data):
 
 def _add_update(training_id, update_data):
     """Añade una actualización al cache para ser enviada al cliente"""
-    # Importar cache explícitamente 
+    # Intentar obtener la sesión del usuario
     from django.core.cache import cache
     
     # Añadir timestamp si no existe
@@ -101,25 +101,10 @@ def _add_update(training_id, update_data):
         # Guardar en caché
         return cache.set(f'training_config_{training_id}', config, 7200)  # 2 horas
     else:
-        # Crear config inicial si no existe
-        new_config = {
-            'status': 'running',
-            'updates': [update_data],
-            'last_activity_time': time.time()
-        }
-        return cache.set(f'training_config_{training_id}', new_config, 7200)
+        print(f"No se pudo encontrar configuración para training_id: {training_id}")
 
 def ejecutar_entrenamiento(training_id, user_id):
-    """
-    Ejecuta el proceso de entrenamiento en segundo plano y envía actualizaciones al frontend.
-    
-    Args:
-        training_id: ID único del proceso de entrenamiento
-        user_id: ID del usuario que inició el entrenamiento
-    
-    Returns:
-        bool: True si el entrenamiento se completó con éxito, False en caso contrario
-    """
+    """Ejecuta el proceso de entrenamiento en segundo plano y envía actualizaciones al frontend"""
     # Importar cache explícitamente al inicio de la función
     from django.core.cache import cache
     

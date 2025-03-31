@@ -32,23 +32,10 @@ services:
       - db
     networks:
       - dev-network
-      
-  redis:
-    image: redis
-    container_name: redis-cache
-    ports:
-      - "6379:6379"
-    networks:
-      - dev-network
-    # Opcional: para persistencia de datos
-    # volumes:
-    #   - redis_data:/data
 
 volumes:
   postgres_data:
   pgadmin_data:
-  # Si decides usar persistencia para Redis, descomenta la siguiente línea
-  # redis_data:
 
 networks:
   dev-network:

@@ -621,9 +621,6 @@ class Usuario(AbstractUser):
     rol = models.CharField(max_length=50)
     fechacreacion = models.DateTimeField(blank=True, null=True)
     fechamodificacion = models.DateTimeField(blank=True, null=True)
-    notif_email = models.BooleanField(default=True)
-    notif_sistema = models.BooleanField(default=True)
-    notif_tareas = models.BooleanField(default=True)
     token = models.CharField(max_length=255, blank=True, null=True)
     confirmado = models.BooleanField(blank=True, null=True)
 

@@ -82,11 +82,6 @@ def run_manual_evaluation():
             'success': False,
             'message': f'Error durante la evaluación manual: {str(e)}'
         }
-    finally:
-        import matplotlib.pyplot as plt
-        import gc
-        plt.close('all')
-        gc.collect()  # Opcional: forzar recolección de basura
 
 def get_model_status():
     """Obtiene el estado actual del modelo y sus métricas"""
@@ -130,7 +125,6 @@ def get_model_status():
             'last_modified_date': os.path.getmtime(model_path),
             'metrics': metrics
         }
-        
     except Exception as e:
         import traceback
         result['message'] = str(e)

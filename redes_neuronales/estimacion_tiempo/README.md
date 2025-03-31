@@ -16,25 +16,15 @@ Este archivo contiene la clase `DataProcessor` que se encarga de:
 
 La clase utiliza técnicas de normalización (StandardScaler) y codificación (OneHotEncoder) para transformar las características categóricas y numéricas.
 
-### 2. `rnn_model.py` (Mejorado)
-Implementa la clase `AdvancedRNNEstimator`, el núcleo del sistema con importantes optimizaciones:
-- Define una arquitectura avanzada y personalizable de red neural recurrente
+### 2. `rnn_model.py`
+Implementa la clase `AdvancedRNNEstimator`, el núcleo del sistema:
+- Define la arquitectura de la red neural recurrente
 - Construye un modelo híbrido con características numéricas y categóricas
 - Utiliza GRU o LSTM como capas recurrentes
-- Soporte para capas bidireccionales para mejor captura de patrones
-- Sistema avanzado de regularización (L1, L2, dropout, recurrent dropout)
-- Incluye normalización de capas (Layer Normalization) o normalización por lotes (Batch Normalization)
-- Conexiones residuales opcionales para modelos más profundos
-- Gradient clipping para evitar problemas de explosión de gradientes
-- Multiple opciones de activación (ReLU, LeakyReLU, PReLU, tanh, selu)
-- Diversos optimizadores configurables (Adam, RMSprop, Nadam, SGD)
-- Tasa de aprendizaje adaptable con reducción automática
-- Sistema avanzado para análisis de importancia de características
-- Uso de `tf.data.Dataset` para entrenamiento optimizado con caching y prefetching
-- Integración completa con TensorBoard para monitorización avanzada
-- Visualizaciones mejoradas del proceso de entrenamiento
+- Incluye regularización (L2, dropout) para evitar sobreajuste
+- Proporciona métodos para entrenar, evaluar y predecir
 
-La arquitectura mejorada consta de tres ramas de entrada:
+La arquitectura consta de tres ramas de entrada:
 1. Una rama para datos numéricos procesados mediante redes recurrentes
 2. Una rama para tipos de tarea (codificados one-hot)
 3. Una rama para fases (codificadas one-hot)
@@ -47,21 +37,12 @@ Este archivo contiene la clase `ModelEvaluator` que:
 - Analiza la importancia de las características
 - Evalúa el modelo en diferentes segmentos de datos
 
-### 4. `train_model.py` (Optimizado)
-Script principal para el entrenamiento del modelo con nuevas funcionalidades:
-- Sistema avanzado de argumentos para personalización completa del entrenamiento
-- Soporte para múltiples configuraciones de arquitectura y optimización
-- Sistema de callbacks avanzados para monitorización y control
-- Checkpoints automáticos para recuperar el mejor modelo
-- Integración con TensorBoard para visualización avanzada y depuración
-- Evaluación segmentada por tipos de tareas
-- Análisis automático de importancia de características
-- Registro detallado del proceso de entrenamiento y resultados
-- Compatibilidad con regularización avanzada, como L1, L2, weight decay
-- Soporte para TensorFlow optimizado con GPU
-- Segmentación automática de datos para análisis por tamaño de tareas
-- Generación automática de archivos ZIP con modelos y resultados
-- Registro de modelos en la base de datos para seguimiento
+### 4. `train_model.py`
+Script principal para el entrenamiento del modelo:
+- Procesa argumentos de línea de comandos para configuración
+- Coordina el flujo completo de entrenamiento
+- Guarda el modelo entrenado y los preprocesadores
+- Evalúa el modelo y genera visualizaciones
 
 ### 5. `predict.py`
 Script para realizar predicciones:
@@ -93,9 +74,9 @@ Script para reentrenar automáticamente el modelo con nuevos datos:
 ### 9. `__init__.py`
 Inicializa el módulo y proporciona una función para obtener una instancia del servicio de estimación.
 
-## Explicación de la Red Neural Mejorada
+## Explicación de la Red Neural
 
-La red neural implementada es de tipo recurrente (RNN), específicamente utilizando celdas GRU (Gated Recurrent Unit) o LSTM (Long Short-Term Memory). Su arquitectura avanzada está diseñada para capturar la naturaleza secuencial y las dependencias temporales que existen en las tareas de desarrollo de software.
+La red neural implementada es de tipo recurrente (RNN), específicamente utilizando celdas GRU (Gated Recurrent Unit) o LSTM (Long Short-Term Memory). Su arquitectura está diseñada para capturar la naturaleza secuencial y las dependencias temporales que existen en las tareas de desarrollo de software.
 
 ### Características utilizadas:
 1. **Complejidad**: Nivel de dificultad de la tarea (1-5)
@@ -107,54 +88,32 @@ La red neural implementada es de tipo recurrente (RNN), específicamente utiliza
 7. **Claridad de Requisitos**: Qué tan bien definidos están los requisitos
 8. **Tamaño**: Estimación en story points de la magnitud de la tarea
 
-### Arquitectura Mejorada:
+### Arquitectura:
 - **Entrada Numérica**: Procesa las características numéricas mediante una transformación a representación recurrente
 - **Entrada Categórica**: Procesa tipos de tarea y fases mediante codificación one-hot y capas densas
-- **Combinación**: Une todas las características y las procesa a través de capas densas configurables
-- **Regularización Avanzada**: Utiliza combinaciones de dropout, recurrent dropout, regularización L1 y L2
-- **Normalización Configurable**: Aplica batch normalization o layer normalization según configuración
-- **Activaciones Avanzadas**: Soporte para ReLU, LeakyReLU, PReLU, tanh, selu
-- **Conexiones Residuales**: Opción para utilizar skip connections en redes profundas
-- **Gradient Clipping**: Control de explosión de gradientes para entrenamiento estable
+- **Combinación**: Une todas las características y las procesa a través de capas densas
+- **Regularización**: Utiliza dropout y regularización L2 para evitar sobreajuste
+- **Normalización**: Aplica batch normalization para estabilizar el entrenamiento
 - **Salida**: Una sola neurona con activación lineal que predice el tiempo en horas
 
-### Nuevas Funcionalidades de Optimización:
-- **Diferentes Optimizadores**: Adam, RMSprop, Nadam, SGD con configuraciones personalizables
-- **Learning Rate Adaptable**: Reducción automática cuando el entrenamiento se estanca
-- **Pipeline de Datos Optimizado**: Uso de tf.data.Dataset con caching y prefetching
-- **Early Stopping Mejorado**: Detección inteligente de estancamiento en el entrenamiento
-- **Checkpoints Automáticos**: Guardado del mejor modelo durante el entrenamiento
-- **Análisis de Importancia**: Método avanzado para determinar las características más relevantes
-- **TensorBoard Integration**: Visualización completa del entrenamiento y arquitectura
-- **Evaluación por Segmentos**: Análisis de rendimiento según tamaño y tipo de tarea
+## Cómo ejecutar la red neural
 
-## Cómo ejecutar la red neural mejorada
+### 1. Entrenamiento del modelo
 
-### 1. Entrenamiento del modelo avanzado
-
-Para entrenar el modelo desde cero con configuraciones optimizadas:
+Para entrenar el modelo desde cero:
 
 ```bash
 cd /e:/Tesis/APP_2.0/WebApp-PM/redes_neuronales/estimacion_tiempo/
-python train_model.py --data-path estimacion_tiempos_optimizado.csv --use-db --output-dir models --rnn-type GRU --bidirectional --activation leaky_relu --optimizer adam --learning-rate 0.001 --batch-size 32 --dropout-rate 0.3 --use-layer-norm --tensorboard --epochs 150
+python train_model.py --data-path estimacion_tiempos_optimizado.csv --use-db --output-dir models
 ```
 
-Opciones disponibles extendidas:
+Opciones disponibles:
 - `--data-path`: Ruta al CSV con datos de entrenamiento
 - `--use-db`: Obtener categorías de tipos de tarea y fases desde la BD
 - `--output-dir`: Directorio para guardar el modelo y resultados
 - `--epochs`: Número de épocas para entrenar (por defecto: 100)
 - `--bidirectional`: Usar capa RNN bidireccional
 - `--rnn-type`: Tipo de capa recurrente ('GRU' o 'LSTM')
-- `--batch-size`: Tamaño del lote para entrenamiento
-- `--optimizer`: Optimizador a utilizar ('adam', 'rmsprop', 'nadam', 'sgd')
-- `--learning-rate`: Tasa de aprendizaje inicial
-- `--activation`: Función de activación ('relu', 'leaky_relu', 'prelu', 'tanh', 'selu')
-- `--dropout-rate`: Tasa de dropout para regularización
-- `--use-layer-norm`: Usar normalización de capas
-- `--use-residual`: Usar conexiones residuales
-- `--tensorboard`: Habilitar logs detallados para TensorBoard
-- `--early-stopping-patience`: Paciencia para early stopping
 
 ### 2. Realizar predicciones
 
@@ -200,59 +159,16 @@ python retrain_model.py
 
 Este proceso puede automatizarse usando un cronjob para ejecutarse periódicamente (semanal o mensualmente).
 
-### 5. Visualización avanzada con TensorBoard
-
-Para visualizar el entrenamiento y la arquitectura del modelo:
-
-```bash
-cd /e:/Tesis/APP_2.0/WebApp-PM/redes_neuronales/estimacion_tiempo/
-tensorboard --logdir=models/logs
-```
-
-Luego abra su navegador en `http://localhost:6006` para ver:
-- Gráficas de pérdida y métricas en tiempo real
-- Histogramas de pesos y gradientes
-- Visualización de la arquitectura del modelo
-- Perfiles de rendimiento para optimización
-
-## Beneficios de las Mejoras
-
-1. **Mayor Precisión**: Las técnicas avanzadas de regularización y normalización mejoran la capacidad predictiva del modelo.
-
-2. **Entrenamiento Optimizado**: El uso de `tf.data.Dataset` y técnicas de optimización aceleran significativamente el entrenamiento.
-
-3. **Robustez Mejorada**: Las técnicas como gradient clipping y conexiones residuales hacen el modelo más estable y robusto.
-
-4. **Análisis Detallado**: Las nuevas capacidades de análisis permiten entender mejor qué factores influyen más en la estimación.
-
-5. **Adaptabilidad**: La arquitectura configurable permite adaptar el modelo a diferentes contextos y conjuntos de datos.
-
-6. **Monitorización Avanzada**: La integración con TensorBoard proporciona herramientas potentes para visualizar y entender el entrenamiento.
-
-7. **Segmentación de Análisis**: La evaluación por segmentos permite identificar dónde el modelo funciona mejor y dónde necesita mejoras.
-
-8. **Flujo de Trabajo Optimizado**: El proceso completo desde el entrenamiento hasta la evaluación está automatizado y documentado.
-
 ## Verificación del funcionamiento
 
 Para verificar que todo está funcionando correctamente:
 
 1. **Verificar las métricas de evaluación**:
-   - Ver el archivo `models/metrics_history.json` para seguimiento histórico
-   - Revisar los gráficos en `models/training_history.png`
-   - Explorar segmentación de rendimiento en `models/segmented_evaluation.png`
+   - Ver el archivo `models/evaluation_metrics.json`
+   - Revisar los gráficos en `models/evaluation_plots.png`
    - Un buen modelo debería tener un R² > 0.7 y un MAE razonable
 
-2. **Analizar la importancia de características**:
-   - Revisar `models/feature_importance.csv` para ver qué variables son más predictivas
-   - Visualizar el gráfico en `models/feature_importance.png`
-
-3. **Explorar TensorBoard para análisis profundo**:
-   - Verificar el comportamiento de la tasa de aprendizaje
-   - Analizar la distribución de pesos y activaciones
-   - Identificar potenciales problemas como vanishing/exploding gradients
-
-4. **Probar predicciones individuales**:
+2. **Probar predicciones individuales**:
    Crear un script simple:
    ```python
    from rnn_model import AdvancedRNNEstimator
@@ -286,4 +202,8 @@ Para verificar que todo está funcionando correctamente:
    print(f"Tiempo estimado: {prediction[0]:.2f} horas")
    ```
 
-Siguiendo estos pasos, podrás entrenar, evaluar y utilizar la red neural avanzada para estimar tiempos de tareas en tu aplicación de gestión de proyectos con mayor precisión y un control detallado del proceso.
+3. **Revisar la importancia de características**:
+   - Ver el archivo `models/feature_importance.csv`
+   - Revisar el gráfico en `models/feature_importance.png`
+
+Siguiendo estos pasos, podrás entrenar, evaluar y utilizar la red neural para estimar tiempos de tareas en tu aplicación de gestión de proyectos.
