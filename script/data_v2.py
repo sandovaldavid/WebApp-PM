@@ -46,13 +46,25 @@ fake = Faker()
 # Crear tipos de tareas iniciales
 print("---------------------( Creando tipos de tareas ...)---------------------")
 tipos_tarea = [
-    {"nombre": "Frontend", "descripcion": "Desarrollo de interfaces de usuario y experiencia de usuario"},
-    {"nombre": "Backend", "descripcion": "Desarrollo de lógica de negocio y servicios de servidor"},
+    {
+        "nombre": "Frontend",
+        "descripcion": "Desarrollo de interfaces de usuario y experiencia de usuario",
+    },
+    {
+        "nombre": "Backend",
+        "descripcion": "Desarrollo de lógica de negocio y servicios de servidor",
+    },
     {"nombre": "Database", "descripcion": "Tareas relacionadas con bases de datos"},
     {"nombre": "Testing", "descripcion": "Pruebas y aseguramiento de calidad"},
     {"nombre": "DevOps", "descripcion": "Infraestructura y despliegue"},
-    {"nombre": "Documentación", "descripcion": "Elaboración de documentación técnica y de usuario"},
-    {"nombre": "Análisis", "descripcion": "Análisis de requerimientos y diseño de soluciones"},
+    {
+        "nombre": "Documentación",
+        "descripcion": "Elaboración de documentación técnica y de usuario",
+    },
+    {
+        "nombre": "Análisis",
+        "descripcion": "Análisis de requerimientos y diseño de soluciones",
+    },
 ]
 
 tipo_tarea_objects = {}
@@ -67,11 +79,31 @@ for tipo in tipos_tarea:
 # Crear fases iniciales
 print("---------------------( Creando fases ...)---------------------")
 fases = [
-    {"nombre": "Inicio/Conceptualización", "descripcion": "Fase inicial del proyecto", "orden": 1},
-    {"nombre": "Elaboración/Requisitos", "descripcion": "Definición y análisis de requisitos", "orden": 2},
-    {"nombre": "Construcción/Desarrollo", "descripcion": "Implementación de la solución", "orden": 3},
-    {"nombre": "Transición/Implementación", "descripcion": "Despliegue y entrega", "orden": 4},
-    {"nombre": "Mantenimiento", "descripcion": "Soporte y mantenimiento post-implementación", "orden": 5},
+    {
+        "nombre": "Inicio/Conceptualización",
+        "descripcion": "Fase inicial del proyecto",
+        "orden": 1,
+    },
+    {
+        "nombre": "Elaboración/Requisitos",
+        "descripcion": "Definición y análisis de requisitos",
+        "orden": 2,
+    },
+    {
+        "nombre": "Construcción/Desarrollo",
+        "descripcion": "Implementación de la solución",
+        "orden": 3,
+    },
+    {
+        "nombre": "Transición/Implementación",
+        "descripcion": "Despliegue y entrega",
+        "orden": 4,
+    },
+    {
+        "nombre": "Mantenimiento",
+        "descripcion": "Soporte y mantenimiento post-implementación",
+        "orden": 5,
+    },
 ]
 
 fase_objects = {}
@@ -479,7 +511,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Monitor 4K"),
     costounidad=5,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -495,7 +527,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Servidor de Desarrollo"),
     costounidad=5,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -512,7 +544,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Adobe Creative Suite"),
     costounidad=200,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -528,7 +560,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia IDE Premium"),
     costounidad=300,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -544,7 +576,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Estación de Trabajo"),
     costounidad=500,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -560,7 +592,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Base de Datos Enterprise"),
     costounidad=600,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -576,7 +608,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Antivirus Empresarial"),
     costounidad=100,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -594,7 +626,7 @@ Recursomaterial.objects.create(
     ),
     costounidad=1000,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -610,7 +642,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Autodesk Maya"),
     costounidad=500,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -626,7 +658,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="NAS Enterprise Storage"),
     costounidad=5000,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -642,7 +674,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia Jira Software"),
     costounidad=300,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -658,7 +690,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia TestComplete"),
     costounidad=1500,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -674,7 +706,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Sistema de Videoconferencia 4K"),
     costounidad=80,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -690,7 +722,7 @@ Recursomaterial.objects.create(
     idrecurso=Recurso.objects.get(nombrerecurso="Licencia VMware Enterprise"),
     costounidad=500,
     fechacompra=fake.date_time_between(
-        start_date='-3y', end_date='-2y', tzinfo=timezone.get_current_timezone()
+        start_date="-3y", end_date="-2y", tzinfo=timezone.get_current_timezone()
     ),
 )
 
@@ -3747,5 +3779,3 @@ post_delete.connect(audit_post_delete)
 print("Historial de alertas adicional completado")
 
 print("Proceso finalizado")
-
-

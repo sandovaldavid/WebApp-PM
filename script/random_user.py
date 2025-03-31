@@ -21,7 +21,7 @@ def generar_usuarios(num_usuarios, rol_user):
             token = str(uuid.uuid4())
             # Generar fecha aleatoria entre hace 1 año y hoy
             fechacreacion = fake.date_time_between(
-                start_date='-1y', end_date='now', tzinfo=timezone.get_current_timezone()
+                start_date="-1y", end_date="now", tzinfo=timezone.get_current_timezone()
             )
 
             # Crear el usuario

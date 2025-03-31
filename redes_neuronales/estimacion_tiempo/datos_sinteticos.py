@@ -10,7 +10,10 @@ from scipy.linalg import cholesky
 from sklearn.linear_model import LinearRegression
 from scipy.stats import norm
 
-def generar_datos_monte_carlo(csv_path, n_samples=1000, output_path="datos_sinteticos.csv"):
+
+def generar_datos_monte_carlo(
+    csv_path, n_samples=1000, output_path="datos_sinteticos.csv"
+):
     """
     Genera datos sintéticos para el entrenamiento de redes neuronales de estimación de tiempos
     en proyectos de software mediante un enfoque de Monte Carlo mejorado.
@@ -93,10 +96,16 @@ def _cargar_y_preprocesar_datos(csv_path):
         print("  Corregida codificación de la columna 'Tamaño_Tarea'")
     
     # Identificar variables numéricas y categóricas para preservar correlaciones
-    numeric_cols = ["Tiempo_Ejecucion", "Complejidad", "Tamaño_Tarea", 
-                   "Carga_Trabajo_R1", "Experiencia_R1", "Experiencia_Equipo", 
-                   "Claridad_Requisitos"]
-    
+    numeric_cols = [
+        "Tiempo_Ejecucion",
+        "Complejidad",
+        "Tamaño_Tarea",
+        "Carga_Trabajo_R1",
+        "Experiencia_R1",
+        "Experiencia_Equipo",
+        "Claridad_Requisitos",
+    ]
+
     categorical_cols = ["Tipo_Tarea", "Fase_Tarea", "Cantidad_Recursos"]
     
     # Verificar columnas disponibles
@@ -195,12 +204,12 @@ def _analizar_datos_originales(df, numeric_cols, categorical_cols):
     print("  Preparando datos para análisis de correlaciones...")
     df_corr = df.copy()
     encoders = {}
-    
+
     for col in categorical_cols:
         if col != "Cantidad_Recursos":  # Cantidad_Recursos ya es numérica
             encoders[col] = LabelEncoder()
             df_corr[col] = encoders[col].fit_transform(df_corr[col])
-    
+
     # Calcular matriz de correlación incluyendo todas las variables
     all_cols = numeric_cols + categorical_cols
     corr_matrix = df_corr[all_cols].corr()
@@ -371,14 +380,18 @@ def _validar_y_ajustar_datos(df_real, synthetic_data, numeric_cols, categorical_
     return synthetic_df
 
 
+
 def eliminar_outliers(df, columns, threshold=3):
     """Elimina outliers basados en el z-score"""
     df_clean = df.copy()
     for col in columns:
         if col in df.columns:
-            z_scores = np.abs((df_clean[col] - df_clean[col].mean()) / df_clean[col].std())
+            z_scores = np.abs(
+                (df_clean[col] - df_clean[col].mean()) / df_clean[col].std()
+            )
             df_clean = df_clean[z_scores < threshold]
     return df_clean
+
 
 def analizar_probabilidades_condicionales(df, categorical_cols, numeric_cols):
     """
@@ -561,12 +574,14 @@ def analizar_probabilidades_condicionales(df, categorical_cols, numeric_cols):
     
     return conditional_distributions
 
+
 def generar_secuencia_fibonacci(limite_superior=1000):
     """Genera una secuencia de Fibonacci hasta un límite especificado"""
     fibonacci = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987]
     while fibonacci[-1] < limite_superior:
         fibonacci.append(fibonacci[-1] + fibonacci[-2])
     return fibonacci
+
 
 def encontrar_fibonacci_mas_cercano(valor, secuencia_fibonacci):
     """Encuentra el número de Fibonacci más cercano a un valor dado"""
@@ -1116,7 +1131,7 @@ def generar_datos_numericos_correlacionados(df, n_samples, numeric_cols, corr_ma
     
     # 3. TRANSFORMACIÓN A DISTRIBUCIONES MARGINALES
     transformed_data = []
-    
+
     for i, col in enumerate(numeric_cols):
         # Convertir a distribución uniforme usando CDF de normal estándar
         uniform_data = norm.cdf(correlated[i])
@@ -1192,7 +1207,7 @@ def generar_datos_numericos_correlacionados(df, n_samples, numeric_cols, corr_ma
                 col_data = np.clip(col_data, 0.5, 5.5)  # Para redondeo posterior
         
         transformed_data.append(col_data)
-    
+
     return transformed_data
 
 
@@ -1265,7 +1280,7 @@ def _ajustar_distribucion_tamano_tarea(df_real, df_sintetico):
     # Calcular distribuciones
     dist_real_tamano = df_real["Tamaño_Tarea"].value_counts(normalize=True)
     dist_sint_tamano = df_sintetico["Tamaño_Tarea"].value_counts(normalize=True)
-    
+
     # Ajustar muestras para acercarse a la distribución real
     for tamano in dist_real_tamano.index:
         if tamano in dist_sint_tamano.index:
@@ -1273,7 +1288,7 @@ def _ajustar_distribucion_tamano_tarea(df_real, df_sintetico):
             pct_real = dist_real_tamano[tamano]
             n_actual = sum(df_sintetico["Tamaño_Tarea"] == tamano)
             n_deseado = int(pct_real * len(df_sintetico))
-            
+
             if n_actual < n_deseado:  # Necesitamos más muestras de este tamaño
                 # Identificar tamaños sobrerrepresentados para reemplazar
                 sobrerep = [t for t, p in dist_sint_tamano.items() 
@@ -1281,10 +1296,15 @@ def _ajustar_distribucion_tamano_tarea(df_real, df_sintetico):
                 
                 if sobrerep:
                     # Seleccionar aleatoriamente filas para cambiar
-                    n_cambiar = min(n_deseado - n_actual, sum(df_sintetico["Tamaño_Tarea"].isin(sobrerep)))
+                    n_cambiar = min(
+                        n_deseado - n_actual,
+                        sum(df_sintetico["Tamaño_Tarea"].isin(sobrerep)),
+                    )
                     if n_cambiar > 0:
                         mask_cambiar = df_sintetico["Tamaño_Tarea"].isin(sobrerep)
-                        indices_cambiar = df_sintetico[mask_cambiar].sample(n=n_cambiar).index
+                        indices_cambiar = (
+                            df_sintetico[mask_cambiar].sample(n=n_cambiar).index
+                        )
                         df_sintetico.loc[indices_cambiar, "Tamaño_Tarea"] = tamano
                         print(f"  Ajustados {n_cambiar} registros a Tamaño_Tarea = {tamano}")
     
@@ -2013,7 +2033,7 @@ def _evaluar_correlaciones(df_real, df_sintetico, columnas_numericas, columnas_c
         mae = diff_matrix.mean().mean()
         correlaciones["mae"] = mae
         print(f"Error Absoluto Medio de correlaciones: {mae:.4f}")
-        
+
         # Identificar las correlaciones con mayor discrepancia
         # Usar operación vectorizada para encontrar el percentil 90
         threshold = np.percentile(diff_matrix.values.flatten(), 90)
@@ -2025,7 +2045,7 @@ def _evaluar_correlaciones(df_real, df_sintetico, columnas_numericas, columnas_c
         
         # Solo procesamos la mitad triangular superior para evitar duplicados
         for i in range(len(all_cols)):
-            for j in range(i+1, len(all_cols)):
+            for j in range(i + 1, len(all_cols)):
                 if diff_matrix.iloc[i, j] > threshold:
                     var1, var2 = all_cols[i], all_cols[j]
                     diff = diff_matrix.iloc[i, j]
@@ -2415,6 +2435,7 @@ def _generar_matrices_correlacion(df_real, df_sintetico, columnas_numericas, col
     plt.close(fig)
     print(f"Matrices de correlación comparativas guardadas como '{ruta_salida}'")
     print(f"Error absoluto medio en correlaciones: {mae:.4f}")
+
 
 
 def validar_correlaciones_criticas(df_real, df_sintetico, variables_criticas):
@@ -2976,6 +2997,7 @@ def _resumir_distribucion(tabla):
         resumen[f"{idx1},{idx2}"] = round(valor, 4)
         
     return resumen
+
 
 
 # Ejemplo de uso
