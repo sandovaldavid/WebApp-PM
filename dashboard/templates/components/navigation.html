@@ -1,7 +1,7 @@
 <!-- Navigation Sidebar -->
 <nav class="space-y-1">
     <!-- Dashboard -->
-    <a href="{% url 'dashboard:panel_control' %}"
+    <a href="{% url 'dashboard:index' %}"
        class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
               {% if request.resolver_match.url_name == 'index' and request.resolver_match.app_name == 'dashboard' %}
               bg-gray-900 text-white
@@ -185,7 +185,7 @@
 
 
     <!-- Configuración -->
-    <a href="{% url 'gestionUsuarios:configuracion' %}"
+    <a href="#"
        class="group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200
               {% if request.resolver_match.app_name == 'settings' %}
               bg-gray-900 text-white

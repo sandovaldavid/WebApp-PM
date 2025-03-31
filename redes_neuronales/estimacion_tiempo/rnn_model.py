@@ -3,14 +3,24 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Model, Sequential, load_model
 from tensorflow.keras.layers import (
-    Dense, LSTM, GRU, Input, Dropout, BatchNormalization, 
-    Concatenate, Embedding, Flatten, Bidirectional, TimeDistributed
+    Dense,
+    LSTM,
+    GRU,
+    Input,
+    Dropout,
+    BatchNormalization,
+    Concatenate,
+    Embedding,
+    Flatten,
+    Bidirectional,
+    TimeDistributed,
 )
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, TensorBoard
-from tensorflow.keras.optimizers import Adam, RMSprop, Nadam, SGD
-from tensorflow.keras.regularizers import l2, l1, l1_l2
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.regularizers import l2
 import matplotlib.pyplot as plt
 import joblib
+
 
 class AdvancedRNNEstimator:
     """Modelo de red neuronal recurrente para estimación de tiempos avanzada"""
@@ -21,25 +31,25 @@ class AdvancedRNNEstimator:
         Args:
             config: Diccionario de parámetros de configuración
         """
-        # Configuración por defecto mejorada
+        # Configuración por defecto
         self.default_config = {
-            'rnn_units': 64,
-            'dense_units': [128, 64, 32],
-            'dropout_rate': 0.3,
-            'learning_rate': 0.001,
-            'l2_reg': 0.001,
-            'use_bidirectional': True,
-            'rnn_type': 'GRU',  # 'LSTM' o 'GRU'
-            'activation': 'relu',
-            'batch_size': 32,
-            'epochs': 100
+            "rnn_units": 64,
+            "dense_units": [128, 64, 32],
+            "dropout_rate": 0.3,
+            "learning_rate": 0.001,
+            "l2_reg": 0.001,
+            "use_bidirectional": True,
+            "rnn_type": "GRU",  # 'LSTM' o 'GRU'
+            "activation": "relu",
+            "batch_size": 32,
+            "epochs": 100,
         }
 
         # Usar configuración proporcionada o la predeterminada
         self.config = config if config is not None else self.default_config
         self.model = None
         self.history = None
-        
+
     def build_model(self, feature_dims):
         """Construye el modelo RNN para estimación de tiempo
 
@@ -65,61 +75,63 @@ class AdvancedRNNEstimator:
             rnn_layer = LSTM
         else:
             rnn_layer = GRU
-            
-        if self.config['use_bidirectional']:
+
+        if self.config["use_bidirectional"]:
             rnn = Bidirectional(
                 rnn_layer(
                     self.config["rnn_units"],
                     return_sequences=False,
-                    kernel_regularizer=l2(self.config['l2_reg']),
-                    recurrent_regularizer=l2(self.config['l2_reg']),
-                    name='bidirectional_rnn'
+                    kernel_regularizer=l2(self.config["l2_reg"]),
+                    recurrent_regularizer=l2(self.config["l2_reg"]),
+                    name="bidirectional_rnn",
                 )
             )(reshaped_numeric)
         else:
             rnn = rnn_layer(
                 self.config["rnn_units"],
                 return_sequences=False,
-                kernel_regularizer=l2(self.config['l2_reg']),
-                recurrent_regularizer=l2(self.config['l2_reg']),
-                name='rnn'
+                kernel_regularizer=l2(self.config["l2_reg"]),
+                recurrent_regularizer=l2(self.config["l2_reg"]),
+                name="rnn",
             )(reshaped_numeric)
-            
+
         # 4. Entrada y procesamiento para tipo de tarea (one-hot)
         tipo_tarea_input = Input(
             shape=(feature_dims["tipo_tarea"],), name="tipo_tarea_input"
         )
         tipo_tarea_dense = Dense(
-            32, 
-            activation=self.config['activation'],
-            kernel_regularizer=l2(self.config['l2_reg']),
-            name='tipo_tarea_dense'
+            32,
+            activation=self.config["activation"],
+            kernel_regularizer=l2(self.config["l2_reg"]),
+            name="tipo_tarea_dense",
         )(tipo_tarea_input)
 
         # 5. Entrada y procesamiento para fase (one-hot)
         fase_input = Input(shape=(feature_dims["fase"],), name="fase_input")
         fase_dense = Dense(
-            32, 
-            activation=self.config['activation'],
-            kernel_regularizer=l2(self.config['l2_reg']),
-            name='fase_dense'
+            32,
+            activation=self.config["activation"],
+            kernel_regularizer=l2(self.config["l2_reg"]),
+            name="fase_dense",
         )(fase_input)
 
         # 6. Concatenar todas las características
-        combined = Concatenate(name='concatenate_features')([rnn, tipo_tarea_dense, fase_dense])
-        
+        combined = Concatenate(name="concatenate_features")(
+            [rnn, tipo_tarea_dense, fase_dense]
+        )
+
         # 7. Capas densas con regularización y normalización
         x = combined
-        for i, units in enumerate(self.config['dense_units']):
+        for i, units in enumerate(self.config["dense_units"]):
             x = Dense(
-                units, 
-                activation=self.config['activation'],
-                kernel_regularizer=l2(self.config['l2_reg']),
-                name=f'dense_{i}'
+                units,
+                activation=self.config["activation"],
+                kernel_regularizer=l2(self.config["l2_reg"]),
+                name=f"dense_{i}",
             )(x)
-            x = BatchNormalization(name=f'batch_norm_{i}')(x)
-            x = Dropout(self.config['dropout_rate'], name=f'dropout_{i}')(x)
-        
+            x = BatchNormalization(name=f"batch_norm_{i}")(x)
+            x = Dropout(self.config["dropout_rate"], name=f"dropout_{i}")(x)
+
         # 8. Capa de salida para estimación de tiempo
         output = Dense(1, name="output")(x)
 
@@ -127,11 +139,11 @@ class AdvancedRNNEstimator:
         self.model = Model(
             inputs=[numeric_input, tipo_tarea_input, fase_input], outputs=output
         )
-        
+
         self.model.compile(
-            optimizer=Adam(learning_rate=self.config['learning_rate']),
-            loss='mse',
-            metrics=['mae', 'mape']
+            optimizer=Adam(learning_rate=self.config["learning_rate"]),
+            loss="mse",
+            metrics=["mae", "mape"],
         )
 
         return self.model
@@ -164,10 +176,18 @@ class AdvancedRNNEstimator:
         fase_data = X[:, feature_dims["numeric"] + feature_dims["tipo_tarea"] :]
 
         return [numeric_data, tipo_tarea_data, fase_data]
-    
-    def train(self, X_train, y_train, X_val=None, y_val=None, feature_dims=None, callbacks=None):
+
+    def train(
+        self,
+        X_train,
+        y_train,
+        X_val=None,
+        y_val=None,
+        feature_dims=None,
+        callbacks=None,
+    ):
         """Entrena el modelo con los datos proporcionados
-        
+
         Args:
             X_train: Datos de entrenamiento
             y_train: Etiquetas de entrenamiento
@@ -181,53 +201,54 @@ class AdvancedRNNEstimator:
         """
         if self.model is None:
             self.build_model(feature_dims)
-        
+
         # Preparar los inputs
         train_inputs = self.prepare_inputs(X_train, feature_dims)
-        
+
         # Configurar los datos de validación si se proporcionan
         validation_data = None
         if X_val is not None and y_val is not None:
             val_inputs = self.prepare_inputs(X_val, feature_dims)
             validation_data = (val_inputs, y_val)
-        
+
         # Definir callbacks por defecto con mayor patience para EarlyStopping
         default_callbacks = [
             tf.keras.callbacks.EarlyStopping(
-                monitor='val_loss' if validation_data else 'loss',
+                monitor="val_loss" if validation_data else "loss",
                 patience=30,  # Aumentado de 15 a 30 para permitir más épocas
                 restore_best_weights=True,
-                verbose=1  # Añadido para ver cuando se activa
+                verbose=1,  # Añadido para ver cuando se activa
             ),
             # Añadir más callbacks por defecto para mejor monitoreo
             tf.keras.callbacks.ReduceLROnPlateau(
-                monitor='val_loss' if validation_data else 'loss',
+                monitor="val_loss" if validation_data else "loss",
                 factor=0.5,
                 patience=10,
                 min_lr=1e-6,
-                verbose=1
-            )
+                verbose=1,
+            ),
         ]
-        
+
         # Combinar con callbacks proporcionados por el usuario, priorizando estos últimos
         all_callbacks = default_callbacks.copy()
         if callbacks:
+            # Asegurarnos que los callbacks del usuario se ejecutan después
             all_callbacks.extend(callbacks)
-        
+
         # Entrenar modelo
         history = self.model.fit(
             train_inputs,
             y_train,
-            epochs=self.config.get('epochs', 100),
-            batch_size=self.config.get('batch_size', 32),
+            epochs=self.config.get("epochs", 100),
+            batch_size=self.config.get("batch_size", 32),
             validation_data=validation_data,
             verbose=1,
             callbacks=all_callbacks,
         )
-        
+
         # Guardar historia para análisis posterior
         self.history = history
-        
+
         return history
 
     def predict(self, X, feature_dims):
@@ -241,14 +262,16 @@ class AdvancedRNNEstimator:
             Predicciones del modelo
         """
         if self.model is None:
-            raise ValueError("El modelo no está entrenado. Ejecute build_model y train primero.")
-            
+            raise ValueError(
+                "El modelo no está entrenado. Ejecute build_model y train primero."
+            )
+
         # Preparar inputs
         inputs = self.prepare_inputs(X, feature_dims)
 
         # Realizar predicción
         predictions = self.model.predict(inputs)
-        
+
         return predictions.flatten()
 
     def evaluate(self, X, y, feature_dims):
@@ -263,20 +286,22 @@ class AdvancedRNNEstimator:
             Diccionario con métricas de evaluación
         """
         if self.model is None:
-            raise ValueError("El modelo no está entrenado. Ejecute build_model y train primero.")
-            
+            raise ValueError(
+                "El modelo no está entrenado. Ejecute build_model y train primero."
+            )
+
         # Preparar inputs
         inputs = self.prepare_inputs(X, feature_dims)
-        
+
         # Evaluar el modelo
         metrics = self.model.evaluate(inputs, y, verbose=1)
-        
+
         # Crear diccionario de métricas
         metrics_dict = {"loss": metrics[0], "mae": metrics[1], "mape": metrics[2]}
 
         # Realizar predicciones para análisis adicional
         y_pred = self.model.predict(inputs).flatten()
-        
+
         # Calcular error cuadrático medio (MSE)
         mse = np.mean((y - y_pred) ** 2)
         metrics_dict["mse"] = mse
@@ -310,7 +335,7 @@ class AdvancedRNNEstimator:
         # Guardar configuración
         config_path = os.path.join(model_dir, f"{name}_config.joblib")
         joblib.dump(self.config, config_path)
-        
+
         print(f"Modelo guardado en {model_path}")
         print(f"Configuración guardada en {config_path}")
 
@@ -342,96 +367,48 @@ class AdvancedRNNEstimator:
 
         # Cargar modelo
         instance.model = load_model(model_path)
-        
+
         return instance
-    
+
     def plot_history(self, save_path=None):
         """Grafica la historia del entrenamiento
-        
+
         Args:
             save_path: Ruta donde guardar la gráfica (opcional)
-            figsize: Tamaño de la figura
         """
         if self.history is None:
             raise ValueError("No hay historia de entrenamiento. Ejecute train primero.")
 
         # Crear figura
         plt.figure(figsize=(12, 5))
-        
+
         # Gráfica de pérdida
         plt.subplot(1, 2, 1)
-        plt.plot(self.history.history['loss'], label='Train')
-        if 'val_loss' in self.history.history:
-            plt.plot(self.history.history['val_loss'], label='Validation')
-        plt.title('Loss')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
+        plt.plot(self.history.history["loss"], label="Train")
+        if "val_loss" in self.history.history:
+            plt.plot(self.history.history["val_loss"], label="Validation")
+        plt.title("Loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
         plt.legend()
         plt.grid(True, alpha=0.3)
-        
+
         # Gráfica de error absoluto medio (MAE)
         plt.subplot(1, 2, 2)
-        plt.plot(self.history.history['mae'], label='Train')
-        if 'val_mae' in self.history.history:
-            plt.plot(self.history.history['val_mae'], label='Validation')
-        plt.title('Mean Absolute Error')
-        plt.xlabel('Epoch')
-        plt.ylabel('MAE')
+        plt.plot(self.history.history["mae"], label="Train")
+        if "val_mae" in self.history.history:
+            plt.plot(self.history.history["val_mae"], label="Validation")
+        plt.title("Mean Absolute Error")
+        plt.xlabel("Epoch")
+        plt.ylabel("MAE")
         plt.legend()
         plt.grid(True, alpha=0.3)
-        
+
         plt.tight_layout()
 
         # Guardar gráfica si se proporciona ruta
         if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            plt.savefig(save_path)
             print(f"Gráfica guardada en {save_path}")
 
         plt.show()
-        
-    def feature_importance(self, X, y, feature_dims, feature_names=None, n_samples=1000):
-        """Calcula la importancia de las características usando permutación
-        
-        Args:
-            X: Datos de test
-            y: Valores reales
-            feature_dims: Dimensiones de features
-            feature_names: Lista de nombres de características
-            n_samples: Número de muestras para el análisis
-            
-        Returns:
-            DataFrame con importancia de características
-        """
-        import pandas as pd
-        from sklearn.inspection import permutation_importance
-        
-        # Limitar número de muestras para eficiencia
-        if len(X) > n_samples:
-            idx = np.random.choice(len(X), n_samples, replace=False)
-            X_sample = X[idx]
-            y_sample = y[idx]
-        else:
-            X_sample = X
-            y_sample = y
-            
-        # Crear función de predicción para scikit-learn
-        def predict_func(X):
-            return self.predict(X, feature_dims)
-            
-        # Calcular importancia por permutación
-        perm_importance = permutation_importance(
-            predict_func, X_sample, y_sample,
-            n_repeats=10, random_state=42, n_jobs=-1
-        )
-        
-        # Crear DataFrame con resultados
-        if feature_names is None:
-            feature_names = [f'feature_{i}' for i in range(X.shape[1])]
-            
-        importance_df = pd.DataFrame({
-            'feature': feature_names,
-            'importance_mean': perm_importance.importances_mean,
-            'importance_std': perm_importance.importances_std
-        }).sort_values('importance_mean', ascending=False)
-        
-        return importance_df

@@ -212,11 +212,10 @@ class DataProcessor:
             if val_size <= 0:
                 X_val, X_test, y_val, y_test = X_temp, [], y_temp, []
             else:
-                # Calcular proporción adecuada entre validación y prueba
-                total_size = test_size + val_size
-                test_ratio_in_temp = min(0.999, test_size / total_size) if total_size > 0 else 0.5
+                # val_size relativo al tamaño de X_temp
+                val_ratio = val_size / test_size if test_size > 0 else 0.5
                 X_val, X_test, y_val, y_test = train_test_split(
-                    X_temp, y_temp, test_size=test_ratio_in_temp, random_state=42
+                    X_temp, y_temp, test_size=val_ratio, random_state=42
                 )
 
             # Almacenar también los datos de prueba por si se necesitan
@@ -318,87 +317,6 @@ class DataProcessor:
 
         return X
 
-    def load_data_from_db(self, save_path=None):
-        """Carga datos desde la base de datos de Django.
-            
-        Args:
-            save_path: Ruta opcional para guardar los datos en formato CSV
-                
-        Returns:
-            DataFrame con los datos cargados o None si hay un error
-        """
-        print("Recolectando datos desde la base de datos...")
-            
-        try:
-            from dashboard.models import Tarea, TipoTarea, Fase, Tarearecurso, Recursohumano
-                
-            # Obtener tareas completadas con duración registrada
-            tareas = Tarea.objects.filter(
-                estado='Completada', 
-                duracionactual__isnull=False
-            ).select_related('tipo_tarea', 'fase', 'idrequerimiento')
-                
-            if not tareas.exists():
-                print("No hay tareas completadas con duración registrada")
-                return None
-                
-            # Preparar datos
-            data = []
-            for tarea in tareas:
-                # Obtener recursos asignados
-                recursos = Tarearecurso.objects.filter(idtarea=tarea)
-                cantidad_recursos = recursos.count() or 1
-                    
-                # Información de recursos (hasta 3)
-                carga_trabajo = [0, 0, 0]
-                experiencia = [0, 0, 0]
-                    
-                for i, recurso_asignacion in enumerate(recursos[:3]):
-                    carga_trabajo[i] = recurso_asignacion.idrecurso.carga_trabajo or 1
-                    experiencia[i] = recurso_asignacion.experiencia or 3
-                    
-                # Determinar tipo de tarea y fase
-                tipo_tarea = tarea.tipo_tarea.nombre if tarea.tipo_tarea else "Backend"
-                fase = tarea.fase.nombre if tarea.fase else "Construcción/Desarrollo"
-                    
-                # Agregar al dataset
-                data.append({
-                    'ID': tarea.idtarea,
-                    'Complejidad': tarea.dificultad or 3,
-                    'Tipo_Tarea': tipo_tarea,
-                    'Fase_Tarea': fase,
-                    'Cantidad_Recursos': cantidad_recursos,
-                    'Carga_Trabajo_R1': carga_trabajo[0],
-                    'Experiencia_R1': experiencia[0],
-                    'Carga_Trabajo_R2': carga_trabajo[1],
-                    'Experiencia_R2': experiencia[1],
-                    'Carga_Trabajo_R3': carga_trabajo[2],
-                    'Experiencia_R3': experiencia[2],
-                    'Experiencia_Equipo': 3,  # Valor por defecto
-                    'Claridad_Requisitos': tarea.claridad_requisitos or 0.7,
-                    'Tamaño_Tarea': tarea.tamaño_estimado or 5,
-                    'Tiempo_Ejecucion': tarea.duracionactual
-                })
-                
-            # Crear DataFrame
-            df = pd.DataFrame(data)
-            print(f"Dataset creado con {len(df)} registros")
-                
-            # Guardar CSV si se especificó una ruta
-            if save_path:
-                df.to_csv(save_path, index=False)
-                print(f"Datos guardados en {save_path}")
-                
-            # Guardar en el objeto
-            self.data = df
-                
-            return df
-                
-        except Exception as e:
-            import traceback
-            print(f"Error al recolectar datos: {str(e)}")
-            print(traceback.format_exc())
-            return None
 
 if __name__ == "__main__":
     # Ejemplo de uso

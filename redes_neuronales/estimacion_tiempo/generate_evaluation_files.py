@@ -16,7 +16,6 @@ import matplotlib
 matplotlib.use("Agg")  # Redundante pero por seguridad
 import matplotlib.pyplot as plt
 import seaborn as sns
-import traceback
 
 # Desactivar cualquier uso interactivo
 plt.ioff()  # Desactivar modo interactivo
@@ -521,173 +520,208 @@ def update_metrics_history(metrics):
     except Exception as e:
         print(f"Error al actualizar historial de métricas: {e}")
 
+
 def main():
     """Función principal para generar todos los archivos de evaluación"""
     print("\n=== Generación de archivos de evaluación ===")
-    
+
     # Forzar uso de backend no interactivo
     import matplotlib
-    matplotlib.use('Agg')
-    os.environ['MPLBACKEND'] = 'Agg'
-    
+
+    matplotlib.use("Agg")
+    os.environ["MPLBACKEND"] = "Agg"
+
     try:
         # 1. Cargar modelo y datos
         estimator, feature_dims, X_val, y_val = load_model_and_preprocessors()
-        
+
         # Ahora siempre tendremos datos - ya sea reales o sintéticos
-        
+
         # 2. Calcular métricas de evaluación
         print("\nGenerando métricas de evaluación...")
-        metrics, y_pred = generate_evaluation_metrics(estimator, X_val, y_val, feature_dims)
-        
+        metrics, y_pred = generate_evaluation_metrics(
+            estimator, X_val, y_val, feature_dims
+        )
+
         # 6. Actualizar historial de métricas
         print("\nActualizando historial de métricas...")
         update_metrics_history(metrics)
-        
+
         # Determinar si estamos en un hilo principal o secundario
         try:
             import threading
+
             is_main_thread = threading.current_thread() is threading.main_thread()
         except ImportError:
             is_main_thread = True  # Asumir hilo principal si no podemos verificar
-        
+
         # Solo generar gráficos e informes detallados en el hilo principal
         if is_main_thread:
             try:
                 # 3. Generar gráficos de evaluación
                 print("\nGenerando gráficos de evaluación...")
                 generate_evaluation_plots(X_val, y_val, y_pred)
-                
+
                 # 4. Calcular importancia de características
                 print("\nGenerando análisis de importancia de características...")
                 generate_feature_importance(X_val, y_val, estimator, feature_dims)
-                
+
                 # 5. Realizar evaluación segmentada
                 print("\nGenerando evaluación por segmentos...")
                 generate_segmented_evaluation(X_val, y_val, estimator, feature_dims)
-                
+
                 print("\n=== Generación de archivos de evaluación completada ===")
             except Exception as e:
                 print(f"\n⚠️ Error al generar gráficos y análisis detallados: {e}")
                 import traceback
+
                 traceback.print_exc()
                 # Continue executing to generate at least basic files
         else:
-            print("\nEjecutando en un hilo secundario, omitiendo generación de gráficos y análisis detallados.")
+            print(
+                "\nEjecutando en un hilo secundario, omitiendo generación de gráficos y análisis detallados."
+            )
             # Crear archivos mínimos para no bloquear la interfaz
             try:
                 # Crear archivo mínimo de evaluación segmentada si no existe
-                segmented_path = os.path.join(MODELS_DIR, 'segmented_evaluation.json')
+                segmented_path = os.path.join(MODELS_DIR, "segmented_evaluation.json")
                 if not os.path.exists(segmented_path):
                     segmented_data = {
-                        'pequeñas': {
-                            'count': len(X_val) // 3,
-                            'mae': float(metrics['MAE']),
-                            'mse': float(metrics['MSE']),
-                            'rmse': float(metrics['RMSE']),
-                            'r2': float(metrics['R2'])
+                        "pequeñas": {
+                            "count": len(X_val) // 3,
+                            "mae": float(metrics["MAE"]),
+                            "mse": float(metrics["MSE"]),
+                            "rmse": float(metrics["RMSE"]),
+                            "r2": float(metrics["R2"]),
                         },
-                        'medianas': {
-                            'count': len(X_val) // 3,
-                            'mae': float(metrics['MAE']),
-                            'mse': float(metrics['MSE']),
-                            'rmse': float(metrics['RMSE']),
-                            'r2': float(metrics['R2'])
+                        "medianas": {
+                            "count": len(X_val) // 3,
+                            "mae": float(metrics["MAE"]),
+                            "mse": float(metrics["MSE"]),
+                            "rmse": float(metrics["RMSE"]),
+                            "r2": float(metrics["R2"]),
                         },
-                        'grandes': {
-                            'count': len(X_val) // 3,
-                            'mae': float(metrics['MAE']),
-                            'mse': float(metrics['MSE']),
-                            'rmse': float(metrics['RMSE']),
-                            'r2': float(metrics['R2'])
-                        }
+                        "grandes": {
+                            "count": len(X_val) // 3,
+                            "mae": float(metrics["MAE"]),
+                            "mse": float(metrics["MSE"]),
+                            "rmse": float(metrics["RMSE"]),
+                            "r2": float(metrics["R2"]),
+                        },
                     }
-                    
-                    with open(segmented_path, 'w') as f:
+
+                    with open(segmented_path, "w") as f:
                         json.dump(segmented_data, f)
-                    print(f"Creado archivo mínimo de evaluación segmentada: {segmented_path}")
-                
+                    print(
+                        f"Creado archivo mínimo de evaluación segmentada: {segmented_path}"
+                    )
+
                 # Crear archivos mínimos para importancia de características
                 import pandas as pd
-                for segment in ['1_Recurso', '2_Recursos', '3_o_más_Recursos']:
-                    file_path = os.path.join(MODELS_DIR, f'feature_importance_{segment}.csv')
+
+                for segment in ["1_Recurso", "2_Recursos", "3_o_más_Recursos"]:
+                    file_path = os.path.join(
+                        MODELS_DIR, f"feature_importance_{segment}.csv"
+                    )
                     if not os.path.exists(file_path):
                         # Crear un CSV mínimo con datos simulados
-                        simple_df = pd.DataFrame({
-                            'Feature': ['Complejidad', 'Cantidad_Recursos', 'Experiencia_Equipo'],
-                            'Importance': [0.5, 0.3, 0.2],
-                            'Importance_Normalized': [0.5, 0.3, 0.2]
-                        })
+                        simple_df = pd.DataFrame(
+                            {
+                                "Feature": [
+                                    "Complejidad",
+                                    "Cantidad_Recursos",
+                                    "Experiencia_Equipo",
+                                ],
+                                "Importance": [0.5, 0.3, 0.2],
+                                "Importance_Normalized": [0.5, 0.3, 0.2],
+                            }
+                        )
                         simple_df.to_csv(file_path, index=False)
                         print(f"Creado archivo mínimo: {file_path}")
-                
+
                 # Crear archivo global si no existe
-                global_file = os.path.join(MODELS_DIR, 'global_feature_importance.csv')
+                global_file = os.path.join(MODELS_DIR, "global_feature_importance.csv")
                 if not os.path.exists(global_file):
-                    simple_df = pd.DataFrame({
-                        'Feature': ['Complejidad', 'Cantidad_Recursos', 'Experiencia_Equipo'],
-                        'Importance': [0.5, 0.3, 0.2],
-                        'Importance_Normalized': [0.5, 0.3, 0.2]
-                    })
+                    simple_df = pd.DataFrame(
+                        {
+                            "Feature": [
+                                "Complejidad",
+                                "Cantidad_Recursos",
+                                "Experiencia_Equipo",
+                            ],
+                            "Importance": [0.5, 0.3, 0.2],
+                            "Importance_Normalized": [0.5, 0.3, 0.2],
+                        }
+                    )
                     simple_df.to_csv(global_file, index=False)
                     print(f"Creado archivo mínimo: {global_file}")
             except Exception as e:
                 print(f"Error al crear archivos mínimos: {e}")
-        
+
         # Verificar existencia de archivos esperados
         expected_files = [
-            'evaluation_metrics.json',
-            'global_feature_importance.csv',
-            'feature_importance_1_Recurso.csv',
-            'feature_importance_2_Recursos.csv',
-            'feature_importance_3_o_más_Recursos.csv',
-            'segmented_evaluation.json',
-            'metrics_history.json',
+            "evaluation_metrics.json",
+            "global_feature_importance.csv",
+            "feature_importance_1_Recurso.csv",
+            "feature_importance_2_Recursos.csv",
+            "feature_importance_3_o_más_Recursos.csv",
+            "segmented_evaluation.json",
+            "metrics_history.json",
         ]
-        
+
         missing_files = []
         for file in expected_files:
             if not os.path.exists(os.path.join(MODELS_DIR, file)):
                 missing_files.append(file)
-        
+
         if missing_files:
             print("\n⚠️ Advertencia: No se generaron los siguientes archivos:")
             for file in missing_files:
                 print(f"  - {file}")
-                
+
             # Intentar generar archivos faltantes específicos
-            if 'feature_importance_1_Recurso.csv' in missing_files:
+            if "feature_importance_1_Recurso.csv" in missing_files:
                 print("\nReintentando generar archivos de importancia por segmentos...")
                 try:
                     # Crear archivos mínimos para no bloquear la interfaz
                     import pandas as pd
-                    for segment in ['1_Recurso', '2_Recursos', '3_o_más_Recursos']:
-                        file_path = os.path.join(MODELS_DIR, f'feature_importance_{segment}.csv')
+
+                    for segment in ["1_Recurso", "2_Recursos", "3_o_más_Recursos"]:
+                        file_path = os.path.join(
+                            MODELS_DIR, f"feature_importance_{segment}.csv"
+                        )
                         if not os.path.exists(file_path):
                             # Crear un CSV mínimo con datos simulados
-                            simple_df = pd.DataFrame({
-                                'Feature': ['Complejidad', 'Cantidad_Recursos', 'Experiencia_Equipo'],
-                                'Importance': [0.5, 0.3, 0.2],
-                                'Importance_Normalized': [0.5, 0.3, 0.2]
-                            })
+                            simple_df = pd.DataFrame(
+                                {
+                                    "Feature": [
+                                        "Complejidad",
+                                        "Cantidad_Recursos",
+                                        "Experiencia_Equipo",
+                                    ],
+                                    "Importance": [0.5, 0.3, 0.2],
+                                    "Importance_Normalized": [0.5, 0.3, 0.2],
+                                }
+                            )
                             simple_df.to_csv(file_path, index=False)
                             print(f"Creado archivo mínimo: {file_path}")
                 except Exception as e:
                     print(f"Error al crear archivos mínimos: {e}")
         else:
             print("\n✅ Todos los archivos esperados fueron generados correctamente.")
-            
+
         return True
-    
+
     except Exception as e:
         print(f"\n❌ Error durante la generación de archivos: {e}")
         import traceback
+
         traceback.print_exc()
         return False
-    
+
     # Asegurar que todas las figuras se cierran correctamente
     try:
-        plt.close('all')
+        plt.close("all")
     except Exception as e:
         print(f"Advertencia al cerrar figuras: {e}")
 
@@ -696,4 +730,3 @@ if __name__ == "__main__":
     # Ejecutar generación de archivos
     success = main()
     print(f"\nEjecución {'exitosa ✅' if success else 'fallida ❌'}")
-
