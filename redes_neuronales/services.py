@@ -125,9 +125,14 @@ class EstimacionService:
         try:
             # Log para depuración de los datos recibidos
             logger.debug(f"Datos recibidos para estimación: {tarea_data}")
-            
+
             # Verificamos que las claves necesarias existan
-            required_keys = ['complejidad', 'tipo_tarea', 'fase_tarea', 'cantidad_recursos']
+            required_keys = [
+                "complejidad",
+                "tipo_tarea",
+                "fase_tarea",
+                "cantidad_recursos",
+            ]
             for key in required_keys:
                 if key not in tarea_data:
                     logger.error(f"Falta la clave {key} en los datos de entrada")
