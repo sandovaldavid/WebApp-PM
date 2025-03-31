@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.settings")
 
 import django
+
 django.setup()
 
 from django.contrib.auth import get_user_model
@@ -122,17 +123,20 @@ def ejecutar_entrenamiento(training_id, user_id):
     """
     # Importar cache explícitamente al inicio de la función
     from django.core.cache import cache
-    
+
     # Guardar la asociación del usuario con el entrenamiento en cache
-    cache.set(f'training_user_{training_id}', user_id, 3600)  # 1 hora de tiempo de vida
-    
+    cache.set(f"training_user_{training_id}", user_id, 3600)  # 1 hora de tiempo de vida
+
     # Notificar inicio
-    _add_update(training_id, {
-        'type': 'log',
-        'message': 'Iniciando proceso de entrenamiento...',
-        'level': 'info'
-    })
-    
+    _add_update(
+        training_id,
+        {
+            "type": "log",
+            "message": "Iniciando proceso de entrenamiento...",
+            "level": "info",
+        },
+    )
+
     try:
         # Configuración para matplotlib si se usa
         _configurar_matplotlib()
