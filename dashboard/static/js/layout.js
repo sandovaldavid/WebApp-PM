@@ -2,10 +2,12 @@ const toggleButton = document.getElementById("toggleSidebar");
 const sidebar = document.querySelector(".sidebar");
 const content = document.querySelector(".content");
 
-toggleButton.addEventListener("click", () => {
-    sidebar.classList.toggle("hidden");
-    content.classList.toggle("expanded");
-});
+if (toggleButton) { // Verificar que el elemento existe
+    toggleButton.addEventListener("click", () => {
+        sidebar.classList.toggle("hidden");
+        content.classList.toggle("expanded");
+    });
+}
 
 // Código para manejar notificaciones y otras funcionalidades
 document.addEventListener('DOMContentLoaded', function () {

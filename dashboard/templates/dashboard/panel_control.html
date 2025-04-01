@@ -63,6 +63,11 @@
         display: inline-block;
         margin-right: 5px;
     }
+    @media (max-width: 767px) {
+        .chart-responsive {
+            height: 400px !important; /* Forzar altura mayor en dispositivos móviles */
+        }
+    }
 </style>
 {% endblock %}
 
@@ -204,62 +209,19 @@
                             <h3 class="font-semibold">Progreso de Proyectos</h3>
                             <a href="{% url 'gestion_proyectos:lista_proyectos' %}" class="text-blue-600 hover:text-blue-800 text-sm">Ver todos</a>
                         </div>
-                        <div class="scrollable-area">
+                        <div class="scrollable-area grid grid-cols-1 gap-4">
                             {% for proyecto in proyectos %}
-                            <div class="mb-4 p-3 rounded-lg hover-trigger hover:bg-gray-50">
-                                <div class="flex justify-between items-center mb-2">
-                                    <div class="flex items-center">
-                                        <span class="dot" style="background-color: 
-                                            {% if proyecto.porcentaje_progreso > 75 %}#10B981
-                                            {% elif proyecto.porcentaje_progreso > 50 %}#3B82F6
-                                            {% elif proyecto.porcentaje_progreso > 25 %}#F59E0B
-                                            {% else %}#EF4444{% endif %}"></span>
-                                        <span class="font-medium">{{ proyecto.nombreproyecto }}</span>
-                                    </div>
-                                    <div class="flex items-center hover-target">
-                                        <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" class="text-sm text-blue-600 hover:text-blue-800 mr-4">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <span class="text-sm text-gray-500">{{ proyecto.estado }}</span>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2 text-sm mb-3">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-calendar-alt text-blue-500 mr-1"></i>
-                                        <span class="text-gray-600">Inicio:</span>
-                                        <span class="ml-1">{{ proyecto.fechainicio|date:"d/m/Y" }}</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <i class="fas fa-flag-checkered text-red-500 mr-1"></i>
-                                        <span class="text-gray-600">Fin:</span>
-                                        <span class="ml-1">{{ proyecto.fechafin|date:"d/m/Y"|default:"No definido" }}</span>
-                                    </div>
-                                </div>
-                                <div class="relative pt-1">
-                                    <div class="progress-bar">
-                                        <div class="progress-bar-fill" 
-                                            style="width: {{ proyecto.porcentaje_progreso }}%; background-color: 
-                                            {% if proyecto.porcentaje_progreso > 75 %}#10B981
-                                            {% elif proyecto.porcentaje_progreso > 50 %}#3B82F6
-                                            {% elif proyecto.porcentaje_progreso > 25 %}#F59E0B
-                                            {% else %}#EF4444{% endif %}"></div>
-                                    </div>
-                                    <div class="flex justify-between mt-1 text-xs text-gray-600">
-                                        <span>{{ proyecto.tareas_completadas }} / {{ proyecto.total_tareas }} tareas</span>
-                                        <span>{{ proyecto.porcentaje_progreso }}%</span>
-                                    </div>
-                                </div>
-                            </div>
+                                {% include 'components/proyecto_item.html' with proyecto=proyecto %}
                             {% endfor %}
                         </div>
                     </div>
                     
                     <!-- Proyectos por equipo -->
-                    <div class="lg:col-span-3 bg-white rounded-lg border border-gray-200 p-4 h-80">
+                    <div class="lg:col-span-3 bg-white rounded-lg border border-gray-200 p-4" id="chart-container-proyectos">
                         <div class="card-header">
                             <h3 class="font-semibold">Proyectos por Equipo</h3>
                         </div>
-                        <div class="h-64">
+                        <div class="h-64 md:h-64 lg:h-64 chart-responsive">
                             <canvas id="proyectosEquipoChart"></canvas>
                         </div>
                     </div>
@@ -583,7 +545,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Comprobamos que el elemento existe
-    const dateRangeInput = document.getElementById('date-range');
+    /*const dateRangeInput = document.getElementById('date-range');
     
     if (dateRangeInput) {
         try {
@@ -655,7 +617,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     } else {
         console.error("No se encontró el elemento #date-range");
-    }
+    }*/
     
     // Manejo de tabs
     const tabs = document.querySelectorAll('.tab-button');
@@ -963,10 +925,44 @@ function inicializarGraficos() {
             scales: {
                 x: {
                     stacked: true,
+                    ticks: {
+                        // Rotar etiquetas en móviles
+                        maxRotation: window.innerWidth < 768 ? 90 : 0,
+                        minRotation: window.innerWidth < 768 ? 45 : 0,
+                        // Función para mostrar texto siempre
+                        callback: function(value, index) {
+                            // Obtener el texto real de los datos originales
+                            const labels = proyectosEquipoDatos.labels || [];
+                            const label = labels[index] || '';
+                            
+                            // Solo truncar en móviles si es necesario
+                            if (window.innerWidth < 768 && label.length > 12) {
+                                return label.substr(0, 10) + '...';
+                            }
+                            return label;
+                        }
+                    }
                 },
                 y: {
                     stacked: true,
                     beginAtZero: true
+                }
+            },
+            // Optimización para altura automática en móvil
+            plugins: {
+                legend: {
+                    position: 'top',
+                    // Menos espacio entre elementos de la leyenda en móviles
+                    labels: {
+                        boxWidth: window.innerWidth < 768 ? 8 : 12,
+                        padding: window.innerWidth < 768 ? 8 : 15
+                    }
+                }
+            },
+            // Aumentar padding inferior para dar más espacio a las etiquetas
+            layout: {
+                padding: {
+                    bottom: window.innerWidth < 768 ? 30 : 10
                 }
             }
         }
