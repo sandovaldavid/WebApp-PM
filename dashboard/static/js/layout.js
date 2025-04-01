@@ -7,22 +7,51 @@ toggleButton.addEventListener("click", () => {
     content.classList.toggle("expanded");
 });
 
-// Agregar al final del archivo o en un archivo JS separado
+// Código para manejar notificaciones y otras funcionalidades
 document.addEventListener('DOMContentLoaded', function () {
-    // Obtener todas las notificaciones
+    // Código para manejar notificaciones
     const notifications = document.querySelectorAll('.notification-message');
-
-    // Para cada notificación
+    
+    // Para cada notificación, configurar la animación de desaparición
     notifications.forEach(notification => {
-        // Agregar clase para fade out después de 5 segundos
         setTimeout(() => {
             notification.style.opacity = '0';
             notification.style.transform = 'translateX(100%)';
-
-            // Remover el elemento después de la animación
+            
             setTimeout(() => {
-                notification.remove();
+                if (notification && notification.parentElement) {
+                    notification.remove();
+                }
             }, 300);
         }, 5000);
     });
+    
+    // Verificamos si hay notificaciones y registramos en consola para debugging
+    if (notifications.length > 0) {
+        console.log(`${notifications.length} notificaciones inicializadas`);
+    }
+
+    // Iniciar con el estado correcto de la barra lateral al cargar la página
+    document.addEventListener('alpine:init', () => {
+        // Este evento se dispara cuando Alpine está inicializado
+        // Se maneja directamente en el HTML con localStorage
+        console.log('Alpine initialized, sidebar state loaded from localStorage');
+    });
+});
+
+// Agregar función para mejorar el rendimiento de carga
+window.addEventListener('load', function() {
+    // Aplicar lazy loading a imágenes que no son críticas
+    const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+    if ('loading' in HTMLImageElement.prototype) {
+        console.log('Browser supports native lazy loading');
+    } else {
+        // Fallback para navegadores que no soportan lazy loading nativo
+        lazyImages.forEach(img => {
+            const src = img.getAttribute('data-src');
+            if (src) {
+                img.src = src;
+            }
+        });
+    }
 });
