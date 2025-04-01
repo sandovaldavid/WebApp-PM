@@ -1061,3 +1061,39 @@ class JiraClient:
             'historial_sincronizaciones': sync_history,
             'estado_salud': self.check_integration_health()
         }
+
+    def get_jira_users(self):
+        """
+        Obtiene usuarios de Jira usando diferentes estrategias
+        para manejar las limitaciones de la API
+        """
+        try:
+            # Primer intento: usar maxResults y patrón de búsqueda más amplio
+            users = self.jira.search_users(query='*', maxResults=1000)
+            if users:
+                return users
+                
+            # Segundo intento: buscar por letras comunes
+            all_users = []
+            for letter in 'aeiou':  # Vocales - probablemente aparecen en muchos nombres
+                users = self.jira.search_users(query=letter, maxResults=500)
+                # Filtrar duplicados por accountId
+                existing_account_ids = set(u.accountId for u in all_users if hasattr(u, 'accountId'))
+                for user in users:
+                    if not hasattr(user, 'accountId') or user.accountId not in existing_account_ids:
+                        all_users.append(user)
+                        if hasattr(user, 'accountId'):
+                            existing_account_ids.add(user.accountId)
+            
+            return all_users
+            
+        except Exception as e:
+            logger.error(f"Error al obtener usuarios de Jira: {str(e)}")
+            
+            # Si todo lo demás falla, intentar un enfoque más básico
+            try:
+                # Intento final: usar getUser con el administrador del proyecto
+                admin_user = self.jira.myself()
+                return [admin_user]  # Al menos devolver el usuario actual
+            except:
+                return []  # Si todo falla, devolver lista vacía

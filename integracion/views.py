@@ -299,7 +299,8 @@ def listar_usuarios_jira(request):
         
         # Intentar obtener usuarios de Jira (puede fallar si no hay permisos suficientes)
         try:
-            jira_users = client.jira.search_users(query='')
+            # Modificar esta línea para usar un valor válido en lugar de cadena vacía
+            jira_users = client.get_jira_users()  # Usaremos un método personalizado en JiraClient
             jira_users_data = [{
                 'accountId': getattr(user, 'accountId', ''),
                 'displayName': getattr(user, 'displayName', ''),
