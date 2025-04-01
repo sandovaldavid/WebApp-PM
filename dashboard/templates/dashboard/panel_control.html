@@ -73,15 +73,20 @@
 
 {% block title_body %}
 <div class="flex justify-between items-center space-x-3">
-    <div class="flex items-center mr-2">
-        <i class="fas fa-tachometer-alt text-blue-500 mr-2"></i>
-        <span>Panel de Control Avanzado</span>
+    <div class="flex items-center mb-2 sm:mb-0 lg:mr-4">
+        <div class="p-2 bg-blue-100 rounded-full mr-3">
+            <i class="fas fa-tachometer-alt text-blue-600"></i>
+        </div>
+        <div>
+            <h1 class="text-xl font-bold text-write-500">Panel de Control Avanzado</h1>
+            <p class="text-sm text-blue-100 hidden 2xl:block">Monitoriza tus proyectos y recursos en tiempo real</p>
+        </div>
         <!--{% if filtro_activo %}
             <span class="ml-3 px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                 <i class="fas fa-filter mr-1"></i>Filtro: {{ fecha_inicio_str }} - {{ fecha_fin_str }}
             </span>
         {% endif %}-->
-    </div>
+    </div>    
     <!--<div class="flex items-center space-x-3">
         <div class="relative" id="date-filter-container">
             <input type="text" id="date-range" class="py-1 px-3 border border-gray-300 rounded-lg text-sm" placeholder="Filtrar por fecha" readonly>
@@ -97,6 +102,7 @@
         </button>
     </div>-->
 </div>
+
 {% endblock %}
 
 {% block body %}

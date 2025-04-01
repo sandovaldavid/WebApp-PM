@@ -62,10 +62,10 @@
         >
             <aside class="sidebar bg-gradient-to-b from-blue-700 to-blue-900 text-white h-full min-h-screen overflow-y-auto flex flex-col">
                 <!-- Logo y botón para cerrar (móvil) -->
-                <div class="flex items-center justify-between p-4 border-b border-blue-800 sticky top-0 z-10 bg-gradient-to-r from-blue-700 to-blue-800">
+                <div class="flex items-center justify-between p-6 border-b border-blue-400 sticky top-0 z-10 bg-gradient-to-r from-blue-700 to-blue-800">
                     <div class="flex items-center space-x-3">
                         <img src="{% static '/img/logo.png' %}" alt="Logo" class="h-8">
-                        <h2 class="text-xl font-bold tracking-wide" :class="{'hidden lg:block': !sidebarOpen}">TaskElevates</h2>
+                        <h2 class="text-xl font-bold tracking-wide" :class="{'hidden 2xl:block': !sidebarOpen}">TaskElevates</h2>
                     </div>
                     <button 
                         @click="sidebarOpen = !sidebarOpen"
@@ -97,7 +97,7 @@
         <div class="h-screen flex-1 flex flex-col overflow-hidden">
             <!-- Header -->
             <header class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-md z-30">
-                <div class="flex items-center justify-between h-16 px-6">
+                <div class="flex items-center justify-between h-16 px-6 my-2">
                     <div class="flex items-center">
                         <!-- Botón toggle sidebar -->
                         <button 

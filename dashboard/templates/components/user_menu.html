@@ -19,7 +19,7 @@
     <!-- Botón de notificaciones -->
     <button @click="toggleNotifications" 
             @click.away="notificationsOpen = false"
-            class="relative p-2 transition-colors text-white hover:text-blue-100 focus:outline-none mx-2">
+            class="relative p-2 transition-colors text-white hover:text-blue-100 focus:outline-none mx-1 sm:mx-2">
         <span class="sr-only">Notificaciones</span>
         <i class="fas fa-bell text-lg"></i>
         
@@ -39,13 +39,13 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
-         class="absolute right-0 top-12 z-50 mt-2 origin-top-right w-96 rounded-md shadow-lg"
+         class="absolute right-0 top-12 z-50 mt-2 origin-top-right w-[calc(100vw-20px)] sm:w-[calc(100vw-40px)] md:w-96 max-w-md rounded-md shadow-lg"
          @click.away="notificationsOpen = false">
         {% include 'components/notifications_dropdown.html' %}
     </div>
 
     <!-- Separador vertical -->
-    <div class="h-8 border-l border-white border-opacity-20 mx-2"></div>
+    <div class="h-8 border-l border-white border-opacity-20 mx-1 sm:mx-2"></div>
 
     <!-- Botón usuario con avatar -->
     <button @click="toggleUserMenu" 
@@ -53,11 +53,11 @@
             class="flex items-center transition-opacity focus:outline-none"
             id="user-menu-button">
         <!-- Avatar -->
-        <div class="relative">
+        <div class="relative w-9 h-9">
             <img class="h-9 w-9 rounded-full border-2 border-white border-opacity-50 object-cover transition-transform hover:scale-105"
-                 src="{{ user.get_avatar_url|default:'/static/img/default-avatar.png' }}"
-                 alt="Avatar de usuario">
-                 
+             src="{{ user.get_avatar_url|default:'/static/img/default-avatar.png' }}"
+             alt="Avatar de usuario">
+             
             <!-- Indicador online -->
             <div class="absolute bottom-0 right-0 h-3 w-3 bg-green-400 border-2 border-white rounded-full"></div>
         </div>
@@ -65,15 +65,15 @@
         <!-- Nombre usuario (solo en pantallas medianas+) -->
         <div class="hidden md:flex ml-3 flex-col items-start">
             <span class="text-sm font-medium text-white">
-                {{ user.get_full_name|default:user.username }}
+                {{ user.username }}
             </span>
             <span class="text-xs text-blue-200 -mt-0.5">
-                {{ user.get_role_display|default:'Usuario' }}
+                {{ user.rol|default:'Usuario' }}
             </span>
         </div>
         
         <!-- Ícono dropdown -->
-        <svg class="ml-2 h-4 w-4 text-white opacity-70" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <svg class="hidden 2xl:block ml-2 h-4 w-4 text-white opacity-70" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"></svg>
             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>
     </button>
@@ -86,20 +86,20 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
-         class="absolute right-0 top-12 z-50 mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+         class="absolute right-0 top-12 z-50 mt-2 w-[calc(100vw-20px)] sm:w-64 max-w-xs origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
          role="menu">
          
         <!-- Header usuario -->
-        <div class="px-4 py-3 border-b border-gray-100">
+        <div class="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-100">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
-                    <img class="h-10 w-10 rounded-full" 
+                    <img class="h-8 w-8 sm:h-10 sm:w-10 rounded-full" 
                          src="{{ user.get_avatar_url|default:'/static/img/default-avatar.png' }}"
                          alt="Avatar de {{ user.username }}">
                 </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-gray-900">{{ user.get_full_name|default:user.username }}</p>
-                    <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
+                <div class="ml-2 sm:ml-3">
+                    <p class="text-xs sm:text-sm font-medium text-gray-900 truncate max-w-[150px] sm:max-w-none">{{ user.get_full_name|default:user.username }}</p>
+                    <p class="text-xs text-gray-500 truncate max-w-[150px] sm:max-w-none">{{ user.email }}</p>
                 </div>
             </div>
         </div>
@@ -107,23 +107,23 @@
         <!-- Enlaces -->
         <div class="py-1">
             <a href="{% url 'gestionUsuarios:perfil' %}"
-               class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+               class="group flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                role="menuitem">
-                <i class="fas fa-user text-gray-500 group-hover:text-blue-600 w-5 mr-3"></i>
+                <i class="fas fa-user text-gray-500 group-hover:text-blue-600 w-5 mr-2 sm:mr-3"></i>
                 Mi Perfil
             </a>
             
             <a href="{% url 'gestionUsuarios:configuracion' %}"
-               class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+               class="group flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                role="menuitem">
-                <i class="fas fa-cog text-gray-500 group-hover:text-blue-600 w-5 mr-3"></i>
+                <i class="fas fa-cog text-gray-500 group-hover:text-blue-600 w-5 mr-2 sm:mr-3"></i>
                 Configuración
             </a>
         </div>
         
         <!-- Tema - Toggle claro/oscuro -->
-        <div class="px-4 py-2 border-t border-gray-100">
-            <div class="flex items-center justify-between text-sm">
+        <div class="px-3 sm:px-4 py-2 border-t border-gray-100">
+            <div class="flex items-center justify-between text-xs sm:text-sm">
                 <span class="text-gray-500">Tema oscuro</span>
                 <button id="theme-toggle" class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out focus:outline-none">
                     <span class="sr-only">Cambiar tema</span>
@@ -144,9 +144,9 @@
             <form method="post" action="{% url 'gestionUsuarios:logout' %}">
                 {% csrf_token %}
                 <button type="submit" 
-                        class="group flex w-full items-center px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors" 
+                        class="group flex w-full items-center px-3 sm:px-4 py-2 text-left text-xs sm:text-sm text-red-600 hover:bg-red-50 transition-colors" 
                         role="menuitem">
-                    <i class="fas fa-sign-out-alt text-red-500 w-5 mr-3"></i>
+                    <i class="fas fa-sign-out-alt text-red-500 w-5 mr-2 sm:mr-3"></i>
                     Cerrar Sesión
                 </button>
             </form>
