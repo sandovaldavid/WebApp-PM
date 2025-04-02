@@ -39,7 +39,7 @@ def format_duration(value):
     try:
         hours = int(value)
         minutes = int((value - hours) * 60)
-        
+
         if hours == 0:
             return f"{minutes} min"
         elif minutes == 0:

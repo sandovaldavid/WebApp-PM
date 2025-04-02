@@ -658,40 +658,46 @@ def lista_alertas(request):
         )
 
     """Muestra la lista completa de alertas."""
-    tipo = request.GET.get('tipo', 'todas')
-    
+    tipo = request.GET.get("tipo", "todas")
+
     # Filtrar por tipo
-    if tipo != 'todas':
-        alertas = alertas.filter(tipoalerta=tipo).order_by('-fechacreacion')
+    if tipo != "todas":
+        alertas = alertas.filter(tipoalerta=tipo).order_by("-fechacreacion")
     else:
-        alertas = alertas.all().order_by('-fechacreacion')
-    
+        alertas = alertas.all().order_by("-fechacreacion")
+
     # Paginación
     paginator = Paginator(alertas, 10)
-    page = request.GET.get('page', 1)
+    page = request.GET.get("page", 1)
     alertas_paginadas = paginator.get_page(page)
-    
+
     # Estadísticas por tipo de alerta
-    tipos_alerta = ['retraso', 'presupuesto', 'riesgo', 'bloqueo']
-    
+    tipos_alerta = ["retraso", "presupuesto", "riesgo", "bloqueo"]
+
     # Calcular total por tipo
     tipos_alertas = []
     total_alertas = Alerta.objects.count()
-    
+
     for tipo_alerta in tipos_alerta:
         count = Alerta.objects.filter(tipoalerta=tipo_alerta).count()
-        tipos_alertas.append({
-            'tipoalerta': tipo_alerta,
-            'total': count,
-            'porcentaje': (count / total_alertas * 100) if total_alertas > 0 else 0
-        })
-    
-    return render(request, 'alertas/listar_alertas.html', {
-        'alertas': alertas_paginadas,
-        'tipo_actual': tipo,
-        'tipos_alerta': tipos_alerta,
-        'tipos_alertas': tipos_alertas
-    })
+        tipos_alertas.append(
+            {
+                "tipoalerta": tipo_alerta,
+                "total": count,
+                "porcentaje": (count / total_alertas * 100) if total_alertas > 0 else 0,
+            }
+        )
+
+    return render(
+        request,
+        "alertas/listar_alertas.html",
+        {
+            "alertas": alertas_paginadas,
+            "tipo_actual": tipo,
+            "tipos_alerta": tipos_alerta,
+            "tipos_alertas": tipos_alertas,
+        },
+    )
 
 
 @login_required
@@ -987,7 +993,7 @@ def estadisticas_alertas(request):
 def filtrar_alertas(request):
     """Filtra alertas por tipo (endpoint para HTMX)."""
     tipo = request.GET.get("tipo", "todas")
-    
+
     # Determinar si el usuario es admin
     is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
@@ -1001,24 +1007,24 @@ def filtrar_alertas(request):
             )
         )
 
-    
-    tipo = request.GET.get('tipo', 'todas')
-    
+    tipo = request.GET.get("tipo", "todas")
+
     # Filtrar por tipo
-    if tipo != 'todas':
-        alertas = alertas.filter(tipoalerta=tipo).order_by('-fechacreacion')
+    if tipo != "todas":
+        alertas = alertas.filter(tipoalerta=tipo).order_by("-fechacreacion")
     else:
-        alertas = alertas.all().order_by('-fechacreacion')
-    
+        alertas = alertas.all().order_by("-fechacreacion")
+
     # Paginación
     paginator = Paginator(alertas, 10)
-    page = request.GET.get('page', 1)
+    page = request.GET.get("page", 1)
     alertas_paginadas = paginator.get_page(page)
-    
-    return render(request, 'alertas/lista_filtrada.html', {
-        'alertas': alertas_paginadas,
-        'tipo_actual': tipo
-    })
+
+    return render(
+        request,
+        "alertas/lista_filtrada.html",
+        {"alertas": alertas_paginadas, "tipo_actual": tipo},
+    )
 
 
 @login_required
@@ -1060,41 +1066,59 @@ def vista_previa_alerta(request):
 
     return render(request, "components/vista_previa_alerta.html", context)
 
+
 @login_required
 def generar_alertas(request):
     """Vista para generar alertas manualmente (solo para administradores)"""
     if not request.user.is_staff and request.user.rol != "Administrador":
         messages.error(request, "No tienes permiso para realizar esta acción")
         return redirect("notificaciones:index")
-        
+
     alertas_creadas = 0
-    
+
     if request.method == "POST":
         tipo = request.POST.get("tipo")
-        
+
         if tipo == "retrasadas":
             alertas_creadas = MonitoreoService.verificar_tareas_retrasadas()
-            messages.success(request, f"Se han generado {alertas_creadas} alertas de tareas retrasadas")
+            messages.success(
+                request,
+                f"Se han generado {alertas_creadas} alertas de tareas retrasadas",
+            )
         elif tipo == "presupuesto":
             alertas_creadas = MonitoreoService.verificar_presupuesto_excedido()
-            messages.success(request, f"Se han generado {alertas_creadas} alertas de presupuesto excedido")
+            messages.success(
+                request,
+                f"Se han generado {alertas_creadas} alertas de presupuesto excedido",
+            )
         elif tipo == "bloqueo":
             alertas_creadas = MonitoreoService.verificar_tareas_bloqueadas()
-            messages.success(request, f"Se han generado {alertas_creadas} alertas de tareas bloqueadas")
+            messages.success(
+                request,
+                f"Se han generado {alertas_creadas} alertas de tareas bloqueadas",
+            )
         elif tipo == "todas":
             alertas_retraso = MonitoreoService.verificar_tareas_retrasadas()
             alertas_presupuesto = MonitoreoService.verificar_presupuesto_excedido()
             alertas_bloqueo = MonitoreoService.verificar_tareas_bloqueadas()
             alertas_creadas = alertas_retraso + alertas_presupuesto + alertas_bloqueo
-            messages.success(request, f"Se han generado {alertas_creadas} alertas en total")
-            
+            messages.success(
+                request, f"Se han generado {alertas_creadas} alertas en total"
+            )
+
     # Estadísticas sobre alertas actuales
     stats = {
         "total_alertas": Alerta.objects.count(),
         "alertas_activas": Alerta.objects.filter(activa=True).count(),
-        "alertas_retraso": Alerta.objects.filter(tipoalerta="retraso", activa=True).count(),
-        "alertas_presupuesto": Alerta.objects.filter(tipoalerta="presupuesto", activa=True).count(),
-        "alertas_bloqueo": Alerta.objects.filter(tipoalerta="bloqueo", activa=True).count()
+        "alertas_retraso": Alerta.objects.filter(
+            tipoalerta="retraso", activa=True
+        ).count(),
+        "alertas_presupuesto": Alerta.objects.filter(
+            tipoalerta="presupuesto", activa=True
+        ).count(),
+        "alertas_bloqueo": Alerta.objects.filter(
+            tipoalerta="bloqueo", activa=True
+        ).count(),
     }
-    
+
     return render(request, "alertas/generar_alertas_2.html", {"stats": stats})
