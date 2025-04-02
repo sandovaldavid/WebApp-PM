@@ -13,7 +13,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             return True
 
         # Operaciones de escritura solo a administradores
-        return request.user.is_authenticated and request.user.rol == "admin"
+        return request.user.is_authenticated and request.user.rol == "Administrador"
 
 
 class IsOwnerOrAdmin(permissions.BasePermission):
@@ -24,4 +24,4 @@ class IsOwnerOrAdmin(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # Verifica si el usuario es el propietario o es administrador
-        return obj.id == request.user.id or request.user.rol == "admin"
+        return obj.id == request.user.id or request.user.rol == "Administrador"
