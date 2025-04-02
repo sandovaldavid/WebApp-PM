@@ -3,6 +3,12 @@
 
 {% block title %}Gestión de Reportes{% endblock %}
 
+{% block head %}
+    {{ block.super }}
+    <!-- Chart.js para visualizaciones mejoradas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+{% endblock %}
+
 {% block title_body %}
     <div class="flex items-center justify-between">
         <div class="flex items-center">
@@ -20,56 +26,98 @@
                 <i class="fas fa-filter text-gray-600 mr-2"></i>
                 Filtros del Reporte
             </h3>
-            <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-6" id="filtrosForm">
                 <!-- Período -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Período</label>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <input type="date" name="fecha_inicio" value="{{ filtros.fecha_inicio }}"
-                                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <div class="flex flex-col">
+                                <label for="fecha_inicio" class="text-xs text-gray-500 mb-1">Desde:</label>
+                                <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ filtros.fecha_inicio|date:'Y-m-d' }}"
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
                         </div>
                         <div>
-                            <input type="date" name="fecha_fin" value="{{ filtros.fecha_fin }}"
-                                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <div class="flex flex-col">
+                                <label for="fecha_fin" class="text-xs text-gray-500 mb-1">Hasta:</label>
+                                <input type="date" id="fecha_fin" name="fecha_fin" value="{{ filtros.fecha_fin|date:'Y-m-d' }}"
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
                         </div>
+                    </div>
+                    <div id="fecha-error" class="text-red-500 text-xs mt-1 hidden">
+                        La fecha de inicio no puede ser posterior a la fecha fin
+                    </div>
+                    <div class="flex justify-between mt-2">
+                        <button type="button" class="text-xs text-blue-600 hover:text-blue-800" onclick="setLastWeek()">
+                            Última semana
+                        </button>
+                        <button type="button" class="text-xs text-blue-600 hover:text-blue-800" onclick="setLastMonth()">
+                            Último mes
+                        </button>
+                        <button type="button" class="text-xs text-blue-600 hover:text-blue-800" onclick="setLastQuarter()">
+                            Último trimestre
+                        </button>
                     </div>
                 </div>
 
                 <!-- Proyecto -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Proyecto</label>
-                    <select name="proyecto"
+                    <label for="proyecto" class="block text-sm font-medium text-gray-700 mb-2">Proyecto</label>
+                    <select id="proyecto" name="proyecto"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Todos los proyectos</option>
                         {% for proyecto in proyectos %}
                             <option value="{{ proyecto.idproyecto }}"
-                                    {% if filtros.proyecto == proyecto.idproyecto %}selected{% endif %}>
+                                    {% if filtros.proyecto == proyecto.idproyecto|stringformat:"s" %}selected{% endif %}>
                                 {{ proyecto.nombreproyecto }}
                             </option>
                         {% endfor %}
                     </select>
+                    {% if filtros.proyecto_obj %}
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                            <span class="text-xs text-blue-700">{{ filtros.proyecto_obj.nombreproyecto }}</span>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <!-- Tipo de Reporte -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Reporte</label>
-                    <select name="tipo_reporte"
+                    <label for="tipo_reporte" class="block text-sm font-medium text-gray-700 mb-2">Tipo de Reporte</label>
+                    <select id="tipo_reporte" name="tipo_reporte"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="general" {% if filtros.tipo_reporte == 'general' %}selected{% endif %}>General
+                        <option value="general" {% if filtros.tipo_reporte == 'general' %}selected{% endif %}>
+                            <i class="fas fa-chart-bar"></i> General
                         </option>
-                        <option value="tareas" {% if filtros.tipo_reporte == 'tareas' %}selected{% endif %}>Tareas
+                        <option value="tareas" {% if filtros.tipo_reporte == 'tareas' %}selected{% endif %}>
+                            <i class="fas fa-tasks"></i> Tareas
                         </option>
                         <option value="recursos" {% if filtros.tipo_reporte == 'recursos' %}selected{% endif %}>
-                            Recursos
+                            <i class="fas fa-users"></i> Recursos
                         </option>
-                        <option value="costos" {% if filtros.tipo_reporte == 'costos' %}selected{% endif %}>Costos
+                        <option value="costos" {% if filtros.tipo_reporte == 'costos' %}selected{% endif %}>
+                            <i class="fas fa-dollar-sign"></i> Costos
                         </option>
                     </select>
+                    <div class="text-xs text-gray-500 mt-2">
+                        <span id="reporte_description">
+                            {% if filtros.tipo_reporte == 'recursos' %}
+                                Análisis detallado del uso de recursos humanos y materiales.
+                            {% elif filtros.tipo_reporte == 'costos' %}
+                                Análisis financiero y comparación con presupuestos.
+                            {% elif filtros.tipo_reporte == 'tareas' %}
+                                Detalle de tareas y su rendimiento.
+                            {% else %}
+                                Vista general de todos los aspectos del proyecto.
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Botones -->
-                <div class="col-span-full flex justify-end space-x-4">
+                <div class="col-span-full flex flex-wrap justify-end gap-4">
                     <a href="{% url 'reportes:index' %}"
                        class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
                         <i class="fas fa-undo mr-2"></i>
@@ -101,6 +149,9 @@
                     <div>
                         <p class="text-sm text-green-600">Completadas</p>
                         <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.tareas_completadas }}</h3>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div class="bg-green-500 h-1.5 rounded-full" style="width: {{ estadisticas.porcentaje_completadas }}%"></div>
+                        </div>
                     </div>
                     <i class="fas fa-check-circle text-green-500 text-3xl"></i>
                 </div>
@@ -120,7 +171,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-yellow-600">Costo Total</p>
-                        <h3 class="text-2xl font-bold text-yellow-900">${{ estadisticas.costo_total }}</h3>
+                        <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.costo_total|currency }}</h3>
                     </div>
                     <i class="fas fa-dollar-sign text-yellow-500 text-3xl"></i>
                 </div>
@@ -130,6 +181,11 @@
         <!-- Contenido según tipo de reporte -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {% if filtros.tipo_reporte == 'general' or not filtros.tipo_reporte %}
+                <!-- Vista general -->
+                <div class="col-span-2">
+                    {% include "components/grafico_general.html" with datos_generales=datos_generales datos_recursos=datos_recursos datos_costos=datos_costos historial=historial using_actividad=using_actividad %}
+                </div>
+            {% elif filtros.tipo_reporte == 'tareas' %}
                 <!-- Progreso por Proyecto -->
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <h3 class="text-lg font-semibold mb-4">Progreso por Proyecto</h3>
@@ -157,26 +213,145 @@
         </div>
 
         <!-- Acciones de Exportación -->
-        <div class="flex justify-end space-x-4">
-            <form method="POST" action="{% url 'reportes:exportar_csv' %}">
-                {% csrf_token %}
-                <input type="hidden" name="filtros" value="{{ filtros|to_json }}">
-                <button type="submit"
-                        class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center">
-                    <i class="fas fa-file-csv mr-2"></i>
-                    Exportar CSV
-                </button>
-            </form>
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-file-export text-gray-600 mr-2"></i>
+                Exportar Reporte
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border border-gray-200 p-4 rounded-lg">
+                    <h4 class="font-medium text-gray-800 mb-2">Exportar a CSV (Excel)</h4>
+                    <p class="text-sm text-gray-600 mb-4">
+                        Descarga los datos en formato CSV para poder analizarlos en Excel u otra herramienta similar.
+                    </p>
+                    <form method="POST" action="{% url 'reportes:exportar_csv' %}">
+                        {% csrf_token %}
+                        <!-- Enviar cada filtro como un campo separado en lugar de JSON -->
+                        <input type="hidden" name="tipo_reporte" value="{{ filtros.tipo_reporte|default:'general' }}">
+                        <input type="hidden" name="fecha_inicio" value="{{ filtros.fecha_inicio|date:'Y-m-d' }}">
+                        <input type="hidden" name="fecha_fin" value="{{ filtros.fecha_fin|date:'Y-m-d' }}">
+                        <input type="hidden" name="proyecto" value="{{ filtros.proyecto }}">
+                        <button type="submit"
+                                class="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors flex items-center justify-center">
+                            <i class="fas fa-file-csv mr-2"></i>
+                            Exportar CSV
+                        </button>
+                    </form>
+                </div>
 
-            <form method="POST" action="{% url 'reportes:exportar_pdf' %}">
-                {% csrf_token %}
-                <input type="hidden" name="filtros" value="{{ filtros|to_json }}">
-                <button type="submit"
-                        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center">
-                    <i class="fas fa-file-pdf mr-2"></i>
-                    Exportar PDF
-                </button>
-            </form>
+                <div class="border border-gray-200 p-4 rounded-lg">
+                    <h4 class="font-medium text-gray-800 mb-2">Exportar a PDF</h4>
+                    <p class="text-sm text-gray-600 mb-4">
+                        Descarga un informe en formato PDF que puede ser fácilmente compartido o impreso.
+                    </p>
+                    
+                    <!-- PDF contextual según tipo de reporte -->
+                    <div class="mb-3 text-sm">
+                        {% if filtros.tipo_reporte == 'recursos' %}
+                            <p class="text-blue-600">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Se exportará un <strong>reporte detallado de recursos</strong> con análisis de eficiencia.
+                            </p>
+                        {% elif filtros.tipo_reporte == 'costos' %}
+                            <p class="text-blue-600">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Se exportará un <strong>reporte financiero</strong> con análisis de presupuesto.
+                            </p>
+                        {% elif filtros.tipo_reporte == 'tareas' %}
+                            <p class="text-blue-600">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Se exportará un <strong>reporte detallado de tareas</strong> con análisis por fase.
+                            </p>
+                        {% else %}
+                            <p class="text-blue-600">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Se exportará un <strong>reporte general</strong> con resumen de estadísticas.
+                            </p>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="POST" action="{% url 'reportes:exportar_pdf' %}" id="exportPdfForm">
+                        {% csrf_token %}
+                        <!-- Enviar cada filtro como un campo separado en lugar de JSON -->
+                        <input type="hidden" name="tipo_reporte" value="{{ filtros.tipo_reporte|default:'general' }}">
+                        <input type="hidden" name="fecha_inicio" value="{{ filtros.fecha_inicio|date:'Y-m-d' }}">
+                        <input type="hidden" name="fecha_fin" value="{{ filtros.fecha_fin|date:'Y-m-d' }}">
+                        <input type="hidden" name="proyecto" value="{{ filtros.proyecto }}">
+                        
+                        <button type="submit"
+                                class="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center justify-center">
+                            <i class="fas fa-file-pdf mr-2"></i>
+                            Exportar PDF
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Script para validación de fechas y otras funcionalidades -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Validación del formulario
+            document.getElementById('filtrosForm').addEventListener('submit', function(e) {
+                const fechaInicio = document.getElementById('fecha_inicio').value;
+                const fechaFin = document.getElementById('fecha_fin').value;
+                
+                if (fechaInicio && fechaFin && new Date(fechaInicio) > new Date(fechaFin)) {
+                    e.preventDefault();
+                    document.getElementById('fecha-error').classList.remove('hidden');
+                } else {
+                    document.getElementById('fecha-error').classList.add('hidden');
+                }
+            });
+            
+            // Actualizar descripción del tipo de reporte
+            document.getElementById('tipo_reporte').addEventListener('change', function() {
+                const descripcion = document.getElementById('reporte_description');
+                
+                switch(this.value) {
+                    case 'recursos':
+                        descripcion.textContent = 'Análisis detallado del uso de recursos humanos y materiales.';
+                        break;
+                    case 'costos':
+                        descripcion.textContent = 'Análisis financiero y comparación con presupuestos.';
+                        break;
+                    case 'tareas':
+                        descripcion.textContent = 'Detalle de tareas y su rendimiento.';
+                        break;
+                    default:
+                        descripcion.textContent = 'Vista general de todos los aspectos del proyecto.';
+                }
+            });
+        });
+        
+        // Funciones para establecer rangos de fecha predefinidos
+        function setLastWeek() {
+            const today = new Date();
+            const lastWeek = new Date(today);
+            lastWeek.setDate(today.getDate() - 7);
+            
+            document.getElementById('fecha_inicio').value = lastWeek.toISOString().split('T')[0];
+            document.getElementById('fecha_fin').value = today.toISOString().split('T')[0];
+        }
+        
+        function setLastMonth() {
+            const today = new Date();
+            const lastMonth = new Date(today);
+            lastMonth.setMonth(today.getMonth() - 1);
+            
+            document.getElementById('fecha_inicio').value = lastMonth.toISOString().split('T')[0];
+            document.getElementById('fecha_fin').value = today.toISOString().split('T')[0];
+        }
+        
+        function setLastQuarter() {
+            const today = new Date();
+            const lastQuarter = new Date(today);
+            lastQuarter.setMonth(today.getMonth() - 3);
+            
+            document.getElementById('fecha_inicio').value = lastQuarter.toISOString().split('T')[0];
+            document.getElementById('fecha_fin').value = today.toISOString().split('T')[0];
+        }
+    </script>
 {% endblock %}

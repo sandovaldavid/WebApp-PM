@@ -115,10 +115,12 @@
 </head>
 <body>
 <div class="header">
-    <h1>Reporte de Tareas</h1>
+    <h1>Reporte General de Proyecto</h1>
     <p>Fecha de generación: {{ fecha_generacion|date:'d/m/Y H:i' }}</p>
     {% if filtros.proyecto %}
         <p>Proyecto: {{ filtros.proyecto.nombreproyecto }}</p>
+    {% else %}
+        <p>Todos los proyectos</p>
     {% endif %}
     <p>Período: {{ filtros.fecha_inicio|date:'d/m/Y' }} - {{ filtros.fecha_fin|date:'d/m/Y' }}</p>
 </div>
@@ -148,37 +150,105 @@
     </div>
 </div>
 
-{% if datos_recursos %}
-    <div class="resources">
-        <h2>Distribución de Recursos</h2>
-        <table>
-            <thead>
+<!-- Sección de proyectos -->
+<div class="projects">
+    <h2>Proyectos y su Progreso</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Proyecto</th>
+            <th>Completadas</th>
+            <th>En Progreso</th>
+            <th>Pendientes</th>
+            <th>Total</th>
+            <th>Progreso</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for proyecto in datos_generales.proyectos %}
             <tr>
-                <th>Recurso</th>
-                <th>Tipo</th>
-                <th>Horas Asignadas</th>
-                <th>Horas Utilizadas</th>
-                <th>Eficiencia</th>
+                <td>{{ proyecto.nombre }}</td>
+                <td>{{ proyecto.completadas }}</td>
+                <td>{{ proyecto.en_progreso }}</td>
+                <td>{{ proyecto.pendientes }}</td>
+                <td>{{ proyecto.total }}</td>
+                <td>
+                    <div class="progress-bar">
+                        <div class="progress-value" style="width: {{ proyecto.porcentaje_completado }}%"></div>
+                    </div>
+                    {{ proyecto.porcentaje_completado }}%
+                </td>
             </tr>
-            </thead>
-            <tbody>
-            {% for recurso in datos_recursos.recursos %}
-                <tr>
-                    <td>{{ recurso.nombre }}</td>
-                    <td>{{ recurso.tipo }}</td>
-                    <td>{{ recurso.horas_asignadas }}</td>
-                    <td>{{ recurso.horas_utilizadas }}</td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-value" style="width: {{ recurso.eficiencia }}%"></div>
-                        </div>
-                        {{ recurso.eficiencia }}%
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Sección de recursos si están disponibles -->
+{% if datos_recursos.recursos %}
+<div class="resources">
+    <h2>Distribución de Recursos</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Recurso</th>
+            <th>Tipo</th>
+            <th>Horas Asignadas</th>
+            <th>Horas Utilizadas</th>
+            <th>Eficiencia</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for recurso in datos_recursos.recursos %}
+            <tr>
+                <td>{{ recurso.nombre }}</td>
+                <td>{{ recurso.tipo }}</td>
+                <td>{{ recurso.horas_asignadas }}</td>
+                <td>{{ recurso.horas_utilizadas }}</td>
+                <td>
+                    <div class="progress-bar">
+                        <div class="progress-value" style="width: {{ recurso.eficiencia }}%"></div>
+                    </div>
+                    {{ recurso.eficiencia }}%
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Sección de costos si están disponibles -->
+{% if datos_costos %}
+<div class="costs">
+    <h2>Análisis de Costos</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Concepto</th>
+            <th>Valor</th>
+            <th>Porcentaje</th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Costo Estimado Total</td>
+                <td>${{ datos_costos.total_estimado|floatformat:2 }}</td>
+                <td>100%</td>
+            </tr>
+            <tr>
+                <td>Costo Real Total</td>
+                <td>${{ datos_costos.total_actual|floatformat:2 }}</td>
+                <td>{{ datos_costos.porcentaje_utilizado|floatformat:1 }}%</td>
+            </tr>
+            <tr>
+                <td>Variación</td>
+                <td>{{ datos_costos.variacion_total|floatformat:1 }}%</td>
+                <td>{{ datos_costos.indice_eficiencia|floatformat:2 }} (índice de eficiencia)</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 {% endif %}
 
 <div class="tasks">

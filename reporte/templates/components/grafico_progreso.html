@@ -58,6 +58,9 @@
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Pendientes
                 </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tiempo Restante
+                </th>
             </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -68,7 +71,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-blue-600 h-2.5 rounded-full"
+                            <div class="{% if proyecto.porcentaje_completado < 30 %}bg-red-600{% elif proyecto.porcentaje_completado < 70 %}bg-yellow-600{% else %}bg-green-600{% endif %} h-2.5 rounded-full"
                                  style="width: {{ proyecto.porcentaje_completado }}%"></div>
                         </div>
                         <span class="text-sm text-gray-600">{{ proyecto.porcentaje_completado }}%</span>
@@ -88,10 +91,19 @@
                             {{ proyecto.pendientes }}
                         </span>
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if proyecto.dias_restantes is not None %}
+                            <span class="px-2 py-1 text-sm {% if proyecto.dias_restantes < 7 %}text-red-800 bg-red-100{% elif proyecto.dias_restantes < 30 %}text-orange-800 bg-orange-100{% else %}text-green-800 bg-green-100{% endif %} rounded-full">
+                                {{ proyecto.dias_restantes }} días
+                            </span>
+                        {% else %}
+                            <span class="text-sm text-gray-500">No definido</span>
+                        {% endif %}
+                    </td>
                 </tr>
             {% empty %}
                 <tr>
-                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
                         No hay datos de progreso disponibles
                     </td>
                 </tr>

@@ -1,0 +1,142 @@
+<div class="space-y-6">
+    <!-- Progreso por Proyecto -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-4">Resumen de Proyectos</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyecto</th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progreso</th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tareas</th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tiempo</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                {% for proyecto in datos_generales.proyectos %}
+                    <tr>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ proyecto.nombre }}</div>
+                        </td>
+                        <td class="px-4 py-4 w-1/3">
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="{% if proyecto.porcentaje_completado < 30 %}bg-red-600{% elif proyecto.porcentaje_completado < 70 %}bg-yellow-600{% else %}bg-green-600{% endif %} h-2.5 rounded-full" style="width: {{ proyecto.porcentaje_completado }}%"></div>
+                            </div>
+                            <span class="text-sm text-gray-600">{{ proyecto.porcentaje_completado }}%</span>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">{{ proyecto.completadas }}</span>
+                            <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">{{ proyecto.en_progreso }}</span>
+                            <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">{{ proyecto.pendientes }}</span>
+                            <span class="text-xs text-gray-500">({{ proyecto.total }})</span>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            {% if proyecto.dias_restantes is not None %}
+                                <span class="px-2 py-1 text-xs {% if proyecto.dias_restantes < 7 %}bg-red-100 text-red-800{% elif proyecto.dias_restantes < 30 %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %} rounded-full">
+                                    {{ proyecto.dias_restantes }} días
+                                </span>
+                            {% else %}
+                                <span class="text-xs text-gray-500">No definido</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-4 py-4 text-center text-gray-500">
+                            No hay datos de proyectos disponibles
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Distribución de Recursos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold mb-4">Top Recursos</h3>
+            {% if datos_recursos and datos_recursos.recursos %}
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recurso</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilización</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    {% for recurso in datos_recursos.recursos|slice:":5" %}
+                        <tr>
+                            <td class="px-4 py-2 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ recurso.nombre }}</div>
+                                <div class="text-xs text-gray-500">{{ recurso.tipo }}</div>
+                            </td>
+                            <td class="px-4 py-2">
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ recurso.eficiencia }}%"></div>
+                                </div>
+                                <span class="text-xs text-gray-600">{{ recurso.horas_utilizadas }}/{{ recurso.horas_asignadas }} horas ({{ recurso.eficiencia }}%)</span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-center text-gray-500 my-4">No hay datos de recursos disponibles</p>
+            {% endif %}
+        </div>
+
+        <!-- Costos -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold mb-4">Resumen de Costos</h3>
+            {% if datos_costos %}
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="p-4 border rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-gray-500">Costo Estimado vs. Real</span>
+                            <span class="text-xs {% if datos_costos.variacion_total > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+                                {{ datos_costos.variacion_total|floatformat:1 }}% variación
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="text-xs text-gray-500">Estimado</div>
+                                <div class="text-sm font-semibold">${{ datos_costos.total_estimado|floatformat:2 }}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500">Real</div>
+                                <div class="text-sm font-semibold">${{ datos_costos.total_actual|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if datos_costos.presupuesto_total > 0 %}
+                    <div class="p-4 border rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-gray-500">Presupuesto Utilizado</span>
+                            <span class="text-xs">{{ datos_costos.porcentaje_utilizado|floatformat:1 }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="{% if datos_costos.porcentaje_utilizado > 100 %}bg-red-600{% elif datos_costos.porcentaje_utilizado > 85 %}bg-yellow-600{% else %}bg-green-600{% endif %} h-2.5 rounded-full" style="width: {{ datos_costos.porcentaje_utilizado }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p class="text-center text-gray-500 my-4">No hay datos de costos disponibles</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Historial de Cambios -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-4">Actividad Reciente</h3>
+        <div class="max-h-80 overflow-y-auto">
+            {% if historial %}
+                {% include "components/historial_tareas.html" with historial=historial %}
+            {% else %}
+                <p class="text-center text-gray-500 my-4">No hay actividad reciente disponible</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
