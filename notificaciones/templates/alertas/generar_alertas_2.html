@@ -1,0 +1,268 @@
+{% extends 'layout_notificaciones.html' %}
+
+{% block title %}Generación Automática de Alertas{% endblock %}
+
+{% block title_body %}
+    <div class="flex items-center">
+        <div class="bg-blue-100 p-2 rounded-lg text-blue-600 p-3 backdrop-blur-sm mr-3">
+            <i class="fas fa-robot text-lg animate-pulse text-write-300"></i>
+        </div>
+        <h1 class="text-xl font-bold">Generación Automática de Alertas</h1>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="p-4 md:p-8">
+        <div class="max-w-5xl mx-auto">
+            <!-- Panel de estadísticas -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <!-- Total alertas -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300 border border-blue-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-800 text-xs font-semibold uppercase tracking-wider mb-1">Total Alertas</p>
+                            <h3 class="text-2xl md:text-3xl font-bold text-blue-900">{{ stats.total_alertas }}</h3>
+                            <div class="mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <i class="fas fa-database mr-1"></i> En sistema
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-full shadow-inner">
+                            <i class="fas fa-exclamation-triangle text-2xl md:text-3xl text-blue-500"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-blue-200">
+                        <a href="{% url 'notificaciones:lista_alertas' %}" class="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center justify-between group transition-colors duration-200">
+                            <span>Ver todas las alertas</span>
+                            <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform duration-200"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Alertas activas -->
+                <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300 border border-red-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-red-800 text-xs font-semibold uppercase tracking-wider mb-1">Alertas Activas</p>
+                            <h3 class="text-2xl md:text-3xl font-bold text-red-900">{{ stats.alertas_activas }}</h3>
+                            <div class="mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <i class="fas fa-exclamation-circle mr-1"></i> Requieren atención
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-full shadow-inner">
+                            <i class="fas fa-bell text-2xl md:text-3xl text-red-500"></i>
+                        </div>
+                    </div>                    
+                </div>
+                
+                <!-- Distribución por tipo -->
+                <div class="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-200">
+                    <p class="text-gray-800 text-xs font-semibold uppercase tracking-wider mb-3">Distribución por Tipo</p>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                                <span class="text-sm text-gray-600">Retraso</span>
+                            </div>
+                            <span class="font-medium">{{ stats.alertas_retraso }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                                <span class="text-sm text-gray-600">Presupuesto</span>
+                            </div>
+                            <span class="font-medium">{{ stats.alertas_presupuesto }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                                <span class="text-sm text-gray-600">Bloqueo</span>
+                            </div>
+                            <span class="font-medium">{{ stats.alertas_bloqueo }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Panel principal de generación -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <!-- Panel de opciones (3/5 del espacio) -->
+                <div class="lg:col-span-3">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+                        <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
+                            <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                                <i class="fas fa-magic text-blue-500 mr-3"></i>
+                                Generador de Alertas
+                            </h2>
+                        </div>
+                        
+                        <div class="p-6">
+                            <p class="text-gray-600 mb-6">
+                                Utilice esta herramienta para generar automáticamente alertas basadas en el análisis del estado actual del proyecto.
+                                El sistema identificará problemas potenciales y creará las alertas correspondientes.
+                            </p>
+                            
+                            <form method="POST" action="{% url 'notificaciones:generar_alertas' %}" class="space-y-4">
+                                {% csrf_token %}
+                                
+                                <!-- Opciones de Alertas -->
+                                <div class="space-y-4">
+                                    <div class="bg-gradient-to-r from-blue-50 to-white rounded-lg p-4 border border-blue-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                                        <input type="radio" name="tipo" id="todas" value="todas" 
+                                               class="h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer">
+                                        <label for="todas" class="ml-2 text-gray-800 font-medium cursor-pointer">
+                                            Generar todos los tipos de alertas
+                                        </label>
+                                        <p class="text-sm text-gray-600 mt-1 ml-7">
+                                            Analiza el proyecto completo y genera alertas de retrasos, presupuesto y bloqueos
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-r from-red-50 to-white rounded-lg p-4 border border-red-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                                        <input type="radio" name="tipo" id="retrasadas" value="retrasadas" 
+                                               class="h-5 w-5 text-red-600 border-gray-300 focus:ring-red-500 cursor-pointer" checked>
+                                        <label for="retrasadas" class="ml-2 text-gray-800 font-medium cursor-pointer">
+                                            <i class="fas fa-clock text-red-500 mr-1"></i> Alertas de tareas retrasadas
+                                        </label>
+                                        <p class="text-sm text-gray-600 mt-1 ml-7">
+                                            Identifica tareas que han sobrepasado su fecha límite o están en riesgo de retraso
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-r from-purple-50 to-white rounded-lg p-4 border border-purple-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                                        <input type="radio" name="tipo" id="presupuesto" value="presupuesto" 
+                                               class="h-5 w-5 text-purple-600 border-gray-300 focus:ring-purple-500 cursor-pointer">
+                                        <label for="presupuesto" class="ml-2 text-gray-800 font-medium cursor-pointer">
+                                            <i class="fas fa-money-bill-wave text-purple-500 mr-1"></i> Alertas de presupuesto
+                                        </label>
+                                        <p class="text-sm text-gray-600 mt-1 ml-7">
+                                            Detecta cuando una tarea o proyecto está excediendo el presupuesto asignado
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-r from-yellow-50 to-white rounded-lg p-4 border border-yellow-200 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                                        <input type="radio" name="tipo" id="bloqueo" value="bloqueo" 
+                                               class="h-5 w-5 text-yellow-600 border-gray-300 focus:ring-yellow-500 cursor-pointer">
+                                        <label for="bloqueo" class="ml-2 text-gray-800 font-medium cursor-pointer">
+                                            <i class="fas fa-ban text-yellow-500 mr-1"></i> Alertas de bloqueo
+                                        </label>
+                                        <p class="text-sm text-gray-600 mt-1 ml-7">
+                                            Identifica tareas que podrían estar bloqueadas por dependencias o recursos
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Botón de generación -->
+                                <div class="pt-4">
+                                    <button type="submit" 
+                                            class="w-full px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg hover:from-blue-600 hover:to-blue-800 transition-all flex items-center justify-center shadow-sm hover:shadow">
+                                        <i class="fas fa-bolt mr-2"></i>
+                                        Generar Alertas Ahora
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Panel informativo (2/5 del espacio) -->
+                <div class="lg:col-span-2">
+                    <!-- Cómo funciona -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+                        <div class="bg-blue-500 px-6 py-4">
+                            <h2 class="text-lg font-semibold text-white flex items-center">
+                                <i class="fas fa-question-circle mr-3"></i>
+                                ¿Cómo funciona?
+                            </h2>
+                        </div>
+                        
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-blue-100 rounded-full p-2 mt-1">
+                                    <i class="fas fa-search text-blue-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-base font-medium text-gray-800">1. Análisis</h3>
+                                    <p class="text-sm text-gray-600">
+                                        El sistema analiza el estado actual de todas las tareas y proyectos
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-blue-100 rounded-full p-2 mt-1">
+                                    <i class="fas fa-exclamation-triangle text-blue-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-base font-medium text-gray-800">2. Detección</h3>
+                                    <p class="text-sm text-gray-600">
+                                        Se identifican retrasos, sobrecostos y posibles bloqueos según criterios predefinidos
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-blue-100 rounded-full p-2 mt-1">
+                                    <i class="fas fa-bell text-blue-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-base font-medium text-gray-800">3. Creación</h3>
+                                    <p class="text-sm text-gray-600">
+                                        Se crean alertas para cada problema detectado con su prioridad correspondiente
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 bg-blue-100 rounded-full p-2 mt-1">
+                                    <i class="fas fa-users text-blue-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-base font-medium text-gray-800">4. Notificación</h3>
+                                    <p class="text-sm text-gray-600">
+                                        Las alertas se muestran a los miembros del equipo para su atención inmediata
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Nota informativa -->
+                    <div class="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-blue-500 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-base font-medium text-blue-800">¿Sabías que?</h3>
+                                <p class="mt-1 text-sm text-blue-700">
+                                    Puedes programar la generación automática de alertas cada 24 horas en la sección de configuración. 
+                                    Esto te ayudará a mantener una supervisión constante sobre el estado de tus proyectos.
+                                </p>
+                                <div class="mt-3">
+                                    <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center">
+                                        Ir a configuración
+                                        <i class="fas fa-arrow-right ml-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hacer que todo el contenedor sea clickeable para los radio buttons
+            const radioContainers = document.querySelectorAll('div.cursor-pointer');
+            
+            radioContainers.forEach(container => {
+                container.addEventListener('click', function() {
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                });
+            });
+        });
+    </script>
+{% endblock %}

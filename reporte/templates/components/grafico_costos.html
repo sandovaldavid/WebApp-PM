@@ -1,98 +1,166 @@
 {% load static %}
 
-<div class="bg-white p-6 rounded-lg shadow-lg">
-    <!-- Encabezado -->
-    <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-semibold">Análisis de Costos</h3>
-        <div class="text-sm text-gray-500">
-            Período: {{ datos_costos.periodo }}
-        </div>
-    </div>
-
-    <!-- Resumen de Costos -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div class="bg-yellow-50 p-4 rounded-lg">
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="text-sm text-yellow-600">Costo Estimado Total</p>
-                    <p class="text-2xl font-bold text-yellow-900">${{ datos_costos.total_estimado|floatformat:2 }}</p>
-                </div>
-                <div class="bg-yellow-100 p-3 rounded-full">
-                    <i class="fas fa-calculator text-yellow-500 text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-green-50 p-4 rounded-lg">
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="text-sm text-green-600">Costo Real Total</p>
-                    <p class="text-2xl font-bold text-green-900">${{ datos_costos.total_actual|floatformat:2 }}</p>
-                </div>
-                <div class="bg-green-100 p-3 rounded-full">
-                    <i class="fas fa-dollar-sign text-green-500 text-xl"></i>
-                </div>
+<div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 transition-all hover:shadow-xl">
+    <!-- Encabezado con degradado -->
+    <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 p-6 border-b border-yellow-200">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0">
+            <h3 class="text-xl font-bold text-yellow-900 flex items-center">
+                <i class="fas fa-chart-line text-yellow-600 mr-3 text-2xl"></i>
+                Análisis de Costos
+            </h3>
+            <div class="px-3 py-1 bg-yellow-100 rounded-full text-sm text-yellow-800 font-medium flex items-center">
+                <i class="fas fa-calendar-alt mr-2"></i>
+                Período: {{ datos_costos.periodo }}
             </div>
         </div>
     </div>
 
-    <!-- Tabla de Costos por Período -->
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-            <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Período</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estimado</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Real</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variación
-                </th>
-            </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-            {% for periodo in datos_costos.periodos %}
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ periodo.fecha }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${{ periodo.estimado|floatformat:2 }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${{ periodo.actual|floatformat:2 }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs rounded-full
-                            {% if periodo.variacion > 0 %}
-                                bg-red-100 text-red-800
-                            {% elif periodo.variacion < 0 %}
-                                bg-green-100 text-green-800
-                            {% else %}
-                                bg-gray-100 text-gray-800
-                            {% endif %}">
-                            {{ periodo.variacion|floatformat:1 }}%
-                        </span>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <!-- Resumen de Costos con diseño mejorado -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-xs uppercase tracking-wider font-semibold text-yellow-600 mb-1">Costo Estimado Total</p>
+                    <p class="text-3xl font-bold text-yellow-900 mb-1">${{ datos_costos.total_estimado|floatformat:2 }}</p>
+                    <p class="text-xs text-yellow-700">Presupuesto planificado</p>
+                </div>
+                <div class="bg-yellow-200 p-4 rounded-full shadow-inner">
+                    <i class="fas fa-calculator text-yellow-700 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-xs uppercase tracking-wider font-semibold text-emerald-600 mb-1">Costo Real Total</p>
+                    <p class="text-3xl font-bold text-emerald-900 mb-1">${{ datos_costos.total_actual|floatformat:2 }}</p>
+                    <p class="text-xs text-emerald-700">Gastos actuales</p>
+                </div>
+                <div class="bg-emerald-200 p-4 rounded-full shadow-inner">
+                    <i class="fas fa-dollar-sign text-emerald-700 text-xl"></i>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Indicadores de Rendimiento -->
-    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="p-4 border rounded-lg">
-            <p class="text-sm text-gray-500">Variación Total</p>
-            <p class="text-lg font-semibold {% if datos_costos.variacion_total > 0 %}text-red-600{% else %}text-green-600{% endif %}">
-                {{ datos_costos.variacion_total|floatformat:1 }}%
-            </p>
+    <!-- Tabla de Costos por Período con diseño mejorado -->
+    <div class="px-6 pb-6">
+        <h4 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+            <i class="fas fa-table text-yellow-500 mr-2"></i>
+            Detalle por Período
+        </h4>
+        <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gradient-to-r from-yellow-50 to-yellow-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase tracking-wider">Período</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase tracking-wider">Estimado</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase tracking-wider">Real</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-yellow-700 uppercase tracking-wider">Variación</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for periodo in datos_costos.periodos %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                                {{ periodo.fecha }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                ${{ periodo.estimado|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                ${{ periodo.actual|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full
+                                    {% if periodo.variacion > 5 %}
+                                        bg-red-100 text-red-800
+                                    {% elif periodo.variacion > 0 %}
+                                        bg-yellow-100 text-yellow-800
+                                    {% elif periodo.variacion < -5 %}
+                                        bg-green-100 text-green-800
+                                    {% elif periodo.variacion < 0 %}
+                                        bg-emerald-100 text-emerald-800
+                                    {% else %}
+                                        bg-gray-100 text-gray-800
+                                    {% endif %}">
+                                    <i class="{% if periodo.variacion > 0 %}fas fa-arrow-up{% elif periodo.variacion < 0 %}fas fa-arrow-down{% else %}fas fa-equals{% endif %} mr-1 text-xs"></i>
+                                    {{ periodo.variacion|floatformat:1 }}%
+                                </span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <div class="p-4 border rounded-lg">
-            <p class="text-sm text-gray-500">Presupuesto Utilizado</p>
-            <p class="text-lg font-semibold">{{ datos_costos.porcentaje_utilizado|floatformat:1 }}%</p>
-        </div>
-        <div class="p-4 border rounded-lg">
-            <p class="text-sm text-gray-500">Eficiencia de Costos</p>
-            <p class="text-lg font-semibold">{{ datos_costos.indice_eficiencia|floatformat:2 }}</p>
+    </div>
+
+    <!-- Indicadores de Rendimiento con tarjetas mejoradas -->
+    <div class="p-6 bg-gray-50 border-t border-gray-200">
+        <h4 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+            <i class="fas fa-chart-pie text-yellow-500 mr-2"></i>
+            Indicadores de Rendimiento
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-xl border border-gray-200 hover:shadow-md transition-all">
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-12 h-12 rounded-full bg-opacity-20 flex items-center justify-center mb-3
+                         {% if datos_costos.variacion_total > 0 %}bg-red-100{% else %}bg-green-100{% endif %}">
+                        <i class="fas {% if datos_costos.variacion_total > 0 %}fa-arrow-trend-up text-red-600{% else %}fa-arrow-trend-down text-green-600{% endif %} text-xl"></i>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-1">Variación Total</p>
+                    <p class="text-2xl font-bold {% if datos_costos.variacion_total > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+                        {{ datos_costos.variacion_total|floatformat:1 }}%
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        {% if datos_costos.variacion_total > 10 %}
+                            Sobrecosto significativo
+                        {% elif datos_costos.variacion_total > 0 %}
+                            Ligero sobrecosto
+                        {% elif datos_costos.variacion_total > -10 %}
+                            Ahorro moderado
+                        {% else %}
+                            Ahorro significativo
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-xl border border-gray-200 hover:shadow-md transition-all">
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 bg-opacity-60 flex items-center justify-center mb-3">
+                        <i class="fas fa-wallet text-blue-600 text-xl"></i>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-1">Presupuesto Utilizado</p>
+                    <p class="text-2xl font-bold text-blue-700">{{ datos_costos.porcentaje_utilizado|floatformat:1 }}%</p>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                        <div class="{% if datos_costos.porcentaje_utilizado > 100 %}bg-red-600{% elif datos_costos.porcentaje_utilizado > 85 %}bg-yellow-600{% else %}bg-blue-600{% endif %} h-1.5 rounded-full" 
+                             style="width: {{ datos_costos.porcentaje_utilizado|floatformat:1 }}%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-xl border border-gray-200 hover:shadow-md transition-all">
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-12 h-12 rounded-full bg-purple-100 bg-opacity-60 flex items-center justify-center mb-3">
+                        <i class="fas fa-balance-scale text-purple-600 text-xl"></i>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-1">Eficiencia de Costos</p>
+                    <p class="text-2xl font-bold text-purple-700">{{ datos_costos.indice_eficiencia|floatformat:2 }}</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        {% if datos_costos.indice_eficiencia > 1.1 %}
+                            Muy eficiente
+                        {% elif datos_costos.indice_eficiencia > 0.95 %}
+                            Eficiente
+                        {% elif datos_costos.indice_eficiencia > 0.85 %}
+                            Moderadamente eficiente
+                        {% else %}
+                            Necesita mejoras
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </div>

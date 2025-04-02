@@ -50,13 +50,77 @@
     <div id="lista-notificaciones" class="space-y-4">
         {% if user.is_authenticated %}
             {% if notificaciones %}
-                {% for notificacion in notificaciones %}
-                    {% include 'components/notificacion.html' with notificacion=notificacion %}
-                {% endfor %}
+                <ul class="divide-y divide-gray-100">
+                    {% for notificacion in notificaciones %}
+                        <li class="hover:bg-blue-50 transition-colors duration-200">
+                            <a href="{% url 'notificaciones:detalle_notificacion' notificacion.idnotificacion %}" class="block p-4">
+                                <div class="flex items-start">
+                                    <!-- Icono de Notificación con Indicador de Prioridad -->
+                                    <div class="flex-shrink-0 mr-4">
+                                        <span class="inline-flex items-center justify-center h-10 w-10 rounded-full 
+                                            {% if notificacion.prioridad == 'alta' %}bg-red-100 text-red-600
+                                            {% elif notificacion.prioridad == 'media' %}bg-yellow-100 text-yellow-600
+                                            {% else %}bg-green-100 text-green-600{% endif %}">
+                                            <i class="fas {% if notificacion.leido %}fa-envelope-open{% else %}fa-envelope{% endif %}"></i>
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Contenido -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <p class="text-sm font-medium {% if not notificacion.leido %}text-gray-900{% else %}text-gray-600{% endif %} truncate">
+                                                {% if not notificacion.leido %}<span class="font-bold">•</span>{% endif %}
+                                                {{ notificacion.idusuario.nombreusuario }}
+                                            </p>
+                                            <span class="text-xs text-gray-500">{{ notificacion.fechacreacion|timesince }}</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600 line-clamp-2">{{ notificacion.mensaje|truncatechars:80 }}</p>
+                                        
+                                        <!-- Etiquetas -->
+                                        <div class="mt-2 flex items-center flex-wrap gap-1">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                {{ notificacion.categoria }}
+                                            </span>
+                                            
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                                {% if notificacion.prioridad == 'alta' %}bg-red-100 text-red-800
+                                                {% elif notificacion.prioridad == 'media' %}bg-yellow-100 text-yellow-800
+                                                {% else %}bg-green-100 text-green-800{% endif %}">
+                                                {{ notificacion.prioridad|title }}
+                                            </span>
+                                            
+                                            {% if not notificacion.leido %}
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                    No leída
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Flecha -->
+                                    <div class="flex-shrink-0 self-center ml-2">
+                                        <i class="fas fa-chevron-right text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <!-- Ver más link -->
+                <div class="p-4 text-center">
+                    <a href="{% url 'notificaciones:index' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors">
+                        Ver todas las notificaciones
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
             {% else %}
-                <div class="text-center py-8 text-gray-500">
-                    <i class="fas fa-check-circle text-4xl mb-2"></i>
-                    <p>No tienes notificaciones pendientes</p>
+                <div class="py-12 text-center">
+                    <div class="inline-block p-4 rounded-full bg-blue-100 mb-4">
+                        <i class="fas fa-bell-slash text-blue-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">No hay notificaciones</h3>
+                    <p class="mt-2 text-sm text-gray-500">No tienes notificaciones pendientes en este momento.</p>
                 </div>
             {% endif %}
         {% else %}

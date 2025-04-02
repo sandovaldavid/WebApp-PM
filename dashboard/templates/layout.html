@@ -7,137 +7,169 @@
     <meta name="description" content="Sistema de Gestión de Proyectos - Panel de administración">
     <meta name="theme-color" content="#1a56db">
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Favicon y PWA -->
-    <link rel="icon" type="image/ico" href="{% static '/img/favicon.ico' %}">
+    <link rel="icon" type="image/ico" href="{% static 'img/favicon.ico' %}">
     <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
     <link rel="manifest" href="{% static 'manifest.json' %}">
 
     <title>{% block title %}Sistema de Gestión{% endblock %} | ProjectManager</title>
 
-    <!-- Preload de recursos críticos -->
-    <link rel="preload" href="https://fonts.googleapis.com" as="font" crossorigin>
-    <link rel="preload" href="https://cdnjs.cloudflare.com" as="style" crossorigin>
-    <link rel="preload" href="{% static 'css/layout.css' %}" as="style">
-
-    <!-- Estilos principales -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-          rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-          rel="stylesheet">
-    <link href="{% static 'css/layout.css' %}" rel="stylesheet">
-
     <!-- Estilos críticos inline para evitar FOUC -->
     <style>
-        body {
-            visibility: hidden;
-        }
-        .preload * {
-            transition: none !important;
-        }
-        header {
-            position: relative;
-            z-index: 1000;
-        }
-
-        /* Estilo para el botón de alternar */
-        #toggleSidebar {
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 5000;
-            background-color: rgba(30, 64, 175, 0.9); /* Color azul semitransparente */
-            /* Fondo oscuro */
-            color: white;
-            border-radius: 0.375rem;
-            padding: 0.5rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        #toggleSidebar:hover {
-            background-color: rgba(37, 99, 235, 1); /* Azul más brillante al pasar el mouse */
-        }
+        body {visibility: hidden;}
+        .preload * {transition: none !important;}
     </style>
 
-    <!-- Scripts -->
-    <script>
-        // Remover clase preload después de cargar
-        window.addEventListener('load', () => {
-            document.body.classList.remove('preload');
-            document.body.style.visibility = 'visible';
-        });
-    </script>
+    <!-- Estilos principales (cargados de manera no bloqueante) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}" media="print" onload="this.media='all'">
+
+    <!-- Script de Alpine.js para UI interactiva -->
     <script src="https://unpkg.com/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
 
+    <!-- Script para hacer visible el contenido cuando todo esté cargado -->
+    <script>
+        window.addEventListener('load', () => {
+            document.body.classList.remove('preload');
+            document.body.style.visibility = 'visible';
+            console.time('Tiempo de carga total');
+            setTimeout(() => console.timeEnd('Tiempo de carga total'), 0);
+        });
+    </script>
+
     {% block style %}{% endblock %}
 </head>
-<body class="preload">
-<!-- Botón para alternar la barra lateral -->
-<button id="toggleSidebar" class="focus:outline-none">
-    <i class="fas fa-bars"></i>
-</button>
-<!-- Sidebar -->
-<aside class="flex">
-    <div class="sidebar bg-gray-800 text-white h-screen hidden lg:block bg-blue-600">
-        <!-- Logo -->
-        <div class="flex items-center justify-center h-16 px-4">
-            <img src="{% static '/img/default-avatar.png' %}" alt="Logo" class="h-8">
-        </div>
-
-        <!-- Navegación -->
-        <nav class="mt-5 flex-1 space-y-1 px-2">
-            {% include 'components/navigation.html' %}
-        </nav>
-    </div>
-</aside>
-<div class="content flex-1 expanded">
-    <!-- Cabecera -->
-    <header
-            class="fixed top-0 left-0 w-full flex justify-between items-center p-5 px-14 bg-blue-600 text-white shadow-2xl"
-    >
-        <div class="text-2xl font-bold ">
-            {% block title_body %}{% endblock %}
-        </div>
-
-        <!-- Acciones del usuario -->
-        {% include 'components/user_menu.html' %}
-    </header>
-
-    <!-- Contenido Principal -->
-    <div class="mt-16">
-        {% if messages %}
-            <div class="fixed top-4 right-4 z-50 space-y-4">
-                {% for message in messages %}
-                    <div class="notification-message {% if message.tags %}{{ message.tags }}{% endif %}
-                                    px-4 py-3 rounded-lg shadow-lg 
-                                    {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500
-                                    {% elif message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500
-                                    {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500
-                                    {% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}
-                                    flex items-center justify-between"
-                         role="alert">
-                        <div class="flex items-center">
-                            <div class="py-1">
-                                <i class="fas {% if message.tags == 'success' %}fa-check-circle text-green-500
-                                            {% elif message.tags == 'error' %}fa-times-circle text-red-500
-                                            {% elif message.tags == 'warning' %}fa-exclamation-circle text-yellow-500
-                                            {% else %}fa-info-circle text-blue-500{% endif %} mr-2"></i>
-                                <span class="font-medium">{{ message }}</span>
-                            </div>
-                        </div>
-                        <button onclick="this.parentElement.style.display='none'" class="ml-4">
-                            <i class="fas fa-times"></i>
-                        </button>
+<body class="preload bg-gray-50 text-gray-800 font-sans antialiased">
+    <div class="flex h-screen overflow-hidden" x-data="{ 
+        sidebarOpen: localStorage.getItem('sidebarState') === 'closed' ? false : true,
+        toggleSidebar() {
+            this.sidebarOpen = !this.sidebarOpen;
+            localStorage.setItem('sidebarState', this.sidebarOpen ? 'open' : 'closed');
+        }
+    }">
+        <!-- Sidebar -->
+        <div 
+            class="sidebar-container transition-all duration-500 ease-in-out transform"
+            :class="sidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full w-0'"
+        >
+            <aside class="sidebar bg-gradient-to-b from-blue-700 to-blue-900 text-white h-full min-h-screen overflow-y-auto flex flex-col">
+                <!-- Logo y botón para cerrar (móvil) -->
+                <div class="flex items-center justify-between p-6 border-b border-blue-400 sticky top-0 z-10 bg-gradient-to-r from-blue-700 to-blue-800">
+                    <div class="flex items-center space-x-3">
+                        <img src="{% static '/img/logo.png' %}" alt="Logo" class="h-8">
+                        <h2 class="text-xl font-bold tracking-wide" :class="{'hidden 2xl:block': !sidebarOpen}">TaskElevates</h2>
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% block body %}
-        {% endblock %}
+                    <button 
+                        @click="sidebarOpen = !sidebarOpen"
+                        class="p-1 rounded-md hover:bg-blue-600 focus:outline-none lg:hidden"
+                    >
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- Wrapper para scroll -->
+                <div class="flex-grow overflow-y-auto py-2">
+                    <!-- Navegación -->
+                    <nav class="px-4 space-y-1" :class="{'items-center': !sidebarOpen}">
+                        {% include 'components/navigation.html' %}
+                    </nav>
+                </div>
+                
+                <!-- Footer Sidebar - fijo en la parte inferior -->
+                <div class="p-4 border-t border-blue-800 bg-gradient-to-r from-blue-800 to-blue-900 mt-auto" :class="{'hidden': !sidebarOpen}">
+                    <div class="flex items-center justify-between text-sm">
+                        <span>v2.0</span>
+                        <a href="#" class="text-blue-300 hover:text-white">Ayuda</a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="h-screen flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-md z-30">
+                <div class="flex items-center justify-between h-16 px-6 my-2">
+                    <div class="flex items-center">
+                        <!-- Botón toggle sidebar -->
+                        <button 
+                            @click="toggleSidebar()" 
+                            class="p-2 rounded-md text-white hover:bg-white hover:bg-opacity-20 focus:outline-none"
+                        >
+                            <i class="fas" :class="sidebarOpen ? 'fa-times' : 'fa-bars'"></i>
+                        </button>
+                        
+                        <!-- Título de la página -->
+                        <h1 class="ml-4 text-xl font-semibold" style="color: var(--text-header-primary);">
+                            {% block title_body %}{% endblock %}
+                        </h1>
+                    </div>
+
+                    <!-- Acciones del usuario -->
+                    <div class="flex items-center space-x-4">
+                        {% include 'components/user_menu.html' %}
+                    </div>
+                </div>
+            </header>
+
+            <!-- Contenido Principal -->
+            <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+                {% if messages %}
+                    <div class="fixed top-4 right-4 z-50 space-y-4">
+                        {% for message in messages %}
+                            <div class="notification-message {% if message.tags %}{{ message.tags }}{% endif %}
+                                        px-6 py-4 rounded-lg shadow-xl 
+                                        {% if message.tags == 'success' %}bg-green-50 text-green-800 border-l-4 border-green-500
+                                        {% elif message.tags == 'error' %}bg-red-50 text-red-800 border-l-4 border-red-500
+                                        {% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border-l-4 border-yellow-500
+                                        {% else %}bg-blue-50 text-blue-800 border-l-4 border-blue-500{% endif %}
+                                        flex items-center justify-between transform transition-all duration-500"
+                             role="alert">
+                                <div class="flex items-center">
+                                    <div class="py-1">
+                                        <i class="fas {% if message.tags == 'success' %}fa-check-circle text-green-500
+                                                {% elif message.tags == 'error' %}fa-times-circle text-red-500
+                                                {% elif message.tags == 'warning' %}fa-exclamation-circle text-yellow-500
+                                                {% else %}fa-info-circle text-blue-500{% endif %} mr-2 text-lg"></i>
+                                        <span class="font-medium">{{ message }}</span>
+                                    </div>
+                                </div>
+                                <button onclick="this.parentElement.style.display='none'" class="ml-4 text-gray-400 hover:text-gray-600 transition-colors">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <!-- Contenido de la página -->
+                <div class="container mx-auto">
+                    {% block body %}{% endblock %}
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <!--<footer class="bg-white border-t border-gray-200 py-4 px-6">
+                <div class="flex items-center justify-between text-sm text-gray-500">
+                    <span>© {% now "Y" %} ProjectManager. Todos los derechos reservados.</span>
+                    <div class="flex space-x-4">
+                        <a href="#" class="hover:text-blue-600 transition-colors">Términos</a>
+                        <a href="#" class="hover:text-blue-600 transition-colors">Privacidad</a>
+                    </div>
+                </div>
+            </footer>-->
+        </div>
     </div>
-</div>
-<script src="{% static "js/layout.js" %}"></script>
-{% block script %}{% endblock %}
+
+    <!-- Cargar el script layout.js al final para mejor rendimiento -->
+    <script src="{% static 'js/layout.js' %}"></script>
+    {% block script %}{% endblock %}
 </body>
 </html>
