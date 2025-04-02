@@ -1,40 +1,51 @@
-<!-- Encabezado de la Notificación -->
-<div class="flex items-center justify-between mb-3">
-    <div class="flex items-center space-x-2">
-        <i class="fas fa-bell text-blue-500"></i>
-        <span class="font-medium text-gray-900">Nueva Notificación</span>
-    </div>
-    <!-- Indicador de Prioridad -->
-    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-            {% if prioridad == 'alta' %}bg-red-100 text-red-800
-            {% elif prioridad == 'media' %}bg-yellow-100 text-yellow-800
-            {% else %}bg-green-100 text-green-800{% endif %}">
-        <i class="fas fa-flag mr-1"></i>
-        {{ prioridad|title }}
-    </span>
-</div>
-
-<!-- Contenido de la Notificación -->
-<div class="space-y-3">
-    <!-- Mensaje -->
-    <p class="text-gray-800">
-        {{ mensaje|default:"El mensaje aparecerá aquí..." }}
-    </p>
-
-    <!-- Metadata -->
-    <div class="flex items-center justify-between text-sm text-gray-500 pt-3 border-t border-gray-100">
-        <!-- Usuario -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4 transform transition-all duration-300">
+    <div class="flex items-center justify-between mb-3">
         <div class="flex items-center">
-            <i class="fas fa-user mr-2"></i>
-            <span>Para: {{ usuario.nombreusuario|default:"Usuario seleccionado" }}</span>
-        </div>
-
-        <!-- Categoría -->
-        {% if categoria %}
-            <div class="flex items-center">
-                <i class="fas fa-tag mr-2"></i>
-                <span>{{ categoria }}</span>
+            <span class="inline-flex items-center justify-center h-10 w-10 rounded-full 
+                {% if prioridad == 'alta' %}bg-red-100 text-red-600
+                {% elif prioridad == 'media' %}bg-yellow-100 text-yellow-600
+                {% else %}bg-green-100 text-green-600{% endif %} mr-3">
+                <i class="fas fa-bell"></i>
+            </span>
+            <div>
+                <div class="flex items-center">
+                    <h3 class="text-base font-medium text-gray-900">Nueva Notificación</h3>
+                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        {% if prioridad == 'alta' %}bg-red-100 text-red-800
+                        {% elif prioridad == 'media' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-green-100 text-green-800{% endif %}">
+                        {{ prioridad|title }}
+                    </span>
+                </div>
+                {% if usuario %}
+                    <p class="text-sm text-gray-600">Para: {{ usuario.nombreusuario }}</p>
+                {% endif %}
             </div>
+        </div>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <i class="fas fa-eye mr-1"></i>
+            Vista Previa
+        </span>
+    </div>
+    
+    <div class="border-t border-gray-100 pt-3 mt-2">
+        <div class="flex">
+            <span class="inline-block bg-gray-100 rounded-full p-2 mr-3">
+                <i class="fas fa-tag text-gray-500"></i>
+            </span>
+            <span class="text-sm text-gray-700">{{ categoria }}</span>
+        </div>
+    </div>
+    
+    <div class="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-100">
+        {% if mensaje %}
+            <p class="text-gray-800 text-sm">{{ mensaje }}</p>
+        {% else %}
+            <p class="text-gray-500 text-sm italic">El mensaje aparecerá aquí...</p>
         {% endif %}
+    </div>
+    
+    <div class="mt-4 text-right">
+        <span class="text-xs text-gray-500">{% now "j F, Y H:i" %}</span>
     </div>
 </div>

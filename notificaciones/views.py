@@ -78,7 +78,7 @@ def crear_alerta(request):
 
 
 @login_required
-def dashboard(request):
+def index(request):
     """
     Vista del dashboard que muestra notificaciones filtradas por usuario
     o todas si es admin
@@ -255,7 +255,7 @@ def lista_notificaciones(request):
 
     return render(
         request,
-        "notificaciones/lista_notificaciones.html",
+        "components/lista_notificaciones.html",
         {"notificaciones": notificaciones},
     )
 
@@ -657,20 +657,41 @@ def lista_alertas(request):
             )
         )
 
-    # Aplicar filtros si existen
-    tipo = request.GET.get("tipo")
-    if tipo:
-        alertas = alertas.filter(tipoalerta=tipo)
-
-    # Ordenar por fecha
-    alertas = alertas.order_by("-fechacreacion")
-
-    context = {
-        "alertas": alertas,
-        "tipos_alerta": ["retraso", "presupuesto", "riesgo", "bloqueo"],
-    }
-
-    return render(request, "alertas/listar_alertas.html", context)
+    """Muestra la lista completa de alertas."""
+    tipo = request.GET.get('tipo', 'todas')
+    
+    # Filtrar por tipo
+    if tipo != 'todas':
+        alertas = alertas.filter(tipoalerta=tipo).order_by('-fechacreacion')
+    else:
+        alertas = alertas.all().order_by('-fechacreacion')
+    
+    # Paginación
+    paginator = Paginator(alertas, 10)
+    page = request.GET.get('page', 1)
+    alertas_paginadas = paginator.get_page(page)
+    
+    # Estadísticas por tipo de alerta
+    tipos_alerta = ['retraso', 'presupuesto', 'riesgo', 'bloqueo']
+    
+    # Calcular total por tipo
+    tipos_alertas = []
+    total_alertas = Alerta.objects.count()
+    
+    for tipo_alerta in tipos_alerta:
+        count = Alerta.objects.filter(tipoalerta=tipo_alerta).count()
+        tipos_alertas.append({
+            'tipoalerta': tipo_alerta,
+            'total': count,
+            'porcentaje': (count / total_alertas * 100) if total_alertas > 0 else 0
+        })
+    
+    return render(request, 'alertas/listar_alertas.html', {
+        'alertas': alertas_paginadas,
+        'tipo_actual': tipo,
+        'tipos_alerta': tipos_alerta,
+        'tipos_alertas': tipos_alertas
+    })
 
 
 @login_required
@@ -964,10 +985,9 @@ def estadisticas_alertas(request):
 
 @login_required
 def filtrar_alertas(request):
-    """Vista para filtrar alertas por tipo"""
+    """Filtra alertas por tipo (endpoint para HTMX)."""
     tipo = request.GET.get("tipo", "todas")
-    page = request.GET.get("page", 1)
-
+    
     # Determinar si el usuario es admin
     is_admin = request.user.is_staff or request.user.rol == "Administrador"
 
@@ -981,46 +1001,24 @@ def filtrar_alertas(request):
             )
         )
 
-    # Aplicar filtro por tipo
-    if tipo != "todas":
-        alertas = alertas.filter(tipoalerta=tipo)
-
-    # Ordenar por fecha
-    alertas = alertas.order_by("-fechacreacion")
-
+    
+    tipo = request.GET.get('tipo', 'todas')
+    
+    # Filtrar por tipo
+    if tipo != 'todas':
+        alertas = alertas.filter(tipoalerta=tipo).order_by('-fechacreacion')
+    else:
+        alertas = alertas.all().order_by('-fechacreacion')
+    
     # Paginación
     paginator = Paginator(alertas, 10)
-    try:
-        alertas_page = paginator.page(page)
-    except:
-        alertas_page = paginator.page(1)
-
-    # Calcular estadísticas por tipo
-    tipos_alertas = (
-        alertas.values("tipoalerta")
-        .annotate(
-            total=Count("idalerta"),
-            porcentaje=(
-                100.0 * Count("idalerta") / alertas.count()
-                if alertas.count() > 0
-                else 0
-            ),
-        )
-        .order_by("-total")
-    )
-
-    context = {
-        "alertas": alertas_page,
-        "tipos_alertas": tipos_alertas,
-        "tipo_actual": tipo,
-        "is_admin": is_admin,
-    }
-
-    # Si es una petición HTMX
-    if request.headers.get("HX-Request"):
-        return render(request, "alertas/lista_filtrada.html", context)
-
-    return render(request, "alertas/listar_alertas.html", context)
+    page = request.GET.get('page', 1)
+    alertas_paginadas = paginator.get_page(page)
+    
+    return render(request, 'alertas/lista_filtrada.html', {
+        'alertas': alertas_paginadas,
+        'tipo_actual': tipo
+    })
 
 
 @login_required
@@ -1062,10 +1060,8 @@ def vista_previa_alerta(request):
 
     return render(request, "components/vista_previa_alerta.html", context)
 
-
-# Añade esta vista a notificaciones/views.py
 @login_required
-def generar_alertas_manual(request):
+def generar_alertas(request):
     """Vista para generar alertas manualmente (solo para administradores)"""
     if not request.user.is_staff and request.user.rol != "Administrador":
         messages.error(request, "No tienes permiso para realizar esta acción")
@@ -1101,4 +1097,4 @@ def generar_alertas_manual(request):
         "alertas_bloqueo": Alerta.objects.filter(tipoalerta="bloqueo", activa=True).count()
     }
     
-    return render(request, "alertas/generar_alertas.html", {"stats": stats})
+    return render(request, "alertas/generar_alertas_2.html", {"stats": stats})

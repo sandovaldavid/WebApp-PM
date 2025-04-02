@@ -2,7 +2,7 @@
 
 <div class="alerta-item bg-white rounded-lg shadow-sm p-4 mb-3 hover:shadow-md transition duration-200 
     {% if alerta.activa %}border-l-4 
-    {% if alerta.tipoalerta == 'retraso' %}border-orange-500
+    {% if alerta.tipoalerta == 'retraso' %}border-yellow-500
     {% elif alerta.tipoalerta == 'presupuesto' %}border-red-500
     {% elif alerta.tipoalerta == 'riesgo' %}border-yellow-500
     {% else %}border-purple-500{% endif %}{% endif %}">
@@ -13,7 +13,7 @@
             <!-- Encabezado de Alerta -->
             <div class="flex items-center space-x-2">
                 {% if alerta.tipoalerta == 'retraso' %}
-                    <i class="fas fa-clock text-orange-500 text-xl"></i>
+                    <i class="fas fa-clock text-yellow-500 text-xl"></i>
                 {% elif alerta.tipoalerta == 'presupuesto' %}
                     <i class="fas fa-dollar-sign text-red-500 text-xl"></i>
                 {% elif alerta.tipoalerta == 'riesgo' %}
