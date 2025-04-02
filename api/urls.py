@@ -7,7 +7,8 @@ from api.views import (
     equipo_views,
     requerimiento_views,
     recurso_views,
-    estimacion_views,  # Importar nuevas vistas
+    estimacion_views,
+    tarea_comun_views,
 )
 from api.views.auth_views import LoginView
 from api.views.health_views import health_check
@@ -21,6 +22,9 @@ router.register(r"tareas", tarea_views.TareaViewSet)
 router.register(r"equipos", equipo_views.EquipoViewSet)
 router.register(r"requerimientos", requerimiento_views.RequerimientoViewSet)
 router.register(r"recursos", recurso_views.RecursoViewSet)
+router.register(
+    r"tareas-comunes", tarea_comun_views.TareaComunViewSet
+)
 
 # The API URLs are determined automatically by the router
 urlpatterns = [
