@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webapp.settings")
 
 import django
+
 django.setup()
 
 from django.contrib.auth import get_user_model
@@ -64,10 +65,10 @@ def _validate_complete_data(update_data):
     for field in required_fields:
         if field not in update_data:
             # Ajustar campo faltante con un valor por defecto
-            if field == 'metrics':
-                update_data['metrics'] = {'MSE': 0, 'MAE': 0, 'RMSE': 0, 'R2': 0}
-            elif field == 'model_id':
-                update_data['model_id'] = update_data.get('training_id', 'unknown')
+            if field == "metrics":
+                update_data["metrics"] = {"MSE": 0, "MAE": 0, "RMSE": 0, "R2": 0}
+            elif field == "model_id":
+                update_data["model_id"] = update_data.get("training_id", "unknown")
 
 
 def _add_update(training_id, update_data):
@@ -112,7 +113,7 @@ def _add_update(training_id, update_data):
             "updates": [update_data],
             "last_activity_time": time.time(),
         }
-        return cache.set(f'training_config_{training_id}', new_config, 7200)
+        return cache.set(f"training_config_{training_id}", new_config, 7200)
 
 
 def ejecutar_entrenamiento(training_id, user_id):
@@ -128,10 +129,10 @@ def ejecutar_entrenamiento(training_id, user_id):
     """
     # Importar cache explícitamente al inicio de la función
     from django.core.cache import cache
-    
+
     # Guardar la asociación del usuario con el entrenamiento en cache
-    cache.set(f'training_user_{training_id}', user_id, 3600)  # 1 hora de tiempo de vida
-    
+    cache.set(f"training_user_{training_id}", user_id, 3600)  # 1 hora de tiempo de vida
+
     # Notificar inicio
     _add_update(
         training_id,

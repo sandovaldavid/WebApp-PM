@@ -56,7 +56,7 @@ def check_model_files():
             "redes_neuronales", "estimacion_tiempo", "models", "feature_dims.pkl"
         ),
     ]
-    
+
     missing_files = []
     for file_path in required_files:
         if not os.path.exists(file_path):
@@ -89,8 +89,8 @@ def run_manual_evaluation():
     except Exception as e:
         traceback.print_exc()
         return {
-            'success': False,
-            'message': f'Error durante la evaluación manual: {str(e)}'
+            "success": False,
+            "message": f"Error durante la evaluación manual: {str(e)}",
         }
     finally:
         import matplotlib.pyplot as plt
@@ -98,6 +98,7 @@ def run_manual_evaluation():
 
         plt.close("all")
         gc.collect()  # Opcional: forzar recolección de basura
+
 
 def get_model_status():
     """Obtiene el estado actual del modelo y sus métricas"""
@@ -158,24 +159,27 @@ def get_model_status():
 @login_required
 def generar_archivos_evaluacion(request):
     """Vista para generar archivos de evaluación para un modelo existente"""
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
             # Usar la función utilitaria para generar los archivos
             from .views_utils import generate_evaluation_files, check_model_files
-            
+
             # Primero verificar si existen los archivos necesarios
             model_check = check_model_files()
-            if not model_check['all_present']:
-                return JsonResponse({
-                    'success': False,
-                    'message': f'Faltan archivos necesarios: {", ".join(model_check["missing_files"][:3])}'
-                })
-            
+            if not model_check["all_present"]:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "message": f'Faltan archivos necesarios: {", ".join(model_check["missing_files"][:3])}',
+                    }
+                )
+
             # Generar archivos
             result = generate_evaluation_files(request)
             return JsonResponse(result)
         except Exception as e:
             import traceback
+
             traceback.print_exc()
             return JsonResponse(
                 {

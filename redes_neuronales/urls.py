@@ -1,7 +1,7 @@
 from django.urls import path, include
 from . import views
 
-app_name = 'redes_neuronales'
+app_name = "redes_neuronales"
 
 urlpatterns = [
     # Rutas para dashboard y estimación

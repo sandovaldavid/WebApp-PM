@@ -37,12 +37,13 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
 ]
 
-if os.environ.get('CSRF_TRUSTED_ORIGINS'):
-    CSRF_TRUSTED_ORIGINS.extend(os.environ.get('CSRF_TRUSTED_ORIGINS').split(','))
+if os.environ.get("CSRF_TRUSTED_ORIGINS"):
+    CSRF_TRUSTED_ORIGINS.extend(os.environ.get("CSRF_TRUSTED_ORIGINS").split(","))
 
 # Application definition
 
 INSTALLED_APPS = [
+    "api",
     "gestion_equipos",
     "gestion_proyectos",
     "gestion_recursos",
@@ -61,7 +62,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'django_apscheduler',
+    # Third-party apps
+    "rest_framework",
+    "rest_framework.authtoken",
+    "django_filters",
+    "django_apscheduler",
 ]
 
 MIDDLEWARE = [
@@ -214,6 +219,7 @@ LOGGING = {
     },
 }
 
+
 # Email configuration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST")
@@ -226,3 +232,28 @@ DEFAULT_FROM_EMAIL = 'WebApp-PM <' + os.getenv("EMAIL_HOST_USER") + '>'
 # Configuración específica para django_apscheduler
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"  # Formato de fecha para los logs
 APSCHEDULER_RUN_NOW_TIMEOUT = 25  # Segundos para timeout
+
+
+# REST Framework settings
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "api.pagination.CustomPagination",
+    "PAGE_SIZE": 50,
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+}
+
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    "api.auth_backends.EmailBackend",  # Our custom email-based backend first
+    "django.contrib.auth.backends.ModelBackend",  # Keep the default backend as fallback
+]

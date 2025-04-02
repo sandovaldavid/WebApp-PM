@@ -57,10 +57,12 @@ atexit.register(cleanup_processes)
 
 class TaskStatus:
     """Estados posibles de una tarea"""
-    PENDING = 'pending'
-    RUNNING = 'running'
-    COMPLETED = 'completed'
-    FAILED = 'failed'
+
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
 
 class AsyncTask:
     """Implementación mejorada de tareas asíncronas usando procesos en lugar de hilos"""
@@ -68,7 +70,7 @@ class AsyncTask:
     def __init__(self, target_func=None, name=None):
         """
         Inicializa una nueva tarea asíncrona
-        
+
         Args:
             target_func: Función objetivo a ejecutar
             name: Nombre descriptivo para la tarea
@@ -80,20 +82,22 @@ class AsyncTask:
 
     def _error_handler(self, task_id, error, traceback_str):
         """Maneja errores de tareas en procesos separados"""
-        logger.error(f"Error en tarea {task_id} ({self.name}): {error}\n{traceback_str}")
-        
+        logger.error(
+            f"Error en tarea {task_id} ({self.name}): {error}\n{traceback_str}"
+        )
+
         if task_id in _ACTIVE_TASKS:
-            _ACTIVE_TASKS[task_id]['status'] = TaskStatus.FAILED
-            _ACTIVE_TASKS[task_id]['error'] = str(error)
-            _ACTIVE_TASKS[task_id]['traceback'] = traceback_str
-            _ACTIVE_TASKS[task_id]['end_time'] = datetime.now()
-            
+            _ACTIVE_TASKS[task_id]["status"] = TaskStatus.FAILED
+            _ACTIVE_TASKS[task_id]["error"] = str(error)
+            _ACTIVE_TASKS[task_id]["traceback"] = traceback_str
+            _ACTIVE_TASKS[task_id]["end_time"] = datetime.now()
+
         # Actualizar el estado en cache para la interfaz web
-        config_key = f'training_config_{task_id}'
+        config_key = f"training_config_{task_id}"
         config = cache.get(config_key)
         if config:
-            config['status'] = 'failed'
-            config['error'] = str(error)
+            config["status"] = "failed"
+            config["error"] = str(error)
             cache.set(config_key, config, 7200)  # 2 horas
 
     def _process_wrapper(self, task_id, args, kwargs):
@@ -144,7 +148,7 @@ class AsyncTask:
 
             # Ejecutar la función objetivo
             result = self.target_func(*args, **kwargs)
-            
+
             # Registrar finalización exitosa
             trace_log(
                 f"Función {self.target_func.__name__} completada exitosamente para task_id={task_id}",
@@ -205,7 +209,7 @@ class AsyncTask:
         """
         Ejecuta la tarea en un proceso separado
         Similar a la interfaz de Celery para facilitar migración futura
-        
+
         Returns:
             AsyncResult: Objeto que simula AsyncResult de Celery
         """
@@ -225,20 +229,20 @@ class AsyncTask:
         )
 
         _ACTIVE_TASKS[task_id] = {
-            'id': task_id,
-            'name': self.name,
-            'status': TaskStatus.PENDING,
-            'create_time': datetime.now(),
-            'start_time': None,
-            'end_time': None,
-            'args': args,
-            'kwargs': kwargs
+            "id": task_id,
+            "name": self.name,
+            "status": TaskStatus.PENDING,
+            "create_time": datetime.now(),
+            "start_time": None,
+            "end_time": None,
+            "args": args,
+            "kwargs": kwargs,
         }
-        
+
         # Crear y iniciar el proceso
         process = Process(target=self._process_wrapper, args=(task_id, args, kwargs))
         process.daemon = True
-        
+
         # Almacenar proceso para posible cancelación
         _ACTIVE_TASKS[task_id]["process"] = process
 
@@ -359,7 +363,7 @@ class AsyncResult:
             start_time = time.time()
             while not self.ready() and (time.time() - start_time < timeout):
                 time.sleep(0.1)
-                
+
         if not self.ready():
             raise TimeoutError("La tarea no ha terminado en el tiempo especificado")
 
@@ -398,25 +402,33 @@ start_training_process = create_training_task()
 # Funciones de utilidad para gestión de tareas
 def get_task_status(task_id):
     """Obtiene el estado actual de una tarea"""
-    return _ACTIVE_TASKS.get(task_id, {'status': 'unknown'})
+    return _ACTIVE_TASKS.get(task_id, {"status": "unknown"})
+
 
 def get_active_tasks():
     """Obtiene lista de tareas activas"""
-    return {k: v for k, v in _ACTIVE_TASKS.items() 
-            if v.get('status') in [TaskStatus.PENDING, TaskStatus.RUNNING]}
+    return {
+        k: v
+        for k, v in _ACTIVE_TASKS.items()
+        if v.get("status") in [TaskStatus.PENDING, TaskStatus.RUNNING]
+    }
+
 
 def cleanup_completed_tasks(max_age_hours=24):
     """Limpia tareas completadas antiguas"""
     current_time = datetime.now()
     keys_to_remove = []
-    
+
     for task_id, task_info in _ACTIVE_TASKS.items():
-        if task_info.get('status') in [TaskStatus.COMPLETED, TaskStatus.FAILED]:
-            end_time = task_info.get('end_time')
-            if end_time and (current_time - end_time).total_seconds() > max_age_hours * 3600:
+        if task_info.get("status") in [TaskStatus.COMPLETED, TaskStatus.FAILED]:
+            end_time = task_info.get("end_time")
+            if (
+                end_time
+                and (current_time - end_time).total_seconds() > max_age_hours * 3600
+            ):
                 keys_to_remove.append(task_id)
-    
+
     for task_id in keys_to_remove:
         del _ACTIVE_TASKS[task_id]
-    
+
     return len(keys_to_remove)

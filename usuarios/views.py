@@ -9,8 +9,10 @@ from django.db import transaction
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_protect
+
 # Renombrar la función de logout de Django para evitar la colisión de nombres
 from django.contrib.auth import logout as auth_logout
+
 # Importar la señal para login fallido
 from django.contrib.auth.signals import user_login_failed
 
@@ -162,7 +164,7 @@ def confirmar_cuenta(request, token):
 @csrf_protect
 def login(request):
     if request.user.is_authenticated:
-        return redirect("dashboard:panel_control")
+        return redirect("dashboard:index")
 
     if request.method == "POST":
         email = request.POST.get("email")
@@ -171,9 +173,7 @@ def login(request):
         if not email or not contrasena:
             # Emitir señal de login fallido por campos faltantes
             user_login_failed.send(
-                sender=__name__,
-                credentials={'username': email or ''},
-                request=request
+                sender=__name__, credentials={"username": email or ""}, request=request
             )
             return render(
                 request,
@@ -187,9 +187,7 @@ def login(request):
             if not usuario.confirmado:
                 # Emitir señal de login fallido por cuenta no confirmada
                 user_login_failed.send(
-                    sender=__name__,
-                    credentials={'username': email},
-                    request=request
+                    sender=__name__, credentials={"username": email}, request=request
                 )
                 return render(
                     request,
@@ -202,8 +200,8 @@ def login(request):
 
             # Usar authenticate y login de Django
             if check_password(contrasena, usuario.contrasena):
-                # Autenticar el usuario
-                from django.contrib.auth import login as auth_login
+                # Autenticar el usuario usando el backend explícitamente
+                from django.contrib.auth import authenticate, login as auth_login
 
                 # Obtener el backend que usaremos
                 from django.contrib.auth import get_backends
@@ -230,13 +228,11 @@ def login(request):
                 # Redireccionar al dashboard después del login exitoso
                 messages.success(request, f"¡Bienvenido {usuario.nombreusuario}!")
 
-                return redirect("dashboard:panel_control")
+                return redirect("dashboard:index")
             else:
                 # Emitir señal de login fallido por contraseña incorrecta
                 user_login_failed.send(
-                    sender=__name__,
-                    credentials={'username': email},
-                    request=request
+                    sender=__name__, credentials={"username": email}, request=request
                 )
                 return render(
                     request,
@@ -246,9 +242,7 @@ def login(request):
         except Usuario.DoesNotExist:
             # Emitir señal de login fallido por usuario no encontrado
             user_login_failed.send(
-                sender=__name__,
-                credentials={'username': email},
-                request=request
+                sender=__name__, credentials={"username": email}, request=request
             )
             return render(
                 request,
@@ -258,6 +252,7 @@ def login(request):
 
     return render(request, "usuarios/login.html")
 
+
 # Vista para cerrar sesión
 # @login_required
 # def logout(request):
@@ -265,14 +260,15 @@ def login(request):
 #     messages.success(request, "Has cerrado sesión correctamente")
 #     return redirect("usuarios:login")
 
+
 # Vista para cerrar sesión
 @login_required
-def logout(request):    
+def logout(request):
     # Ahora podemos cerrar la sesión usando la función de Django renombrada
     auth_logout(request)
     messages.success(request, "Has cerrado sesión correctamente")
     # Redirigir a la página de inicio o página de login
-    return redirect('usuarios:login')  # Ajusta esta URL según tu configuración
+    return redirect("usuarios:login")  # Ajusta esta URL según tu configuración
 
 
 # Vista para recuperar contraseña

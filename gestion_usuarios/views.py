@@ -78,7 +78,7 @@ def lista_usuarios(request):
 
     # Paginación
     usuarios = usuarios.order_by(
-        'idusuario'
+        "idusuario"
     )  # Ordenar por idusuario para evitar advertencia
     paginator = Paginator(usuarios, 9)  # 9 usuarios por página
     try:
@@ -263,7 +263,7 @@ def login_view(request):
 
             # Redireccionar al dashboard después del login exitoso
             messages.success(request, f"¡Bienvenido {user.nombreusuario}!")
-            return redirect("dashboard:panel_control")
+            return redirect("dashboard:index")
         else:
             messages.error(request, "Nombre de usuario o contraseña incorrectos")
 
@@ -276,7 +276,7 @@ def logout_view(request):
         logout(request)
         messages.success(request, "Has cerrado sesión correctamente")
         return redirect("gestionUsuarios:login")
-    return redirect("dashboard:panel_control")
+    return redirect("dashboard:index")
 
 
 @login_required

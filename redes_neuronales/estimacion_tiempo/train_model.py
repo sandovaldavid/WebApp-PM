@@ -15,6 +15,7 @@ from django.utils import timezone
 import tensorflow as tf
 import shutil
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Entrenar modelo RNN para estimación de tiempos"
@@ -99,12 +100,13 @@ def parse_args():
 
     return parser.parse_args()
 
+
 def main():
     """Función principal para entrenar y evaluar el modelo"""
-    
+
     # Parsear argumentos
     args = parse_args()
-    
+
     # Asegurar que existe el directorio de salida
     output_dir = args.output_dir
     if not os.path.exists(output_dir):
@@ -135,11 +137,11 @@ def main():
     print("\n[1/5] Cargando y procesando datos...")
     processor = DataProcessor(data_path=args.data_path, use_db=args.use_db)
     data = processor.load_data()
-    
+
     if data is None:
         print("Error: No se pudieron cargar los datos. Verifique la ruta del archivo.")
         return
-    
+
     # 2. Preprocesar los datos
     print("\n[2/5] Preprocesando datos...")
     try:
@@ -182,7 +184,7 @@ def main():
     # Crear estimador con configuración optimizada
     estimator = AdvancedRNNEstimator(model_config)
     estimator.build_model(feature_dims)
-    
+
     # Resumen del modelo
     estimator.model.summary()
 
@@ -229,25 +231,25 @@ def main():
         np.concatenate([X_train, X_val]),
         np.concatenate([y_train, y_val]),
         test_size=args.test_size,
-        random_state=42
+        random_state=42,
     )
 
     print("[4/5] Guardando datos de validación...")
     validation_data = {
-        'X_val': X_val,
-        'y_val': y_val,
-        'X_test': X_test,
-        'y_test': y_test
+        "X_val": X_val,
+        "y_val": y_val,
+        "X_test": X_test,
+        "y_test": y_test,
     }
-    validation_path = os.path.join(output_dir, 'validation_data.joblib')
+    validation_path = os.path.join(output_dir, "validation_data.joblib")
     joblib.dump(validation_data, validation_path)
-    
+
     # También guardar como archivos individuales para compatibilidad
-    np.save(os.path.join(output_dir, 'X_val.npy'), X_val)
-    np.save(os.path.join(output_dir, 'y_val.npy'), y_val)
-    np.save(os.path.join(output_dir, 'X_test.npy'), X_test)
-    np.save(os.path.join(output_dir, 'y_test.npy'), y_test)
-    
+    np.save(os.path.join(output_dir, "X_val.npy"), X_val)
+    np.save(os.path.join(output_dir, "y_val.npy"), y_val)
+    np.save(os.path.join(output_dir, "X_test.npy"), X_test)
+    np.save(os.path.join(output_dir, "y_test.npy"), y_test)
+
     print(f"Datos de validación guardados en {validation_path}")
 
     # Si hay un modelo guardado como checkpoint, verificar si es mejor
@@ -289,10 +291,10 @@ def main():
 
     # Crear evaluador
     evaluator = ModelEvaluator(estimator, feature_dims, output_dir)
-    
+
     # Evaluar y obtener métricas
     metrics, y_pred = evaluator.evaluate_model(X_test, y_test)
-    
+
     # Guardar métricas con información de entrenamiento inicial
     metrics_history_path = os.path.join(output_dir, "metrics_history.json")
 
@@ -311,16 +313,24 @@ def main():
         },
     )
 
-    print(f"Modelo {'creado' if created else 'actualizado'} en la base de datos con ID {modelo.idmodelo}")
+    print(
+        f"Modelo {'creado' if created else 'actualizado'} en la base de datos con ID {modelo.idmodelo}"
+    )
 
     # Obtener información detallada del entrenamiento
     try:
         # Intentar obtener el número de épocas entrenadas
-        if hasattr(estimator, 'history') and estimator.history is not None:
-            if hasattr(estimator.history, 'params') and 'epochs' in estimator.history.params:
-                epochs_trained = estimator.history.params['epochs']
-            elif hasattr(estimator.history, 'history') and len(estimator.history.history.get('loss', [])) > 0:
-                epochs_trained = len(estimator.history.history['loss'])
+        if hasattr(estimator, "history") and estimator.history is not None:
+            if (
+                hasattr(estimator.history, "params")
+                and "epochs" in estimator.history.params
+            ):
+                epochs_trained = estimator.history.params["epochs"]
+            elif (
+                hasattr(estimator.history, "history")
+                and len(estimator.history.history.get("loss", [])) > 0
+            ):
+                epochs_trained = len(estimator.history.history["loss"])
             else:
                 epochs_trained = args.epochs
         else:
@@ -357,12 +367,12 @@ def main():
     # Cargar historial existente o crear uno nuevo
     try:
         if os.path.exists(metrics_history_path):
-            with open(metrics_history_path, 'r') as f:
+            with open(metrics_history_path, "r") as f:
                 metrics_history = json.load(f)
                 if not isinstance(metrics_history, list):
                     # Convertir al nuevo formato
-                    if 'evaluations' in metrics_history:
-                        metrics_history = metrics_history['evaluations'] 
+                    if "evaluations" in metrics_history:
+                        metrics_history = metrics_history["evaluations"]
                     else:
                         metrics_history = []
         else:
@@ -370,7 +380,7 @@ def main():
     except Exception as e:
         print(f"Error al cargar historial de métricas: {e}")
         metrics_history = []
-    
+
     # Añadir esta evaluación al historial
     metrics_history.append(training_info)
 
@@ -380,15 +390,26 @@ def main():
 
     # Visualizar predicciones con gráficos mejorados
     evaluator.plot_predictions(y_test, y_pred)
-    
+
     # Analizar importancia de características
     print("\n[Extra] Analizando importancia de características...")
     # Lista simplificada de nombres de características
     feature_names = (
-        ['Complejidad', 'Cantidad_Recursos', 'Carga_R1', 'Exp_R1', 'Carga_R2', 'Exp_R2',
-         'Carga_R3', 'Exp_R3', 'Exp_Equipo', 'Claridad_Req', 'Tamaño']
-        + [f'Tipo_{i}' for i in range(feature_dims['tipo_tarea'])]
-        + [f'Fase_{i}' for i in range(feature_dims['fase'])]
+        [
+            "Complejidad",
+            "Cantidad_Recursos",
+            "Carga_R1",
+            "Exp_R1",
+            "Carga_R2",
+            "Exp_R2",
+            "Carga_R3",
+            "Exp_R3",
+            "Exp_Equipo",
+            "Claridad_Req",
+            "Tamaño",
+        ]
+        + [f"Tipo_{i}" for i in range(feature_dims["tipo_tarea"])]
+        + [f"Fase_{i}" for i in range(feature_dims["fase"])]
     )
 
     # Usar el método avanzado de importancia de características de la clase AdvancedRNNEstimator
@@ -420,11 +441,11 @@ def main():
     # Evaluación por segmentos (tareas pequeñas, medianas, grandes)
     print("\n[Extra] Evaluando por segmentos de tamaño...")
     segments = {
-        'Tareas pequeñas': lambda y: y <= 40,
-        'Tareas medianas': lambda y: (y > 40) & (y <= 80),
-        'Tareas grandes': lambda y: y > 80
+        "Tareas pequeñas": lambda y: y <= 40,
+        "Tareas medianas": lambda y: (y > 40) & (y <= 80),
+        "Tareas grandes": lambda y: y > 80,
     }
-    
+
     evaluator.segmented_evaluation(X_test, y_test, segments)
 
     # Añadir información sobre TensorBoard si está habilitado
@@ -444,11 +465,14 @@ def main():
 
     print("\n=== Proceso completado exitosamente ===")
     print(f"Todos los archivos han sido guardados en: {output_dir}")
-    print("\nPara usar el modelo en predicciones, importe las clases necesarias y cargue el modelo:")
+    print(
+        "\nPara usar el modelo en predicciones, importe las clases necesarias y cargue el modelo:"
+    )
     print("  from rnn_model import AdvancedRNNEstimator")
     print("  model = AdvancedRNNEstimator.load('models', 'tiempo_estimator')")
-    
+
     return estimator, processor, evaluator
+
 
 if __name__ == "__main__":
     main()

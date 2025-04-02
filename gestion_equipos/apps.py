@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class GestionEquiposConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'gestion_equipos'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "gestion_equipos"

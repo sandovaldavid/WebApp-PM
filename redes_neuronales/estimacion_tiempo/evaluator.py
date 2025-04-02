@@ -12,20 +12,23 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import (
-    mean_squared_error, mean_absolute_error, r2_score,
-    mean_absolute_percentage_error
+    mean_squared_error,
+    mean_absolute_error,
+    r2_score,
+    mean_absolute_percentage_error,
 )
 from datetime import datetime
 import json
 import joblib
 import traceback
 
+
 class ModelEvaluator:
     """Clase para evaluar el rendimiento de los modelos de estimación de tiempo"""
-    
-    def __init__(self, model, feature_dims, output_dir='models'):
+
+    def __init__(self, model, feature_dims, output_dir="models"):
         """Inicializa el evaluador
-        
+
         Args:
             model: Modelo entrenado (AdvancedRNNEstimator)
             feature_dims: Diccionario con dimensiones de features
@@ -34,7 +37,7 @@ class ModelEvaluator:
         self.model = model
         self.feature_dims = feature_dims
         self.output_dir = output_dir
-        
+
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
@@ -49,202 +52,203 @@ class ModelEvaluator:
         plt.rcParams["figure.figsize"] = (10, 6)
         plt.rcParams["font.size"] = 12
 
-    def calculate_classification_metrics(self, y_true, y_pred, threshold_percentage=0.2):
+    def calculate_classification_metrics(
+        self, y_true, y_pred, threshold_percentage=0.2
+    ):
         """Calcula métricas de clasificación adaptadas para regresión
-        
+
         Args:
             y_true: Valores reales
             y_pred: Valores predichos
             threshold_percentage: Umbral relativo de error aceptable como porcentaje del valor real
-            
+
         Returns:
             dict: Métricas de clasificación adaptadas
         """
         # Convertir valores a arrays numpy si no lo son
         y_true = np.array(y_true).flatten()
         y_pred = np.array(y_pred).flatten()
-        
+
         # Determinar predicciones "correctas" usando un umbral relativo al valor real
         # Para valores muy pequeños, usar un umbral mínimo de 0.5 horas
         thresholds = np.maximum(np.abs(y_true) * threshold_percentage, 0.5)
         absolute_errors = np.abs(y_true - y_pred)
         correct_predictions = absolute_errors <= thresholds
-        
+
         # Total de predicciones
         total = len(y_true)
-        
+
         # True positives (predicciones correctas)
         tp = np.sum(correct_predictions)
-        
+
         # Calcular métricas (todas en rango 0-1)
         accuracy = float(tp / total) if total > 0 else 0
-        precision = float(tp / total) if total > 0 else 0  # En este contexto simplificado
-        recall = float(tp / total) if total > 0 else 0     # son iguales a accuracy
+        precision = (
+            float(tp / total) if total > 0 else 0
+        )  # En este contexto simplificado
+        recall = float(tp / total) if total > 0 else 0  # son iguales a accuracy
         f1 = float(tp / total) if total > 0 else 0
-        
+
         # Verificar que todas las métricas estén entre 0 y 1
         metrics = {
-            'accuracy': min(max(accuracy, 0), 1),
-            'precision': min(max(precision, 0), 1),
-            'recall': min(max(recall, 0), 1),
-            'f1': min(max(f1, 0), 1)
+            "accuracy": min(max(accuracy, 0), 1),
+            "precision": min(max(precision, 0), 1),
+            "recall": min(max(recall, 0), 1),
+            "f1": min(max(f1, 0), 1),
         }
-        
+
         return metrics
 
     def evaluate_model(self, X_test, y_test):
         """Evalúa el modelo en datos de prueba
-        
+
         Args:
             X_test: Datos de prueba
             y_test: Valores objetivo reales
-            
+
         Returns:
             dict: Métricas de evaluación
         """
         # Preparar inputs para el modelo
         inputs = self.model.prepare_inputs(X_test, self.feature_dims)
-        
+
         # Obtener predicciones
         y_pred = self.model.model.predict(inputs)
-        
+
         # Calcular métricas de regresión
         mse = float(mean_squared_error(y_test, y_pred))
         rmse = float(np.sqrt(mse))
         mae = float(mean_absolute_error(y_test, y_pred))
         mape = float(mean_absolute_percentage_error(y_test, y_pred))
         r2 = float(r2_score(y_test, y_pred))
-        
+
         # Calcular métricas adaptadas de clasificación
         classification_metrics = self.calculate_classification_metrics(y_test, y_pred)
-        
+
         # Combinar todas las métricas
         metrics = {
-            'MSE': mse,
-            'RMSE': rmse,
-            'MAE': mae,
-            'MAPE': mape,
-            'R2': r2,
-            'Accuracy': classification_metrics['accuracy'],
-            'Precision': classification_metrics['precision'],
-            'Recall': classification_metrics['recall'],
-            'F1': classification_metrics['f1']
+            "MSE": mse,
+            "RMSE": rmse,
+            "MAE": mae,
+            "MAPE": mape,
+            "R2": r2,
+            "Accuracy": classification_metrics["accuracy"],
+            "Precision": classification_metrics["precision"],
+            "Recall": classification_metrics["recall"],
+            "F1": classification_metrics["f1"],
         }
-        
+
         # Guardar métricas en archivo JSON
-        metrics_path = os.path.join(self.output_dir, 'evaluation_metrics.json')
-        with open(metrics_path, 'w') as f:
+        metrics_path = os.path.join(self.output_dir, "evaluation_metrics.json")
+        with open(metrics_path, "w") as f:
             json.dump(metrics, f, indent=4)
-        
+
         # Guardar en historial de métricas
         self.save_to_metrics_history(metrics)
-            
+
         print("\nMétricas de evaluación:")
         for metric_name, value in metrics.items():
             # Para métricas de clasificación, mostrar como porcentaje para mayor claridad
-            if metric_name in ['Accuracy', 'Precision', 'Recall', 'F1']:
+            if metric_name in ["Accuracy", "Precision", "Recall", "F1"]:
                 print(f"  {metric_name}: {value*100:.2f}%")
             else:
                 print(f"  {metric_name}: {value:.4f}")
-            
+
         return metrics, y_pred.flatten()
 
     def save_to_metrics_history(self, metrics):
         """Guarda las métricas actuales en un historial
-        
+
         Args:
             metrics: Diccionario con las métricas a guardar
         """
-        history_path = os.path.join(self.output_dir, 'metrics_history.json')
+        history_path = os.path.join(self.output_dir, "metrics_history.json")
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         # Añadir timestamp a las métricas
-        metrics_with_timestamp = {
-            'timestamp': timestamp,
-            'metrics': metrics
-        }
-        
+        metrics_with_timestamp = {"timestamp": timestamp, "metrics": metrics}
+
         # Cargar historial existente o crear uno nuevo
         try:
             if os.path.exists(history_path):
-                with open(history_path, 'r') as f:
+                with open(history_path, "r") as f:
                     history = json.load(f)
                     if isinstance(history, list):
                         # Formato compatible con evaluate_metrics.py
                         history.append(metrics_with_timestamp)
                     else:
                         # Formato original con 'evaluations'
-                        if 'evaluations' not in history:
-                            history['evaluations'] = []
-                        history['evaluations'].append(metrics_with_timestamp)
+                        if "evaluations" not in history:
+                            history["evaluations"] = []
+                        history["evaluations"].append(metrics_with_timestamp)
             else:
                 # Crear nuevo historial (formato compatible con evaluate_metrics.py)
                 history = [metrics_with_timestamp]
         except Exception as e:
             print(f"Error al cargar historial de métricas: {e}")
             history = [metrics_with_timestamp]  # Crear nuevo en caso de error
-        
+
         # Guardar historial actualizado
-        with open(history_path, 'w') as f:
+        with open(history_path, "w") as f:
             json.dump(history, f, indent=4)
-        
+
         print(f"Métricas guardadas en historial: {history_path}")
-    
+
     def plot_predictions(self, y_true, y_pred, save_fig=True):
         """Genera gráficos de comparación entre valores reales y predicciones
-        
+
         Args:
             y_true: Valores reales
             y_pred: Valores predichos
             save_fig: Si True, guarda la figura
         """
         plt.figure(figsize=(12, 10))
-        
+
         # 1. Scatter plot de predicciones vs valores reales
         plt.subplot(2, 2, 1)
         plt.scatter(y_true, y_pred, alpha=0.6)
-        
+
         # Línea de perfecta predicción
         max_val = max(max(y_true), max(y_pred))
         min_val = min(min(y_true), min(y_pred))
-        plt.plot([min_val, max_val], [min_val, max_val], 'r--')
-        
-        plt.xlabel('Tiempo real (horas)')
-        plt.ylabel('Tiempo estimado (horas)')
-        plt.title('Predicción vs Valor Real')
+        plt.plot([min_val, max_val], [min_val, max_val], "r--")
+
+        plt.xlabel("Tiempo real (horas)")
+        plt.ylabel("Tiempo estimado (horas)")
+        plt.title("Predicción vs Valor Real")
         plt.grid(True, alpha=0.3)
-        
+
         # 2. Histograma de errores
         plt.subplot(2, 2, 2)
         errors = y_pred - y_true
-        plt.hist(errors, bins=20, alpha=0.6, color='green')
-        plt.axvline(x=0, color='r', linestyle='--')
-        plt.xlabel('Error de predicción (horas)')
-        plt.ylabel('Frecuencia')
-        plt.title('Distribución de Errores')
+        plt.hist(errors, bins=20, alpha=0.6, color="green")
+        plt.axvline(x=0, color="r", linestyle="--")
+        plt.xlabel("Error de predicción (horas)")
+        plt.ylabel("Frecuencia")
+        plt.title("Distribución de Errores")
         plt.grid(True, alpha=0.3)
-        
+
         # 3. Plot de residuos
         plt.subplot(2, 2, 3)
-        plt.scatter(y_pred, errors, alpha=0.6, color='purple')
-        plt.axhline(y=0, color='r', linestyle='--')
-        plt.xlabel('Tiempo estimado (horas)')
-        plt.ylabel('Residuo (horas)')
-        plt.title('Análisis de Residuos')
+        plt.scatter(y_pred, errors, alpha=0.6, color="purple")
+        plt.axhline(y=0, color="r", linestyle="--")
+        plt.xlabel("Tiempo estimado (horas)")
+        plt.ylabel("Residuo (horas)")
+        plt.title("Análisis de Residuos")
         plt.grid(True, alpha=0.3)
-        
+
         # 4. Distribución de predicciones y valores reales
         plt.subplot(2, 2, 4)
-        sns.kdeplot(y_true, label='Real', color='blue')
-        sns.kdeplot(y_pred, label='Estimado', color='orange')
-        plt.xlabel('Tiempo (horas)')
-        plt.ylabel('Densidad')
-        plt.title('Distribución de Tiempos')
+        sns.kdeplot(y_true, label="Real", color="blue")
+        sns.kdeplot(y_pred, label="Estimado", color="orange")
+        plt.xlabel("Tiempo (horas)")
+        plt.ylabel("Densidad")
+        plt.title("Distribución de Tiempos")
         plt.legend()
         plt.grid(True, alpha=0.3)
-        
+
         plt.tight_layout()
-        
+
         if save_fig:
             plt.savefig(os.path.join(self.output_dir, "evaluation_plots.png"), dpi=300)
             print(
@@ -280,9 +284,11 @@ class ModelEvaluator:
         start_time = time.time()
 
         if feature_names is None or len(feature_names) != X_test.shape[1]:
-            print("Nombres de características no proporcionados o incorrectos. Usando índices.")
+            print(
+                "Nombres de características no proporcionados o incorrectos. Usando índices."
+            )
             feature_names = [f"Feature_{i}" for i in range(X_test.shape[1])]
-        
+
         # Obtener índices para variables categóricas (tipo_tarea y fase)
         num_numeric_features = 11  # Complejidad hasta Tamaño_Tarea
         tipo_indices = list(
@@ -1187,17 +1193,17 @@ class ModelEvaluator:
 
     def segmented_evaluation(self, X_test, y_test, segments):
         """Evalúa el modelo en diferentes segmentos de los datos
-        
+
         Args:
             X_test: Datos de prueba
             y_test: Valores objetivo reales
             segments: Dict con funciones para segmentar datos (ej. {'small': lambda y: y < 10})
-            
+
         Returns:
             dict: Métricas por segmento
         """
         results = {}
-        
+
         # Evaluar en cada segmento
         for segment_name, segment_func in segments.items():
             # Seleccionar datos de este segmento
@@ -1205,91 +1211,93 @@ class ModelEvaluator:
             if not np.any(segment_mask):
                 print(f"Segmento '{segment_name}' no tiene datos. Saltando.")
                 continue
-                
+
             X_segment = X_test[segment_mask]
             y_segment = y_test[segment_mask]
-            
+
             # Preparar inputs para el modelo
             inputs_segment = self.model.prepare_inputs(X_segment, self.feature_dims)
-            
+
             # Obtener predicciones
             y_pred_segment = self.model.model.predict(inputs_segment).flatten()
-            
+
             # Calcular métricas
             segment_metrics = {
-                'mse': mean_squared_error(y_segment, y_pred_segment),
-                'rmse': np.sqrt(mean_squared_error(y_segment, y_pred_segment)),
-                'mae': mean_absolute_error(y_segment, y_pred_segment),
-                'mape': mean_absolute_percentage_error(y_segment, y_pred_segment),
-                'r2': r2_score(y_segment, y_pred_segment),
-                'count': len(y_segment)
+                "mse": mean_squared_error(y_segment, y_pred_segment),
+                "rmse": np.sqrt(mean_squared_error(y_segment, y_pred_segment)),
+                "mae": mean_absolute_error(y_segment, y_pred_segment),
+                "mape": mean_absolute_percentage_error(y_segment, y_pred_segment),
+                "r2": r2_score(y_segment, y_pred_segment),
+                "count": len(y_segment),
             }
-            
+
             results[segment_name] = segment_metrics
-        
+
         # Guardar resultados
-        with open(os.path.join(self.output_dir, 'segmented_evaluation.json'), 'w') as f:
+        with open(os.path.join(self.output_dir, "segmented_evaluation.json"), "w") as f:
             json.dump(results, f, indent=4)
-        
+
         # Imprimir resultados
         print("\nEvaluación por segmentos:")
         for segment_name, metrics in results.items():
             print(f"\n{segment_name} (n={metrics['count']}):")
             for metric_name, value in metrics.items():
-                if metric_name != 'count':
+                if metric_name != "count":
                     print(f"  {metric_name.upper()}: {value:.4f}")
-        
+
         return results
-    
+
     def _calculate_metrics(self, X_val, y_val):
         """Calcula las métricas básicas de evaluación
-        
+
         Args:
             X_val: Datos de validación
             y_val: Valores reales
-            
+
         Returns:
             dict: Diccionario con métricas calculadas
         """
         # Realizar predicciones
         y_pred = self.model.predict(X_val, self.feature_dims)
-        
+
         # Calcular métricas de regresión
         mse = mean_squared_error(y_val, y_pred)
         rmse = np.sqrt(mse)
         mae = mean_absolute_error(y_val, y_pred)
         r2 = r2_score(y_val, y_pred)
-        
+
         try:
             mape = mean_absolute_percentage_error(y_val, y_pred)
         except:
-            mape = np.mean(np.abs((y_val - y_pred) / np.maximum(np.abs(y_val), 0.1))) * 100
-        
+            mape = (
+                np.mean(np.abs((y_val - y_pred) / np.maximum(np.abs(y_val), 0.1))) * 100
+            )
+
         # Calcular métricas de clasificación adaptadas
         classification_metrics = self.calculate_classification_metrics(y_val, y_pred)
-        
+
         # Combinar todas las métricas
         metrics = {
-            'MSE': float(mse),
-            'RMSE': float(rmse),
-            'MAE': float(mae),
-            'MAPE': float(mape),
-            'R2': float(r2),
-            'Accuracy': float(classification_metrics['accuracy']),
-            'Precision': float(classification_metrics['precision']),
-            'Recall': float(classification_metrics['recall']),
-            'F1': float(classification_metrics['f1'])
+            "MSE": float(mse),
+            "RMSE": float(rmse),
+            "MAE": float(mae),
+            "MAPE": float(mape),
+            "R2": float(r2),
+            "Accuracy": float(classification_metrics["accuracy"]),
+            "Precision": float(classification_metrics["precision"]),
+            "Recall": float(classification_metrics["recall"]),
+            "F1": float(classification_metrics["f1"]),
         }
-        
+
         return metrics
-    
+
     def _calculate_feature_importance(self, X_val, y_val):
         """Calcula la importancia de las características
-        
+
         Args:
             X_val: Datos de validación
             y_val: Valores reales
-        
+
         Returns:
             Tuple: Importancia de características global y segmentada
         """
@@ -1299,25 +1307,25 @@ class ModelEvaluator:
 
     def _perform_segmented_evaluation(self, X_val, y_val):
         """Realiza una evaluación segmentada
-        
+
         Args:
             X_val: Datos de validación
             y_val: Valores reales
         """
         # Definir segmentos por tiempo real
         segments = {
-            'Tareas pequeñas (<= 5h)': lambda y: y <= 5,
-            'Tareas medianas (5-20h)': lambda y: (y > 5) & (y <= 20),
-            'Tareas grandes (20-40h)': lambda y: (y > 20) & (y <= 40),
-            'Tareas muy grandes (>40h)': lambda y: y > 40
+            "Tareas pequeñas (<= 5h)": lambda y: y <= 5,
+            "Tareas medianas (5-20h)": lambda y: (y > 5) & (y <= 20),
+            "Tareas grandes (20-40h)": lambda y: (y > 20) & (y <= 40),
+            "Tareas muy grandes (>40h)": lambda y: y > 40,
         }
-        
+
         # Utilizar el método que ya está implementado
         return self.segmented_evaluation(X_val, y_val, segments)
 
     def _save_metrics_history(self, metrics):
         """Guarda las métricas en el historial
-        
+
         Args:
             metrics: Diccionario con métricas calculadas
         """
@@ -1326,13 +1334,13 @@ class ModelEvaluator:
 
     def _generate_evaluation_plots(self, X_val, y_val):
         """Genera gráficas de evaluación
-        
+
         Args:
             X_val: Datos de validación
             y_val: Valores reales
         """
         # Realizar predicciones
         y_pred = self.model.predict(X_val, self.feature_dims)
-        
+
         # Utilizar el método que ya está implementado
         return self.plot_predictions(y_val, y_pred, save_fig=True)
