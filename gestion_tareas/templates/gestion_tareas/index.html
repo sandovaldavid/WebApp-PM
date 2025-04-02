@@ -8,17 +8,22 @@
 {% endblock %}
 
 {% block title_body %}
-    <div class="flex justify-between items-center">
-        <div class="flex items-center">
-            <i class="fas fa-tasks text-blue-500 mr-2"></i>
-            <span>Panel de Gestión de Tareas</span>
+<div class="flex flex-col sm:flex-row w-full justify-between items-start sm:items-center gap-4 mb-6">
+    <div class="flex items-center">
+        <div class="p-2.5 bg-blue-100 rounded-full mr-3 shadow-sm">
+            <i class="fas fa-tasks text-blue-600 text-xl"></i>
         </div>
-        <a href="{% url 'gestion_tareas:crear_tarea' %}"
-           class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
-            <i class="fas fa-plus mr-2"></i>
-            Nueva Tarea
-        </a>
+        <div>
+            <h1 class="text-xl font-bold text-gray-800">Panel de Gestión de Tareas</h1>
+            <p class="text-sm text-gray-500 hidden sm:block">Visualiza y administra todas tus tareas en un solo lugar</p>
+        </div>
     </div>
+    <a href="{% url 'gestion_tareas:crear_tarea' %}" 
+       class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center transition-all transform hover:scale-105 shadow-md">
+        <i class="fas fa-plus mr-2"></i>
+        <span>Nueva Tarea</span>
+    </a>
+</div>
 {% endblock %}
 
 {% block body %}

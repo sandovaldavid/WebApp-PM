@@ -1,10 +1,131 @@
 {% if notificaciones %}
-    {% for notificacion in notificaciones %}
-        {% include 'components/notificacion.html' with notificacion=notificacion %}
-    {% endfor %}
+    <ul class="divide-y divide-gray-100">
+        {% for notificacion in notificaciones %}
+            <li class="hover:bg-blue-50 transition-colors duration-200">
+                <a href="{% url 'notificaciones:detalle_notificacion' notificacion.idnotificacion %}" class="block p-4">
+                    <div class="flex items-start">
+                        <!-- Icono de Notificación con Indicador de Prioridad -->
+                        <div class="flex-shrink-0 mr-4">
+                            <span class="inline-flex items-center justify-center h-10 w-10 rounded-full 
+                                {% if notificacion.prioridad == 'alta' %}bg-red-100 text-red-600
+                                {% elif notificacion.prioridad == 'media' %}bg-yellow-100 text-yellow-600
+                                {% else %}bg-green-100 text-green-600{% endif %}">
+                                <i class="fas {% if notificacion.leido %}fa-envelope-open{% else %}fa-envelope{% endif %}"></i>
+                            </span>
+                        </div>
+                        
+                        <!-- Contenido -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-1">
+                                <p class="text-sm font-medium {% if not notificacion.leido %}text-gray-900{% else %}text-gray-600{% endif %} truncate">
+                                    {% if not notificacion.leido %}<span class="font-bold">•</span>{% endif %}
+                                    {{ notificacion.idusuario.nombreusuario }}
+                                </p>
+                                <span class="text-xs text-gray-500">{{ notificacion.fechacreacion|timesince }}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 line-clamp-2">{{ notificacion.mensaje|truncatechars:80 }}</p>
+                            
+                            <!-- Etiquetas -->
+                            <div class="mt-2 flex items-center flex-wrap gap-1">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                    {{ notificacion.categoria }}
+                                </span>
+                                
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                    {% if notificacion.prioridad == 'alta' %}bg-red-100 text-red-800
+                                    {% elif notificacion.prioridad == 'media' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-green-100 text-green-800{% endif %}">
+                                    {{ notificacion.prioridad|title }}
+                                </span>
+                                
+                                {% if not notificacion.leido %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                        No leída
+                                    </span>
+                                {% endif %}
+                                
+                                {% if notificacion.archivada %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                        <i class="fas fa-archive mr-1"></i> Archivada
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Acciones rápidas -->
+                        <div class="flex-shrink-0 self-center ml-2">
+                            {% if not notificacion.leido %}
+                                <form method="POST" action="{% url 'notificaciones:marcar_leida' notificacion.idnotificacion %}" class="inline mr-2">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-blue-500 hover:text-blue-700">
+                                        <i class="fas fa-check"></i>
+                                        <span class="sr-only">Marcar como leída</span>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            <i class="fas fa-chevron-right text-gray-400"></i>
+                        </div>
+                    </div>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    
+    <!-- Paginación -->
+    {% if notificaciones.has_other_pages %}
+        <div class="mt-4 flex justify-center">
+            <nav class="inline-flex rounded-md shadow">
+                {% if notificaciones.has_previous %}
+                    <a hx-get="{% url 'notificaciones:filtrar_notificaciones' %}?page={{ notificaciones.previous_page_number }}&prioridad={{ prioridad_actual }}"
+                        hx-target="#lista-notificaciones"
+                        class="px-3 py-1 bg-white text-gray-700 border border-gray-300 rounded-l-md hover:bg-gray-100">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                {% else %}
+                    <span class="px-3 py-1 bg-gray-100 text-gray-400 border border-gray-300 rounded-l-md">
+                        <i class="fas fa-chevron-left"></i>
+                    </span>
+                {% endif %}
+                
+                {% for i in notificaciones.paginator.page_range %}
+                    {% if i == notificaciones.number %}
+                        <span class="px-3 py-1 bg-blue-500 text-white border border-blue-500">{{ i }}</span>
+                    {% elif i > notificaciones.number|add:'-3' and i < notificaciones.number|add:'3' %}
+                        <a hx-get="{% url 'notificaciones:filtrar_notificaciones' %}?page={{ i }}&prioridad={{ prioridad_actual }}"
+                            hx-target="#lista-notificaciones"
+                            class="px-3 py-1 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100">
+                            {{ i }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if notificaciones.has_next %}
+                    <a hx-get="{% url 'notificaciones:filtrar_notificaciones' %}?page={{ notificaciones.next_page_number }}&prioridad={{ prioridad_actual }}"
+                        hx-target="#lista-notificaciones"
+                        class="px-3 py-1 bg-white text-gray-700 border border-gray-300 rounded-r-md hover:bg-gray-100">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <span class="px-3 py-1 bg-gray-100 text-gray-400 border border-gray-300 rounded-r-md">
+                        <i class="fas fa-chevron-right"></i>
+                    </span>
+                {% endif %}
+            </nav>
+        </div>
+    {% endif %}
 {% else %}
-    <div class="text-center py-8 text-gray-500">
-        <i class="fas fa-check-circle text-4xl mb-2"></i>
-        <p>No tienes notificaciones pendientes</p>
+    <div class="py-12 text-center">
+        <div class="inline-block p-4 rounded-full bg-blue-100 mb-4">
+            <i class="fas fa-bell-slash text-blue-500 text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900">No hay notificaciones</h3>
+        <p class="mt-2 text-sm text-gray-500">No tienes notificaciones pendientes en este momento.</p>
+        <a href="{% url 'notificaciones:filtrar_notificaciones' %}?prioridad=todas" 
+           hx-get="{% url 'notificaciones:filtrar_notificaciones' %}?prioridad=todas" 
+           hx-target="#lista-notificaciones" 
+           class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-50 hover:bg-blue-100">
+            <i class="fas fa-sync-alt mr-2"></i>
+            Mostrar todas
+        </a>
     </div>
 {% endif %}

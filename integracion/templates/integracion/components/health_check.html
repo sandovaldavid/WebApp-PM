@@ -1,0 +1,71 @@
+<div class="bg-white shadow-lg rounded-xl p-6 my-6 transition-all duration-300 hover:shadow-xl border border-gray-100">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold flex items-center text-gray-800">
+            <svg class="w-5 h-5 text-teal-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+            Estado de la Integración
+        </h2>
+        <div id="health-status-badge" class="badge py-1 px-4 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+            Verificando...
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div id="connection-status" class="border border-gray-100 rounded-xl p-5 transition-all duration-300 bg-gray-50">
+            <h3 class="font-medium mb-2 text-gray-700 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                Conexión
+            </h3>
+            <p class="text-gray-500 text-sm">Verificando conexión...</p>
+        </div>
+        
+        <div id="mappings-status" class="border border-gray-100 rounded-xl p-5 transition-all duration-300 bg-gray-50">
+            <h3 class="font-medium mb-2 text-gray-700 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                Mapeos
+            </h3>
+            <p class="text-gray-500 text-sm">Verificando mapeos...</p>
+        </div>
+        
+        <div id="sync-status" class="border border-gray-100 rounded-xl p-5 transition-all duration-300 bg-gray-50">
+            <h3 class="font-medium mb-2 text-gray-700 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Sincronización
+            </h3>
+            <p class="text-gray-500 text-sm">Verificando sincronización...</p>
+        </div>
+    </div>
+    
+    <div class="border-t border-gray-100 pt-5">
+        <div class="flex items-center mb-4">
+            <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p><strong class="text-gray-700">Última sincronización:</strong> <span id="last-sync-date" class="text-gray-600">Verificando...</span></p>
+        </div>
+        
+        <div class="flex justify-between">
+            <button id="generate-report-btn" class="btn-gradient bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white px-5 py-2 rounded-lg flex items-center transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5" style="background-image: linear-gradient(to right, rgb(14, 165, 233), rgb(37, 99, 235));">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Generar Reporte Completo
+            </button>
+            
+            <button id="advanced-config-btn" class="btn-gradient bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white px-5 py-2 rounded-lg flex items-center transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5" style="background-image: linear-gradient(to right, rgb(139, 92, 246), rgb(147, 51, 234));">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                Configuración Avanzada
+            </button>
+        </div>
+    </div>
+</div>

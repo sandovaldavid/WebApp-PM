@@ -1,37 +1,143 @@
 {% if alertas %}
-    {% for alerta in alertas %}
-        {% include 'components/alerta.html' with alerta=alerta %}
-    {% endfor %}
+    <ul class="divide-y divide-gray-200">
+        {% for alerta in alertas %}
+            <li class="p-4 hover:bg-gray-50 transition-colors duration-150">
+                <a href="{% url 'notificaciones:detalle_alerta' alerta.idalerta %}" class="block">
+                    <div class="flex items-start">
+                        <!-- Icono del tipo de alerta -->
+                        <div class="flex-shrink-0 mr-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center
+                                {% if alerta.tipoalerta == 'retraso' %}bg-red-100 text-red-600
+                                {% elif alerta.tipoalerta == 'presupuesto' %}bg-purple-100 text-purple-600
+                                {% elif alerta.tipoalerta == 'riesgo' %}bg-yellow-100 text-yellow-600
+                                {% else %}bg-yellow-100 text-yellow-600{% endif %}">
+                                <i class="fas 
+                                    {% if alerta.tipoalerta == 'retraso' %}fa-clock
+                                    {% elif alerta.tipoalerta == 'presupuesto' %}fa-money-bill-wave
+                                    {% elif alerta.tipoalerta == 'riesgo' %}fa-exclamation-triangle
+                                    {% else %}fa-ban{% endif %} text-lg"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Información de la alerta -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-semibold text-gray-900">
+                                    {% if alerta.activa %}
+                                        <span class="relative inline-flex h-2 w-2 mr-2">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                        </span>
+                                    {% endif %}
+                                    Tarea: {{ alerta.idtarea.nombretarea }}
+                                </h3>
+                                <span class="text-xs text-gray-500">{{ alerta.fechacreacion|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-600 line-clamp-2">{{ alerta.mensaje|truncatechars:150 }}</p>
+                            
+                            <!-- Etiquetas -->
+                            <div class="mt-2 flex items-center flex-wrap gap-1">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                    {% if alerta.tipoalerta == 'retraso' %}bg-red-100 text-red-800
+                                    {% elif alerta.tipoalerta == 'presupuesto' %}bg-purple-100 text-purple-800
+                                    {% elif alerta.tipoalerta == 'riesgo' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                    {{ alerta.tipoalerta|title }}
+                                </span>
+                                
+                                {% if alerta.activa %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                        Activa
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                        Resuelta
+                                    </span>
+                                {% endif %}
+                                
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                    ID: {{ alerta.idtarea.idtarea }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Acciones rápidas -->
+                        <div class="ml-4 flex-shrink-0 flex items-center">
+                            {% if alerta.activa %}
+                                <form method="POST" action="{% url 'notificaciones:resolver_alerta' alerta.idalerta %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-green-500 hover:text-green-700 mr-3">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span class="sr-only">Resolver</span>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            <i class="fas fa-chevron-right text-gray-400"></i>
+                        </div>
+                    </div>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    
+    <!-- Paginación -->
+    {% if alertas.has_other_pages %}
+        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
+            <div class="flex justify-center">
+                <nav class="inline-flex rounded-md shadow">
+                    {% if alertas.has_previous %}
+                        <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.previous_page_number }}&tipo={{ tipo_actual }}"
+                            hx-target="#lista-alertas"
+                            class="px-3 py-1 bg-white text-gray-700 border border-gray-300 rounded-l-md hover:bg-gray-100">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    {% else %}
+                        <span class="px-3 py-1 bg-gray-100 text-gray-400 border border-gray-300 rounded-l-md">
+                            <i class="fas fa-chevron-left"></i>
+                        </span>
+                    {% endif %}
+                    
+                    {% for i in alertas.paginator.page_range %}
+                        {% if i == alertas.number %}
+                            <span class="px-3 py-1 bg-blue-500 text-white border border-blue-500">{{ i }}</span>
+                        {% elif i > alertas.number|add:'-3' and i < alertas.number|add:'3' %}
+                            <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ i }}&tipo={{ tipo_actual }}"
+                                hx-target="#lista-alertas"
+                                class="px-3 py-1 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100">
+                                {{ i }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if alertas.has_next %}
+                        <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.next_page_number }}&tipo={{ tipo_actual }}"
+                            hx-target="#lista-alertas"
+                            class="px-3 py-1 bg-white text-gray-700 border border-gray-300 rounded-r-md hover:bg-gray-100">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% else %}
+                        <span class="px-3 py-1 bg-gray-100 text-gray-400 border border-gray-300 rounded-r-md">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    {% endif %}
 {% else %}
-    <div class="text-center py-8 bg-gray-50 rounded-lg">
-        <i class="fas fa-check-circle text-green-500 text-4xl mb-2"></i>
-        <p class="text-gray-600">No hay alertas activas en este momento</p>
-    </div>
-{% endif %}
-
-<!-- Paginación -->
-{% if alertas.has_other_pages %}
-    <div class="mt-6 flex justify-center">
-        <nav class="flex items-center space-x-2">
-            {% if alertas.has_previous %}
-                <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.previous_page_number }}&tipo={{ tipo_actual }}"
-                   hx-target="#lista-alertas"
-                   class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                    <i class="fas fa-chevron-left"></i>
-                </a>
-            {% endif %}
-
-            <span class="px-3 py-1 bg-red-500 text-white rounded-md">
-            {{ alertas.number }}
-        </span>
-
-            {% if alertas.has_next %}
-                <a hx-get="{% url 'notificaciones:filtrar_alertas' %}?page={{ alertas.next_page_number }}&tipo={{ tipo_actual }}"
-                   hx-target="#lista-alertas"
-                   class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-            {% endif %}
-        </nav>
+    <div class="p-8 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-500 mb-4">
+            <i class="fas fa-check-circle text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-1">No hay alertas</h3>
+        <p class="text-gray-500 mb-4">No existen alertas con los criterios seleccionados</p>
+        <a href="{% url 'notificaciones:filtrar_alertas' %}?tipo=todas" 
+            hx-get="{% url 'notificaciones:filtrar_alertas' %}?tipo=todas" 
+            hx-target="#lista-alertas" 
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-50 hover:bg-blue-100">
+            <i class="fas fa-sync-alt mr-2"></i>
+            Mostrar todas
+        </a>
     </div>
 {% endif %}

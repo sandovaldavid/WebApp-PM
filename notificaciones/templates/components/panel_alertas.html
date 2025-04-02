@@ -23,7 +23,7 @@
                         Todas las alertas
                     </option>
                     <option value="retraso" {% if tipo_actual == 'retraso' %}selected{% endif %}
-                            class="text-orange-500">
+                            class="text-yellow-500">
                         <i class="fas fa-clock"></i> Retraso
                     </option>
                     <option value="presupuesto" {% if tipo_actual == 'presupuesto' %}selected{% endif %}
@@ -53,13 +53,92 @@
     <!-- Lista de Alertas con ID para HTMX -->
     <div id="lista-alertas" class="space-y-4">
         {% if alertas %}
-            {% for alerta in alertas %}
-                {% include 'components/alerta.html' with alerta=alerta %}
-            {% endfor %}
+            <ul class="divide-y divide-gray-100">
+                {% for alerta in alertas %}
+                    <li class="hover:bg-red-50 transition-colors duration-200">
+                        <a href="{% url 'notificaciones:detalle_alerta' alerta.idalerta %}" class="block p-4">
+                            <div class="flex items-start">
+                                <!-- Icono de Alerta con Indicador de Tipo -->
+                                <div class="flex-shrink-0 mr-4">
+                                    <span class="inline-flex items-center justify-center h-10 w-10 rounded-full 
+                                        {% if alerta.tipoalerta == 'retraso' %}bg-red-100 text-red-600
+                                        {% elif alerta.tipoalerta == 'presupuesto' %}bg-purple-100 text-purple-600
+                                        {% elif alerta.tipoalerta == 'riesgo' %}bg-yellow-100 text-yellow-600
+                                        {% else %}bg-yellow-100 text-yellow-600{% endif %}">
+                                        <i class="fas 
+                                            {% if alerta.tipoalerta == 'retraso' %}fa-clock
+                                            {% elif alerta.tipoalerta == 'presupuesto' %}fa-money-bill-wave
+                                            {% elif alerta.tipoalerta == 'riesgo' %}fa-exclamation-triangle
+                                            {% else %}fa-ban{% endif %}"></i>
+                                    </span>
+                                </div>
+                                
+                                <!-- Contenido -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <p class="text-sm font-medium text-gray-900 truncate">
+                                            {% if alerta.activa %}<span class="animate-pulse font-bold text-red-500 mr-1">•</span>{% endif %}
+                                            {{ alerta.idtarea.nombretarea }}
+                                        </p>
+                                        <span class="text-xs text-gray-500">{{ alerta.fechacreacion|timesince }}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 line-clamp-2">{{ alerta.mensaje|truncatechars:80 }}</p>
+                                    
+                                    <!-- Etiquetas -->
+                                    <div class="mt-2 flex items-center flex-wrap gap-1">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium
+                                            {% if alerta.tipoalerta == 'retraso' %}bg-red-100 text-red-800
+                                            {% elif alerta.tipoalerta == 'presupuesto' %}bg-purple-100 text-purple-800
+                                            {% elif alerta.tipoalerta == 'riesgo' %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                            {{ alerta.tipoalerta|title }}
+                                        </span>
+                                        
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                            Tarea: #{{ alerta.idtarea.idtarea }}
+                                        </span>
+                                        
+                                        {% if alerta.activa %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                <span class="relative flex h-2 w-2 mr-1">
+                                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                                </span>
+                                                Activa
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-check-circle mr-1"></i>
+                                                Resuelta
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Flecha -->
+                                <div class="flex-shrink-0 self-center ml-2">
+                                    <i class="fas fa-chevron-right text-gray-400"></i>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <!-- Ver más link -->
+            <div class="p-4 text-center">
+                <a href="{% url 'notificaciones:lista_alertas' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-red-600 bg-red-50 hover:bg-red-100 transition-colors">
+                    Ver todas las alertas
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
         {% else %}
-            <div class="text-center py-8 bg-gray-50 rounded-lg">
-                <i class="fas fa-check-circle text-green-500 text-4xl mb-2"></i>
-                <p class="text-gray-600">No hay alertas activas en este momento</p>
+            <div class="py-12 text-center">
+                <div class="inline-block p-4 rounded-full bg-green-100 mb-4">
+                    <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900">No hay alertas activas</h3>
+                <p class="mt-2 text-sm text-gray-500">Todo está funcionando correctamente en este momento.</p>
             </div>
         {% endif %}
     </div>
@@ -76,7 +155,7 @@
                     <div class="bg-white p-4 rounded-lg shadow-sm">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
-                                <i class="fas {% if tipo.tipoalerta == 'retraso' %}fa-clock text-orange-500
+                                <i class="fas {% if tipo.tipoalerta == 'retraso' %}fa-clock text-yellow-500
                                   {% elif tipo.tipoalerta == 'presupuesto' %}fa-dollar-sign text-red-500
                                   {% elif tipo.tipoalerta == 'riesgo' %}fa-exclamation-triangle text-yellow-500
                                   {% else %}fa-ban text-purple-500{% endif %} mr-2"></i>
@@ -88,7 +167,7 @@
                         </div>
                         <!-- Barra de progreso -->
                         <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
-                            <div class="h-2 rounded-full {% if tipo.tipoalerta == 'retraso' %}bg-orange-500
+                            <div class="h-2 rounded-full {% if tipo.tipoalerta == 'retraso' %}bg-yellow-500
                                                  {% elif tipo.tipoalerta == 'presupuesto' %}bg-red-500
                                                  {% elif tipo.tipoalerta == 'riesgo' %}bg-yellow-500
                                                  {% else %}bg-purple-500{% endif %}"

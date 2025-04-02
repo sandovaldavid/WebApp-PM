@@ -4,22 +4,22 @@
 
 {% block title_body %}
 <div class="flex justify-between items-center">
-    <div class="flex items-center">
-        <i class="fas fa-shield-alt text-blue-500 mr-2"></i>
-        <span>Seguridad y Auditoría</span>
+    <div class="flex items-center mb-2 sm:mb-0 lg:mr-4">
+        <div class="p-2 bg-blue-100 rounded-full mr-3">
+            <i class="fas fa-shield-alt text-blue-600"></i>
+        </div>
+        <div>
+            <h1 class="text-xl font-bold text-white">Seguridad y Auditoría</h1>
+            <p class="text-sm text-blue-100 hidden 2xl:block">Registro y seguimiento de actividades del sistema</p>
+        </div>
     </div>
-    <div class="flex space-x-4">
+    <div class="flex space-x-2 sm:space-x-4">
         <a href="{% url 'auditoria:configuracion_auditoria' %}" 
-           class="bg-green-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-green-900 text-base transition-colors flex items-center">
+           class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center shadow-lg">
             <i class="fas fa-cogs mr-2"></i>
-            Configuración
+            <span class="hidden sm:inline">Configuración</span>
+            <span class="sm:hidden">Config</span>
         </a>
-        <!--
-        <a href="{% url 'auditoria:crear_actividad' %}" 
-           class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
-            <i class="fas fa-plus mr-2"></i>
-            Nueva Actividad
-        </a>-->
     </div>
 </div>
 {% endblock %}
