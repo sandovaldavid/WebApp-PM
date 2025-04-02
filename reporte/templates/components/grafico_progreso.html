@@ -1,114 +1,169 @@
-<div class="space-y-6">
-    <!-- Resumen de Progreso -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-green-50 p-4 rounded-lg">
+<div class="space-y-8">
+    <!-- Resumen de Progreso con tarjetas mejoradas -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-gradient-to-br from-green-50 to-emerald-100 p-5 rounded-xl shadow-md hover:shadow-lg transition-all border border-green-200">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="text-sm text-green-600">Completadas</p>
-                    <h4 class="text-2xl font-bold text-green-900">{{ datos_generales.total_completadas }}</h4>
+                    <p class="text-xs uppercase tracking-wider font-semibold text-green-600 mb-1">Completadas</p>
+                    <h4 class="text-3xl font-bold text-green-900">{{ datos_generales.total_completadas }}</h4>
                 </div>
-                <div class="bg-green-100 p-3 rounded-full">
-                    <i class="fas fa-check text-green-500"></i>
+                <div class="bg-green-200 w-12 h-12 rounded-full flex items-center justify-center shadow-inner">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
                 </div>
+            </div>
+            <div class="mt-4 text-xs text-green-700 flex items-center">
+                <i class="fas fa-flag-checkered mr-1"></i>
+                <span>Tareas finalizadas</span>
             </div>
         </div>
 
-        <div class="bg-blue-50 p-4 rounded-lg">
+        <div class="bg-gradient-to-br from-blue-50 to-sky-100 p-5 rounded-xl shadow-md hover:shadow-lg transition-all border border-blue-200">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="text-sm text-blue-600">En Progreso</p>
-                    <h4 class="text-2xl font-bold text-blue-900">{{ datos_generales.total_en_progreso }}</h4>
+                    <p class="text-xs uppercase tracking-wider font-semibold text-blue-600 mb-1">En Progreso</p>
+                    <h4 class="text-3xl font-bold text-blue-900">{{ datos_generales.total_en_progreso }}</h4>
                 </div>
-                <div class="bg-blue-100 p-3 rounded-full">
-                    <i class="fas fa-spinner text-blue-500"></i>
+                <div class="bg-blue-200 w-12 h-12 rounded-full flex items-center justify-center shadow-inner">
+                    <i class="fas fa-spinner text-blue-600 text-xl"></i>
                 </div>
+            </div>
+            <div class="mt-4 text-xs text-blue-700 flex items-center">
+                <i class="fas fa-sync-alt mr-1"></i>
+                <span>Tareas en ejecución</span>
             </div>
         </div>
 
-        <div class="bg-yellow-50 p-4 rounded-lg">
+        <div class="bg-gradient-to-br from-yellow-50 to-amber-100 p-5 rounded-xl shadow-md hover:shadow-lg transition-all border border-yellow-200">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="text-sm text-yellow-600">Pendientes</p>
-                    <h4 class="text-2xl font-bold text-yellow-900">{{ datos_generales.total_pendientes }}</h4>
+                    <p class="text-xs uppercase tracking-wider font-semibold text-yellow-600 mb-1">Pendientes</p>
+                    <h4 class="text-3xl font-bold text-yellow-900">{{ datos_generales.total_pendientes }}</h4>
                 </div>
-                <div class="bg-yellow-100 p-3 rounded-full">
-                    <i class="fas fa-clock text-yellow-500"></i>
+                <div class="bg-yellow-200 w-12 h-12 rounded-full flex items-center justify-center shadow-inner">
+                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
                 </div>
+            </div>
+            <div class="mt-4 text-xs text-yellow-700 flex items-center">
+                <i class="fas fa-hourglass-start mr-1"></i>
+                <span>Tareas por iniciar</span>
             </div>
         </div>
     </div>
 
-    <!-- Tabla de Progreso por Proyecto -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-            <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Proyecto
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Progreso
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Completadas
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    En Progreso
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pendientes
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tiempo Restante
-                </th>
-            </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-            {% for proyecto in datos_generales.proyectos %}
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">{{ proyecto.nombre }}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="{% if proyecto.porcentaje_completado < 30 %}bg-red-600{% elif proyecto.porcentaje_completado < 70 %}bg-yellow-600{% else %}bg-green-600{% endif %} h-2.5 rounded-full"
-                                 style="width: {{ proyecto.porcentaje_completado }}%"></div>
-                        </div>
-                        <span class="text-sm text-gray-600">{{ proyecto.porcentaje_completado }}%</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-sm text-green-800 bg-green-100 rounded-full">
-                            {{ proyecto.completadas }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-sm text-blue-800 bg-blue-100 rounded-full">
-                            {{ proyecto.en_progreso }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-sm text-yellow-800 bg-yellow-100 rounded-full">
-                            {{ proyecto.pendientes }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        {% if proyecto.dias_restantes is not None %}
-                            <span class="px-2 py-1 text-sm {% if proyecto.dias_restantes < 7 %}text-red-800 bg-red-100{% elif proyecto.dias_restantes < 30 %}text-orange-800 bg-orange-100{% else %}text-green-800 bg-green-100{% endif %} rounded-full">
-                                {{ proyecto.dias_restantes }} días
-                            </span>
-                        {% else %}
-                            <span class="text-sm text-gray-500">No definido</span>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                        No hay datos de progreso disponibles
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <!-- Tabla de Progreso por Proyecto con diseño mejorado -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-all">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-100 p-5 border-b border-blue-200">
+            <h3 class="text-lg font-bold text-blue-800 flex items-center">
+                <i class="fas fa-chart-line text-blue-600 mr-2 text-xl"></i>
+                Progreso Detallado por Proyecto
+            </h3>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Proyecto
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Progreso
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Completadas
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            En Progreso
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Pendientes
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tiempo Restante
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for proyecto in datos_generales.proyectos %}
+                        <tr class="{% cycle 'bg-white' 'bg-gray-50' %} hover:bg-blue-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ proyecto.nombre }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col space-y-1">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="{% if proyecto.porcentaje_completado < 30 %}bg-gradient-to-r from-red-400 to-red-600{% elif proyecto.porcentaje_completado < 70 %}bg-gradient-to-r from-yellow-400 to-yellow-600{% else %}bg-gradient-to-r from-green-400 to-green-600{% endif %} h-2 rounded-full" style="width: {{ proyecto.porcentaje_completado }}%"></div>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs font-medium {% if proyecto.porcentaje_completado < 30 %}text-red-600{% elif proyecto.porcentaje_completado < 70 %}text-yellow-600{% else %}text-green-600{% endif %}">
+                                            {{ proyecto.porcentaje_completado }}%
+                                        </span>
+                                        <span class="text-xs text-gray-500">
+                                            {% if proyecto.porcentaje_completado < 30 %}
+                                                Fase inicial
+                                            {% elif proyecto.porcentaje_completado < 70 %}
+                                                En desarrollo
+                                            {% else %}
+                                                Fase final
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    {{ proyecto.completadas }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                    <i class="fas fa-spinner mr-1"></i>
+                                    {{ proyecto.en_progreso }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    {{ proyecto.pendientes }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if proyecto.dias_restantes is not None %}
+                                    <span class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium 
+                                        {% if proyecto.dias_restantes < 7 %}
+                                            bg-red-100 text-red-800 border border-red-200
+                                        {% elif proyecto.dias_restantes < 30 %}
+                                            bg-orange-100 text-orange-800 border border-orange-200
+                                        {% else %}
+                                            bg-green-100 text-green-800 border border-green-200
+                                        {% endif %}">
+                                        <i class="fas fa-calendar-day mr-1"></i>
+                                        {{ proyecto.dias_restantes }} días
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                        <i class="fas fa-question-circle mr-1"></i>
+                                        No definido
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-8 text-center">
+                                <div class="flex flex-col items-center justify-center space-y-3">
+                                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-tasks text-blue-400 text-xl"></i>
+                                    </div>
+                                    <p class="text-gray-500 font-medium">No hay datos de progreso disponibles</p>
+                                    <p class="text-xs text-gray-400">Intenta ajustando los filtros de búsqueda</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

@@ -1,35 +1,32 @@
 {% load static %}
-<div class="bg-white rounded-lg shadow-lg overflow-hidden">
-    <!-- Encabezado -->
-    <div class="p-4 border-b border-gray-200">
-        <h3 class="text-lg font-semibold flex items-center">
-            <i class="fas fa-history text-blue-500 mr-2"></i>
+
+<div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transition-all hover:shadow-lg">
+    <!-- Encabezado con degradado -->
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-100 p-5 border-b border-blue-200">
+        <h3 class="text-lg font-bold text-blue-800 flex items-center">
+            <i class="fas fa-history text-blue-600 mr-2 text-xl"></i>
             Historial de Cambios
         </h3>
     </div>
 
-    <!-- Filtros -->
-    <div class="p-4 bg-gray-50 border-b border-gray-200">
-        <form method="GET" class="flex flex-wrap gap-4" id="filtroHistorialForm">
-            <div>
+    <!-- Filtros con diseño mejorado -->
+    <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
+        <form method="GET" class="flex flex-wrap items-center gap-3" id="filtroHistorialForm">
+            <div class="flex-grow-0">
                 <select name="tipo_filtro"
-                        class="text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        class="text-sm rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:ring-opacity-50 pr-8 transition-all"
                         onchange="document.getElementById('filtroHistorialForm').submit()">
-                    <option value="todos" {% if filtro_actual == 'todos' %}selected{% endif %}>Todos los cambios
-                    </option>
-                    <option value="estado" {% if filtro_actual == 'estado' %}selected{% endif %}>Cambios de estado
-                    </option>
-                    <option value="asignacion" {% if filtro_actual == 'asignacion' %}selected{% endif %}>Asignaciones
-                    </option>
-                    <option value="recursos" {% if filtro_actual == 'recursos' %}selected{% endif %}>Cambios de
-                        recursos
-                    </option>
+                    <option value="todos" {% if filtro_actual == 'todos' %}selected{% endif %}>Todos los cambios</option>
+                    <option value="estado" {% if filtro_actual == 'estado' %}selected{% endif %}>Cambios de estado</option>
+                    <option value="asignacion" {% if filtro_actual == 'asignacion' %}selected{% endif %}>Asignaciones</option>
+                    <option value="recursos" {% if filtro_actual == 'recursos' %}selected{% endif %}>Cambios de recursos</option>
                 </select>
             </div>
+            
             {% if proyectos %}
-                <div>
+                <div class="flex-grow-0">
                     <select name="proyecto"
-                            class="text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            class="text-sm rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:ring-opacity-50 pr-8 transition-all"
                             onchange="document.getElementById('filtroHistorialForm').submit()">
                         <option value="">Todos los proyectos</option>
                         {% for proyecto in proyectos %}
@@ -41,196 +38,294 @@
                     </select>
                 </div>
             {% endif %}
-            <div class="ml-auto">
-                <span class="text-xs text-gray-500">
-                    {% if historial.paginator.count == 0 %}
-                        No hay registros
-                    {% elif historial.paginator.count == 1 %}
-                        1 registro
-                    {% else %}
-                        {{ historial.paginator.count }} registros
-                    {% endif %}
-                </span>
-            </div>
         </form>
+        
+        <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 shadow-sm">
+            <i class="fas fa-list-ul mr-1.5"></i>
+            {% if historial.paginator.count == 0 %}
+                No hay registros
+            {% elif historial.paginator.count == 1 %}
+                1 registro encontrado
+            {% else %}
+                {{ historial.paginator.count }} registros encontrados
+            {% endif %}
+        </span>
     </div>
 
-    <!-- Lista de Historial -->
-    <div class="divide-y divide-gray-200">
+    <!-- Lista de Historial con diseño mejorado -->
+    <div class="divide-y divide-gray-100">
         {% if using_actividad %}
             <!-- Usando el nuevo modelo Actividad -->
             {% for registro in historial %}
-                <div class="p-4 hover:bg-gray-50 transition-colors">
-                    <div class="flex justify-between items-start">
-                        <div class="space-y-1">
-                            <!-- Fecha y Usuario -->
-                            <div class="flex items-center">
-                                <span class="text-sm font-medium text-gray-900">
+                <div class="p-4 hover:bg-blue-50 transition-colors">
+                    <div class="flex items-start gap-4">
+                        <!-- Icono de actividad -->
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 rounded-full 
+                                {% if 'estado' in registro.nombre|lower or 'estado' in registro.accion|lower %}
+                                    bg-yellow-100 text-yellow-600
+                                {% elif 'asign' in registro.nombre|lower or 'asign' in registro.accion|lower %}
+                                    bg-blue-100 text-blue-600
+                                {% elif 'recurs' in registro.nombre|lower or 'recurs' in registro.accion|lower %}
+                                    bg-green-100 text-green-600
+                                {% else %}
+                                    bg-gray-100 text-gray-600
+                                {% endif %} 
+                                flex items-center justify-center shadow-inner">
+                                <i class="fas 
+                                    {% if 'estado' in registro.nombre|lower or 'estado' in registro.accion|lower %}
+                                        fa-exchange-alt
+                                    {% elif 'asign' in registro.nombre|lower or 'asign' in registro.accion|lower %}
+                                        fa-user-plus
+                                    {% elif 'recurs' in registro.nombre|lower or 'recurs' in registro.accion|lower %}
+                                        fa-cubes
+                                    {% else %}
+                                        fa-info-circle
+                                    {% endif %} text-lg"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Contenido principal -->
+                        <div class="flex-1 space-y-2">
+                            <!-- Fecha, Usuario y Links -->
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <span class="text-sm font-medium text-gray-900 flex items-center">
+                                    <i class="fas fa-calendar-alt text-blue-500 mr-1.5"></i>
                                     {{ registro.fechacreacion|date:"d/m/Y H:i" }}
                                 </span>
-                                <span class="mx-2 text-gray-500">•</span>
-                                <span class="text-sm text-blue-600">
+                                <span class="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full flex items-center">
+                                    <i class="fas fa-user text-blue-500 mr-1.5"></i>
                                     {{ registro.idusuario.nombreusuario }}
                                 </span>
                                 {% if registro.entidad_id and registro.entidad_id|stringformat:"s"|length > 0 %}
-                                    <span class="mx-2 text-gray-500">•</span>
                                     <a href="{% url 'gestion_tareas:detalle_tarea' registro.entidad_id %}"
-                                    class="text-sm text-blue-600 hover:text-blue-800">
+                                       class="text-sm text-blue-600 hover:text-blue-800 flex items-center transition-colors hover:underline">
+                                        <i class="fas fa-external-link-alt text-blue-500 mr-1.5"></i>
                                         Ver tarea
                                     </a>
                                 {% endif %}
                             </div>
 
                             <!-- Descripción del Cambio -->
-                            <p class="text-sm text-gray-600">
-                                {{ registro.nombre }}
-                            </p>
-                            
-                            <!-- Acción específica si existe -->
-                            {% if registro.accion %}
-                                <p class="text-xs text-gray-500 italic">
-                                    {{ registro.accion }}
+                            <div class="bg-white rounded-lg border border-gray-200 p-3 shadow-sm hover:border-blue-300 transition-colors">
+                                <p class="text-sm text-gray-800 font-medium">
+                                    {{ registro.nombre }}
                                 </p>
-                            {% endif %}
+                                
+                                <!-- Acción específica si existe -->
+                                {% if registro.accion %}
+                                    <p class="text-xs text-gray-500 mt-1.5 italic">
+                                        "{{ registro.accion }}"
+                                    </p>
+                                {% endif %}
+                            </div>
 
-                            <!-- Metadatos -->
-                            <div class="flex items-center space-x-4 text-xs text-gray-500">
+                            <!-- Metadatos con iconos -->
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
                                 <div class="flex items-center">
-                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <i class="fas fa-tag text-gray-400 mr-1.5"></i>
                                     {{ registro.entidad_tipo }}
                                 </div>
                                 {% if registro.ip_address %}
-                                <div class="flex items-center">
-                                    <i class="fas fa-network-wired mr-1"></i>
-                                    {{ registro.ip_address }}
-                                </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-network-wired text-gray-400 mr-1.5"></i>
+                                        {{ registro.ip_address }}
+                                    </div>
                                 {% endif %}
                                 <div class="flex items-center">
-                                    <i class="fas fa-clock mr-1"></i>
+                                    <i class="fas fa-clock text-gray-400 mr-1.5"></i>
                                     Hace {{ registro.fechacreacion|timesince }}
                                 </div>
                             </div>
                         </div>
 
                         <!-- Indicador de Tipo -->
-                        <span class="px-2 py-1 text-xs rounded-full 
-                            {% if 'estado' in registro.nombre|lower or 'estado' in registro.accion|lower %}
-                                bg-yellow-100 text-yellow-800
-                            {% elif 'asign' in registro.nombre|lower or 'asign' in registro.accion|lower %}
-                                bg-blue-100 text-blue-800
-                            {% elif 'recurs' in registro.nombre|lower or 'recurs' in registro.accion|lower %}
-                                bg-green-100 text-green-800
-                            {% else %}
-                                bg-gray-100 text-gray-800
-                            {% endif %}">
-                            
-                            {% if 'estado' in registro.nombre|lower or 'estado' in registro.accion|lower %}
-                                <i class="fas fa-exchange-alt mr-1"></i>Estado
-                            {% elif 'asign' in registro.nombre|lower or 'asign' in registro.accion|lower %}
-                                <i class="fas fa-user-plus mr-1"></i>Asignación
-                            {% elif 'recurs' in registro.nombre|lower or 'recurs' in registro.accion|lower %}
-                                <i class="fas fa-cubes mr-1"></i>Recursos
-                            {% else %}
-                                <i class="fas fa-info-circle mr-1"></i>General
-                            {% endif %}
-                        </span>
+                        <div class="flex-shrink-0">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium 
+                                {% if 'estado' in registro.nombre|lower or 'estado' in registro.accion|lower %}
+                                    bg-yellow-100 text-yellow-800 border border-yellow-200
+                                {% elif 'asign' in registro.nombre|lower or 'asign' in registro.accion|lower %}
+                                    bg-blue-100 text-blue-800 border border-blue-200
+                                {% elif 'recurs' in registro.nombre|lower or 'recurs' in registro.accion|lower %}
+                                    bg-green-100 text-green-800 border border-green-200
+                                {% else %}
+                                    bg-gray-100 text-gray-800 border border-gray-200
+                                {% endif %}">
+                                
+                                {% if 'estado' in registro.nombre|lower or 'estado' in registro.accion|lower %}
+                                    <i class="fas fa-exchange-alt mr-1"></i>Estado
+                                {% elif 'asign' in registro.nombre|lower or 'asign' in registro.accion|lower %}
+                                    <i class="fas fa-user-plus mr-1"></i>Asignación
+                                {% elif 'recurs' in registro.nombre|lower or 'recurs' in registro.accion|lower %}
+                                    <i class="fas fa-cubes mr-1"></i>Recursos
+                                {% else %}
+                                    <i class="fas fa-info-circle mr-1"></i>General
+                                {% endif %}
+                            </span>
+                        </div>
                     </div>
                 </div>
             {% empty %}
-                <div class="p-8 text-center text-gray-500">
-                    <i class="fas fa-history text-4xl mb-2"></i>
-                    <p>No hay registros de historial disponibles</p>
+                <div class="py-12 text-center">
+                    <div class="flex flex-col items-center justify-center space-y-3">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-history text-blue-400 text-xl"></i>
+                        </div>
+                        <p class="text-gray-500 font-medium">No hay registros de historial disponibles</p>
+                        <p class="text-xs text-gray-400">Intenta ajustando los filtros de búsqueda</p>
+                    </div>
                 </div>
             {% endfor %}
         {% else %}
             <!-- Usando el modelo legacy Historialtarea -->
             {% for registro in historial %}
-                <div class="p-4 hover:bg-gray-50 transition-colors">
-                    <div class="flex justify-between items-start">
-                        <div class="space-y-1">
+                <div class="p-4 hover:bg-blue-50 transition-colors">
+                    <div class="flex items-start gap-4">
+                        <!-- Icono de actividad -->
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 rounded-full 
+                                {% if 'estado' in registro.descripcioncambio|lower %}
+                                    bg-yellow-100 text-yellow-600
+                                {% elif 'asign' in registro.descripcioncambio|lower %}
+                                    bg-blue-100 text-blue-600
+                                {% elif 'recurs' in registro.descripcioncambio|lower %}
+                                    bg-green-100 text-green-600
+                                {% else %}
+                                    bg-gray-100 text-gray-600
+                                {% endif %} 
+                                flex items-center justify-center shadow-inner">
+                                <i class="fas 
+                                    {% if 'estado' in registro.descripcioncambio|lower %}
+                                        fa-exchange-alt
+                                    {% elif 'asign' in registro.descripcioncambio|lower %}
+                                        fa-user-plus
+                                    {% elif 'recurs' in registro.descripcioncambio|lower %}
+                                        fa-cubes
+                                    {% else %}
+                                        fa-info-circle
+                                    {% endif %} text-lg"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Contenido principal -->
+                        <div class="flex-1 space-y-2">
                             <!-- Fecha y Nombre de Tarea -->
-                            <div class="flex items-center">
-                                <span class="text-sm font-medium text-gray-900">
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <span class="text-sm font-medium text-gray-900 flex items-center">
+                                    <i class="fas fa-calendar-alt text-blue-500 mr-1.5"></i>
                                     {{ registro.fechacambio|date:"d/m/Y H:i" }}
                                 </span>
                                 {% if registro.idtarea %}
-                                    <span class="mx-2 text-gray-500">•</span>
                                     <a href="{% url 'gestion_tareas:detalle_tarea' registro.idtarea.idtarea %}"
-                                    class="text-sm text-blue-600 hover:text-blue-800">
+                                       class="text-sm text-blue-600 hover:text-blue-800 flex items-center transition-colors hover:underline">
+                                        <i class="fas fa-tasks text-blue-500 mr-1.5"></i>
                                         {{ registro.idtarea.nombretarea|default:"Tarea sin nombre" }}
                                     </a>
                                 {% else %}
-                                    <span class="mx-2 text-gray-500">•</span>
-                                    <span class="text-sm text-gray-500">Tarea no disponible</span>
+                                    <span class="text-sm text-gray-500 flex items-center">
+                                        <i class="fas fa-question-circle text-gray-400 mr-1.5"></i>
+                                        Tarea no disponible
+                                    </span>
                                 {% endif %}
                             </div>
 
                             <!-- Descripción del Cambio -->
-                            <p class="text-sm text-gray-600">
-                                {{ registro.descripcioncambio }}
-                            </p>
+                            <div class="bg-white rounded-lg border border-gray-200 p-3 shadow-sm hover:border-blue-300 transition-colors">
+                                <p class="text-sm text-gray-800">
+                                    {{ registro.descripcioncambio }}
+                                </p>
+                            </div>
 
                             <!-- Metadatos -->
-                            <div class="flex items-center space-x-4 text-xs text-gray-500">
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
                                 {% if registro.idtarea.idrequerimiento.idproyecto %}
                                     <div class="flex items-center">
-                                        <i class="fas fa-folder mr-1"></i>
+                                        <i class="fas fa-folder text-gray-400 mr-1.5"></i>
                                         {{ registro.idtarea.idrequerimiento.idproyecto.nombreproyecto }}
                                     </div>
                                 {% endif %}
                                 {% if registro.idtarea.estado %}
                                     <div class="flex items-center">
-                                        <i class="fas fa-info-circle mr-1"></i>
-                                        Estado actual: {{ registro.idtarea.estado }}
+                                        <i class="fas fa-info-circle text-gray-400 mr-1.5"></i>
+                                        Estado actual: 
+                                        <span class="ml-1 px-1.5 py-0.5 rounded-full text-xs
+                                            {% if registro.idtarea.estado == 'Completada' %}
+                                                bg-green-100 text-green-700
+                                            {% elif registro.idtarea.estado == 'En Progreso' %}
+                                                bg-blue-100 text-blue-700
+                                            {% elif registro.idtarea.estado == 'Pendiente' %}
+                                                bg-yellow-100 text-yellow-700
+                                            {% else %}
+                                                bg-gray-100 text-gray-700
+                                            {% endif %}">
+                                            {{ registro.idtarea.estado }}
+                                        </span>
                                     </div>
                                 {% endif %}
                                 <div class="flex items-center">
-                                    <i class="fas fa-clock mr-1"></i>
+                                    <i class="fas fa-clock text-gray-400 mr-1.5"></i>
                                     Hace {{ registro.fechacambio|timesince }}
                                 </div>
                             </div>
                         </div>
 
                         <!-- Indicador de Tipo -->
-                        <span class="px-2 py-1 text-xs rounded-full {% if 'estado' in registro.descripcioncambio|lower %}bg-yellow-100 text-yellow-800{% elif 'asign' in registro.descripcioncambio|lower %}bg-blue-100 text-blue-800{% elif 'recurs' in registro.descripcioncambio|lower %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
-                            {% if 'estado' in registro.descripcioncambio|lower %}
-                                <i class="fas fa-exchange-alt mr-1"></i>Estado
-                            {% elif 'asign' in registro.descripcioncambio|lower %}
-                                <i class="fas fa-user-plus mr-1"></i>Asignación
-                            {% elif 'recurs' in registro.descripcioncambio|lower %}
-                                <i class="fas fa-cubes mr-1"></i>Recursos
-                            {% else %}
-                                <i class="fas fa-info-circle mr-1"></i>General
-                            {% endif %}
-                        </span>
+                        <div class="flex-shrink-0">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium 
+                                {% if 'estado' in registro.descripcioncambio|lower %}
+                                    bg-yellow-100 text-yellow-800 border border-yellow-200
+                                {% elif 'asign' in registro.descripcioncambio|lower %}
+                                    bg-blue-100 text-blue-800 border border-blue-200
+                                {% elif 'recurs' in registro.descripcioncambio|lower %}
+                                    bg-green-100 text-green-800 border border-green-200
+                                {% else %}
+                                    bg-gray-100 text-gray-800 border border-gray-200
+                                {% endif %}">
+                                
+                                {% if 'estado' in registro.descripcioncambio|lower %}
+                                    <i class="fas fa-exchange-alt mr-1"></i>Estado
+                                {% elif 'asign' in registro.descripcioncambio|lower %}
+                                    <i class="fas fa-user-plus mr-1"></i>Asignación
+                                {% elif 'recurs' in registro.descripcioncambio|lower %}
+                                    <i class="fas fa-cubes mr-1"></i>Recursos
+                                {% else %}
+                                    <i class="fas fa-info-circle mr-1"></i>General
+                                {% endif %}
+                            </span>
+                        </div>
                     </div>
                 </div>
             {% empty %}
-                <div class="p-8 text-center text-gray-500">
-                    <i class="fas fa-history text-4xl mb-2"></i>
-                    <p>No hay registros de historial disponibles</p>
+                <div class="py-12 text-center">
+                    <div class="flex flex-col items-center justify-center space-y-3">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-history text-blue-400 text-xl"></i>
+                        </div>
+                        <p class="text-gray-500 font-medium">No hay registros de historial disponibles</p>
+                        <p class="text-xs text-gray-400">Intenta ajustando los filtros de búsqueda</p>
+                    </div>
                 </div>
             {% endfor %}
         {% endif %}
     </div>
 
-    <!-- Paginación -->
+    <!-- Paginación con diseño mejorado -->
     {% if historial.has_other_pages %}
-        <div class="p-4 border-t border-gray-200">
-            <div class="flex justify-center space-x-2">
+        <div class="p-4 border-t border-gray-200 bg-gray-50">
+            <div class="flex justify-center items-center space-x-1">
                 {% if historial.has_previous %}
                     <a href="?page={{ historial.previous_page_number }}{% if filtro_actual %}&tipo_filtro={{ filtro_actual }}{% endif %}{% if proyecto_actual %}&proyecto={{ proyecto_actual }}{% endif %}"
-                       class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
-                        <i class="fas fa-chevron-left"></i>
+                       class="px-3 py-1.5 bg-white text-gray-600 rounded-md border border-gray-300 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-colors flex items-center">
+                        <i class="fas fa-chevron-left text-xs"></i>
                     </a>
                 {% endif %}
 
                 {% for i in historial.paginator.page_range %}
                     {% if historial.number == i %}
-                        <span class="px-3 py-1 bg-blue-500 text-white rounded-md">{{ i }}</span>
+                        <span class="px-3.5 py-1.5 bg-blue-600 text-white rounded-md shadow-sm">{{ i }}</span>
                     {% elif i > historial.number|add:'-3' and i < historial.number|add:'3' %}
                         <a href="?page={{ i }}{% if filtro_actual %}&tipo_filtro={{ filtro_actual }}{% endif %}{% if proyecto_actual %}&proyecto={{ proyecto_actual }}{% endif %}"
-                           class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
+                           class="px-3.5 py-1.5 bg-white text-gray-600 rounded-md border border-gray-300 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-colors">
                             {{ i }}
                         </a>
                     {% endif %}
@@ -238,10 +333,15 @@
 
                 {% if historial.has_next %}
                     <a href="?page={{ historial.next_page_number }}{% if filtro_actual %}&tipo_filtro={{ filtro_actual }}{% endif %}{% if proyecto_actual %}&proyecto={{ proyecto_actual }}{% endif %}"
-                       class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
-                        <i class="fas fa-chevron-right"></i>
+                       class="px-3 py-1.5 bg-white text-gray-600 rounded-md border border-gray-300 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition-colors flex items-center">
+                        <i class="fas fa-chevron-right text-xs"></i>
                     </a>
                 {% endif %}
+            </div>
+            
+            <!-- Indicador de página actual -->
+            <div class="text-center mt-2 text-xs text-gray-500">
+                Página {{ historial.number }} de {{ historial.paginator.num_pages }}
             </div>
         </div>
     {% endif %}

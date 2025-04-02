@@ -4,26 +4,58 @@
     <meta charset="utf-8"/>
     <title>Reporte de Recursos</title>
     <style>
+        @page {
+            margin: 2.5cm 1.5cm;
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 9pt;
+                color: #6b7280;
+            }
+            @top-center {
+                content: "Reporte de Recursos";
+                font-size: 9pt;
+                color: #6b7280;
+            }
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Helvetica', 'Arial', sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: #1f2937;
+            font-size: 10pt;
+            margin: 0;
+            padding: 0;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 2cm;
             padding: 20px;
-            background: #f8fafc;
-            border-bottom: 2px solid #e2e8f0;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border-radius: 8px;
+            border-bottom: 3px solid #93c5fd;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .header h1 {
+            color: #1e40af;
+            margin: 0 0 10px 0;
+            font-size: 24pt;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header p {
+            color: #1e3a8a;
+            margin: 5px 0;
         }
 
         .statistics {
-            margin-bottom: 30px;
-            padding: 20px;
+            margin-bottom: 1.5cm;
+            padding: 15px;
             background: #fff;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
+            border: 1px solid #e5e7eb;
         }
 
         .stats-grid {
@@ -35,32 +67,54 @@
 
         .stat-card {
             padding: 15px;
-            background: #f0f9ff;
-            border-radius: 6px;
+            background: linear-gradient(to right bottom, #eff6ff, #dbeafe);
+            border-radius: 8px;
             border-left: 4px solid #3b82f6;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .stat-title {
-            font-size: 14px;
+            font-size: 10pt;
             color: #1e40af;
+            margin-bottom: 5px;
+            font-weight: 600;
         }
 
         .stat-value {
-            font-size: 24px;
+            font-size: 18pt;
             font-weight: bold;
             color: #1e40af;
+            margin: 0;
+        }
+
+        h2 {
+            color: #1e3a8a;
+            font-size: 14pt;
+            border-bottom: 2px solid #dbeafe;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        h3 {
+            color: #1e40af;
+            font-size: 12pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
         }
 
         th, td {
-            padding: 12px;
+            padding: 10px 12px;
             border: 1px solid #e5e7eb;
             text-align: left;
+            font-size: 9pt;
         }
 
         th {
@@ -68,38 +122,124 @@
             font-weight: 600;
             color: #1e40af;
         }
+        
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        tr:hover {
+            background-color: #eff6ff;
+        }
 
         .progress-bar {
             width: 100%;
+            height: 8px;
             background-color: #e5e7eb;
-            border-radius: 9999px;
+            border-radius: 999px;
             overflow: hidden;
+            margin: 5px 0;
         }
 
         .progress-value {
             height: 8px;
-            background-color: #3b82f6;
+            background: linear-gradient(to right, #60a5fa, #3b82f6);
+            border-radius: 999px;
+        }
+        
+        .efficiency-color {
+            height: 8px;
+            border-radius: 999px;
+        }
+        
+        .efficiency-low {
+            background: linear-gradient(to right, #f87171, #ef4444);
+        }
+        
+        .efficiency-medium {
+            background: linear-gradient(to right, #fbbf24, #f59e0b);
+        }
+        
+        .efficiency-optimal {
+            background: linear-gradient(to right, #34d399, #10b981);
+        }
+        
+        .efficiency-high {
+            background: linear-gradient(to right, #60a5fa, #3b82f6);
+        }
+        
+        .efficiency-overload {
+            background: linear-gradient(to right, #a78bfa, #8b5cf6);
         }
 
         .resource-category {
-            margin-top: 30px;
+            margin-top: 2cm;
             padding-top: 15px;
-            border-top: 1px solid #e5e7eb;
+            border-top: 2px solid #dbeafe;
         }
         
         .resource-category h3 {
             color: #1e40af;
-            font-size: 18px;
+            font-size: 14pt;
             margin-bottom: 15px;
+            background-color: #eff6ff;
+            padding: 8px;
+            border-radius: 4px;
         }
         
         .footer {
-            margin-top: 30px;
-            padding-top: 20px;
+            margin-top: 1.5cm;
+            padding-top: 15px;
             border-top: 1px solid #e5e7eb;
             text-align: center;
-            font-size: 12px;
+            font-size: 9pt;
             color: #6b7280;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #f3f4f6;
+            border-radius: 4px;
+            font-size: 8pt;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 4px;
+            display: inline-block;
+        }
+        
+        .resource-type-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 5px;
+            vertical-align: middle;
+            font-weight: bold;
+            font-size: 8pt;
+        }
+        
+        .resource-type-human {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .resource-type-material {
+            background-color: #fef3c7;
+            color: #92400e;
         }
     </style>
 </head>
@@ -108,9 +248,9 @@
     <h1>Reporte de Distribución de Recursos</h1>
     <p>Fecha de generación: {{ fecha_generacion|date:'d/m/Y H:i' }}</p>
     {% if filtros.proyecto %}
-        <p>Proyecto: {{ filtros.proyecto.nombreproyecto }}</p>
+        <p>Proyecto: <strong>{{ filtros.proyecto.nombreproyecto }}</strong></p>
     {% endif %}
-    <p>Período: {{ filtros.fecha_inicio|date:'d/m/Y' }} - {{ filtros.fecha_fin|date:'d/m/Y' }}</p>
+    <p>Período: <strong>{{ filtros.fecha_inicio|date:'d/m/Y' }} - {{ filtros.fecha_fin|date:'d/m/Y' }}</strong></p>
 </div>
 
 <div class="statistics">
@@ -119,43 +259,128 @@
         <div class="stat-card">
             <div class="stat-title">Total Horas Asignadas</div>
             <div class="stat-value">{{ datos_recursos.total_horas_asignadas }}</div>
+            <div style="font-size: 8pt; color: #4b5563; margin-top: 5px;">Horas planificadas para todos los recursos</div>
         </div>
         <div class="stat-card">
             <div class="stat-title">Total Horas Utilizadas</div>
             <div class="stat-value">{{ datos_recursos.total_horas_utilizadas }}</div>
+            <div style="font-size: 8pt; color: #4b5563; margin-top: 5px;">Horas realmente consumidas</div>
+            
+            <!-- Indicador de eficiencia global -->
+            {% if datos_recursos.total_horas_asignadas > 0 %}
+            <div style="margin-top: 10px;">
+                <div class="progress-bar">
+                    <div class="progress-value" style="width: {% widthratio datos_recursos.total_horas_utilizadas datos_recursos.total_horas_asignadas 100 %}%"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 8pt; margin-top: 3px;">
+                    <span>Eficiencia de utilización</span>
+                    <span style="font-weight: 600;">{% widthratio datos_recursos.total_horas_utilizadas datos_recursos.total_horas_asignadas 100 %}%</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Gráfico de distribución de tipos -->
+    <div style="margin-top: 15px;">
+        <h3>Distribución por Tipo de Recurso</h3>
+        <div style="display: flex; gap: 15px;">
+            {% for tipo, recursos in datos_recursos.recursos|groupby:"tipo" %}
+                <div style="flex: 1; text-align: center;">
+                    <div style="background-color: {% if tipo == 'Humano' %}#dbeafe{% else %}#fef3c7{% endif %}; padding: 10px; border-radius: 8px;">
+                        <div style="font-weight: bold; color: {% if tipo == 'Humano' %}#1e40af{% else %}#92400e{% endif %};">
+                            {{ tipo }}
+                        </div>
+                        <div style="font-size: 18pt; font-weight: bold; color: {% if tipo == 'Humano' %}#1e3a8a{% else %}#78350f{% endif %};">
+                            {{ recursos|length }}
+                        </div>
+                        <div style="font-size: 8pt; color: #4b5563;">recursos</div>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
 </div>
 
-<div class="resources">
-    <h2>Detalle por Recurso</h2>
-    <table>
-        <thead>
+<h2>Detalle por Recurso</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Recurso</th>
+        <th>Tipo</th>
+        <th>Horas Asignadas</th>
+        <th>Horas Utilizadas</th>
+        <th>Eficiencia</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for recurso in datos_recursos.recursos %}
         <tr>
-            <th>Recurso</th>
-            <th>Tipo</th>
-            <th>Horas Asignadas</th>
-            <th>Horas Utilizadas</th>
-            <th>Eficiencia</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for recurso in datos_recursos.recursos %}
-            <tr>
-                <td><strong>{{ recurso.nombre }}</strong></td>
-                <td>{{ recurso.tipo }}</td>
-                <td>{{ recurso.horas_asignadas }} h</td>
-                <td>{{ recurso.horas_utilizadas }} h</td>
-                <td>
-                    <div class="progress-bar">
-                        <div class="progress-value" style="width: {{ recurso.eficiencia }}%"></div>
+            <td>
+                <div>
+                    <span class="resource-type-icon {% if recurso.tipo == 'Humano' %}resource-type-human{% else %}resource-type-material{% endif %}">
+                        {% if recurso.tipo == 'Humano' %}H{% else %}M{% endif %}
+                    </span>
+                    <strong>{{ recurso.nombre }}</strong>
+                </div>
+            </td>
+            <td>{{ recurso.tipo }}</td>
+            <td>{{ recurso.horas_asignadas }} h</td>
+            <td>{{ recurso.horas_utilizadas }} h</td>
+            <td>
+                <div class="progress-bar">
+                    <div class="efficiency-color 
+                        {% if recurso.eficiencia < 60 %}efficiency-low
+                        {% elif recurso.eficiencia < 85 %}efficiency-medium
+                        {% elif recurso.eficiencia < 100 %}efficiency-optimal
+                        {% elif recurso.eficiencia < 115 %}efficiency-high
+                        {% else %}efficiency-overload{% endif %}"
+                         style="width: {{ recurso.eficiencia }}%">
                     </div>
-                    {{ recurso.eficiencia }}%
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 8pt; margin-top: 3px;">
+                    <span>
+                        {% if recurso.eficiencia < 60 %}
+                            Subutilizado
+                        {% elif recurso.eficiencia < 85 %}
+                            Uso moderado
+                        {% elif recurso.eficiencia < 100 %}
+                            Óptimo
+                        {% elif recurso.eficiencia < 115 %}
+                            Alta demanda
+                        {% else %}
+                            Sobrecargado
+                        {% endif %}
+                    </span>
+                    <span style="font-weight: 600;">{{ recurso.eficiencia }}%</span>
+                </div>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="legend">
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: #ef4444;"></span>
+        <span>&lt;60%: Subutilizado</span>
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: #f59e0b;"></span>
+        <span>60-85%: Uso moderado</span>
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: #10b981;"></span>
+        <span>85-100%: Óptimo</span>
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: #3b82f6;"></span>
+        <span>100-115%: Alta demanda</span>
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background-color: #8b5cf6;"></span>
+        <span>&gt;115%: Sobrecargado</span>
+    </div>
 </div>
 
 <!-- Agrupar recursos por tipo -->
@@ -177,20 +402,46 @@
             <tbody>
             {% for recurso in tipo.list %}
                 <tr>
-                    <td>{{ recurso.nombre }}</td>
+                    <td><strong>{{ recurso.nombre }}</strong></td>
                     <td>{{ recurso.horas_asignadas }} h</td>
                     <td>{{ recurso.horas_utilizadas }} h</td>
                     <td>
-                        {% if recurso.eficiencia > 90 %}
-                            <strong style="color: green;">{{ recurso.eficiencia }}%</strong>
-                        {% elif recurso.eficiencia < 50 %}
-                            <strong style="color: red;">{{ recurso.eficiencia }}%</strong>
-                        {% else %}
-                            {{ recurso.eficiencia }}%
-                        {% endif %}
+                        <div class="progress-bar">
+                            <div class="efficiency-color 
+                                {% if recurso.eficiencia < 60 %}efficiency-low
+                                {% elif recurso.eficiencia < 85 %}efficiency-medium
+                                {% elif recurso.eficiencia < 100 %}efficiency-optimal
+                                {% elif recurso.eficiencia < 115 %}efficiency-high
+                                {% else %}efficiency-overload{% endif %}"
+                                 style="width: {{ recurso.eficiencia }}%">
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 8pt; margin-top: 3px;">
+                            <span style="font-weight: 600;">
+                                {{ recurso.eficiencia }}%
+                            </span>
+                        </div>
                     </td>
                 </tr>
             {% endfor %}
+            
+            <!-- Resumen del grupo -->
+            <tr style="background-color: #f3f4f6; font-weight: 600;">
+                <td>TOTAL {{ tipo.grouper }}</td>
+                <td>
+                    {% with total_asignado=0 %}
+                        {% for recurso in tipo.list %}{% with total_asignado=total_asignado|add:recurso.horas_asignadas %}{% endwith %}{% endfor %}
+                        {{ total_asignado }} h
+                    {% endwith %}
+                </td>
+                <td>
+                    {% with total_utilizado=0 %}
+                        {% for recurso in tipo.list %}{% with total_utilizado=total_utilizado|add:recurso.horas_utilizadas %}{% endwith %}{% endfor %}
+                        {{ total_utilizado }} h
+                    {% endwith %}
+                </td>
+                <td></td>
+            </tr>
             </tbody>
         </table>
     </div>
@@ -198,12 +449,8 @@
 </div>
 
 <div class="footer">
-    <p>Filtros aplicados:</p>
-    {% if filtros.proyecto %}
-        <p>Proyecto: {{ filtros.proyecto.nombreproyecto }}</p>
-    {% endif %}
-    <p>Período: {{ filtros.fecha_inicio|date:'d/m/Y' }} - {{ filtros.fecha_fin|date:'d/m/Y' }}</p>
-    <p>Reporte generado por {{ request.user.nombreusuario }}</p>
+    <p>Filtros aplicados: {% if filtros.proyecto %}Proyecto: {{ filtros.proyecto.nombreproyecto }} | {% endif %}Período: {{ filtros.fecha_inicio|date:'d/m/Y' }} - {{ filtros.fecha_fin|date:'d/m/Y' }}</p>
+    <p>Reporte generado por {{ request.user.nombreusuario }} | {{ fecha_generacion|date:'d/m/Y H:i' }}</p>
 </div>
 </body>
 </html>
