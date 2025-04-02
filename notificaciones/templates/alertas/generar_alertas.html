@@ -116,7 +116,7 @@
                 <div class="bg-gradient-to-br from-white to-yellow-50 rounded-xl shadow-md overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                     <div class="p-5">
                         <div class="flex items-center">
-                            <div class="flex-shrink-0 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-lg p-3 shadow-md">
+                            <div class="flex-shrink-0 bg-gradient-to-r from-yellow-500 to-yellow-500 rounded-lg p-3 shadow-md">
                                 <i class="fas fa-exclamation-triangle text-white text-xl"></i>
                             </div>
                             <div class="ml-5 w-0 flex-1">
@@ -136,7 +136,7 @@
                     </div>
                     <div class="bg-gray-50 px-5 py-3">
                         <div class="text-sm"></div>
-                            <a href="{% url 'notificaciones:lista_alertas' %}?estado=activa" class="font-medium text-amber-600 hover:text-amber-800 flex items-center justify-between group transition-colors duration-200">
+                            <a href="{% url 'notificaciones:lista_alertas' %}?estado=activa" class="font-medium text-yellow-600 hover:text-yellow-800 flex items-center justify-between group transition-colors duration-200">
                                 <span>Ver activas</span>
                                 <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform duration-200"></i>
                             </a>
@@ -180,12 +180,12 @@
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <span class="text-sm font-medium flex items-center text-gray-700">
-                                <i class="fas fa-ban text-amber-500 mr-2"></i>Bloqueo
+                                <i class="fas fa-ban text-yellow-500 mr-2"></i>Bloqueo
                             </span>
-                            <span class="text-sm font-semibold text-amber-600">{{ stats.alertas_bloqueo }}</span>
+                            <span class="text-sm font-semibold text-yellow-600">{{ stats.alertas_bloqueo }}</span>
                         </div>
                         <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-500 ease-out" style="width: {{ stats.alertas_bloqueo|default:0 }}%;"></div>
+                            <div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full transition-all duration-500 ease-out" style="width: {{ stats.alertas_bloqueo|default:0 }}%;"></div>
                         </div>
                     </div>
                 </div>
@@ -221,14 +221,14 @@
                         </div>
                     </div>
                     
-                    <div class="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-500 rounded-lg shadow-sm">
+                    <div class="p-4 bg-gradient-to-r from-yellow-50 to-yellow-50 border-l-4 border-yellow-500 rounded-lg shadow-sm">
                         <div class="flex">
                             <div class="flex-shrink-0">
-                                <i class="fas fa-exclamation-circle text-amber-500"></i>
+                                <i class="fas fa-exclamation-circle text-yellow-500"></i>
                             </div>
                             <div class="ml-3">
-                                <h3 class="text-sm font-medium text-amber-800">Precaución</h3>
-                                <p class="text-sm text-amber-700 mt-1">
+                                <h3 class="text-sm font-medium text-yellow-800">Precaución</h3>
+                                <p class="text-sm text-yellow-700 mt-1">
                                     Esta acción generará alertas que notificarán a los usuarios del sistema. Las notificaciones se enviarán automáticamente por correo electrónico.
                                 </p>
                             </div>
@@ -280,8 +280,8 @@
 
                             <!-- Bloqueo -->
                             <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1">
-                                <div class="bg-amber-100 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                                    <i class="fas fa-ban text-amber-500 text-xl"></i>
+                                <div class="bg-yellow-100 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                                    <i class="fas fa-ban text-yellow-500 text-xl"></i>
                                 </div>
                                 <h4 class="text-base font-medium text-gray-800 mb-2">Bloqueo</h4>
                                 <p class="text-sm text-gray-600">

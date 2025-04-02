@@ -869,7 +869,7 @@ function createTabContentContainers() {
     buttonsContainer.className = 'flex space-x-4 mb-6';
     
     const checkHealthBtn = document.createElement('button');
-    checkHealthBtn.className = 'btn-gradient bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-4 py-2 rounded-md flex items-center';
+    checkHealthBtn.className = 'btn-gradient bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white px-4 py-2 rounded-md flex items-center';
     checkHealthBtn.id = 'check-health-btn';
     checkHealthBtn.style.backgroundImage = 'linear-gradient(to right, rgb(245, 158, 11), rgb(217, 119, 6))';
     checkHealthBtn.onclick = checkIntegrationHealth;

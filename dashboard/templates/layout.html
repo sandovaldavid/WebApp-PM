@@ -23,7 +23,6 @@
     <style>
         body {visibility: hidden;}
         .preload * {transition: none !important;}
-        .sidebar-container {transition: all 0.3s ease-in-out;}
     </style>
 
     <!-- Estilos principales (cargados de manera no bloqueante) -->
@@ -57,7 +56,7 @@
     }">
         <!-- Sidebar -->
         <div 
-            class="sidebar-container transition-all duration-300 ease-in-out transform"
+            class="sidebar-container transition-all duration-500 ease-in-out transform"
             :class="sidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full w-0'"
         >
             <aside class="sidebar bg-gradient-to-b from-blue-700 to-blue-900 text-white h-full min-h-screen overflow-y-auto flex flex-col">
