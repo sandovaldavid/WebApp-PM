@@ -366,6 +366,35 @@ def detalle_tarea(request, id):
     # Obtener la tarea y datos relacionados
     tarea = get_object_or_404(Tarea, idtarea=id)
 
+    # Handle estimation request
+    if request.method == "POST" and "estimate" in request.POST:
+        try:
+            # Import the estimation service
+            from redes_neuronales.estimacion_tiempo.model_service import (
+                EstimacionTiempoService,
+            )
+
+            # Initialize the service
+            estimation_service = EstimacionTiempoService()
+
+            # Perform the estimation and save
+            success, estimated_time, message = estimation_service.estimate_and_save(
+                tarea.idtarea
+            )
+
+            if success:
+                messages.success(
+                    request, f"Tiempo estimado correctamente: {estimated_time} horas"
+                )
+                # Refresh tarea object to get updated values
+                tarea = get_object_or_404(Tarea, idtarea=id)
+            else:
+                messages.error(request, f"Error al estimar tiempo: {message}")
+
+        except Exception as e:
+            logger.error(f"Error en la estimación de tiempo: {e}", exc_info=True)
+            messages.error(request, f"Error en la estimación: {str(e)}")
+
     # Handle parametrization request
     if request.method == "POST" and "parametrize" in request.POST:
         try:
