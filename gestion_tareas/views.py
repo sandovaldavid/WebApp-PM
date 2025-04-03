@@ -1,3 +1,4 @@
+import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -6,6 +7,9 @@ from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 # Cambiar este import:
 # from redes_neuronales.ml_model import EstimacionModel, DataPreprocessor
@@ -361,6 +365,34 @@ def tareas_programadas(request):
 def detalle_tarea(request, id):
     # Obtener la tarea y datos relacionados
     tarea = get_object_or_404(Tarea, idtarea=id)
+
+    # Handle parametrization request
+    if request.method == "POST" and "parametrize" in request.POST:
+        try:
+            # Import the API service
+            from services.apiIntermediaria import APIIntermediaService
+
+            # Initialize the service
+            api_service = APIIntermediaService()
+
+            # Call the parameterization service
+            result = api_service.parameterize_task(tarea)
+
+            if result["success"]:
+                messages.success(
+                    request,
+                    f"Tarea parametrizada exitosamente. Campos actualizados: {', '.join(result['updated_fields'])}",
+                )
+            else:
+                messages.error(
+                    request,
+                    f"Error al parametrizar tarea: {result.get('error', 'Error desconocido')}",
+                )
+
+        except Exception as e:
+            logger.error(f"Error during task parametrization: {e}", exc_info=True)
+            messages.error(request, f"Error al parametrizar la tarea: {str(e)}")
+
     historial = Historialtarea.objects.filter(idtarea=tarea).order_by("-fechacambio")
 
     # Obtener recursos asignados
