@@ -1,0 +1,120 @@
+{% extends 'layout_notificaciones.html' %}
+
+{% block title %}Notificaciones{% endblock %}
+
+{% block title_body %}
+    <div class="flex items-center justify-between w-full">
+        <div class="flex items-center mr-4">
+            <div class="bg-blue-500 p-2 rounded-lg text-white mr-3">
+                <i class="fas fa-bell text-xl"></i>
+            </div>
+            <h1 class="text-xl font-bold">Notificaciones del Sistema</h1>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <!-- Filtro de notificaciones -->
+            <form hx-get="{% url 'notificaciones:filtrar_notificaciones' %}" 
+                  hx-trigger="change from:select" 
+                  hx-target="#lista-notificaciones" 
+                  class="flex items-center">
+                <label for="prioridad" class="sr-only text">Filtrar por prioridad</label>
+                <select name="prioridad" id="prioridad" class="text-sm border rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white">
+                    <option value="todas" {% if prioridad_actual == 'todas' %}selected{% endif %}>Todas las prioridades</option>
+                    <option value="alta" {% if prioridad_actual == 'alta' %}selected{% endif %}>Alta</option>
+                    <option value="media" {% if prioridad_actual == 'media' %}selected{% endif %}>Media</option>
+                    <option value="baja" {% if prioridad_actual == 'baja' %}selected{% endif %}>Baja</option>
+                </select>
+            </form>
+            
+            <a href="{% url 'notificaciones:crear_notificacion' %}" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg flex items-center text-sm hover:from-blue-700 hover:to-blue-800 transition-colors">
+                <i class="fas fa-plus-circle mr-2"></i>
+                Nueva Notificación
+            </a>
+            
+            <form method="POST" action="{% url 'notificaciones:marcar_todas_leidas' %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg flex items-center text-sm hover:from-green-700 hover:to-green-800 transition-colors">
+                    <i class="fas fa-check-double mr-2"></i>
+                    Marcar todas como leídas
+                </button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="p-4 md:p-6 lg:p-8">
+        <!-- Panel de estadísticas rápidas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <!-- Notificaciones por prioridad -->
+            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-red-500 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-xs uppercase tracking-wide">Alta Prioridad</p>
+                        <h3 class="text-xl font-bold text-gray-800 mt-1">
+                            {{ estadisticas.alta_prioridad }}
+                        </h3>
+                    </div>
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-exclamation-circle text-lg"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-yellow-500 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-xs uppercase tracking-wide">Media Prioridad</p>
+                        <h3 class="text-xl font-bold text-gray-800 mt-1">
+                            {{ estadisticas.media_prioridad }}
+                        </h3>
+                    </div>
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <i class="fas fa-bell text-lg"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-xs uppercase tracking-wide">Baja Prioridad</p>
+                        <h3 class="text-xl font-bold text-gray-800 mt-1">
+                            {{ estadisticas.baja_prioridad }}
+                        </h3>
+                    </div>
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-info-circle text-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lista de notificaciones -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <!-- Encabezado -->
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <div class="flex flex-wrap items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-800">
+                        Lista de Notificaciones
+                    </h2>
+                    <p class="text-sm text-gray-500">
+                        <i class="fas fa-filter mr-1"></i>
+                        Mostrando: 
+                        <span class="font-medium">
+                            {% if prioridad_actual == 'todas' %}Todas las prioridades{% else %}Prioridad {{ prioridad_actual|title }}{% endif %}
+                        </span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Contenido -->
+            <div id="lista-notificaciones">
+                {% include 'components/lista_notificaciones.html' with notificaciones=notificaciones prioridad_actual=prioridad_actual %}
+            </div>
+        </div>
+        
+        <!-- Sección de notificaciones archivadas -->
+        
+    </div>
+{% endblock %}

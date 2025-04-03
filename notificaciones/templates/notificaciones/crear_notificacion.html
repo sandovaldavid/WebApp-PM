@@ -43,9 +43,9 @@
                                             required>
                                         <option value="">Seleccione un usuario</option>
                                         {% for usuario in usuarios %}
-                                            <option value="{{ usuario.idusuario }}">
-                                                {{ usuario.nombreusuario }}
-                                            </option>
+                                        <option value="{{ usuario.idusuario }}" {% if usuario.idusuario|stringformat:"s" == selected_usuario_id|stringformat:"s" %}selected{% endif %}>
+                                            {{ usuario.nombreusuario }}
+                                        </option>
                                         {% endfor %}
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -63,13 +63,13 @@
                                     </div>
                                     <select name="prioridad" id="prioridad"
                                             class="block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                                        <option value="baja" class="text-green-500">
+                                        <option value="baja" class="text-green-500" {% if prioridad == 'baja' %}selected{% endif %}>
                                             Baja
                                         </option>
-                                        <option value="media" class="text-yellow-500" selected>
+                                        <option value="media" class="text-yellow-500" {% if prioridad == 'media' or not prioridad %}selected{% endif %}>
                                             Media
                                         </option>
-                                        <option value="alta" class="text-red-500">
+                                        <option value="alta" class="text-red-500" {% if prioridad == 'alta' %}selected{% endif %}>
                                             Alta
                                         </option>
                                     </select>
@@ -88,10 +88,10 @@
                                     </div>
                                     <select name="categoria" id="categoria"
                                             class="block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                                        <option value="Frontend">Frontend</option>
-                                        <option value="Backend">Backend</option>
-                                        <option value="QA">QA</option>
-                                        <option value="Otro">Otro</option>
+                                            <option value="Frontend" {% if categoria == 'Frontend' %}selected{% endif %}>Frontend</option>
+                                            <option value="Backend" {% if categoria == 'Backend' %}selected{% endif %}>Backend</option>
+                                            <option value="QA" {% if categoria == 'QA' %}selected{% endif %}>QA</option>
+                                            <option value="Otro" {% if categoria == 'Otro' %}selected{% endif %}>Otro</option>
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                         <i class="fas fa-chevron-down text-gray-400"></i>
@@ -126,7 +126,7 @@
                                     <textarea name="mensaje" id="mensaje" rows="8"
                                           class="block w-full p-3 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                           placeholder="Escriba el mensaje de la notificación..."
-                                          required></textarea>
+                                          required>{{ mensaje|default:'' }}</textarea>
                                 </div>
                                 <p class="mt-2 text-xs text-gray-500 flex items-center">
                                     <i class="fas fa-info-circle mr-1"></i>
@@ -142,7 +142,7 @@
                                 </h3>
                                 <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-inner transition-all duration-300"
                                      hx-get="{% url 'notificaciones:vista_previa_notificacion' %}"
-                                     hx-trigger="change from:#usuario, change from:#prioridad, keyup from:#mensaje delay:300ms"
+                                     hx-trigger="change from:#usuario, change from:#prioridad, keyup from:#mensaje delay:300ms, load"
                                      hx-target="this"
                                      hx-include="[name='usuario'],[name='prioridad'],[name='mensaje'],[name='categoria']">
                                     <!-- Contenido inicial -->
@@ -194,9 +194,10 @@
         </div>
     </div>
     
-    <!-- Script para contador de caracteres -->
+    <!-- Script para contador de caracteres y inicialización de vista previa -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Contador de caracteres (funcionalidad existente)
             const mensajeTextarea = document.getElementById('mensaje');
             const charCount = document.getElementById('char-count');
             
@@ -207,6 +208,25 @@
             
             mensajeTextarea.addEventListener('input', updateCharCount);
             updateCharCount();
+    
+            // Inicialización de vista previa (nueva funcionalidad)
+            const usuario = document.getElementById('usuario');
+            
+            // Si hay contenido en el mensaje o un usuario seleccionado, disparar la vista previa
+            if ((mensajeTextarea && mensajeTextarea.value.trim().length > 0) || 
+                (usuario && usuario.value)) {
+                
+                // Obtener el contenedor de la vista previa
+                const vistaPrevia = document.querySelector('[hx-get]');
+                
+                // Disparar una solicitud HTMX manualmente
+                if (vistaPrevia && htmx) {
+                    setTimeout(() => {
+                        htmx.process(vistaPrevia);
+                        htmx.trigger(vistaPrevia, 'load');
+                    }, 300);
+                }
+            }
         });
     </script>
 {% endblock %}

@@ -1,90 +1,122 @@
 {% load static %}
 
-<div class="bg-white rounded-lg shadow-sm p-4 mb-3 hover:shadow-md transition duration-200
-    {% if not notificacion.leido %}border-l-4 border-blue-500{% endif %}">
-
-    <div class="flex justify-between items-start">
-        <!-- Contenido Principal -->
-        <div class="flex-grow">
-            <!-- Encabezado con Estado y Mensaje -->
-            <div class="flex items-start space-x-3">
-                <!-- Indicador de Estado (leído/no leído) -->
-                <div class="flex-shrink-0 w-6">
-                    {% if not notificacion.leido %}
-                        <span class="flex h-3 w-3">
-                            <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-blue-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                        </span>
-                    {% else %}
-                        <i class="fas fa-check-circle text-green-500"></i>
-                    {% endif %}
-                </div>
-
-                <!-- Contenido del Mensaje -->
-                <div class="flex-grow">
-                    <!-- Mensaje -->
-                    <p class="text-gray-900 {% if not notificacion.leido %}font-medium{% endif %}">
-                        {{ notificacion.mensaje }}
-                    </p>
-
-                    <!-- Metadata -->
-                    <div class="flex items-center mt-2 text-sm text-gray-500">
-                        <!-- Fecha -->
-                        <div class="flex items-center">
-                            <i class="fas fa-clock mr-1"></i>
-                            <span>{{ notificacion.fechacreacion|timesince }} atrás</span>
-                        </div>
-
-                        <!-- Separador -->
-                        <span class="mx-2">•</span>
-
-                        <!-- Usuario -->
-                        <div class="flex items-center">
-                            <i class="fas fa-user mr-1"></i>
-                            <span>{{ notificacion.idusuario.nombreusuario }}</span>
-                        </div>
-
-                        <!-- Prioridad -->
-                        <span class="mx-2">•</span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                            {% if notificacion.prioridad == 'alta' %}bg-red-100 text-red-800
-                            {% elif notificacion.prioridad == 'media' %}bg-yellow-100 text-yellow-800
-                            {% else %}bg-green-100 text-green-800{% endif %}">
-                            <i class="fas fa-flag mr-1"></i>
-                            {{ notificacion.prioridad|title }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Botones de Acción -->
-        <div class="flex items-center space-x-2 ml-4">
-            {% if not notificacion.leido %}
-                <form method="POST" action="{% url 'notificaciones:marcar_leida' notificacion.idnotificacion %}"
-                      class="inline">
-                    {% csrf_token %}
-                    <button type="submit"
-                            class="inline-flex items-center p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
-                        <i class="fas fa-check-circle"></i>
-                    </button>
-                </form>
+<div class="bg-white rounded-lg shadow-sm p-4 mb-3 hover:shadow-md transition-colors duration-200 
+    {% if not notificacion.leido %}border-l-4 border-blue-500{% endif %} 
+    flex justify-between items-start">
+    
+    <!-- Indicador de Prioridad -->
+    <div class="flex-shrink-0 mr-4">
+        <div class="rounded-full p-2
+            {% if notificacion.prioridad == 'alta' %}bg-red-100 text-red-600
+            {% elif notificacion.prioridad == 'media' %}bg-yellow-100 text-yellow-600
+            {% else %}bg-green-100 text-green-600{% endif %}">
+            {% if notificacion.prioridad == 'alta' %}
+                <i class="fas fa-exclamation-circle text-lg"></i>
+            {% elif notificacion.prioridad == 'media' %}
+                <i class="fas fa-bell text-lg"></i>
+            {% else %}
+                <i class="fas fa-info-circle text-lg"></i>
             {% endif %}
-
-            <a href="{% url 'notificaciones:detalle_notificacion' notificacion.idnotificacion %}"
-               class="inline-flex items-center p-2 text-gray-600 hover:bg-gray-50 rounded-full transition-colors">
-                <i class="fas fa-eye"></i>
-            </a>
-
-            <form method="POST" action="{% url 'notificaciones:eliminar_notificacion' notificacion.idnotificacion %}"
-                  class="inline"
-                  onsubmit="return confirm('¿Estás seguro de eliminar esta notificación?');">
+        </div>
+    </div>
+    
+    <!-- Contenido Principal -->
+    <div class="flex-grow">
+        <!-- Estado de lectura -->
+        <div class="flex items-center mb-1">
+            {% if not notificacion.leido %}
+                <span class="flex items-center">
+                    <span class="relative flex h-3 w-3 mr-2">
+                        <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-blue-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                    </span>
+                    <span class="text-xs font-medium text-blue-600">No leído</span>
+                </span>
+            {% else %}
+                <span class="flex items-center text-xs font-medium text-green-600">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    Leído
+                </span>
+            {% endif %}
+            
+            <!-- Etiqueta de Prioridad -->
+            <span class="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                {% if notificacion.prioridad == 'alta' %}bg-red-100 text-red-800
+                {% elif notificacion.prioridad == 'media' %}bg-yellow-100 text-yellow-800
+                {% else %}bg-green-100 text-green-800{% endif %}">
+                <i class="fas fa-flag mr-1"></i>
+                {{ notificacion.prioridad|title }}
+            </span>
+        </div>
+        
+        <!-- Mensaje -->
+        <p class="text-gray-900 {% if not notificacion.leido %}font-medium{% endif %} mb-2">
+            {{ notificacion.mensaje }}
+        </p>
+        
+        <!-- Metadata -->
+        <div class="flex items-center text-xs text-gray-500">
+            <!-- Fecha -->
+            <div class="flex items-center">
+                <i class="fas fa-clock mr-1"></i>
+                <span>{{ notificacion.fechacreacion|timesince }} atrás</span>
+            </div>
+            
+            <!-- Separador -->
+            <span class="mx-2">•</span>
+            
+            <!-- Usuario -->
+            <div class="flex items-center">
+                <i class="fas fa-user mr-1"></i>
+                <span>{{ notificacion.idusuario.nombreusuario }}</span>
+            </div>
+            
+            <!-- Categoría -->
+            {% if notificacion.categoria %}
+                <span class="mx-2">•</span>
+                <div class="flex items-center">
+                    <i class="fas fa-tag mr-1"></i>
+                    <span>{{ notificacion.categoria }}</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Botones de Acción -->
+    <div class="flex items-center space-x-1 ml-3">
+        {% if not notificacion.leido %}
+            <form method="POST" action="{% url 'notificaciones:marcar_leida' notificacion.idnotificacion %}" class="inline">
                 {% csrf_token %}
-                <button type="submit"
-                        class="inline-flex items-center p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors">
-                    <i class="fas fa-trash-alt"></i>
+                <button type="submit" class="inline-flex items-center p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                        title="Marcar como leída">
+                    <i class="fas fa-check-circle"></i>
                 </button>
             </form>
-        </div>
+        {% endif %}
+        
+        <a href="{% url 'notificaciones:detalle_notificacion' notificacion.idnotificacion %}"
+           class="inline-flex items-center p-2 text-gray-600 hover:bg-gray-50 rounded-full transition-colors"
+           title="Ver detalles">
+            <i class="fas fa-eye"></i>
+        </a>
+        
+        <form method="POST" action="{% url 'notificaciones:archivar_notificacion' notificacion.idnotificacion %}"
+              class="inline">
+            {% csrf_token %}
+            <button type="submit" class="inline-flex items-center p-2 text-yellow-600 hover:bg-yellow-50 rounded-full transition-colors"
+                    title="Archivar">
+                <i class="fas fa-archive"></i>
+            </button>
+        </form>
+        
+        <form method="POST" action="{% url 'notificaciones:eliminar_notificacion' notificacion.idnotificacion %}"
+              class="inline"
+              onsubmit="return confirm('¿Estás seguro de eliminar esta notificación?');">
+            {% csrf_token %}
+            <button type="submit" class="inline-flex items-center p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                    title="Eliminar">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </form>
     </div>
 </div>
