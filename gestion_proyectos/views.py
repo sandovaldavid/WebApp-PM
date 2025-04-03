@@ -797,6 +797,62 @@ def detalle_requerimiento(request, idrequerimiento):
             logger.error(f"Error en la estimación de tiempos: {e}", exc_info=True)
             messages.error(request, f"Error al estimar tiempos: {str(e)}")
 
+    # Handle task parameterization request
+    if request.method == "POST" and "parameterize_tasks" in request.POST:
+        try:
+            # Import the API service
+            from services.apiIntermediaria import APIIntermediaService
+
+            # Initialize the service
+            api_service = APIIntermediaService()
+
+            # Track parameterization results
+            success_count = 0
+            error_count = 0
+            total_tasks = tareas.count()
+
+            # Parameterize each task
+            for tarea in tareas:
+                # Skip already completed tasks
+                if tarea.estado == "Completada":
+                    continue
+
+                # Call the parameterization service
+                result = api_service.parameterize_task(tarea)
+
+                if result["success"]:
+                    success_count += 1
+                else:
+                    error_count += 1
+                    logger.error(
+                        f"Error al parametrizar tarea {tarea.idtarea}: {result.get('error', 'Error desconocido')}"
+                    )
+
+            # Show results message
+            if success_count > 0:
+                messages.success(
+                    request,
+                    f"Se parametrizaron correctamente {success_count} de {total_tasks} tareas con IA.",
+                )
+
+            if error_count > 0:
+                messages.warning(
+                    request, f"No se pudieron parametrizar {error_count} tareas."
+                )
+
+            if success_count == 0 and error_count == 0:
+                messages.info(
+                    request,
+                    "No se encontraron tareas para parametrizar o todas están completadas.",
+                )
+
+            # Refresh tasks to get updated values
+            tareas = Tarea.objects.filter(idrequerimiento=requerimiento)
+
+        except Exception as e:
+            logger.error(f"Error en la parametrización de tareas: {e}", exc_info=True)
+            messages.error(request, f"Error al parametrizar tareas: {str(e)}")
+
     # Calcular estadísticas
     total_tareas = tareas.count()
     tareas_pendientes = tareas.filter(estado="Pendiente").count()
