@@ -8,7 +8,7 @@
         {% if user.is_authenticated %}
             <div class="flex items-center space-x-2">
                 <!-- Modificar el form para usar HTMX -->
-                <form hx-get="{% url 'notificaciones:filtrar_notificaciones' %}"
+                <!--<form hx-get="{% url 'notificaciones:filtrar_notificaciones' %}"
                       hx-target="#lista-notificaciones"
                       hx-trigger="change from:select"
                       class="inline">
@@ -27,7 +27,7 @@
                             Baja prioridad
                         </option>
                     </select>
-                </form>
+                </form>-->
 
                 <form method="POST" action="{% url 'notificaciones:marcar_todas_leidas' %}" class="inline">
                     {% csrf_token %}

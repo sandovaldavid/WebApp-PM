@@ -11,7 +11,7 @@
 
         <div class="flex items-center space-x-4">
             <!-- Filtro por tipo con HTMX -->
-            <form hx-get="{% url 'notificaciones:filtrar_alertas' %}"
+            <!--<form hx-get="{% url 'notificaciones:filtrar_alertas' %}"
                   hx-target="#lista-alertas"
                   hx-trigger="change from:select"
                   class="flex items-center space-x-2">
@@ -39,7 +39,7 @@
                         <i class="fas fa-ban"></i> Bloqueo
                     </option>
                 </select>
-            </form>
+            </form>-->
 
             <!-- Botón para crear nueva alerta -->
             <a href="{% url 'notificaciones:crear_alerta' %}"
