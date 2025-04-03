@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from dashboard.models import Proyecto, Requerimiento, Tarea, Equipo
 from django.utils import timezone
@@ -7,6 +8,8 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+
+logger = logging.getLogger(__name__)
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import (
@@ -736,6 +739,63 @@ def crear_requerimiento(request, idproyecto):
 def detalle_requerimiento(request, idrequerimiento):
     requerimiento = get_object_or_404(Requerimiento, idrequerimiento=idrequerimiento)
     tareas = Tarea.objects.filter(idrequerimiento=requerimiento)
+
+    # Handle task estimation request
+    if request.method == "POST" and "estimate_tasks" in request.POST:
+        try:
+            # Import the estimation service
+            from redes_neuronales.estimacion_tiempo.model_service import (
+                EstimacionTiempoService,
+            )
+
+            # Initialize the service
+            estimation_service = EstimacionTiempoService()
+
+            # Track estimation results
+            success_count = 0
+            error_count = 0
+            total_tasks = tareas.count()
+
+            # Estimate time for each task
+            for tarea in tareas:
+                # Skip already completed tasks
+                if tarea.estado == "Completada":
+                    continue
+
+                # Perform the estimation and save
+                success, estimated_time, message = estimation_service.estimate_and_save(
+                    tarea.idtarea
+                )
+
+                if success:
+                    success_count += 1
+                else:
+                    error_count += 1
+
+            # Show results message
+            if success_count > 0:
+                messages.success(
+                    request,
+                    f"Tiempo estimado correctamente para {success_count} de {total_tasks} tareas.",
+                )
+
+            if error_count > 0:
+                messages.warning(
+                    request, f"No se pudo estimar el tiempo para {error_count} tareas."
+                )
+
+            if success_count == 0 and error_count == 0:
+                messages.info(
+                    request,
+                    "No se encontraron tareas para estimar o todas están completadas.",
+                )
+
+            # Refresh tasks to get updated values
+            tareas = Tarea.objects.filter(idrequerimiento=requerimiento)
+
+        except Exception as e:
+            logger.error(f"Error en la estimación de tiempos: {e}", exc_info=True)
+            messages.error(request, f"Error al estimar tiempos: {str(e)}")
 
     # Calcular estadísticas
     total_tareas = tareas.count()
