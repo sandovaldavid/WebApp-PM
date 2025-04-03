@@ -10,7 +10,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.db.models.functions import TruncDate
 
-from .services import MonitoreoService
+from .services import MonitoreoService, NotificacionService
 
 from dashboard.models import (
     Notificacion,
@@ -1078,24 +1078,38 @@ def generar_alertas(request):
         return redirect("notificaciones:index")
 
     alertas_creadas = 0
+    notificaciones_creadas = 0
 
     if request.method == "POST":
         tipo = request.POST.get("tipo")
+        alertas_nuevas = []
 
         if tipo == "retrasadas":
             alertas_creadas = MonitoreoService.verificar_tareas_retrasadas()
+            alertas_nuevas = Alerta.objects.filter(
+                tipoalerta="retraso", 
+                fechacreacion__gte=timezone.now() - timedelta(minutes=10)
+            )
             messages.success(
                 request,
                 f"Se han generado {alertas_creadas} alertas de tareas retrasadas",
             )
         elif tipo == "presupuesto":
             alertas_creadas = MonitoreoService.verificar_presupuesto_excedido()
+            alertas_nuevas = Alerta.objects.filter(
+                tipoalerta="presupuesto", 
+                fechacreacion__gte=timezone.now() - timedelta(minutes=10)
+            )
             messages.success(
                 request,
                 f"Se han generado {alertas_creadas} alertas de presupuesto excedido",
             )
         elif tipo == "bloqueo":
             alertas_creadas = MonitoreoService.verificar_tareas_bloqueadas()
+            alertas_nuevas = Alerta.objects.filter(
+                tipoalerta="bloqueo", 
+                fechacreacion__gte=timezone.now() - timedelta(minutes=10)
+            )
             messages.success(
                 request,
                 f"Se han generado {alertas_creadas} alertas de tareas bloqueadas",
@@ -1105,8 +1119,25 @@ def generar_alertas(request):
             alertas_presupuesto = MonitoreoService.verificar_presupuesto_excedido()
             alertas_bloqueo = MonitoreoService.verificar_tareas_bloqueadas()
             alertas_creadas = alertas_retraso + alertas_presupuesto + alertas_bloqueo
+            alertas_nuevas = Alerta.objects.filter(
+                fechacreacion__gte=timezone.now() - timedelta(minutes=10)
+            )
             messages.success(
                 request, f"Se han generado {alertas_creadas} alertas en total"
+            )
+        
+        # Notificar a los usuarios para cada alerta creada
+        for alerta in alertas_nuevas:
+            notif_count = NotificacionService.notificar_alerta_a_usuarios(alerta)
+            notificaciones_creadas += notif_count
+        
+        if notificaciones_creadas > 0:
+            messages.success(
+                request, f"Se han creado {notificaciones_creadas} notificaciones para usuarios"
+            )
+        elif alertas_creadas > 0:
+            messages.warning(
+                request, "Se crearon alertas pero no se encontraron usuarios para notificar"
             )
 
     # Estadísticas sobre alertas actuales
