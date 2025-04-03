@@ -15,8 +15,21 @@ class APIIntermediaService:
 
     def __init__(self, api_base_url=None):
         """Initialize the service with an optional custom base URL"""
-        self.api_base_url = api_base_url or "http://localhost:3000/api"
+        # Get base URL from environment variable or use default
+        self.api_base_url = api_base_url or os.environ.get(
+            "API_INTERMEDIARIA_URL", "http://localhost:3000/api"
+        )
         self.token = os.environ.get("API_INTERMEDIARIA_TOKEN")
+
+        # Get timeout from environment variable or use default (30 seconds)
+        try:
+            self.timeout = int(os.environ.get("API_INTERMEDIARIA_TIMEOUT", 30))
+        except (ValueError, TypeError):
+            self.timeout = 30
+
+        logger.info(
+            f"Initializing API service with URL: {self.api_base_url}, timeout: {self.timeout}s"
+        )
 
     def get_headers(self):
         """Get headers with authorization token if available"""
@@ -45,17 +58,26 @@ class APIIntermediaService:
         api_base_url = api_url or self.api_base_url
         api_endpoint = f"{api_base_url}/tasks/{tarea.idtarea}/parameterize"
 
+        logger.info(f"Making API request to: {api_endpoint}")
+
         try:
             # Set up headers with authorization token
             headers = self.get_headers()
 
+            # Log the request attempt
+            logger.info(f"Connecting to API with timeout of {self.timeout}s")
+
             # Make the request to the external API with auth headers
-            response = requests.get(api_endpoint, headers=headers, timeout=10)
+            response = requests.get(api_endpoint, headers=headers, timeout=self.timeout)
             response.raise_for_status()  # Raise exception for non-200 responses
 
             data = response.json()
+            logger.info(f"API response received successfully: {response.status_code}")
 
             if not data.get("success"):
+                logger.error(
+                    f"API returned error: {data.get('message', 'Unknown error')}"
+                )
                 return {
                     "success": False,
                     "error": "API call was unsuccessful",
@@ -64,6 +86,7 @@ class APIIntermediaService:
 
             # Extract data from the response
             task_data = data.get("data", {})
+            logger.debug(f"Task data received: {task_data}")
 
             # Process and update task fields based on the response
             updates = {}
@@ -143,6 +166,9 @@ class APIIntermediaService:
                 setattr(tarea, field, value)
 
             tarea.save()
+            logger.info(
+                f"Task {tarea.idtarea} updated successfully with {len(updates)} fields"
+            )
 
             return {
                 "success": True,
@@ -150,6 +176,22 @@ class APIIntermediaService:
                 "data": data,
             }
 
+        except requests.exceptions.Timeout:
+            logger.error(f"API request timed out after {self.timeout} seconds")
+            return {
+                "success": False,
+                "error": f"API connection timed out after {self.timeout} seconds. The service at {api_base_url} may be down or overloaded.",
+                "status_code": 504,  # Gateway Timeout
+            }
+        except requests.exceptions.ConnectionError:
+            logger.error(
+                f"API connection failed. Service may be offline: {api_base_url}"
+            )
+            return {
+                "success": False,
+                "error": f"Could not connect to the API service at {api_base_url}. Please check that the service is running.",
+                "status_code": 503,  # Service Unavailable
+            }
         except requests.exceptions.RequestException as e:
             logger.error(f"API request failed: {e}")
             return {
