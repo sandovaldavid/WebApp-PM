@@ -384,10 +384,15 @@ def detalle_tarea(request, id):
                     f"Tarea parametrizada exitosamente. Campos actualizados: {', '.join(result['updated_fields'])}",
                 )
             else:
-                messages.error(
-                    request,
-                    f"Error al parametrizar tarea: {result.get('error', 'Error desconocido')}",
-                )
+                # Add more detailed error message
+                error_msg = result.get("error", "Error desconocido")
+
+                # Check if it's a connection or timeout error and add helpful suggestion
+                if "timed out" in error_msg or "Could not connect" in error_msg:
+                    error_msg += " Posibles soluciones: Verifique que el servicio de IA esté activo y accesible, o ajuste el tiempo de espera en la configuración."
+
+                messages.error(request, f"Error al parametrizar tarea: {error_msg}")
+                logger.error(f"Task parameterization failed: {error_msg}")
 
         except Exception as e:
             logger.error(f"Error during task parametrization: {e}", exc_info=True)
