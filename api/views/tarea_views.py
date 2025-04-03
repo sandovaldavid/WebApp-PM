@@ -252,117 +252,22 @@ class TareaViewSet(viewsets.ModelViewSet):
 
         # Configure the API endpoint
         api_base_url = request.data.get("api_url", "http://localhost:3000/api")
-        api_endpoint = f"{api_base_url}/tasks/{tarea.idtarea}/parameterize"
 
         try:
-            # Get token from environment variable
-            token = os.environ.get("API_INTERMEDIARIA_TOKEN")
+            # Use the APIIntermediaService to parameterize the task
+            from services.apiIntermediaria import APIIntermediaService
 
-            # Set up headers with authorization token
-            headers = {}
-            if token:
-                headers["Authorization"] = f"Bearer {token}"
-                logger.info(f"Using API token from environment variable")
-            else:
-                logger.warning(
-                    "API_INTERMEDIARIA_TOKEN not found in environment variables"
-                )
+            # Initialize the service with the API URL from request data if provided
+            api_service = APIIntermediaService(api_base_url=api_base_url)
 
-            # Make the request to the external API with auth headers
-            response = requests.get(api_endpoint, headers=headers, timeout=10)
-            response.raise_for_status()  # Raise exception for non-200 responses
+            # Call the parameterization service
+            result = api_service.parameterize_task(tarea)
 
-            data = response.json()
-
-            if not data.get("success"):
+            if not result["success"]:
                 return Response(
-                    {
-                        "error": "API call was unsuccessful",
-                        "details": data.get("message", "Unknown error"),
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
+                    {"error": result["error"], "details": result.get("details", "")},
+                    status=result.get("status_code", status.HTTP_400_BAD_REQUEST),
                 )
-
-            # Extract data from the response
-            task_data = data.get("data", {})
-
-            # Process and update task fields based on the response
-            updates = {}
-
-            # Update task name if provided
-            if "tarea" in task_data:
-                updates["nombretarea"] = task_data["tarea"]
-
-            # Update task type if provided
-            if "tipo" in task_data:
-                tipo_nombre = task_data["tipo"]
-                # Try to find an existing task type or create a new one
-                tipo_tarea, created = TipoTarea.objects.get_or_create(
-                    nombre__iexact=tipo_nombre, defaults={"nombre": tipo_nombre}
-                )
-                updates["tipo_tarea"] = tipo_tarea
-
-            # Update tags if provided
-            if "palabras_clave" in task_data and isinstance(
-                task_data["palabras_clave"], list
-            ):
-                # Convert list to comma-separated string
-                updates["tags"] = ",".join(task_data["palabras_clave"])
-
-            # Update complexity/difficulty if provided
-            if "complejidad" in task_data:
-                # Map text values to numeric values
-                complexity_map = {
-                    "Baja": 1,
-                    "Media": 2,
-                    "Alta": 3,
-                    "Muy Alta": 4,
-                    "Extrema": 5,
-                }
-                difficulty = complexity_map.get(task_data["complejidad"], None)
-                if difficulty:
-                    updates["dificultad"] = difficulty
-
-            # Update estimated duration if provided
-            if "tiempo_estimado" in task_data:
-                try:
-                    # Extract numeric value from strings like "8 días"
-                    tiempo_str = task_data["tiempo_estimado"]
-                    # Basic parsing - extract the first number found
-                    import re
-
-                    time_value = re.search(r"\d+", tiempo_str)
-                    if time_value:
-                        updates["duracionestimada"] = int(time_value.group())
-                except (ValueError, AttributeError) as e:
-                    logger.warning(f"Could not parse tiempo_estimado: {e}")
-
-            # Update clarity of requirements if provided
-            if "claridad_requisitos" in task_data:
-                try:
-                    # Convert percentage string like "85%" to float 0.85
-                    claridad_str = task_data["claridad_requisitos"]
-                    claridad_value = float(claridad_str.strip("%")) / 100
-                    updates["claridad_requisitos"] = claridad_value
-                except (ValueError, AttributeError) as e:
-                    logger.warning(f"Could not parse claridad_requisitos: {e}")
-
-            # Update story points / estimated size if provided
-            if "puntos_historia" in task_data:
-                try:
-                    puntos = int(task_data["puntos_historia"])
-                    updates["tamaño_estimado"] = puntos
-                except (ValueError, TypeError) as e:
-                    logger.warning(f"Could not parse puntos_historia: {e}")
-
-            # Update last modification date
-            updates["fechamodificacion"] = datetime.now()
-
-            # Apply all updates to the task
-            for field, value in updates.items():
-                setattr(tarea, field, value)
-
-            tarea.save()
 
             # Optional: Record this activity
             try:
@@ -384,17 +289,11 @@ class TareaViewSet(viewsets.ModelViewSet):
             return Response(
                 {
                     "message": "Task successfully parameterized",
-                    "updated_fields": list(updates.keys()),
+                    "updated_fields": result["updated_fields"],
                     "task": serializer.data,
                 }
             )
 
-        except requests.exceptions.RequestException as e:
-            logger.error(f"API request failed: {e}")
-            return Response(
-                {"error": f"Failed to connect to parameterization API: {str(e)}"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
         except Exception as e:
             logger.error(f"Task parameterization error: {e}", exc_info=True)
             return Response(
