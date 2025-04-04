@@ -584,6 +584,7 @@ def dashboard(request):
 
     return render(request, "dashboard/panel_control.html", context)
 
+
 @login_required
 def api_requerimientos(request, proyecto_id):
     requerimientos = Requerimiento.objects.filter(idproyecto=proyecto_id)

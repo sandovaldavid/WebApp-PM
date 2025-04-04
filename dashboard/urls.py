@@ -4,7 +4,7 @@ from . import views
 
 app_name = "dashboard"
 urlpatterns = [
-    path("", views.dashboard, name="index"),    
+    path("", views.dashboard, name="index"),
     path(
         "api/requerimientos/<int:proyecto_id>/",
         views.api_requerimientos,
