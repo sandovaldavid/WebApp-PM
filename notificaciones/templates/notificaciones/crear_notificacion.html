@@ -4,153 +4,229 @@
 
 {% block title_body %}
     <div class="flex items-center">
-        <i class="fas fa-plus text-green-500 mr-2"></i> Nueva Notificación
+        <div class="bg-green-100 p-2 rounded-lg text-green-600 mr-3">
+            <i class="fas fa-plus-circle text-lg"></i>
+        </div>
+        <h1 class="text-xl font-bold">Nueva Notificación</h1>
     </div>
 {% endblock %}
 
 {% block body %}
-    <div class="p-8">
-        <div class="bg-white rounded-lg shadow-lg p-6">
-            <h2 class="text-xl font-semibold mb-6 flex items-center">
-                <i class="fas fa-bell text-blue-500 mr-2"></i>
-                Crear Nueva Notificación
-            </h2>
+    <div class="p-4 md:p-8">
+        <div class="max-w-5xl mx-auto">
+            <!-- Formulario Principal -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <!-- Encabezado -->
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
+                    <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-bell text-blue-500 mr-3"></i>
+                        Crear Nueva Notificación
+                    </h2>
+                </div>
+                
+                <!-- Formulario -->
+                <form method="POST" class="p-6">
+                    {% csrf_token %}
 
-            <form method="POST" class="space-y-6">
-                {% csrf_token %}
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Columna Izquierda -->
-                    <div class="space-y-6">
-                        <!-- Usuario Destino -->
-                        <div>
-                            <label for="usuario" class="block text-sm font-medium text-gray-700">Usuario Destino</label>
-                            <div class="mt-1 relative">
-                                <select name="usuario" id="usuario"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                        required>
-                                    <option value="">Seleccione un usuario</option>
-                                    {% for usuario in usuarios %}
-                                        <option value="{{ usuario.idusuario }}">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Columna Izquierda -->
+                        <div class="space-y-6">
+                            <!-- Usuario Destino con diseño mejorado -->
+                            <div class="relative">
+                                <label for="usuario" class="block text-sm font-medium text-gray-700 mb-1">Usuario Destino</label>
+                                <div class="relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-user text-gray-400"></i>
+                                    </div>
+                                    <select name="usuario" id="usuario"
+                                            class="block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                            required>
+                                        <option value="">Seleccione un usuario</option>
+                                        {% for usuario in usuarios %}
+                                        <option value="{{ usuario.idusuario }}" {% if usuario.idusuario|stringformat:"s" == selected_usuario_id|stringformat:"s" %}selected{% endif %}>
                                             {{ usuario.nombreusuario }}
                                         </option>
-                                    {% endfor %}
-                                </select>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-user text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Prioridad -->
-                        <div>
-                            <label for="prioridad" class="block text-sm font-medium text-gray-700">Prioridad</label>
-                            <div class="mt-1 relative">
-                                <select name="prioridad" id="prioridad"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                    <option value="baja" class="flex items-center">
-                                        <i class="fas fa-arrow-down text-green-500"></i> Baja
-                                    </option>
-                                    <option value="media" class="flex items-center" selected>
-                                        <i class="fas fa-minus text-yellow-500"></i> Media
-                                    </option>
-                                    <option value="alta" class="flex items-center">
-                                        <i class="fas fa-arrow-up text-red-500"></i> Alta
-                                    </option>
-                                </select>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-flag text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Categoría -->
-                        <div>
-                            <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría</label>
-                            <div class="mt-1 relative">
-                                <select name="categoria" id="categoria"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                    <option value="Frontend">Frontend</option>
-                                    <option value="Backend">Backend</option>
-                                    <option value="QA">QA</option>
-                                    <option value="Otro">Otro</option>
-                                </select>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-tag text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fecha de Recordatorio -->
-                        <div>
-                            <label for="fecha_recordatorio" class="block text-sm font-medium text-gray-700">
-                                Fecha de Recordatorio (Opcional)
-                            </label>
-                            <div class="mt-1 relative">
-                                <input type="datetime-local" name="fecha_recordatorio" id="fecha_recordatorio"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-calendar-alt text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Columna Derecha -->
-                    <div>
-                        <!-- Mensaje -->
-                        <div>
-                            <label for="mensaje" class="block text-sm font-medium text-gray-700">Mensaje</label>
-                            <div class="mt-1">
-                            <textarea name="mensaje" id="mensaje" rows="8"
-                                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                      placeholder="Escriba el mensaje de la notificación..."
-                                      required></textarea>
-                            </div>
-                            <p class="mt-2 text-sm text-gray-500">
-                                El mensaje debe ser claro y conciso
-                            </p>
-                        </div>
-
-                        <!-- Vista Previa -->
-                        <div class="mt-6 bg-gray-50 rounded-lg p-4">
-                            <h3 class="text-sm font-medium text-gray-700 mb-2">Vista Previa de la Notificación</h3>
-                            <div class="bg-white rounded-lg shadow p-4 border border-gray-200"
-                                 hx-get="{% url 'notificaciones:vista_previa_notificacion' %}"
-                                 hx-trigger="change from:#usuario, change from:#prioridad, keyup from:#mensaje delay:500ms"
-                                 hx-target="this"
-                                 hx-include="[name='usuario'],[name='prioridad'],[name='mensaje'],[name='categoria']">
-                                <!-- Contenido inicial -->
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fas fa-bell text-blue-500"></i>
-                                        <span class="font-medium text-gray-900">Nueva Notificación</span>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <i class="fas fa-chevron-down text-gray-400"></i>
                                     </div>
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    <i class="fas fa-flag mr-1"></i>
-                                    Vista Previa
-                                </span>
                                 </div>
-                                <p class="text-gray-600">El mensaje aparecerá aquí...</p>
+                            </div>
+
+                            <!-- Prioridad con indicadores visuales de colores -->
+                            <div class="relative">
+                                <label for="prioridad" class="block text-sm font-medium text-gray-700 mb-1">Prioridad</label>
+                                <div class="relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-flag text-gray-400"></i>
+                                    </div>
+                                    <select name="prioridad" id="prioridad"
+                                            class="block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                                        <option value="baja" class="text-green-500" {% if prioridad == 'baja' %}selected{% endif %}>
+                                            Baja
+                                        </option>
+                                        <option value="media" class="text-yellow-500" {% if prioridad == 'media' or not prioridad %}selected{% endif %}>
+                                            Media
+                                        </option>
+                                        <option value="alta" class="text-red-500" {% if prioridad == 'alta' %}selected{% endif %}>
+                                            Alta
+                                        </option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <i class="fas fa-chevron-down text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Categoría con iconos -->
+                            <div class="relative">
+                                <label for="categoria" class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                                <div class="relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-tag text-gray-400"></i>
+                                    </div>
+                                    <select name="categoria" id="categoria"
+                                            class="block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                                            <option value="Frontend" {% if categoria == 'Frontend' %}selected{% endif %}>Frontend</option>
+                                            <option value="Backend" {% if categoria == 'Backend' %}selected{% endif %}>Backend</option>
+                                            <option value="QA" {% if categoria == 'QA' %}selected{% endif %}>QA</option>
+                                            <option value="Otro" {% if categoria == 'Otro' %}selected{% endif %}>Otro</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <i class="fas fa-chevron-down text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fecha de Recordatorio con calendario -->
+                            <div class="relative">
+                                <label for="fecha_recordatorio" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Fecha de Recordatorio (Opcional)
+                                </label>
+                                <div class="relative rounded-md shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-calendar-alt text-gray-400"></i>
+                                    </div>
+                                    <input type="datetime-local" name="fecha_recordatorio" id="fecha_recordatorio"
+                                           class="block w-full pl-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Columna Derecha -->
+                        <div>
+                            <!-- Mensaje con contador de caracteres -->
+                            <div class="relative">
+                                <div class="flex justify-between items-center mb-1">
+                                    <label for="mensaje" class="block text-sm font-medium text-gray-700">Mensaje</label>
+                                    <span class="text-xs text-gray-500" id="char-count">0 caracteres</span>
+                                </div>
+                                <div class="relative rounded-md shadow-sm">
+                                    <textarea name="mensaje" id="mensaje" rows="8"
+                                          class="block w-full p-3 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                          placeholder="Escriba el mensaje de la notificación..."
+                                          required>{{ mensaje|default:'' }}</textarea>
+                                </div>
+                                <p class="mt-2 text-xs text-gray-500 flex items-center">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    El mensaje debe ser claro y conciso
+                                </p>
+                            </div>
+
+                            <!-- Vista Previa con diseño mejorado -->
+                            <div class="mt-6">
+                                <h3 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                    <i class="fas fa-eye mr-2 text-blue-500"></i> 
+                                    Vista Previa de la Notificación
+                                </h3>
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-inner transition-all duration-300"
+                                     hx-get="{% url 'notificaciones:vista_previa_notificacion' %}"
+                                     hx-trigger="change from:#usuario, change from:#prioridad, keyup from:#mensaje delay:300ms, load"
+                                     hx-target="this"
+                                     hx-include="[name='usuario'],[name='prioridad'],[name='mensaje'],[name='categoria']">
+                                    <!-- Contenido inicial -->
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center space-x-2">
+                                            <i class="fas fa-bell text-blue-500"></i>
+                                            <span class="font-medium text-gray-900">Nueva Notificación</span>
+                                        </div>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <i class="fas fa-eye mr-1"></i>
+                                            Vista Previa
+                                        </span>
+                                    </div>
+                                    <p class="text-gray-600 bg-white p-3 rounded border border-gray-100">El mensaje aparecerá aquí...</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Botones de Acción -->
-                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                    <a href="{% url 'notificaciones:index' %}"
-                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
-                        <i class="fas fa-times mr-2"></i>
-                        Cancelar
-                    </a>
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
-                        <i class="fas fa-paper-plane mr-2"></i>
-                        Enviar Notificación
-                    </button>
+                    <!-- Botones de Acción -->
+                    <div class="flex flex-wrap justify-end gap-3 mt-8 pt-4 border-t border-gray-200">
+                        <a href="{% url 'notificaciones:index' %}"
+                           class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit"
+                                class="px-5 py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg hover:from-blue-600 hover:to-blue-800 transition-all flex items-center shadow-sm hover:shadow">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Enviar Notificación
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Tarjeta informativa -->
+            <div class="mt-6 bg-blue-50 rounded-lg p-4 border border-blue-200 flex items-start">
+                <div class="text-blue-500 mr-3 mt-1">
+                    <i class="fas fa-info-circle text-xl"></i>
                 </div>
-            </form>
+                <div>
+                    <h3 class="font-medium text-blue-800 mb-1">Información sobre notificaciones</h3>
+                    <p class="text-sm text-blue-700">
+                        Las notificaciones se enviarán inmediatamente al usuario seleccionado. Si establece una fecha de recordatorio,
+                        el sistema mostrará la notificación nuevamente en ese momento.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <!-- Script para contador de caracteres y inicialización de vista previa -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Contador de caracteres (funcionalidad existente)
+            const mensajeTextarea = document.getElementById('mensaje');
+            const charCount = document.getElementById('char-count');
+            
+            function updateCharCount() {
+                const count = mensajeTextarea.value.length;
+                charCount.textContent = `${count} caracteres`;
+            }
+            
+            mensajeTextarea.addEventListener('input', updateCharCount);
+            updateCharCount();
+    
+            // Inicialización de vista previa (nueva funcionalidad)
+            const usuario = document.getElementById('usuario');
+            
+            // Si hay contenido en el mensaje o un usuario seleccionado, disparar la vista previa
+            if ((mensajeTextarea && mensajeTextarea.value.trim().length > 0) || 
+                (usuario && usuario.value)) {
+                
+                // Obtener el contenedor de la vista previa
+                const vistaPrevia = document.querySelector('[hx-get]');
+                
+                // Disparar una solicitud HTMX manualmente
+                if (vistaPrevia && htmx) {
+                    setTimeout(() => {
+                        htmx.process(vistaPrevia);
+                        htmx.trigger(vistaPrevia, 'load');
+                    }, 300);
+                }
+            }
+        });
+    </script>
 {% endblock %}

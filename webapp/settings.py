@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "django_filters",
+    "django_apscheduler",
 ]
 
 MIDDLEWARE = [
@@ -96,6 +97,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 # Añadir nuestro context processor para auditoría
                 "auditoria.context_processors.user_audit",
+                "dashboard.context_processors.notificaciones_usuario",
             ],
         },
     },
@@ -186,6 +188,38 @@ SESSION_CACHE_ALIAS = "default"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "usuarios:login"
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, "logs/notificaciones.log"),
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "notificaciones": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+}
+
+
 # Email configuration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST")
@@ -193,6 +227,11 @@ EMAIL_PORT = os.getenv("EMAIL_PORT")
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
+DEFAULT_FROM_EMAIL = "WebApp-PM <" + os.getenv("EMAIL_HOST_USER") + ">"
+
+# Configuración específica para django_apscheduler
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"  # Formato de fecha para los logs
+APSCHEDULER_RUN_NOW_TIMEOUT = 25  # Segundos para timeout
 
 
 # REST Framework settings

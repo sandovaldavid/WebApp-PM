@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Reporte Detallado de Tareas</title>
+    <style>
+        @page {
+            margin: 2.5cm 1.5cm;
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 9pt;
+                color: #6b7280;
+            }
+            @top-center {
+                content: "Reporte Detallado de Tareas";
+                font-size: 9pt;
+                color: #6b7280;
+            }
+        }
+        
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            font-size: 10pt;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2cm;
+            padding: 20px;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border-radius: 8px;
+            border-bottom: 3px solid #93c5fd;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .header h1 {
+            color: #1e40af;
+            margin: 0 0 10px 0;
+            font-size: 24pt;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header p {
+            color: #1e3a8a;
+            margin: 5px 0;
+        }
+
+        .statistics {
+            margin-bottom: 1.5cm;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
+            border: 1px solid #e5e7eb;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card.completed {
+            background: linear-gradient(to right bottom, #ecfdf5, #d1fae5);
+            border-left: 4px solid #10b981;
+        }
+
+        .stat-card.in-progress {
+            background: linear-gradient(to right bottom, #eff6ff, #dbeafe);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .stat-card.pending {
+            background: linear-gradient(to right bottom, #fffbeb, #fef3c7);
+            border-left: 4px solid #f59e0b;
+        }
+
+        .stat-title {
+            font-size: 10pt;
+            color: #4b5563;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 18pt;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .stat-card.completed .stat-value {
+            color: #065f46;
+        }
+
+        .stat-card.in-progress .stat-value {
+            color: #1e40af;
+        }
+
+        .stat-card.pending .stat-value {
+            color: #92400e;
+        }
+
+        h2 {
+            color: #1e3a8a;
+            font-size: 14pt;
+            border-bottom: 2px solid #dbeafe;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        h3 {
+            color: #1e40af;
+            font-size: 12pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            background-color: #eff6ff;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 9pt;
+        }
+
+        th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        
+        tr:hover {
+            background-color: #f0f9ff;
+        }
+
+        .priority-high {
+            background-color: #fee2e2;
+        }
+
+        .priority-medium {
+            background-color: #fef3c7;
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 8pt;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .footer {
+            margin-top: 1.5cm;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            font-size: 9pt;
+            color: #6b7280;
+        }
+
+        .section-title {
+            color: #1f2937;
+            font-size: 14pt;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .progress-value {
+            height: 6px;
+            background: linear-gradient(to right, #60a5fa, #3b82f6);
+            border-radius: 999px;
+        }
+        
+        .phase-card {
+            margin-bottom: 1cm;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .phase-header {
+            background-color: #eff6ff;
+            padding: 10px;
+            border-bottom: 1px solid #dbeafe;
+            font-weight: 600;
+            color: #1e40af;
+        }
+        
+        .task-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        
+        .task-icon.completed {
+            background-color: #10b981;
+        }
+        
+        .task-icon.progress {
+            background-color: #3b82f6;
+        }
+        
+        .task-icon.pending {
+            background-color: #f59e0b;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Reporte Detallado de Tareas</h1>
+    <p>Fecha de generación: {{ fecha_generacion|date:'d/m/Y H:i' }}</p>
+    {% if filtros.proyecto %}
+        <p>Proyecto: <strong>{{ filtros.proyecto.nombreproyecto }}</strong></p>
+    {% else %}
+        <p>Todos los proyectos</p>
+    {% endif %}
+    <p>Período: <strong>{{ filtros.fecha_inicio|date:'d/m/Y' }} - {{ filtros.fecha_fin|date:'d/m/Y' }}</strong></p>
+</div>
+
+<div class="statistics">
+    <h2>Resumen de Tareas</h2>
+    <div class="stats-grid">
+        <div class="stat-card completed">
+            <div class="stat-title">Completadas</div>
+            <div class="stat-value">
+                {% for estado in datos_tareas.tareas_por_estado %}
+                    {% if estado.estado == "Completada" %}{{ estado.count }}{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="stat-card in-progress">
+            <div class="stat-title">En Progreso</div>
+            <div class="stat-value">
+                {% for estado in datos_tareas.tareas_por_estado %}
+                    {% if estado.estado == "En Progreso" %}{{ estado.count }}{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="stat-card pending">
+            <div class="stat-title">Pendientes</div>
+            <div class="stat-value">
+                {% for estado in datos_tareas.tareas_por_estado %}
+                    {% if estado.estado == "Pendiente" %}{{ estado.count }}{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráfico de distribución -->
+    <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="width: 100%; height: 20px; background-color: #e5e7eb; border-radius: 999px; overflow: hidden; display: flex;">
+            {% for estado in datos_tareas.tareas_por_estado %}
+                {% if estado.estado == "Completada" %}
+                    <div style="height: 100%; background-color: #10b981; width: {% widthratio estado.count datos_tareas.tareas_list|length 100 %}%"></div>
+                {% elif estado.estado == "En Progreso" %}
+                    <div style="height: 100%; background-color: #3b82f6; width: {% widthratio estado.count datos_tareas.tareas_list|length 100 %}%"></div>
+                {% else %}
+                    <div style="height: 100%; background-color: #f59e0b; width: {% widthratio estado.count datos_tareas.tareas_list|length 100 %}%"></div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 8pt; color: #6b7280; margin-top: 5px;">
+        {% for estado in datos_tareas.tareas_por_estado %}
+            <span>{{ estado.estado }}: {{ estado.count }} ({% widthratio estado.count datos_tareas.tareas_list|length 100 %}%)</span>
+        {% endfor %}
+    </div>
+</div>
+
+<h2 class="section-title">Lista Detallada de Tareas</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Nombre</th>
+        <th>Proyecto</th>
+        <th>Estado</th>
+        <th>Progreso</th>
+        <th>Duración</th>
+        <th>Fechas</th>
+        <th>Costo</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for tarea in datos_tareas.tareas_list %}
+        <tr {% if tarea.prioridad >= 8 %}class="priority-high"{% elif tarea.prioridad >= 5 %}class="priority-medium"{% endif %}>
+            <td>
+                <strong>{{ tarea.nombretarea }}</strong>
+                {% if tarea.descripcion %}
+                    <br><span style="font-size: 8pt; color: #6b7280;">{{ tarea.descripcion|truncatechars:50 }}</span>
+                {% endif %}
+            </td>
+            <td>{{ tarea.idrequerimiento.idproyecto.nombreproyecto }}</td>
+            <td>
+                <span class="status-badge 
+                    {% if tarea.estado == 'Completada' %}status-completed
+                    {% elif tarea.estado == 'En Progreso' %}status-progress
+                    {% else %}status-pending{% endif %}">
+                    {{ tarea.estado }}
+                </span>
+            </td>
+            <td>
+                <div class="progress-bar">
+                    <div class="progress-value" style="width: {{ tarea.porcentaje_completado }}%"></div>
+                </div>
+                {{ tarea.porcentaje_completado }}%
+            </td>
+            <td>
+                Est: {{ tarea.duracionestimada|default:'0' }}h
+                <br>
+                Real: {{ tarea.duracionactual|default:'0' }}h
+            </td>
+            <td>
+                Inicio: {{ tarea.fechainicio|date:'d/m/Y'|default:'N/A' }}
+                <br>
+                Fin: {{ tarea.fechafin|date:'d/m/Y'|default:'N/A' }}
+            </td>
+            <td>
+                Est: ${{ tarea.costoestimado|default:'0'|floatformat:2 }}
+                <br>
+                Real: ${{ tarea.costoactual|default:'0'|floatformat:2 }}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% regroup datos_tareas.tareas_list by fase as tareas_por_fase %}
+{% if tareas_por_fase %}
+    <h2 class="section-title">Distribución por Fase</h2>
+    {% for grupo in tareas_por_fase %}
+        <div class="phase-card">
+            <div class="phase-header">
+                {% if grupo.grouper %}
+                    Fase: {{ grupo.grouper.nombre }}
+                {% else %}
+                    Sin fase asignada
+                {% endif %}
+            </div>
+            
+            <table>
+                <thead>
+                <tr>
+                    <th>Tarea</th>
+                    <th>Estado</th>
+                    <th>Progreso</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for tarea in grupo.list %}
+                    <tr>
+                        <td>
+                            <span class="task-icon {% if tarea.estado == 'Completada' %}completed{% elif tarea.estado == 'En Progreso' %}progress{% else %}pending{% endif %}"></span>
+                            {{ tarea.nombretarea }}
+                        </td>
+                        <td>{{ tarea.estado }}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-value" style="width: {{ tarea.porcentaje_completado }}%"></div>
+                            </div>
+                            {{ tarea.porcentaje_completado }}%
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="footer">
+    <p>Filtros aplicados: {% if filtros.proyecto %}Proyecto: {{ filtros.proyecto.nombreproyecto }} | {% endif %}Período: {{ filtros.fecha_inicio|date:'d/m/Y' }} - {{ filtros.fecha_fin|date:'d/m/Y' }}</p>
+    <p>Reporte generado por {{ request.user.nombreusuario }} | {{ fecha_generacion|date:'d/m/Y H:i' }}</p>
+</div>
+</body>
+</html>

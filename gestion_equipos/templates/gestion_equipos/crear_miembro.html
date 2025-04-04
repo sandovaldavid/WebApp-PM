@@ -3,10 +3,15 @@
 {% block title %}Agregar Miembro al Equipo{% endblock %}
 
 {% block title_body %}
-    <div class="flex items-center">
-        <i class="fas fa-user-plus text-blue-500 mr-2"></i>
-        <span>Agregar Miembro al Equipo: {{ equipo.nombreequipo }}</span>
+<div class="flex items-center mb-2 sm:mb-0 lg:mr-4">
+    <div class="p-2 bg-green-100 rounded-full mr-3">
+        <i class="fas fa-user-plus text-green-600"></i>
     </div>
+    <div>
+        <h1 class="text-xl font-bold text-white">Agregar Miembro</h1>
+        <p class="text-sm text-blue-100 hidden 2xl:block">Equipo: {{ equipo.nombreequipo }}</p>
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}

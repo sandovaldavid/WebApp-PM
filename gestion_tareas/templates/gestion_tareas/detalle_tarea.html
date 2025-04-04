@@ -396,7 +396,7 @@
                             <div class="border-l-4 
                                 {% if alerta.tipoalerta == 'riesgo' %} border-yellow-400 bg-yellow-50
                                 {% elif alerta.tipoalerta == 'bloqueo' %} border-red-400 bg-red-50
-                                {% elif alerta.tipoalerta == 'retraso' %} border-orange-400 bg-orange-50
+                                {% elif alerta.tipoalerta == 'retraso' %} border-yellow-400 bg-yellow-50
                                 {% elif alerta.tipoalerta == 'presupuesto' %} border-purple-400 bg-purple-50
                                 {% else %} border-blue-400 bg-blue-50
                                 {% endif %}
@@ -408,7 +408,7 @@
                                         {% elif alerta.tipoalerta == 'bloqueo' %}
                                             <i class="fas fa-ban text-red-500"></i>
                                         {% elif alerta.tipoalerta == 'retraso' %}
-                                            <i class="fas fa-clock text-orange-500"></i>
+                                            <i class="fas fa-clock text-yellow-500"></i>
                                         {% elif alerta.tipoalerta == 'presupuesto' %}
                                             <i class="fas fa-money-bill-wave text-purple-500"></i>
                                         {% else %}
@@ -419,7 +419,7 @@
                                         <p class="text-sm 
                                             {% if alerta.tipoalerta == 'riesgo' %} text-yellow-700
                                             {% elif alerta.tipoalerta == 'bloqueo' %} text-red-700
-                                            {% elif alerta.tipoalerta == 'retraso' %} text-orange-700
+                                            {% elif alerta.tipoalerta == 'retraso' %} text-yellow-700
                                             {% elif alerta.tipoalerta == 'presupuesto' %} text-purple-700
                                             {% else %} text-blue-700
                                             {% endif %}">
