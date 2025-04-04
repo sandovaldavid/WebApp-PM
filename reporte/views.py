@@ -128,7 +128,7 @@ def index(request):
 
     except Exception as e:
         messages.error(request, f"Error al generar reporte: {str(e)}")
-        return redirect("dashboard:panel_control")
+        return redirect("dashboard:index")
 
 
 def parse_date(date_str, default=None):
