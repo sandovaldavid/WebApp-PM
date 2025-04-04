@@ -13,10 +13,18 @@ from dashboard.models import (
     Requerimiento,
     Proyecto,
     Usuario,
+    TipoTarea,
 )
 from api.permissions import IsAdminOrReadOnly
 from api.serializers.tarea_serializers import TareaSerializer, TareaListSerializer
 from api.pagination import CustomPagination
+import requests
+import logging
+from datetime import datetime
+import os  # Add this import
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 
 class TareaViewSet(viewsets.ModelViewSet):
@@ -231,3 +239,64 @@ class TareaViewSet(viewsets.ModelViewSet):
             pass  # No interrumpir el flujo si falla el registro de actividad
 
         return Response({"detail": "Estado actualizado con éxito"})
+
+    @action(
+        detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated]
+    )
+    def parameterize(self, request, pk=None):
+        """
+        Connect to external API to parameterize a task with AI assistance.
+        Updates the task with parameters like estimated duration, tags, complexity, etc.
+        """
+        tarea = self.get_object()
+
+        # Configure the API endpoint
+        api_base_url = request.data.get("api_url", "http://localhost:3000/api")
+
+        try:
+            # Use the APIIntermediaService to parameterize the task
+            from services.apiIntermediaria import APIIntermediaService
+
+            # Initialize the service with the API URL from request data if provided
+            api_service = APIIntermediaService(api_base_url=api_base_url)
+
+            # Call the parameterization service
+            result = api_service.parameterize_task(tarea)
+
+            if not result["success"]:
+                return Response(
+                    {"error": result["error"], "details": result.get("details", "")},
+                    status=result.get("status_code", status.HTTP_400_BAD_REQUEST),
+                )
+
+            # Optional: Record this activity
+            try:
+                from dashboard.models import Actividad
+
+                Actividad.objects.create(
+                    nombre=f"Parametrización automática de tarea #{tarea.idtarea}",
+                    descripcion=f"Se parametrizó la tarea {tarea.nombretarea} usando IA",
+                    idusuario=request.user,
+                    accion="parametrizar",
+                    entidad_tipo="Tarea",
+                    entidad_id=tarea.idtarea,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to record activity: {e}")
+
+            # Return updated task data
+            serializer = TareaSerializer(tarea)
+            return Response(
+                {
+                    "message": "Task successfully parameterized",
+                    "updated_fields": result["updated_fields"],
+                    "task": serializer.data,
+                }
+            )
+
+        except Exception as e:
+            logger.error(f"Task parameterization error: {e}", exc_info=True)
+            return Response(
+                {"error": f"Error during task parameterization: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

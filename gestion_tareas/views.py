@@ -1,3 +1,4 @@
+import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -6,6 +7,9 @@ from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 # Cambiar este import:
 # from redes_neuronales.ml_model import EstimacionModel, DataPreprocessor
@@ -361,6 +365,68 @@ def tareas_programadas(request):
 def detalle_tarea(request, id):
     # Obtener la tarea y datos relacionados
     tarea = get_object_or_404(Tarea, idtarea=id)
+
+    # Handle estimation request
+    if request.method == "POST" and "estimate" in request.POST:
+        try:
+            # Import the estimation service
+            from redes_neuronales.estimacion_tiempo.model_service import (
+                EstimacionTiempoService,
+            )
+
+            # Initialize the service
+            estimation_service = EstimacionTiempoService()
+
+            # Perform the estimation and save
+            success, estimated_time, message = estimation_service.estimate_and_save(
+                tarea.idtarea
+            )
+
+            if success:
+                messages.success(
+                    request, f"Tiempo estimado correctamente: {estimated_time} horas"
+                )
+                # Refresh tarea object to get updated values
+                tarea = get_object_or_404(Tarea, idtarea=id)
+            else:
+                messages.error(request, f"Error al estimar tiempo: {message}")
+
+        except Exception as e:
+            logger.error(f"Error en la estimación de tiempo: {e}", exc_info=True)
+            messages.error(request, f"Error en la estimación: {str(e)}")
+
+    # Handle parametrization request
+    if request.method == "POST" and "parametrize" in request.POST:
+        try:
+            # Import the API service
+            from services.apiIntermediaria import APIIntermediaService
+
+            # Initialize the service
+            api_service = APIIntermediaService()
+
+            # Call the parameterization service
+            result = api_service.parameterize_task(tarea)
+
+            if result["success"]:
+                messages.success(
+                    request,
+                    f"Tarea parametrizada exitosamente. Campos actualizados: {', '.join(result['updated_fields'])}",
+                )
+            else:
+                # Add more detailed error message
+                error_msg = result.get("error", "Error desconocido")
+
+                # Check if it's a connection or timeout error and add helpful suggestion
+                if "timed out" in error_msg or "Could not connect" in error_msg:
+                    error_msg += " Posibles soluciones: Verifique que el servicio de IA esté activo y accesible, o ajuste el tiempo de espera en la configuración."
+
+                messages.error(request, f"Error al parametrizar tarea: {error_msg}")
+                logger.error(f"Task parameterization failed: {error_msg}")
+
+        except Exception as e:
+            logger.error(f"Error during task parametrization: {e}", exc_info=True)
+            messages.error(request, f"Error al parametrizar la tarea: {str(e)}")
+
     historial = Historialtarea.objects.filter(idtarea=tarea).order_by("-fechacambio")
 
     # Obtener recursos asignados
