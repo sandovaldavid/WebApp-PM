@@ -190,6 +190,9 @@ def crear_tarea(request):
         or request.user.rol == "Administrador"
     )
 
+    # Obtener el ID del requerimiento preseleccionado si existe
+    requerimiento_preseleccionado = request.GET.get("req", None)
+
     if request.method == "POST":
         try:
             # Obtener datos del formulario básicos
@@ -298,6 +301,7 @@ def crear_tarea(request):
             "estados_tarea": ["Pendiente", "En Progreso", "Completada"],
             "prioridades": ["Baja", "Media", "Alta"],
             "fecha_minima": timezone.now().date(),
+            "requerimiento_preseleccionado": requerimiento_preseleccionado,
         }
         return render(request, "gestion_tareas/crear_tarea.html", context)
 

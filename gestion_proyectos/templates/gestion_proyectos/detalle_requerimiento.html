@@ -113,7 +113,11 @@
                 Tareas Asociadas
               </h3>
               <div>
-                <a href="{% url 'gestion_tareas:crear_tarea' %}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg mr-2">Crear Tarea</a>
+                <a href="{% url 'gestion_tareas:crear_tarea' %}?req={{ requerimiento.idrequerimiento }}" 
+                  class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg mr-2">
+                  <i class="fas fa-plus mr-1.5"></i>
+                  Crear Tarea
+                </a>
                 <a href="{% url 'gestion_tareas:lista_tareas' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Gestionar Tareas</a>
               </div>
             </div>

@@ -33,7 +33,8 @@
                                         required>
                                     <option value="">Seleccione un requerimiento</option>
                                     {% for req in requerimientos %}
-                                        <option value="{{ req.idrequerimiento }}">
+                                        <option value="{{ req.idrequerimiento }}" 
+                                                {% if requerimiento_preseleccionado|stringformat:"s" == req.idrequerimiento|stringformat:"s" %}selected{% endif %}>
                                             {{ req.descripcion }}
                                         </option>
                                     {% endfor %}
