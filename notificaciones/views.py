@@ -1087,8 +1087,8 @@ def generar_alertas(request):
         if tipo == "retrasadas":
             alertas_creadas = MonitoreoService.verificar_tareas_retrasadas()
             alertas_nuevas = Alerta.objects.filter(
-                tipoalerta="retraso", 
-                fechacreacion__gte=timezone.now() - timedelta(minutes=10)
+                tipoalerta="retraso",
+                fechacreacion__gte=timezone.now() - timedelta(minutes=10),
             )
             messages.success(
                 request,
@@ -1097,8 +1097,8 @@ def generar_alertas(request):
         elif tipo == "presupuesto":
             alertas_creadas = MonitoreoService.verificar_presupuesto_excedido()
             alertas_nuevas = Alerta.objects.filter(
-                tipoalerta="presupuesto", 
-                fechacreacion__gte=timezone.now() - timedelta(minutes=10)
+                tipoalerta="presupuesto",
+                fechacreacion__gte=timezone.now() - timedelta(minutes=10),
             )
             messages.success(
                 request,
@@ -1107,8 +1107,8 @@ def generar_alertas(request):
         elif tipo == "bloqueo":
             alertas_creadas = MonitoreoService.verificar_tareas_bloqueadas()
             alertas_nuevas = Alerta.objects.filter(
-                tipoalerta="bloqueo", 
-                fechacreacion__gte=timezone.now() - timedelta(minutes=10)
+                tipoalerta="bloqueo",
+                fechacreacion__gte=timezone.now() - timedelta(minutes=10),
             )
             messages.success(
                 request,
@@ -1125,19 +1125,21 @@ def generar_alertas(request):
             messages.success(
                 request, f"Se han generado {alertas_creadas} alertas en total"
             )
-        
+
         # Notificar a los usuarios para cada alerta creada
         for alerta in alertas_nuevas:
             notif_count = NotificacionService.notificar_alerta_a_usuarios(alerta)
             notificaciones_creadas += notif_count
-        
+
         if notificaciones_creadas > 0:
             messages.success(
-                request, f"Se han creado {notificaciones_creadas} notificaciones para usuarios"
+                request,
+                f"Se han creado {notificaciones_creadas} notificaciones para usuarios",
             )
         elif alertas_creadas > 0:
             messages.warning(
-                request, "Se crearon alertas pero no se encontraron usuarios para notificar"
+                request,
+                "Se crearon alertas pero no se encontraron usuarios para notificar",
             )
 
     # Estadísticas sobre alertas actuales

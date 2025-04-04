@@ -22,9 +22,7 @@ router.register(r"tareas", tarea_views.TareaViewSet)
 router.register(r"equipos", equipo_views.EquipoViewSet)
 router.register(r"requerimientos", requerimiento_views.RequerimientoViewSet)
 router.register(r"recursos", recurso_views.RecursoViewSet)
-router.register(
-    r"tareas-comunes", tarea_comun_views.TareaComunViewSet
-)
+router.register(r"tareas-comunes", tarea_comun_views.TareaComunViewSet)
 
 # The API URLs are determined automatically by the router
 urlpatterns = [
