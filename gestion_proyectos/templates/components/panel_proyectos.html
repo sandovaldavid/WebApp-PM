@@ -1,217 +1,124 @@
-<!-- Parte estática: Encabezado y filtros -->
-<!-- Título y Encabezado -->
-<div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-    <div>
-        <h2 class="text-xl font-semibold flex items-center">
-            <i class="fas fa-project-diagram text-blue-500 mr-2"></i>
-            <span>Panel de Proyectos</span>
-        </h2>
-        <p class="text-sm text-gray-500">{{ proyectos_totales|length }} proyectos registrados</p>
+<!-- Buscador y Filtros -->
+<div class="bg-white rounded-xl shadow-md p-4 border border-gray-100">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <div>
+            <h2 class="flex items-center mb-1">
+                <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                    <i class="fas fa-search text-indigo-600"></i>
+                </div>
+                <span class="text-lg font-bold text-gray-800">Panel de Proyectos</span>
+            </h2>
+            <p class="text-sm text-gray-500 ml-11">{{ proyectos_totales|length }} proyectos registrados</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <div class="relative flex-grow">
+                <input type="text" id="search-input" 
+                       placeholder="Buscar proyecto..." 
+                       class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                <div class="absolute left-3 top-2.5 text-gray-400">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+            <select id="filter-select" 
+                    class="border border-gray-200 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                <option value="todos">Todos los estados</option>
+                <option value="Inicio">Inicio</option>
+                <option value="Planificación">Planificación</option>
+                <option value="Ejecución">Ejecución</option>
+                <option value="Monitoreo-Control">Monitoreo-Control</option>
+                <option value="Cierre">Cierre</option>
+            </select>
+            <div class="flex gap-2">
+                <button id="view-grid" class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button id="view-list" class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+            <div class="flex flex-col sm:flex-row mt-3 sm:mt-0">
+                <a href="{% url 'gestion_proyectos:lista_proyectos' %}" 
+                class="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-2 rounded-lg hover:from-indigo-600 hover:to-indigo-800 transition-all duration-300 shadow-md flex items-center justify-center group">
+                    <i class="fas fa-filter mr-2 group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="text-sm hidden sm:inline">Filtros Avanzados</span>
+                    <span class="text-sm sm:hidden">Filtros</span>
+                </a>
+            </div>
+            
+        </div>
     </div>
     
-    <div class="flex flex-col sm:flex-row gap-4">
-        <!-- Selector de Vista con HTMX - CORREGIDO -->
-        <div class="flex bg-gray-100 rounded-lg p-1">
-            <button id="btn-vista-grid"
-                hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?vista=grid{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
-                hx-target="#proyectos-contenido"
-                hx-push-url="true"
-                hx-swap="innerHTML"
-                hx-trigger="click"
-                class="px-3 py-1 rounded-md text-gray-600 hover:bg-gray-200 transition-colors">
-                <i class="fas fa-th-large mr-1"></i> Tarjetas
-            </button>
-            <button id="btn-vista-list"
-                hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?vista=list{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
-                hx-target="#proyectos-contenido"
-                hx-push-url="true"
-                hx-swap="innerHTML"
-                hx-trigger="click"
-                class="px-3 py-1 rounded-md text-gray-600 hover:bg-gray-200 transition-colors">
-                <i class="fas fa-list mr-1"></i> Lista
-            </button>
-        </div>
-
-        <a href="{% url 'gestion_proyectos:crear_proyecto' %}" 
-           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
-            <i class="fas fa-plus mr-2"></i>
-            Crear Proyecto
-        </a>
-
-        <a href="{% url 'gestion_proyectos:lista_proyectos' %}" 
-           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
-           <i class="fas fa-filter mr-2"></i>
-            Filtros Avanzados
-        </a>
+    <!-- Panel de Proyectos -->
+    <div id="projects-container">
+        {% include "components/lista_proyectos.html" with proyectos=proyectos vista=vista filtros=filtros %}
     </div>
 </div>
 
-<!-- Filtros Rápidos con HTMX - CON IDS PARA JAVASCRIPT -->
-<div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4">
-    <button id="btn-filtro-todos"
-           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
-           hx-target="#proyectos-contenido"
-           hx-push-url="true"
-           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-200 transition-colors">
-        <i class="fas fa-list-ul mr-2"></i>Todos
-    </button>
-    <button id="btn-filtro-Inicio"
-           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?filtro=Inicio&vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
-           hx-target="#proyectos-contenido"
-           hx-push-url="true"
-           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-yellow-200 transition-colors">
-        <i class="fas fa-clock mr-2"></i>Inicio
-    </button>
-    <button id="btn-filtro-Planificación"
-           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?filtro=Planificación&vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
-           hx-target="#proyectos-contenido"
-           hx-push-url="true"
-           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-blue-200 transition-colors">
-        <i class="fas fa-spinner mr-2"></i>Planificación
-    </button>
-    <button id="btn-filtro-Ejecución"
-           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?filtro=Ejecución&vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
-           hx-target="#proyectos-contenido"
-           hx-push-url="true"
-           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-green-200 transition-colors">
-        <i class="fas fa-play mr-2"></i>Ejecución
-    </button>
-    <button id="btn-filtro-Monitoreo-Control"
-           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?filtro=Monitoreo-Control&vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
-           hx-target="#proyectos-contenido"
-           hx-push-url="true"
-           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-red-200 transition-colors">
-        <i class="fas fa-chart-line mr-2"></i>Monitoreo-Control
-    </button>
-    <button id="btn-filtro-Cierre"
-           hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?filtro=Cierre&vista={{ vista }}{% if request.GET.busqueda %}&busqueda={{ request.GET.busqueda }}{% endif %}"
-           hx-target="#proyectos-contenido"
-           hx-push-url="true"
-           class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-200 transition-colors">
-        <i class="fas fa-check-circle mr-2"></i>Cierre
-    </button>
-</div>
-
-<!-- Búsqueda con HTMX -->
-<div class="mb-6 bg-gray-50 p-4 rounded-lg">
-    <form hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}" 
-          hx-target="#proyectos-contenido"
-          hx-push-url="true"
-          class="flex gap-4">
-        <input type="hidden" name="vista" value="{{ vista }}">
-        <input type="hidden" name="filtro" value="{{ request.GET.filtro }}">
-        
-        <div class="flex-1">
-            <input type="text" 
-                   name="busqueda" 
-                   value="{{ filtros.busqueda }}"
-                   placeholder="Buscar proyecto..." 
-                   class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-        </div>
-
-        <div class="flex gap-2">
-            <button type="button"
-                   hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?vista={{ vista }}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}"
-                   hx-target="#proyectos-contenido"
-                   hx-push-url="true"
-                   class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                Limpiar
-            </button>
-            <button type="submit" 
-                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                Buscar
-            </button>
-        </div>
-    </form>
-</div>
-
-<!-- Contenedor para actualización AJAX - SOLO CONTENIDO DINÁMICO -->
-<div id="proyectos-contenido">
-    {% include 'components/lista_proyectos.html' %}
-</div>
 
 <!-- Script actualizado para manejar tanto vista como filtros -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Función para actualizar los botones de vista
-        function updateViewButtons() {
-            const url = new URL(window.location.href);
-            const vista = url.searchParams.get('vista') || 'grid';
+        // Funcionalidad para la búsqueda y filtrado
+        const searchInput = document.getElementById('search-input');
+        const filterSelect = document.getElementById('filter-select');
+        const viewGrid = document.getElementById('view-grid');
+        const viewList = document.getElementById('view-list');
+        
+        // Manejar la búsqueda y filtrado
+        function handleSearch() {
+            const searchTerm = searchInput.value;
+            const filterValue = filterSelect.value;
             
-            const btnGrid = document.getElementById('btn-vista-grid');
-            const btnList = document.getElementById('btn-vista-list');
-            
-            // Reset both buttons
-            btnGrid.classList.remove('bg-blue-500', 'text-white');
-            btnList.classList.remove('bg-blue-500', 'text-white');
-            btnGrid.classList.add('text-gray-600');
-            btnList.classList.add('text-gray-600');
-            
-            // Set active button
-            if (vista === 'grid' || !vista) {
-                btnGrid.classList.remove('text-gray-600');
-                btnGrid.classList.add('bg-blue-500', 'text-white');
-            } else if (vista === 'list') {
-                btnList.classList.remove('text-gray-600');
-                btnList.classList.add('bg-blue-500', 'text-white');
+            // Actualizar el panel de proyectos con los nuevos filtros
+            htmx.ajax('GET', `{% url 'gestion_proyectos:panel_lista_proyectos' %}?busqueda=${searchTerm}&filtro=${filterValue}&vista=${currentView}`, '#projects-container');
+        }
+        
+        let currentView = 'grid';
+        
+        // Cambiar vista
+        viewGrid.addEventListener('click', function() {
+            if (currentView !== 'grid') {
+                currentView = 'grid';
+                viewGrid.classList.replace('bg-gray-100', 'bg-blue-100');
+                viewGrid.classList.replace('text-gray-700', 'text-blue-700');
+                viewList.classList.replace('bg-blue-100', 'bg-gray-100');
+                viewList.classList.replace('text-blue-700', 'text-gray-700');
+                handleSearch();
+            }
+        });
+        
+        viewList.addEventListener('click', function() {
+            if (currentView !== 'list') {
+                currentView = 'list';
+                viewList.classList.replace('bg-gray-100', 'bg-blue-100');
+                viewList.classList.replace('text-gray-700', 'text-blue-700');
+                viewGrid.classList.replace('bg-blue-100', 'bg-gray-100');
+                viewGrid.classList.replace('text-blue-700', 'text-gray-700');
+                handleSearch();
+            }
+        });
+        
+        // Eventos
+        searchInput.addEventListener('input', handleSearch);
+        filterSelect.addEventListener('change', handleSearch);
+
+        // Obtener parámetros de la URL inicial para sincronizar la interfaz
+        const url = new URL(window.location.href);
+        const filterParam = url.searchParams.get('filtro');
+        const vistaParam = url.searchParams.get('vista');
+        const busquedaParam = url.searchParams.get('busqueda');
+        
+        // Inicializar los controles con los valores de la URL
+        if (busquedaParam) searchInput.value = busquedaParam;
+        if (filterParam) filterSelect.value = filterParam;
+        if (vistaParam) {
+            currentView = vistaParam;
+            if (vistaParam === 'list') {
+                viewList.classList.replace('bg-gray-100', 'bg-blue-100');
+                viewList.classList.replace('text-gray-700', 'text-blue-700');
+                viewGrid.classList.replace('bg-blue-100', 'bg-gray-100');
+                viewGrid.classList.replace('text-blue-700', 'text-gray-700');
             }
         }
-        
-        // Función para actualizar los botones de filtro
-        function updateFilterButtons() {
-            const url = new URL(window.location.href);
-            const filtro = url.searchParams.get('filtro');
-            
-            // Reset all filter buttons
-            const filterButtons = [
-                {id: 'btn-filtro-todos', color: 'blue', active: !filtro},
-                {id: 'btn-filtro-Inicio', color: 'yellow', active: filtro === 'Inicio'},
-                {id: 'btn-filtro-Planificación', color: 'blue', active: filtro === 'Planificación'},
-                {id: 'btn-filtro-Ejecución', color: 'green', active: filtro === 'Ejecución'},
-                {id: 'btn-filtro-Monitoreo-Control', color: 'red', active: filtro === 'Monitoreo-Control'},
-                {id: 'btn-filtro-Cierre', color: 'gray', active: filtro === 'Cierre'}
-            ];
-            
-            filterButtons.forEach(button => {
-                const btnElement = document.getElementById(button.id);
-                if (btnElement) {
-                    // Quitar cualquier estilo de botón activo
-                    btnElement.classList.remove(
-                        'bg-blue-100', 'text-blue-800',
-                        'bg-yellow-100', 'text-yellow-800',
-                        'bg-green-100', 'text-green-800',
-                        'bg-red-100', 'text-red-800',
-                        'bg-gray-100', 'text-gray-800'
-                    );
-                    
-                    // Establecer estilo base para botones inactivos
-                    btnElement.classList.add('bg-gray-200', 'text-gray-700');
-                    
-                    // Si este botón debe estar activo, aplicar su estilo específico
-                    if (button.active) {
-                        btnElement.classList.remove('bg-gray-200', 'text-gray-700');
-                        btnElement.classList.add(`bg-${button.color}-100`, `text-${button.color}-800`);
-                    }
-                }
-            });
-        }
-        
-        // Función combinada para actualizar todos los botones
-        function updateAllButtons() {
-            updateViewButtons();
-            updateFilterButtons();
-        }
-        
-        // Actualizar botones al cargar la página
-        updateAllButtons();
-        
-        // Escuchar eventos HTMX
-        document.body.addEventListener('htmx:afterOnLoad', function(event) {
-            updateAllButtons();
-        });
-        
-        document.body.addEventListener('htmx:afterSettle', function(event) {
-            updateAllButtons();
-        });
     });
 </script>

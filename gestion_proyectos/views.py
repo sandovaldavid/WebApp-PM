@@ -339,11 +339,16 @@ def detalle_proyecto(request, idproyecto):
     total_requerimientos = requerimientos.count()
     tareas_completadas = tareas.filter(estado="Completada").count()
     progreso = 100.0 * tareas_completadas / total_tareas if total_tareas > 0 else 0.0
+    if progreso:
+        stroke_dashoffset = 282.7 - (282.7 * progreso / 100)
+    else:
+        stroke_dashoffset = 282.7
 
     duracion_estimada = tareas.aggregate(total=Sum("duracionestimada"))["total"] or 0
     duracion_actual = tareas.aggregate(total=Sum("duracionactual"))["total"] or 0
 
     for requerimiento in requerimientos:
+        total_tareas_r = requerimiento.tarea_set.count()
         requerimiento.tareas_pendientes = tareas.filter(
             idrequerimiento=requerimiento, estado="Pendiente"
         ).count()
@@ -353,6 +358,12 @@ def detalle_proyecto(request, idproyecto):
         requerimiento.tareas_completadas = tareas.filter(
             idrequerimiento=requerimiento, estado="Completada"
         ).count()
+
+        # Calcular el porcentaje de progreso (equivalente a la operación en la plantilla)
+        if total_tareas > 0:
+            requerimiento.progreso = int((tareas_completadas * 100) / total_tareas_r)
+        else:
+            requerimiento.progreso = 0
 
     vista = request.GET.get("vista", "grid")
     busqueda = request.GET.get("busqueda", "")
@@ -376,6 +387,7 @@ def detalle_proyecto(request, idproyecto):
             "presupuesto_restante": presupuesto_restante,
             "desviacion_presupuesto": desviacion_presupuesto,
             "progreso": progreso,
+            "stroke_dashoffset": stroke_dashoffset,
             "duracion_estimada": duracion_estimada,
             "duracion_actual": duracion_actual,
             "total_tareas": total_tareas,
@@ -859,6 +871,11 @@ def detalle_requerimiento(request, idrequerimiento):
     tareas_en_progreso = tareas.filter(estado="En Progreso").count()
     tareas_completadas = tareas.filter(estado="Completada").count()
 
+    # Calcular el porcentaje de progreso
+    progreso = 0
+    if total_tareas > 0:
+        progreso = (tareas_completadas * 100) / total_tareas
+
     return render(
         request,
         "gestion_proyectos/detalle_requerimiento.html",
@@ -869,6 +886,7 @@ def detalle_requerimiento(request, idrequerimiento):
             "tareas_pendientes": tareas_pendientes,
             "tareas_en_progreso": tareas_en_progreso,
             "tareas_completadas": tareas_completadas,
+            "progreso": progreso,
         },
     )
 

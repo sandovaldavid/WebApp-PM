@@ -4,170 +4,320 @@
   Detalle del Requerimiento
 {% endblock %}
 
+{% block style %}
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+    opacity: 0;
+  }
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+  
+  .task-card {
+    transition: all 0.3s ease;
+  }
+  .task-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+</style>
+{% endblock %}
+
 {% block title_body %}
-  <div class="flex items-center justify-between w-full">
-    <div class="flex items-center mr-4">
-      <i class="fas fa-clipboard-list text-blue-500 mr-2"></i>
-      <span>Detalle de Requerimiento</span>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+    <div class="flex items-center">
+        <div class="bg-indigo-500 p-3 rounded-xl text-white mr-4">
+            <i class="fas fa-clipboard-list text-xl"></i>
+        </div>
+        <div>
+            <h1 class="text-lg md:text-xl font-bold text-write-500 pb-1">Detalle de Requerimiento</h1>
+            <p class="text-sm text-write-100">Proyecto: {{ requerimiento.idproyecto.nombreproyecto }}</p>
+        </div>
     </div>
-    <div class="flex space-x-2">
-      <a href="{% url 'gestion_proyectos:editar_requerimiento' idrequerimiento=requerimiento.idrequerimiento %}" class="px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm flex items-center">
-        <i class="fas fa-edit mr-1.5"></i>
-        Editar
-      </a>
-      <!-- Add Estimation button -->
-      <form method="POST">
-        {% csrf_token %}
-        <button type="submit" name="estimate_tasks" value="1" class="px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm flex items-center">
-          <i class="fas fa-clock mr-1.5"></i>
-          Estimar Tiempos
-        </button>
-      </form>
-      <!-- Add Parameterization button -->
-      <form method="POST">
-        {% csrf_token %}
-        <button type="submit" name="parameterize_tasks" value="1" class="px-3 py-1.5 bg-purple-500 text-white rounded-md hover:bg-purple-600 text-sm flex items-center">
-          <i class="fas fa-magic mr-1.5"></i>
-          Parametrizar con IA
-        </button>
-      </form>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'gestion_proyectos:editar_requerimiento' idrequerimiento=requerimiento.idrequerimiento %}" 
+            class="bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 transition-colors text-sm flex items-center">
+            <i class="fas fa-edit mr-1.5"></i>
+            Editar
+        </a>
+        
+        <!-- Botón de Estimación -->
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" name="estimate_tasks" value="1" 
+                    class="bg-yellow-500 text-white px-3 py-1.5 rounded-lg hover:bg-yellow-600 transition-colors text-sm flex items-center">
+                <i class="fas fa-clock mr-1.5"></i>
+                Estimar Tiempos
+            </button>
+        </form>
+        
+        <!-- Botón de Parametrización -->
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" name="parameterize_tasks" value="1" 
+                    class="bg-purple-500 text-white px-3 py-1.5 rounded-lg hover:bg-purple-600 transition-colors text-sm flex items-center">
+                <i class="fas fa-magic mr-1.5"></i>
+                Parametrizar IA
+            </button>
+        </form>
+        
+        <!-- Botón de retorno -->
+        <a href="{% url 'gestion_proyectos:detalle_proyecto' requerimiento.idproyecto.idproyecto %}" 
+            class="bg-gray-500 text-white px-3 py-1.5 rounded-lg hover:bg-gray-600 transition-colors text-sm flex items-center">
+            <i class="fas fa-arrow-left mr-1.5"></i>
+            Volver
+        </a>
     </div>
-  </div>
+</div>
 {% endblock %}
 
 {% block body %}
-  <!-- Display messages if any -->
-  {% if messages %}
-    <div class="mb-4">
-      {% for message in messages %}
-        <div class="p-4 {% if message.tags == 'error' %}
-            bg-red-100 text-red-700 border-l-4 border-red-500
-
-          {% elif message.tags == 'success' %}
-            bg-green-100 text-green-700 border-l-4 border-green-500
-
-          {% else %}
-            bg-blue-100 text-blue-700 border-l-4 border-blue-500
-          {% endif %} rounded-md">{{ message }}</div>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <div class="p-8">
-    <div class="max-w-4xl mx-auto">
-      <!-- Tarjeta Principal -->
-      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        <!-- Encabezado -->
-        <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
-          <div class="flex justify-between items-start">
-            <!-- Info Principal -->
-            <div class="text-white">
-              <h2 class="text-2xl font-bold">{{ requerimiento.descripcion }}</h2>
-              <p class="text-blue-100">
-                <i class="fas fa-calendar mr-2"></i>
-                Creado el {{ requerimiento.fechacreacion|date:'d/m/Y' }}
-              </p>
+<div class="p-4 md:p-8 space-y-6 bg-gray-50">
+    <!-- Mensajes de sistema -->
+    {% if messages %}
+    <div class="animate-fade-in">
+        {% for message in messages %}
+        <div class="p-4 mb-4 rounded-lg border-l-4 
+            {% if message.tags == 'error' %}
+                bg-red-100 text-red-700 border-red-500
+            {% elif message.tags == 'success' %}
+                bg-green-100 text-green-700 border-green-500
+            {% else %}
+                bg-blue-100 text-blue-700 border-blue-500
+            {% endif %}">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    {% if message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle text-red-600"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle text-blue-600"></i>
+                    {% endif %}
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm">{{ message }}</p>
+                </div>
             </div>
-
-            <!-- Botón Volver -->
-            <a href="{% url 'gestion_proyectos:detalle_proyecto' requerimiento.idproyecto.idproyecto %}" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
-              <i class="fas fa-arrow-left mr-2"></i>
-              Volver
-            </a>
-          </div>
         </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-        <!-- Contenido -->
-        <div class="p-6 space-y-6">
-          <!-- Estadísticas -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="text-lg font-semibold mb-4 flex items-center">
-              <i class="fas fa-chart-bar text-blue-500 mr-2"></i>
-              Estadísticas
+    <!-- Tarjeta principal de requerimiento -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 animate-fade-in">
+        <div class="p-6 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold">{{ requerimiento.descripcion }}</h2>
+                    <p class="text-indigo-100 mt-2 flex items-center">
+                        <i class="fas fa-calendar-alt mr-2"></i>
+                        Creado el {{ requerimiento.fechacreacion|date:'d/m/Y' }}
+                    </p>
+                </div>
+                <div class="bg-white bg-opacity-20 p-3 rounded-full">
+                    <i class="fas fa-clipboard-check text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Estadísticas del requerimiento -->
+        <div class="p-6 border-b border-gray-100">
+            <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-800">
+                <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                    <i class="fas fa-chart-bar text-indigo-600"></i>
+                </div>
+                Estado del Requerimiento
             </h3>
+            
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div class="bg-white p-4 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-600">Total Tareas</p>
-                <p class="text-2xl font-semibold text-blue-600">{{ requerimiento.tarea_set.count }}</p>
-              </div>
-              <div class="bg-white p-4 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-600">Pendientes</p>
-                <p class="text-2xl font-semibold text-yellow-600">{{ tareas_pendientes }}</p>
-              </div>
-              <div class="bg-white p-4 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-600">En Progreso</p>
-                <p class="text-2xl font-semibold text-green-600">{{ tareas_en_progreso }}</p>
-              </div>
-              <div class="bg-white p-4 rounded-lg border border-gray-200">
-                <p class="text-sm text-gray-600">Completadas</p>
-                <p class="text-2xl font-semibold text-purple-600">{{ tareas_completadas }}</p>
-              </div>
+                <!-- Total de tareas -->
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-600">Total Tareas</p>
+                            <h3 class="text-xl font-bold text-gray-800">{{ requerimiento.tarea_set.count }}</h3>
+                        </div>
+                        <div class="bg-gray-200 p-2 rounded-lg">
+                            <i class="fas fa-tasks text-gray-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tareas pendientes -->
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 border border-yellow-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-yellow-600">Pendientes</p>
+                            <h3 class="text-xl font-bold text-yellow-800">{{ tareas_pendientes }}</h3>
+                        </div>
+                        <div class="bg-yellow-200 p-2 rounded-lg">
+                            <i class="fas fa-hourglass-start text-yellow-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- En progreso -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-blue-600">En Progreso</p>
+                            <h3 class="text-xl font-bold text-blue-800">{{ tareas_en_progreso }}</h3>
+                        </div>
+                        <div class="bg-blue-200 p-2 rounded-lg">
+                            <i class="fas fa-spinner text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Completadas -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-green-600">Completadas</p>
+                            <h3 class="text-xl font-bold text-green-800">{{ tareas_completadas }}</h3>
+                        </div>
+                        <div class="bg-green-200 p-2 rounded-lg">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-
-          <!-- Tareas Asociadas -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-lg font-semibold flex items-center">
-                <i class="fas fa-tasks text-blue-500 mr-2"></i>
-                Tareas Asociadas
-              </h3>
-              <div>
-                <a href="{% url 'gestion_tareas:crear_tarea' %}?req={{ requerimiento.idrequerimiento }}" 
-                  class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg mr-2">
-                  <i class="fas fa-plus mr-1.5"></i>
-                  Crear Tarea
-                </a>
-                <a href="{% url 'gestion_tareas:lista_tareas' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Gestionar Tareas</a>
-              </div>
+            
+            <!-- Barra de progreso -->
+            {% if requerimiento.tarea_set.count > 0 %}
+            <div class="mt-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Progreso general</span>
+                    <span class="text-sm font-semibold text-gray-800">{{ progreso|floatformat:0 }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="bg-green-500 h-2.5 rounded-full" style="width: {{ progreso }}%"></div>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tarea</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prioridad</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tiempo Estimado</th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  {% for tarea in tareas %}
-                    <tr class="hover:bg-gray-50">
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <a class="text-blue-500" href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}">{{ tarea.nombretarea }}</a>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs rounded-full 
-                        {% if tarea.estado == 'Pendiente' %}
-                            bg-yellow-100 text-yellow-800
-
-                          {% elif tarea.estado == 'En Progreso' %}
-                            bg-green-100 text-orange-800
-
-                          {% elif tarea.estado == 'Completada' %}
-                            bg-purple-100 text-green-800
-
-                          {% else %}
-                            bg-gray-100 text-gray-800
-                          {% endif %}">
-                          {{ tarea.estado }}
-                        </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">{{ tarea.prioridad }}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">{{ tarea.duracionestimada }} horas</td>
-                    </tr>
-                  {% empty %}
-                    <tr>
-                      <td colspan="4" class="px-6 py-4 text-center text-gray-500">No hay tareas asociadas a este requerimiento</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            {% endif %}
         </div>
-      </div>
     </div>
-  </div>
+    
+    <!-- Tareas Asociadas -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 animate-fade-in delay-100">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-4 flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-white flex items-center">
+                <i class="fas fa-tasks mr-2"></i>
+                Tareas Asociadas
+            </h3>
+            <a href="{% url 'gestion_tareas:crear_tarea' %}?req={{ requerimiento.idrequerimiento }}" 
+                class="bg-white text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors text-sm flex items-center">
+                <i class="fas fa-plus mr-1.5"></i>
+                Nueva Tarea
+            </a>
+        </div>
+        
+        <div class="p-6">
+            {% if tareas %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for tarea in tareas %}
+                <div class="task-card bg-white rounded-lg border
+                    {% if tarea.estado == 'Pendiente' %}border-yellow-200
+                    {% elif tarea.estado == 'En Progreso' %}border-blue-200
+                    {% elif tarea.estado == 'Completada' %}border-green-200
+                    {% endif %} p-4 overflow-hidden shadow-sm">
+                    <!-- Nombre y prioridad -->
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="font-medium text-gray-900 truncate" title="{{ tarea.nombretarea }}">{{ tarea.nombretarea }}</h4>
+                        <span class="px-2 py-0.5 text-xs rounded-full 
+                            {% if tarea.prioridad == 'Alta' %}bg-red-100 text-red-800
+                            {% elif tarea.prioridad == 'Media' %}bg-yellow-100 text-yellow-800
+                            {% elif tarea.prioridad == 'Baja' %}bg-green-100 text-green-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ tarea.prioridad }}
+                        </span>
+                    </div>
+
+                    <!-- Estado y tiempo estimado -->
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-2 py-0.5 text-xs rounded-full flex items-center
+                            {% if tarea.estado == 'Pendiente' %}bg-yellow-100 text-yellow-800
+                            {% elif tarea.estado == 'En Progreso' %}bg-blue-100 text-blue-800
+                            {% elif tarea.estado == 'Completada' %}bg-green-100 text-green-800
+                            {% endif %}">
+                            <i class="fas 
+                                {% if tarea.estado == 'Pendiente' %}fa-hourglass-start
+                                {% elif tarea.estado == 'En Progreso' %}fa-spinner fa-spin
+                                {% elif tarea.estado == 'Completada' %}fa-check-circle
+                                {% endif %} mr-1"></i>
+                            {{ tarea.estado }}
+                        </span>
+                        <div class="text-xs text-gray-500">
+                            <i class="far fa-clock mr-1"></i>
+                            {{ tarea.duracionestimada }} horas
+                        </div>
+                    </div>
+
+                    <!-- Descripción corta -->
+                    {% if tarea.descripcion %}
+                    <div class="text-xs text-gray-600 mb-3 line-clamp-2">
+                        {{ tarea.descripcion|truncatechars:100 }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Botones de acción -->
+                    <div class="flex justify-end space-x-2 mt-auto">
+                        <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}" 
+                           class="text-blue-600 hover:text-blue-800 transition-colors">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'gestion_tareas:editar_tarea' tarea.idtarea %}" 
+                           class="text-yellow-600 hover:text-yellow-800 transition-colors">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-10">
+                <div class="bg-gray-100 h-24 w-24 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-tasks text-gray-400 text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-800">No hay tareas asociadas</h3>
+                <p class="text-gray-500 mb-6">Añade tareas para comenzar a trabajar en este requerimiento</p>
+                <a href="{% url 'gestion_tareas:crear_tarea' %}?req={{ requerimiento.idrequerimiento }}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Crear primera tarea
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Acciones adicionales -->
+    <div class="flex flex-col sm:flex-row justify-end gap-4 animate-fade-in delay-200">
+        <a href="{% url 'gestion_tareas:lista_tareas' %}?req={{ requerimiento.idrequerimiento }}" 
+           class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors flex items-center justify-center">
+            <i class="fas fa-list-ul mr-2"></i>
+            Gestionar todas las tareas
+        </a>
+        <a href="{% url 'gestion_proyectos:detalle_proyecto' requerimiento.idproyecto.idproyecto %}" 
+           class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center">
+            <i class="fas fa-project-diagram mr-2"></i>
+            Volver al proyecto
+        </a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animación de entrada
+    document.querySelectorAll('.animate-fade-in').forEach(el => {
+        el.style.opacity = 1;
+    });
+});
+</script>
 {% endblock %}

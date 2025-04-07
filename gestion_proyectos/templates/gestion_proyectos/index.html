@@ -5,148 +5,250 @@
 
 {% block style %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  .stat-card {
+    transition: all 0.3s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+  .chart-container {
+    transition: all 0.3s ease;
+  }
+  .chart-container:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+</style>
 {% endblock %}
 
 {% block title_body %}
-<div class="flex justify-between items-center">
-    <div class="flex items-center">
-        <i class="fas fa-project-diagram text-blue-500 mr-2"></i>
-        <span>Panel de Gestión de Proyectos</span>
+<div class="flex justify-between items-center w-full">
+    <div class="flex items-center mr-3">
+        <div class="bg-blue-500 p-2 rounded-lg text-white mr-3">
+            <i class="fas fa-project-diagram text-xl"></i>
+        </div>
+        <div>
+            <h1 class="text-xl font-bold text-write-800">Panel de Proyectos</h1>
+            <p class="text-sm text-blue-100 hidden 2xl:block">Monitoreo y control de proyectos</p>
+        </div>
     </div>
     <a href="{% url 'gestion_proyectos:crear_proyecto' %}" 
-    class="bg-blue-500 text-white px-2 py-1 ml-4 rounded-lg hover:bg-blue-900 text-base transition-colors flex items-center">
-    <i class="fas fa-plus mr-2"></i>
-        Nuevo Proyecto
+    class="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-800 transition-all duration-300 shadow-md flex items-center group">
+    <i class="fas fa-plus mr-2 group-hover:rotate-90 transition-transform duration-300"></i>
+        <span class="text-lg hidden lg:block">Nuevo Proyecto</span>
     </a>
 </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8 space-y-8">
+<div class="p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 bg-gray-50">
     <!-- Resumen Estadístico -->
-    <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
-        <!-- Total Proyectos -->
-        <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-blue-600">Total Proyectos</p>
-                    <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total }}</h3>
-                </div>
-                <div class="bg-blue-100 p-3 rounded-full">
-                    <i class="fas fa-project-diagram text-blue-500 text-2xl"></i>
-                </div>
-            </div>
+    <div class="relative">
+        <!-- Título de la sección con badge de actualización -->
+        <div class="flex items-center mb-4 md:mb-6">
+            <h2 class="text-lg md:text-xl font-bold text-gray-800 flex items-center">
+                <span class="bg-indigo-100 p-2 rounded-lg mr-3">
+                    <i class="fas fa-chart-bar text-indigo-600"></i>
+                </span>
+                Resumen Estadístico
+                <span class="ml-3 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full flex items-center">
+                    <i class="fas fa-sync-alt mr-1 text-xs"></i> Actualizado
+                </span>
+            </h2>
         </div>
 
-        <!-- Inicio -->
-        <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-yellow-600">Inicio</p>
-                    <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.inicio }}</h3>
+        <!-- Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-6 gap-4 md:gap-5 lg:gap-6">
+            <!-- Total Proyectos -->
+            <div class="stat-card group bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn opacity-0">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center">
+                            <div class="bg-gradient-to-br from-gray-500 to-gray-700 p-3 rounded-xl shadow-md group-hover:scale-110 transition-all duration-300 mr-4">
+                                <i class="fas fa-project-diagram text-white text-lg md:text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Proyectos</p>
+                                <h3 class="text-2xl md:text-3xl font-extrabold text-gray-800 mt-1 group-hover:text-gray-900">{{ estadisticas.total }}</h3>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-yellow-100 p-3 rounded-full">
-                    <i class="fas fa-clock text-yellow-500 text-2xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Planificación -->
-        <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-green-600">Planificación</p>
-                    <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.planificacion }}</h3>
-                </div>
-                <div class="bg-green-100 p-3 rounded-full">
-                    <i class="fas fa-spinner fa-spin text-green-500 text-2xl"></i>
+                <div class="w-full h-1 bg-gray-100 rounded-full mt-4 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-gray-400 to-gray-600 rounded-full" style="width: 100%"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- Ejecución -->
-        <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-purple-600">Ejecución</p>
-                    <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.ejecucion }}</h3>
+            <!-- Inicio -->
+            <div class="stat-card group bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn opacity-0 delay-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center">
+                            <div class="bg-gradient-to-br from-yellow-400 to-yellow-500 p-3 rounded-xl shadow-md group-hover:scale-110 transition-all duration-300 mr-4">
+                                <i class="fas fa-hourglass-start text-white text-lg md:text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-yellow-600 uppercase tracking-wider">Inicio</p>
+                                <h3 class="text-2xl md:text-3xl font-extrabold text-gray-800 mt-1 group-hover:text-yellow-900">{{ estadisticas.inicio }}</h3>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-purple-100 p-3 rounded-full">
-                    <i class="fas fa-play text-purple-500 text-2xl"></i>
+                <div class="w-full h-1 bg-gray-100 rounded-full mt-4 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-yellow-300 to-yellow-500 rounded-full" style="width: calc({{ estadisticas.inicio }} / {{ estadisticas.total }} * 100%)"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- Monitoreo-Control -->
-        <div class="bg-red-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-red-600">Monitoreo-Control</p>
-                    <h3 class="text-2xl font-bold text-red-900">{{ estadisticas.monitoreo_control }}</h3>
+            <!-- Planificación -->
+            <div class="stat-card group bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn opacity-0 delay-150">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center">
+                            <div class="bg-gradient-to-br from-blue-400 to-indigo-500 p-3 rounded-xl shadow-md group-hover:scale-110 transition-all duration-300 mr-4">
+                                <i class="fas fa-tasks text-white text-lg md:text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-blue-600 uppercase tracking-wider">Planificación</p>
+                                <h3 class="text-2xl md:text-3xl font-extrabold text-gray-800 mt-1 group-hover:text-blue-900">{{ estadisticas.planificacion }}</h3>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-red-100 p-3 rounded-full">
-                    <i class="fas fa-chart-line text-red-500 text-2xl"></i>
+                <div class="w-full h-1 bg-gray-100 rounded-full mt-4 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-blue-300 to-indigo-500 rounded-full" style="width: calc({{ estadisticas.planificacion }} / {{ estadisticas.total }} * 100%)"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- Cierre -->
-        <div class="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600">Cierre</p>
-                    <h3 class="text-2xl font-bold text-gray-900">{{ estadisticas.cierre }}</h3>
+            <!-- Ejecución -->
+            <div class="stat-card group bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn opacity-0 delay-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center">
+                            <div class="bg-gradient-to-br from-green-400 to-emerald-500 p-3 rounded-xl shadow-md group-hover:scale-110 transition-all duration-300 mr-4">
+                                <i class="fas fa-rocket text-white text-lg md:text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-green-600 uppercase tracking-wider">Ejecución</p>
+                                <h3 class="text-2xl md:text-3xl font-extrabold text-gray-800 mt-1 group-hover:text-green-900">{{ estadisticas.ejecucion }}</h3>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-gray-100 p-3 rounded-full">
-                    <i class="fas fa-check-circle text-gray-500 text-2xl"></i>
+                <div class="w-full h-1 bg-gray-100 rounded-full mt-4 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-green-300 to-emerald-500 rounded-full" style="width: calc({{ estadisticas.ejecucion }} / {{ estadisticas.total }} * 100%)"></div>
+                </div>
+            </div>
+
+            <!-- Monitoreo-Control -->
+            <div class="stat-card group bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn opacity-0 delay-250">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center">
+                            <div class="bg-gradient-to-br from-red-400 to-rose-500 p-3 rounded-xl shadow-md group-hover:scale-110 transition-all duration-300 mr-4">
+                                <i class="fas fa-chart-line text-white text-lg md:text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-red-600 uppercase tracking-wider">Monitoreo</p>
+                                <h3 class="text-2xl md:text-3xl font-extrabold text-gray-800 mt-1 group-hover:text-red-900">{{ estadisticas.monitoreo_control }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full h-1 bg-gray-100 rounded-full mt-4 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-red-300 to-rose-500 rounded-full" style="width: calc({{ estadisticas.monitoreo_control }} / {{ estadisticas.total }} * 100%)"></div>
+                </div>
+            </div>
+
+            <!-- Cierre -->
+            <div class="stat-card group bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 animate-fadeIn opacity-0 delay-300">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center">
+                            <div class="bg-gradient-to-br from-purple-400 to-violet-500 p-3 rounded-xl shadow-md group-hover:scale-110 transition-all duration-300 mr-4">
+                                <i class="fas fa-flag-checkered text-white text-lg md:text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-purple-600 uppercase tracking-wider">Cierre</p>
+                                <h3 class="text-2xl md:text-3xl font-extrabold text-gray-800 mt-1 group-hover:text-purple-900">{{ estadisticas.cierre }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full h-1 bg-gray-100 rounded-full mt-4 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-purple-300 to-violet-500 rounded-full" style="width: calc({{ estadisticas.cierre }} / {{ estadisticas.total }} * 100%)"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Gráficos -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
         <!-- Estado de Proyectos (Donut) -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+        <div class="chart-container bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center border-b pb-3">
+                <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                    <i class="fas fa-chart-pie text-blue-600"></i>
+                </div>
                 Estado de Proyectos
             </h3>
-            <div class="h-64">
+            <div class="h-64 flex items-center justify-center">
                 <canvas id="estadoProyectosChart"></canvas>
             </div>
         </div>
 
         <!-- Tendencia de Proyectos (Líneas) -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-chart-line text-purple-500 mr-2"></i>
+        <div class="chart-container bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center border-b pb-3">
+                <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                    <i class="fas fa-chart-line text-purple-600"></i>
+                </div>
                 Tendencia de Completitud
             </h3>
-            <div class="h-64">
+            <div class="h-64 flex items-center justify-center">
                 <canvas id="tendenciaChart"></canvas>
             </div>
         </div>
 
         <!-- Tiempo Promedio (Barras Horizontales) -->
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-clock text-yellow-500 mr-2"></i>
+        <div class="chart-container bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center border-b pb-3">
+                <div class="bg-yellow-100 p-2 rounded-lg mr-3">
+                    <i class="fas fa-clock text-yellow-600"></i>
+                </div>
                 Tiempo Promedio por Estado
             </h3>
-            <div class="h-64">
+            <div class="h-64 flex items-center justify-center">
                 <canvas id="tiempoPromedioChart"></canvas>
             </div>
         </div>
-    </div>
-
+    </div>    
     <!-- Panel de Proyectos -->
     {% include "components/panel_proyectos.html" %}
 </div>
 
+
+
+
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Animación de entrada para las tarjetas
+    setTimeout(() => {
+        document.querySelectorAll('.animate-fadeIn').forEach(el => {
+            el.classList.remove('opacity-0');
+        });
+    }, 100);
+    
     // Gráfico de Estado de Proyectos (Donut)
     const estadoCtx = document.getElementById('estadoProyectosChart').getContext('2d');
     new Chart(estadoCtx, {
@@ -155,8 +257,22 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: {{ datos_estado.labels|safe }},
             datasets: [{
                 data: {{ datos_estado.data|safe }},
-                backgroundColor: ['#FCD34D', '#60A5FA', '#34D399', '#F87171', '#A78BFA'],
-                borderWidth: 1
+                backgroundColor: [
+                    'rgba(252, 211, 77, 0.8)',  // Amarillo (Inicio)
+                    'rgba(96, 165, 250, 0.8)',  // Azul (Planificación)
+                    'rgba(52, 211, 153, 0.8)',  // Verde (Ejecución)
+                    'rgba(248, 113, 113, 0.8)', // Rojo (Monitoreo)
+                    'rgba(167, 139, 250, 0.8)'  // Púrpura (Cierre)
+                ],
+                borderColor: [
+                    'rgb(252, 211, 77)',
+                    'rgb(96, 165, 250)',
+                    'rgb(52, 211, 153)',
+                    'rgb(248, 113, 113)',
+                    'rgb(167, 139, 250)'
+                ],
+                borderWidth: 2,
+                hoverOffset: 8
             }]
         },
         options: {
@@ -164,8 +280,29 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        boxWidth: 12,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    titleColor: '#334155',
+                    bodyColor: '#334155',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    boxPadding: 6,
+                    usePointStyle: true
                 }
+            },
+            cutout: '70%',
+            animation: {
+                animateScale: true,
+                animateRotate: true
             }
         }
     });
@@ -179,16 +316,26 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Proyectos Completados',
                 data: {{ datos_tendencia.completados|safe }},
-                borderColor: '#34D399',
+                borderColor: 'rgba(52, 211, 153, 1)',
+                backgroundColor: 'rgba(52, 211, 153, 0.1)',
                 tension: 0.4,
-                fill: false
+                fill: true,
+                pointBackgroundColor: 'rgba(52, 211, 153, 1)',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+                pointHoverRadius: 6
             },
             {
                 label: 'Proyectos Creados',
                 data: {{ datos_tendencia.creados|safe }},
-                borderColor: '#60A5FA',
+                borderColor: 'rgba(96, 165, 250, 1)',
+                backgroundColor: 'rgba(96, 165, 250, 0.1)',
                 tension: 0.4,
-                fill: false
+                fill: true,
+                pointBackgroundColor: 'rgba(96, 165, 250, 1)',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         },
         options: {
@@ -199,17 +346,40 @@ document.addEventListener('DOMContentLoaded', function() {
                     beginAtZero: true,
                     ticks: {
                         stepSize: 1
+                    },
+                    grid: {
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
                     }
                 }
             },
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        boxWidth: 12,
+                        usePointStyle: true
+                    }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    titleColor: '#334155',
+                    bodyColor: '#334155',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    cornerRadius: 8,
                     mode: 'index',
                     intersect: false
                 }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
             }
         }
     });
@@ -223,8 +393,22 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Días Promedio',
                 data: {{ datos_tiempo.promedio|default:'[5, 8, 3, 7, 4]'|safe }},
-                backgroundColor: ['#FCD34D', '#60A5FA', '#34D399', '#F87171', '#A78BFA'],
-                borderWidth: 1
+                backgroundColor: [
+                    'rgba(252, 211, 77, 0.8)',  // Amarillo (Inicio)
+                    'rgba(96, 165, 250, 0.8)',  // Azul (Planificación)
+                    'rgba(52, 211, 153, 0.8)',  // Verde (Ejecución)
+                    'rgba(248, 113, 113, 0.8)', // Rojo (Monitoreo)
+                    'rgba(167, 139, 250, 0.8)'  // Púrpura (Cierre)
+                ],
+                borderColor: [
+                    'rgb(252, 211, 77)',
+                    'rgb(96, 165, 250)',
+                    'rgb(52, 211, 153)',
+                    'rgb(248, 113, 113)',
+                    'rgb(167, 139, 250)'
+                ],
+                borderWidth: 1,
+                borderRadius: 6
             }]
         },
         options: {
@@ -233,11 +417,38 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             scales: {
                 x: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    grid: {
+                        drawBorder: false
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    titleColor: '#334155',
+                    bodyColor: '#334155',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return context.raw + ' días';
+                        }
+                    }
                 }
             }
         }
-    });
+    }); 
+    
 });
 </script>
 {% endblock %}
