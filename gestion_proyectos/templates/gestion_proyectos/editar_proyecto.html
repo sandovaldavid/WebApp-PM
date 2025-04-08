@@ -1,141 +1,442 @@
 {% extends 'layout.html' %}
+{% load static %}
 
-{% block title %}Editar Proyecto{% endblock %}
+{% block title %}Editar Proyecto - {{ proyecto.nombreproyecto }}{% endblock %}
+
+{% block style %}
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+        animation: fadeIn 0.5s ease-out forwards;
+        opacity: 0;
+    }
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .input-focused:focus-within {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .requerimientos-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .req-item {
+        transition: all 0.2s ease;
+    }
+    .req-item:hover {
+        border-color: #93C5FD;
+    }
+    .req-item-dragover {
+        border: 2px dashed #3B82F6 !important;
+        background-color: #EFF6FF !important;
+    }
+    .drag-handle {
+        cursor: grab;
+    }
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+</style>
+{% endblock %}
 
 {% block title_body %}
-<div class="flex items-center">
-    <i class="fas fa-edit text-blue-500 mr-2"></i>
-    <span>Editar Proyecto</span>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full text-white py-4 px-6">
+    <div class="flex items-center">
+        <div class="bg-white bg-opacity-20 p-3 rounded-xl mr-4">
+            <i class="fas fa-edit text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold">Editar Proyecto</h1>
+            <p class="text-sm text-blue-100 mt-1 flex items-center">
+                <i class="fas fa-project-diagram mr-2"></i>
+                {{ proyecto.nombreproyecto }}
+            </p>
+        </div>
+    </div>
+    <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
+       class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-xl transition-colors flex items-center">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Volver al Proyecto
+    </a>
 </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8">
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-xl font-semibold mb-6 flex items-center">
-            <i class="fas fa-project-diagram text-blue-500 mr-2"></i>
-            Editar Proyecto: {{ proyecto.nombreproyecto }}
-        </h2>
-
-        <!-- Mostrar mensaje de error si existe -->
-        {% if error %}
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
-            <p>{{ error }}</p>
-        </div>
-        {% endif %}
-
-        <form method="POST" class="space-y-6">
-            {% csrf_token %}
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Columna Izquierda -->
-                <div class="space-y-6">
-                    <!-- Nombre del Proyecto -->
-                    <div>
-                        <label for="nombreproyecto" class="block text-sm font-medium text-gray-700">Nombre del Proyecto</label>
-                        <div class="mt-1 relative">
-                            <input type="text" name="nombreproyecto" id="nombreproyecto" 
-                                   value="{{ proyecto.nombreproyecto }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                   required>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-project-diagram text-gray-400"></i>
-                            </div>
-                        </div>
+<div class="p-6 md:p-10 bg-gray-50 min-h-screen">
+    <div class="max-w-5xl mx-auto">
+        <!-- Formulario de edición de proyecto -->
+        <div class="bg-white rounded-xl shadow-md border border-gray-100 animate-fadeIn">
+            {% if error %}
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle"></i>
                     </div>
+                    <div class="ml-3">
+                        <p>{{ error }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
-                    <!-- Descripción -->
+            <form method="POST" class="p-6" id="proyectoForm">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 gap-8">
+                    <!-- Información básica -->
                     <div>
-                        <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-                        <div class="mt-1 relative">
-                            <textarea name="descripcion" id="descripcion" rows="4"
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">{{ proyecto.descripcion }}</textarea>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-info-circle text-gray-400"></i>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <div class="bg-yellow-100 p-2 rounded-lg mr-3">
+                                <i class="fas fa-info-circle text-yellow-600"></i>
+                            </div>
+                            Información Básica
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Nombre del proyecto -->
+                            <div class="col-span-full">
+                                <label for="nombreproyecto" class="block text-sm font-medium text-gray-700 mb-1">Nombre del proyecto *</label>
+                                <input type="text" 
+                                       id="nombreproyecto" 
+                                       name="nombreproyecto" 
+                                       required 
+                                       value="{{ proyecto.nombreproyecto }}"
+                                       class="focus:ring-yellow-500 focus:border-yellow-500 block w-full sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm"
+                                       placeholder="Ej. Sistema de Gestión de Inventario">
+                                <p class="mt-1 text-xs text-gray-500">Un nombre descriptivo y único para identificar el proyecto.</p>
+                            </div>
+                            
+                            <!-- Descripción -->
+                            <div class="col-span-full">
+                                <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
+                                <textarea id="descripcion" 
+                                          name="descripcion" 
+                                          required
+                                          rows="4"
+                                          class="focus:ring-yellow-500 focus:border-yellow-500 block w-full sm:text-sm border-gray-300 rounded-md shadow-sm"
+                                          placeholder="Describe el propósito y alcance del proyecto...">{{ proyecto.descripcion }}</textarea>
+                                <p class="mt-1 text-xs text-gray-500">Proporciona una descripción clara y detallada del proyecto.</p>
+                            </div>
+                            
+                            <!-- Estado -->
+                            <div>
+                                <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
+                                <select id="estado" 
+                                        name="estado" 
+                                        required
+                                        class="focus:ring-yellow-500 focus:border-yellow-500 block w-full sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm">
+                                    <option value="Inicio" {% if proyecto.estado == 'Inicio' %}selected{% endif %}>Inicio</option>
+                                    <option value="Planificación" {% if proyecto.estado == 'Planificación' %}selected{% endif %}>Planificación</option>
+                                    <option value="Ejecución" {% if proyecto.estado == 'Ejecución' %}selected{% endif %}>Ejecución</option>
+                                    <option value="Monitoreo-Control" {% if proyecto.estado == 'Monitoreo-Control' %}selected{% endif %}>Monitoreo-Control</option>
+                                    <option value="Cierre" {% if proyecto.estado == 'Cierre' %}selected{% endif %}>Cierre</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">Fase actual del ciclo de vida del proyecto.</p>
+                            </div>
+                            
+                            <!-- Equipo -->
+                            <div>
+                                <label for="idequipo" class="block text-sm font-medium text-gray-700 mb-1">Equipo</label>
+                                <div class="bg-gray-100 p-3 rounded-md">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-users text-gray-500 mr-2"></i>
+                                        <span class="text-gray-700">{{ proyecto.idequipo.nombreequipo }}</span>
+                                        <span class="text-xs text-gray-500 ml-2">(No se puede cambiar el equipo)</span>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="idequipo" value="{{ proyecto.idequipo.idequipo }}">
+                                <p class="mt-1 text-xs text-gray-500">El equipo asignado a este proyecto.</p>
                             </div>
                         </div>
                     </div>
                     
-                </div>
-
-                <!-- Columna Derecha -->
-                <div class="space-y-6">
-                    <!-- Estado -->
+                    <!-- Fechas y Presupuesto -->
                     <div>
-                        <label for="estado" class="block text-sm font-medium text-gray-700">Estado</label>
-                        <div class="mt-1 relative">
-                            <select name="estado" id="estado" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                <option value="Inicio" {% if proyecto.estado == 'Inicio' %}selected{% endif %}>Inicio</option>
-                                <option value="Planificación" {% if proyecto.estado == 'Planificación' %}selected{% endif %}>Planificación</option>
-                                <option value="Ejecución" {% if proyecto.estado == 'Ejecución' %}selected{% endif %}>Ejecución</option>
-                                <option value="Monitoreo-Control" {% if proyecto.estado == 'Monitoreo-Control' %}selected{% endif %}>Monitoreo-Control</option>
-                                <option value="Cierre" {% if proyecto.estado == 'Cierre' %}selected{% endif %}>Cierre</option>
-                            </select>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-info-circle text-gray-400"></i>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <div class="bg-green-100 p-2 rounded-lg mr-3">
+                                <i class="fas fa-calendar-alt text-green-600"></i>
                             </div>
-                        </div>
-                    </div>
-                    <!-- Fechas -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="fechainicio" class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
-                            <div class="mt-1 relative">
-                                <input type="date" name="fechainicio" id="fechainicio" 
+                            Fechas y Presupuesto
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Fecha de inicio -->
+                            <div>
+                                <label for="fechainicio" class="block text-sm font-medium text-gray-700 mb-1">Fecha de inicio *</label>
+                                <input type="date" 
+                                       id="fechainicio" 
+                                       name="fechainicio" 
+                                       required
                                        value="{{ proyecto.fechainicio|date:'Y-m-d' }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                       required>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-calendar-alt text-gray-400"></i>
-                                </div>
+                                       class="focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm">
+                                <p class="mt-1 text-xs text-gray-500">Fecha de inicio del proyecto.</p>
                             </div>
-                        </div>
-                        <div>
-                            <label for="fechafin" class="block text-sm font-medium text-gray-700">Fecha de Finalización</label>
-                            <div class="mt-1 relative">
-                                <input type="date" name="fechafin" id="fechafin" 
+                            
+                            <!-- Fecha de fin -->
+                            <div>
+                                <label for="fechafin" class="block text-sm font-medium text-gray-700 mb-1">Fecha de fin *</label>
+                                <input type="date" 
+                                       id="fechafin" 
+                                       name="fechafin" 
+                                       required
                                        value="{{ proyecto.fechafin|date:'Y-m-d' }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                       required>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-calendar-check text-gray-400"></i>
+                                       class="focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm">
+                                <p class="mt-1 text-xs text-gray-500">Fecha esperada de finalización.</p>
+                            </div>
+                            
+                            <!-- Presupuesto -->
+                            <div>
+                                <label for="presupuesto" class="block text-sm font-medium text-gray-700 mb-1">Presupuesto *</label>
+                                <div class="relative rounded-md">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 sm:text-sm">$</span>
+                                    </div>
+                                    <input type="number" 
+                                           id="presupuesto" 
+                                           name="presupuesto" 
+                                           required
+                                           min="0"
+                                           step="0.01"
+                                           value="{{ proyecto.presupuesto }}"
+                                           class="focus:ring-green-500 focus:border-green-500 block w-full pl-8 sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm"
+                                           placeholder="0.00">
                                 </div>
+                                <p class="mt-1 text-xs text-gray-500">Presupuesto total asignado al proyecto.</p>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Presupuesto -->
+                    
+                    <!-- Gestión de Requerimientos -->
                     <div>
-                        <label for="presupuesto" class="block text-sm font-medium text-gray-700">Presupuesto</label>
-                        <div class="mt-1 relative">
-                            <input type="number" name="presupuesto" id="presupuesto" 
-                                   value="{{ proyecto.presupuesto }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                   min="0" step="0.01" required>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-dollar-sign text-gray-400"></i>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                                <i class="fas fa-tasks text-purple-600"></i>
                             </div>
+                            Requerimientos
+                            <button type="button" 
+                                   id="agregar-nuevo-requerimiento"
+                                   class="ml-auto text-sm bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1 rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-plus mr-1.5"></i> 
+                                Añadir nuevo
+                            </button>
+                        </h2>
+                        
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                            <div class="requerimientos-container space-y-3" id="requerimientos-container">
+                                {% for requerimiento in requerimientos %}
+                                <div class="req-item bg-white border-2 border-gray-200 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <div class="drag-handle px-1.5 py-1 text-gray-400 hover:text-gray-600 cursor-grab">
+                                        <i class="fas fa-grip-vertical"></i>
+                                    </div>
+                                    
+                                    <div class="flex-grow">
+                                        <input type="text" 
+                                               name="requerimiento_{{ requerimiento.idrequerimiento }}" 
+                                               value="{{ requerimiento.descripcion }}"
+                                               class="focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md shadow-sm"
+                                               placeholder="Descripción del requerimiento...">
+                                        <input type="hidden" name="requerimiento_orden_{{ requerimiento.idrequerimiento }}" value="{{ forloop.counter }}" class="req-orden">
+                                    </div>
+                                    
+                                    <div class="flex justify-end items-center space-x-2">
+                                        <div class="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
+                                            {{ requerimiento.tarea_set.count }} tareas
+                                        </div>
+                                        <div class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                                            {{ requerimiento.fechamodificacion|date:"d/m/Y" }}
+                                        </div>
+                                        <label class="flex items-center text-red-500 hover:text-red-700 cursor-pointer">
+                                            <input type="hidden" id="eliminar_{{ requerimiento.idrequerimiento }}" name="eliminar_requerimiento" value="" class="eliminar-req-field">
+                                            <i class="fas fa-trash eliminar-req-icon" data-req-id="{{ requerimiento.idrequerimiento }}"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div id="nuevos-requerimientos" class="mt-4 space-y-3">
+                                <!-- Aquí se añadirán los nuevos requerimientos dinámicamente -->
+                            </div>
+                            
+                            {% if not requerimientos %}
+                            <div class="flex flex-col items-center py-8 text-gray-400" id="empty-reqs-message">
+                                <i class="fas fa-clipboard-list text-5xl mb-4"></i>
+                                <p class="text-lg font-medium">No hay requerimientos</p>
+                                <p class="text-sm mt-1">Agrega requerimientos para desglosar el proyecto en componentes gestionables.</p>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
+                
+                <div class="pt-6 flex flex-col sm:flex-row justify-between gap-3 border-t border-gray-200 mt-8">
+                    <div class="order-2 sm:order-1">
+                        <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
+                           class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancelar
+                        </a>
+                    </div>
+                    <div class="order-1 sm:order-2 flex flex-col sm:flex-row gap-3">
+                        <a href="{% url 'gestion_proyectos:ajustar_fechas' proyecto.idproyecto %}" 
+                           class="px-5 py-2.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            Ajustar fechas
+                        </a>
+                        <a href="{% url 'gestion_proyectos:ajustar_presupuesto' proyecto.idproyecto %}" 
+                           class="px-5 py-2.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors flex items-center justify-center">
+                            <i class="fas fa-dollar-sign mr-2"></i>
+                            Ajustar presupuesto
+                        </a>
+                        <button type="submit" 
+                                class="px-5 py-2.5 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors flex items-center justify-center">
+                            <i class="fas fa-save mr-2"></i>
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Información de seguimiento -->
+        <div class="mt-8 animate-fadeIn delay-200 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="text-md font-medium text-blue-800 mb-3 flex items-center border-b border-blue-200 pb-2">
+                    <i class="fas fa-history text-blue-600 mr-2"></i>
+                    Información de seguimiento
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-blue-700"><span class="font-medium">Creado:</span></p>
+                        <p class="text-sm text-blue-800 flex items-center mt-1">
+                            <i class="far fa-calendar-plus text-blue-500 mr-2"></i> 
+                            {{ proyecto.fechacreacion|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-blue-700"><span class="font-medium">Última modificación:</span></p>
+                        <p class="text-sm text-blue-800 flex items-center mt-1">
+                            <i class="far fa-calendar-check text-blue-500 mr-2"></i>
+                            {{ proyecto.fechamodificacion|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                </div>
             </div>
-
-            <!-- Botones de Acción -->
-            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
-                   class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
-                    <i class="fas fa-times mr-2"></i>
-                    Cancelar
-                </a>
-                <button type="submit" 
-                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
-                    <i class="fas fa-save mr-2"></i>
-                    Guardar Cambios
-                </button>
+            
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h3 class="text-md font-medium text-amber-800 mb-3 flex items-center border-b border-amber-200 pb-2">
+                    <i class="fas fa-lightbulb text-amber-500 mr-2"></i>
+                    Consejos para la edición
+                </h3>
+                <ul class="text-sm text-amber-700 space-y-1 ml-6 list-disc">
+                    <li>Actualiza el estado del proyecto a medida que avanza.</li>
+                    <li>Ajusta fechas y presupuesto según sea necesario.</li>
+                    <li>Organiza los requerimientos en orden de prioridad.</li>
+                    <li>Elimina solo requerimientos que no tengan tareas críticas.</li>
+                </ul>
             </div>
-        </form>
+        </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación de fechas
+    const form = document.getElementById('proyectoForm');
+    const fechaInicio = document.getElementById('fechainicio');
+    const fechaFin = document.getElementById('fechafin');
+    
+    form.addEventListener('submit', function(event) {
+        // Contar requerimientos marcados para eliminar
+        const fieldsToDelete = Array.from(document.querySelectorAll('.eliminar-req-field')).filter(field => field.value !== "");
+        
+        if (fieldsToDelete.length > 0) {
+            if (!confirm(`¿Está seguro que desea eliminar ${fieldsToDelete.length} requerimiento(s)? Esta acción eliminará también todas las tareas asociadas.`)) {
+                event.preventDefault();
+                return;
+            }
+        }
+
+        // Validar que fecha inicio sea anterior a fecha fin
+        if (fechaInicio.value && fechaFin.value && fechaInicio.value >= fechaFin.value) {
+            event.preventDefault();
+            alert('La fecha de inicio debe ser anterior a la fecha de finalización.');
+            fechaInicio.classList.add('border-red-500');
+            fechaFin.classList.add('border-red-500');
+        }
+    });
+    
+    // Gestionar eliminación de requerimientos
+    document.querySelectorAll('.eliminar-req-icon').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const reqId = this.getAttribute('data-req-id');
+            const hiddenField = document.getElementById('eliminar_' + reqId);
+            const isMarkedForDelete = hiddenField.value === reqId;
+            
+            // Alternar estado
+            hiddenField.value = isMarkedForDelete ? "" : reqId;
+            
+            // Aplicar estilo visual
+            const reqItem = this.closest('.req-item');
+            if (!isMarkedForDelete) {
+                // Elemento marcado para eliminar
+                this.classList.add('text-red-600');
+                reqItem.classList.add('bg-red-50', 'border-red-300');
+                reqItem.querySelector('input[type="text"]').classList.add('line-through', 'text-gray-400');
+            } else {
+                // Elemento desmarcado (no eliminar)
+                this.classList.remove('text-red-600');
+                reqItem.classList.remove('bg-red-50', 'border-red-300');
+                reqItem.querySelector('input[type="text"]').classList.remove('line-through', 'text-gray-400');
+            }
+        });
+    });
+    
+    // Gestionar nuevos requerimientos
+    let contadorNuevosReq = 0;
+    const nuevosReqContainer = document.getElementById('nuevos-requerimientos');
+    const agregarNuevoBtn = document.getElementById('agregar-nuevo-requerimiento');
+    const emptyMessage = document.getElementById('empty-reqs-message');
+    
+    agregarNuevoBtn.addEventListener('click', function() {
+        // Ocultar el mensaje de "no hay requerimientos" si existe
+        if (emptyMessage) {
+            emptyMessage.style.display = 'none';
+        }
+        
+        contadorNuevosReq++;
+        const nuevoReq = document.createElement('div');
+        nuevoReq.className = 'req-item bg-white border-2 border-purple-200 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-3 animate-fadeIn';
+        nuevoReq.innerHTML = `
+            <div class="px-1.5 py-1 text-gray-400">
+                <i class="fas fa-sparkles text-purple-400"></i>
+            </div>
+            <div class="flex-grow">
+                <input type="text" 
+                       name="nuevo_requerimiento_${contadorNuevosReq}" 
+                       class="focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-md shadow-sm"
+                       placeholder="Descripción del nuevo requerimiento...">
+            </div>
+            <div class="flex justify-end">
+                <button type="button" 
+                        class="text-gray-400 hover:text-red-500 transition-colors" 
+                        onclick="this.closest('.req-item').remove()">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+            </div>
+        `;
+        nuevosReqContainer.appendChild(nuevoReq);
+    });
+    
+    // Animación de entrada
+    setTimeout(() => {
+        document.querySelectorAll('.animate-fadeIn').forEach(el => {
+            el.style.opacity = 1;
+        });
+    }, 100);
+});
+</script>
 {% endblock %}
 

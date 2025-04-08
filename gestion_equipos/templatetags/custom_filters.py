@@ -18,6 +18,7 @@ def replace(value, old_new):
         return value
     return value.replace(" ", "_")
 
+
 @register.filter
 def sub(value, arg):
     """Resta el argumento del valor."""
@@ -25,7 +26,8 @@ def sub(value, arg):
         return float(value) - float(arg)
     except (ValueError, TypeError):
         return 0
-    
+
+
 @register.filter
 def mul(value, arg):
     """Multiplica el valor por el argumento"""

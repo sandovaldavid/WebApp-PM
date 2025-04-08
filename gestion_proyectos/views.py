@@ -24,8 +24,19 @@ from django.db.models import (
     Sum,
 )
 from django.utils.timezone import is_naive, make_aware
-from dashboard.models import Proyecto, Requerimiento, Tarea, Equipo
+from dashboard.models import (
+    Proyecto,
+    Requerimiento,
+    Tarea,
+    Equipo,
+    Historialtarea,
+    Alerta,
+    Tarearecurso,
+    Usuario,
+    Notificacion,
+)
 from django.contrib import messages
+from django.db import transaction
 
 
 @login_required
@@ -360,8 +371,10 @@ def detalle_proyecto(request, idproyecto):
         ).count()
 
         # Calcular el porcentaje de progreso (equivalente a la operación en la plantilla)
-        if total_tareas > 0:
-            requerimiento.progreso = int((requerimiento.tareas_completadas * 100) / total_tareas_r)
+        if total_tareas_r > 0:
+            requerimiento.progreso = int(
+                (requerimiento.tareas_completadas * 100) / total_tareas_r
+            )
         else:
             requerimiento.progreso = 0
 
@@ -513,32 +526,48 @@ def editar_proyecto(request, idproyecto):
         proyecto.fechamodificacion = now
         proyecto.save()
 
-        # Actualizar requerimientos existentes y agregar nuevos
+        # Primero manejar eliminaciones para evitar problemas con actualizaciones
+        # Manejar eliminaciones
+        marked_for_deletion = []
         for key, value in request.POST.items():
-            if key.startswith("requerimiento_"):
+            if key.startswith("eliminar_requerimiento") and value.strip():
+                marked_for_deletion.append(value)
+
+        if marked_for_deletion:
+            for req_id in marked_for_deletion:
+                try:
+                    requerimiento = Requerimiento.objects.get(idrequerimiento=req_id)
+                    # Primero eliminar tareas asociadas
+                    Tarea.objects.filter(idrequerimiento=requerimiento).delete()
+                    # Luego eliminar el requerimiento
+                    requerimiento.delete()
+                    messages.success(
+                        request, f"Requerimiento #{req_id} eliminado exitosamente."
+                    )
+                except Requerimiento.DoesNotExist:
+                    pass
+
+        # Actualizar requerimientos existentes
+        for key, value in request.POST.items():
+            if key.startswith("requerimiento_") and not key.startswith(
+                "requerimiento_orden_"
+            ):
                 descripcion_requerimiento = value
                 req_id = key.split("_")[1]
-                if descripcion_requerimiento.strip():  # Validar descripción no vacía
-                    if req_id.isdigit():
-                        try:
-                            requerimiento = Requerimiento.objects.get(
-                                idrequerimiento=req_id
-                            )
-                            requerimiento.descripcion = descripcion_requerimiento
-                            requerimiento.fechamodificacion = now
-                            requerimiento.save()
-                        except Requerimiento.DoesNotExist:
-                            pass
-                    else:
-                        requerimiento = Requerimiento(
-                            descripcion=descripcion_requerimiento,
-                            idproyecto=proyecto,
-                            fechacreacion=now,
-                            fechamodificacion=now,
+                if (
+                    descripcion_requerimiento.strip() and req_id.isdigit()
+                ):  # Validar descripción no vacía y que sea un ID
+                    try:
+                        requerimiento = Requerimiento.objects.get(
+                            idrequerimiento=req_id
                         )
+                        requerimiento.descripcion = descripcion_requerimiento
+                        requerimiento.fechamodificacion = now
                         requerimiento.save()
+                    except Requerimiento.DoesNotExist:
+                        pass  # No creamos nuevos si no existen
 
-        # Guardar nuevos requerimientos
+        # Guardar nuevos requerimientos (solo aquellos con el prefijo específico)
         for key, value in request.POST.items():
             if key.startswith("nuevo_requerimiento_"):
                 descripcion_requerimiento = value
@@ -551,12 +580,6 @@ def editar_proyecto(request, idproyecto):
                     )
                     requerimiento.save()
 
-        # Eliminar requerimientos y sus tareas asociadas
-        for key in request.POST.getlist("eliminar_requerimiento"):
-            requerimiento = Requerimiento.objects.get(idrequerimiento=key)
-            Tarea.objects.filter(idrequerimiento=requerimiento).delete()
-            requerimiento.delete()
-
         messages.success(request, "Proyecto editado exitosamente.")
         return redirect("gestion_proyectos:detalle_proyecto", idproyecto=idproyecto)
 
@@ -565,21 +588,6 @@ def editar_proyecto(request, idproyecto):
         "gestion_proyectos/editar_proyecto.html",
         {"proyecto": proyecto, "requerimientos": requerimientos},
     )
-
-
-@login_required
-def eliminar_requerimiento(request, idrequerimiento):
-    if request.method == "POST":
-        try:
-            requerimiento = Requerimiento.objects.get(idrequerimiento=idrequerimiento)
-            Tarea.objects.filter(idrequerimiento=requerimiento).delete()
-            requerimiento.delete()
-            return JsonResponse({"success": True})
-        except Requerimiento.DoesNotExist:
-            return JsonResponse(
-                {"success": False, "error": "Requerimiento no encontrado."}
-            )
-    return JsonResponse({"success": False, "error": "Método no permitido."})
 
 
 @login_required
@@ -915,15 +923,58 @@ def editar_requerimiento(request, idrequerimiento):
 def eliminar_requerimiento(request, idrequerimiento):
     requerimiento = get_object_or_404(Requerimiento, idrequerimiento=idrequerimiento)
     proyecto = requerimiento.idproyecto
+
+    # Contar tareas asociadas
+    tareas_asociadas = Tarea.objects.filter(idrequerimiento=requerimiento)
+    task_count = tareas_asociadas.count()
+    has_tasks = task_count > 0
+
     if request.method == "POST":
-        requerimiento.delete()
-        return redirect(
-            "gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto
-        )
+        confirmed = request.POST.get("confirmed_task_deletion") == "1"
+
+        try:
+            with transaction.atomic():
+                # Eliminar primero las tareas asociadas
+                if has_tasks:
+                    # Eliminar recursos asignados a las tareas
+                    for tarea in tareas_asociadas:
+                        Tarearecurso.objects.filter(idtarea=tarea).delete()
+                        # Eliminar alertas asociadas
+                        Alerta.objects.filter(idtarea=tarea).delete()
+                        # Eliminar historiales
+                        Historialtarea.objects.filter(idtarea=tarea).delete()
+
+                    # Ahora eliminar las tareas
+                    tareas_asociadas.delete()
+
+                # Finalmente eliminar el requerimiento
+                requerimiento.delete()
+
+                messages.success(
+                    request,
+                    (
+                        f"Requerimiento eliminado exitosamente junto con {task_count} tareas asociadas."
+                        if task_count > 0
+                        else "Requerimiento eliminado exitosamente."
+                    ),
+                )
+                return redirect(
+                    "gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto
+                )
+
+        except Exception as e:
+            messages.error(request, f"Error al eliminar: {str(e)}")
+
+    # Si es GET, mostrar la página de confirmación
     return render(
         request,
         "gestion_proyectos/eliminar_requerimiento.html",
-        {"requerimiento": requerimiento, "proyecto": proyecto},
+        {
+            "requerimiento": requerimiento,
+            "proyecto": proyecto,
+            "has_tasks": has_tasks,
+            "task_count": task_count,
+        },
     )
 
 
@@ -933,14 +984,58 @@ def ajustar_fechas(request, proyecto_id):
     if request.method == "POST":
         fechainicio = request.POST.get("fechainicio")
         fechafin = request.POST.get("fechafin")
+        enviar_notificacion = request.POST.get("enviar_notificacion") == "on"
+
+        # Guardar cambios en el proyecto
         proyecto.fechainicio = fechainicio
         proyecto.fechafin = fechafin
         proyecto.fechamodificacion = timezone.now()
         proyecto.save()
-        messages.success(request, "Fechas del proyecto ajustadas exitosamente.")
+
+        # Enviar notificaciones si la opción está marcada
+        if enviar_notificacion and proyecto.idequipo:
+            # Buscar usuarios relacionados con el equipo del proyecto
+            from django.db.models import F
+
+            # Obtener los usuarios que son miembros del equipo del proyecto
+            usuarios = Usuario.objects.filter(
+                recursohumano__idrecurso__miembro__idequipo=proyecto.idequipo
+            ).distinct()
+
+            # Crear notificaciones para cada usuario
+            contador_notificaciones = 0
+            for usuario in usuarios:
+                if (
+                    usuario.notif_sistema
+                ):  # Solo enviar si el usuario tiene habilitadas las notificaciones
+                    Notificacion.objects.create(
+                        idusuario=usuario,
+                        mensaje=f"Las fechas del proyecto '{proyecto.nombreproyecto}' han sido modificadas. Nueva fecha de inicio: {fechainicio}, nueva fecha de fin: {fechafin}",
+                        leido=False,
+                        fechacreacion=timezone.now(),
+                        prioridad="media",
+                        categoria="Otro",
+                        archivada=False,
+                    )
+                    contador_notificaciones += 1
+
+            if contador_notificaciones > 0:
+                messages.success(
+                    request,
+                    f"Fechas del proyecto ajustadas y notificaciones enviadas a {contador_notificaciones} miembros del equipo.",
+                )
+            else:
+                messages.success(
+                    request,
+                    "Fechas del proyecto ajustadas exitosamente. No se enviaron notificaciones.",
+                )
+        else:
+            messages.success(request, "Fechas del proyecto ajustadas exitosamente.")
+
         return redirect(
             "gestion_proyectos:detalle_proyecto", idproyecto=proyecto.idproyecto
         )
+
     return render(
         request, "gestion_proyectos/ajustar_fechas.html", {"proyecto": proyecto}
     )
@@ -970,107 +1065,117 @@ def analisis_valor_ganado(request, idproyecto):
     proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
     import json
     from datetime import datetime, timedelta
-    
+
     # Obtener requerimientos y tareas del proyecto
     requerimientos = proyecto.requerimiento_set.all()
     tareas = Tarea.objects.filter(idrequerimiento__in=requerimientos)
-    
+
     # Cálculos básicos de Valor Ganado
-    valor_planeado = tareas.aggregate(pv=Sum('costoestimado'))['pv'] or 0
-    valor_ganado = tareas.filter(estado='Completada').aggregate(ev=Sum('costoestimado'))['ev'] or 0
-    costo_real = tareas.aggregate(ac=Sum('costoactual'))['ac'] or 0
-    
+    valor_planeado = tareas.aggregate(pv=Sum("costoestimado"))["pv"] or 0
+    valor_ganado = (
+        tareas.filter(estado="Completada").aggregate(ev=Sum("costoestimado"))["ev"] or 0
+    )
+    costo_real = tareas.aggregate(ac=Sum("costoactual"))["ac"] or 0
+
     # Varianzas
     varianza_cronograma = valor_ganado - valor_planeado
     varianza_costo = valor_ganado - costo_real
-    
+
     # Índices de rendimiento
     spi = valor_ganado / valor_planeado if valor_planeado > 0 else 0
     cpi = valor_ganado / costo_real if costo_real > 0 else 0
-    
+
     # Estimaciones
     bac = proyecto.presupuesto or 0
     eac = bac / cpi if cpi > 0 else 0
     etc = eac - costo_real
     vac = bac - eac
     tcpi = (bac - valor_ganado) / (bac - costo_real) if (bac - costo_real) > 0 else 0
-    
+
     # Datos para el Burndown Chart
     tareas_totales = tareas.count()
     fecha_inicio = proyecto.fechainicio
     fecha_fin = proyecto.fechafin
-    
+
     burndown_labels = []
     burndown_ideal = []
     burndown_real = []
-    
+
     if fecha_inicio and fecha_fin and fecha_inicio < fecha_fin:
         # Generar fechas entre inicio y fin
         dias_totales = (fecha_fin - fecha_inicio).days
-        fechas = [(fecha_inicio + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(dias_totales + 1)]
-        
+        fechas = [
+            (fecha_inicio + timedelta(days=i)).strftime("%Y-%m-%d")
+            for i in range(dias_totales + 1)
+        ]
+
         # Calcular tareas completadas por día
         tareas_completadas_por_dia = {}
-        for tarea in tareas.filter(estado='Completada'):
+        for tarea in tareas.filter(estado="Completada"):
             if tarea.fechamodificacion:
-                fecha_str = tarea.fechamodificacion.date().strftime('%Y-%m-%d')
+                fecha_str = tarea.fechamodificacion.date().strftime("%Y-%m-%d")
                 if fecha_str in tareas_completadas_por_dia:
                     tareas_completadas_por_dia[fecha_str] += 1
                 else:
                     tareas_completadas_por_dia[fecha_str] = 1
-        
+
         # Calcular tareas restantes por día
         tareas_restantes = tareas_totales
         tareas_restantes_por_dia = {}
-        
+
         for fecha in fechas:
             tareas_restantes -= tareas_completadas_por_dia.get(fecha, 0)
             tareas_restantes_por_dia[fecha] = tareas_restantes
-            
+
         # Línea ideal (disminución uniforme)
         ideal_por_dia = tareas_totales / (dias_totales + 1) if dias_totales > 0 else 0
         ideal_restante = tareas_totales
-        
+
         for fecha in fechas:
             burndown_labels.append(fecha)
             burndown_real.append(tareas_restantes_por_dia[fecha])
             ideal_restante -= ideal_por_dia
             burndown_ideal.append(max(0, ideal_restante))
-    
+
     # Datos para el diagrama de Gantt
     gantt_data = []
     for tarea in tareas:
         if tarea.fechainicio and tarea.fechafin:
-            gantt_data.append({
-                'id': tarea.idtarea,
-                'nombre': tarea.nombretarea,
-                'inicio': tarea.fechainicio.strftime('%Y-%m-%d'),
-                'fin': tarea.fechafin.strftime('%Y-%m-%d'),
-                'estado': tarea.estado,
-                'progreso': 100 if tarea.estado == 'Completada' else 
-                           (50 if tarea.estado == 'En Progreso' else 0)
-            })
-    
+            gantt_data.append(
+                {
+                    "id": tarea.idtarea,
+                    "nombre": tarea.nombretarea,
+                    "inicio": tarea.fechainicio.strftime("%Y-%m-%d"),
+                    "fin": tarea.fechafin.strftime("%Y-%m-%d"),
+                    "estado": tarea.estado,
+                    "progreso": (
+                        100
+                        if tarea.estado == "Completada"
+                        else (50 if tarea.estado == "En Progreso" else 0)
+                    ),
+                }
+            )
+
     context = {
-        'proyecto': proyecto,
-        'valor_planeado': valor_planeado,
-        'valor_ganado': valor_ganado,
-        'costo_real': costo_real,
-        'varianza_cronograma': varianza_cronograma,
-        'varianza_costo': varianza_costo,
-        'cpi': round(cpi, 2),
-        'spi': round(spi, 2),
-        'eac': round(eac, 2),
-        'etc': round(etc, 2),
-        'vac': round(vac, 2),
-        'tcpi': round(tcpi, 2),
-        'burndown_labels': json.dumps(burndown_labels),
-        'burndown_ideal': json.dumps(burndown_ideal),
-        'burndown_real': json.dumps(burndown_real),
-        'gantt_data': json.dumps(gantt_data),
-        'tareas': tareas,
-        'presupuesto_total': bac,
-        'porcentaje_completado': (valor_ganado / bac * 100) if bac > 0 else 0,
+        "proyecto": proyecto,
+        "valor_planeado": valor_planeado,
+        "valor_ganado": valor_ganado,
+        "costo_real": costo_real,
+        "varianza_cronograma": varianza_cronograma,
+        "varianza_costo": varianza_costo,
+        "cpi": round(cpi, 2),
+        "spi": round(spi, 2),
+        "eac": round(eac, 2),
+        "etc": round(etc, 2),
+        "vac": round(vac, 2),
+        "tcpi": round(tcpi, 2),
+        "burndown_labels": json.dumps(burndown_labels),
+        "burndown_ideal": json.dumps(burndown_ideal),
+        "burndown_real": json.dumps(burndown_real),
+        "gantt_data": json.dumps(gantt_data),
+        "tareas": tareas,
+        "presupuesto_total": bac,
+        "porcentaje_completado": (valor_ganado / bac * 100) if bac > 0 else 0,
     }
-    
-    return render(request, 'gestion_proyectos/analisis_valor_ganado.html', context)
+
+    return render(request, "gestion_proyectos/analisis_valor_ganado.html", context)

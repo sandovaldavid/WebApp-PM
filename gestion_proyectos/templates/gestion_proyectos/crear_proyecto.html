@@ -1,256 +1,317 @@
 {% extends 'layout.html' %}
+{% load static %}
 
-{% block title %}Crear Proyecto{% endblock %}
+{% block title %}Crear Nuevo Proyecto{% endblock %}
+
+{% block style %}
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+        animation: fadeIn 0.5s ease-out forwards;
+        opacity: 0;
+    }
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .input-focused:focus-within {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .requerimientos-container {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
 
 {% block title_body %}
-<div class="flex items-center mb-2 sm:mb-0 lg:mr-4">
-    <div class="p-2 bg-blue-100 rounded-full mr-3">
-        <i class="fas fa-plus text-blue-600"></i>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full text-white py-4 px-6">
+    <div class="flex items-center">
+        <div class="bg-white bg-opacity-20 p-3 rounded-xl mr-4">
+            <i class="fas fa-plus-circle text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold">Crear Nuevo Proyecto</h1>
+            <p class="text-sm text-blue-100 mt-1 flex items-center">
+                <i class="fas fa-project-diagram mr-2"></i>
+                Registra un nuevo proyecto en el sistema
+            </p>
+        </div>
     </div>
-    <div>
-        <h1 class="text-xl font-bold text-white">Crear Nuevo Proyecto</h1>
-        <p class="text-sm text-blue-100 hidden 2xl:block">Configura los detalles para iniciar un nuevo proyecto</p>
-    </div>
+    <a href="{% url 'gestion_proyectos:lista_proyectos' %}" 
+       class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-xl transition-colors flex items-center">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Volver a Proyectos
+    </a>
 </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8">
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-xl font-semibold mb-6 flex items-center">
-            <i class="fas fa-project-diagram text-blue-500 mr-2"></i>
-            Nuevo Proyecto
-        </h2>
-
-        {% if error %}
-        <div class="bg-red-500 text-white p-4 rounded mb-4">
-            {{ error }}
-        </div>
-        {% endif %}
-
-        <form method="post" class="space-y-6">
-            {% csrf_token %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Columna Izquierda -->
-                <div class="space-y-6">
-                    <div>
-                        <label for="nombreproyecto" class="block text-sm font-medium text-gray-700">Nombre del Proyecto</label>
-                        <div class="mt-1 relative">
-                            <input type="text" name="nombreproyecto" id="nombreproyecto" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                   value="{{ nombreproyecto }}" placeholder="Ingrese el nombre del proyecto" required>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-project-diagram text-gray-400"></i>
-                            </div>
-                        </div>
+<div class="p-6 md:p-10 bg-gray-50 min-h-screen">
+    <div class="max-w-5xl mx-auto">
+        <!-- Formulario de creación de proyecto -->
+        <div class="bg-white rounded-xl shadow-md border border-gray-100 animate-fadeIn">
+            {% if error %}
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle"></i>
                     </div>
-
-                    <div>
-                        <label for="estado" class="block text-sm font-medium text-gray-700">Estado</label>
-                        <div class="mt-1 relative">
-                            <select name="estado" id="estado" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10" required>
-                                <option value="Inicio" {% if estado == "Inicio" %}selected{% endif %}>Inicio</option>
-                                <option value="Planificación" {% if estado == "Planificación" %}selected{% endif %}>Planificación</option>
-                                <option value="Ejecución" {% if estado == "Ejecución" %}selected{% endif %}>Ejecución</option>
-                                <option value="Monitoreo-Control" {% if estado == "Monitoreo-Control" %}selected{% endif %}>Monitoreo-Control</option>
-                                <option value="Cierre" {% if estado == "Cierre" %}selected{% endif %}>Cierre</option>
-                            </select>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-info-circle text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="fechainicio" class="block text-sm font-medium text-gray-700">Fecha de Inicio</label>
-                        <div class="mt-1 relative">
-                            <input type="date" name="fechainicio" id="fechainicio" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                   value="{{ fechainicio }}" required>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-calendar-alt text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="fechafin" class="block text-sm font-medium text-gray-700">Fecha de Finalización</label>
-                        <div class="mt-1 relative">
-                            <input type="date" name="fechafin" id="fechafin" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                   value="{{ fechafin }}" required>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-calendar-check text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Columna Derecha -->
-                <div class="space-y-6">
-                    <div>
-                        <label for="presupuesto" class="block text-sm font-medium text-gray-700">Presupuesto</label>
-                        <div class="mt-1 relative">
-                            <input type="number" name="presupuesto" id="presupuesto" 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                   value="{{ presupuesto }}" placeholder="Ingrese el presupuesto" required>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-dollar-sign text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="idequipo" class="block text-sm font-medium text-gray-700">Equipo</label>
-                        <div class="mt-1 relative">
-                            <select name="idequipo" id="idequipo" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10" required>
-                                {% for equipo in equipos %}
-                                    <option value="{{ equipo.idequipo }}" {% if idequipo == equipo.idequipo %}selected{% endif %}>{{ equipo.nombreequipo }}</option>
-                                {% endfor %}
-                            </select>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-users text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-                        <div class="mt-1 relative">
-                            <textarea name="descripcion" id="descripcion" rows="3" 
-                                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                      placeholder="Ingrese la descripción del proyecto" required>{{ descripcion }}</textarea>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-align-left text-gray-400"></i>
-                            </div>
-                        </div>
+                    <div class="ml-3">
+                        <p>{{ error }}</p>
                     </div>
                 </div>
             </div>
+            {% endif %}
 
-            <div class="mb-4">
-                <h3 class="text-lg font-semibold mb-2">Requerimientos</h3>
-                <div id="requerimientos-container">
-                    <!-- Aquí se agregarán los requerimientos dinámicamente -->
-                </div>
-                <button type="button" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors flex items-center" onclick="openModal('modalNuevoRequerimiento')">
-                    <i class="fas fa-plus mr-2"></i>Añadir Requerimiento
-                </button>
-            </div>
-
-            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                <a href="{% url 'gestion_proyectos:index' %}" 
-                   class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
-                    <i class="fas fa-times mr-2"></i>
-                    Cancelar
-                </a>
-                <button type="submit" 
-                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
-                    <i class="fas fa-save mr-2"></i>
-                    Crear Proyecto
-                </button>
-            </div>
-        </form>
-    </div>
-
-<script>
-    let nuevos_requerimientos = [];
-    let editando_requerimiento = null;
-
-    function openModal(modalId) {
-        var modal = document.getElementById(modalId);
-        modal.classList.remove('hidden');
-        if (modalId === 'modalNuevoRequerimiento') {
-            document.getElementById('nueva_descripcion_requerimiento').value = editando_requerimiento !== null ? nuevos_requerimientos[editando_requerimiento].descripcion : '';
-        }
-    }
-
-    function closeModal(modalId) {
-        var modal = document.getElementById(modalId);
-        modal.classList.add('hidden');
-        if (modalId === 'modalNuevoRequerimiento') {
-            editando_requerimiento = null;
-            document.getElementById('nueva_descripcion_requerimiento').value = '';
-        }
-    }
-
-    function addRequerimiento() {
-        var descripcion = document.getElementById('nueva_descripcion_requerimiento').value;
-        if (editando_requerimiento !== null) {
-            nuevos_requerimientos[editando_requerimiento].descripcion = descripcion;
-        } else {
-            var nuevoRequerimiento = {
-                idrequerimiento: nuevos_requerimientos.length,  // Usar índice como ID temporal
-                descripcion: descripcion
-            };
-            nuevos_requerimientos.push(nuevoRequerimiento);
-        }
-        closeModal('modalNuevoRequerimiento');
-        renderRequerimientos();
-    }
-
-    function eliminarRequerimiento(index) {
-        nuevos_requerimientos.splice(index, 1);
-        renderRequerimientos();
-    }
-
-    function editarRequerimiento(index) {
-        editando_requerimiento = index;
-        openModal('modalNuevoRequerimiento');
-    }
-
-    function renderRequerimientos() {
-        var container = document.getElementById('requerimientos-container');
-        container.innerHTML = '';
-        nuevos_requerimientos.forEach(function(requerimiento, index) {
-            var requerimientoDiv = document.createElement('div');
-            requerimientoDiv.classList.add('bg-gray-100', 'p-4', 'rounded-lg', 'shadow-sm', 'mb-2', 'flex', 'justify-between', 'items-center');
-            requerimientoDiv.innerHTML = `<span onclick="editarRequerimiento(${index})">${requerimiento.descripcion}</span>
-                                          <input type="hidden" name="requerimiento_${index}" value="${requerimiento.descripcion}">
-                                          <button type="button" class="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 transition-colors" onclick="eliminarRequerimiento(${index})"><i class="fas fa-trash"></i></button>`;
-            container.appendChild(requerimientoDiv);
-        });
-    }
-</script>
-
-<!-- Modal para nuevo requerimiento -->
-<div id="modalNuevoRequerimiento" class="fixed z-10 inset-0 overflow-y-auto hidden">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <i class="fas fa-plus text-green-500"></i>
+            <form method="POST" class="p-6" id="proyectoForm">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 gap-8">
+                    <!-- Información básica -->
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                                <i class="fas fa-info-circle text-blue-600"></i>
+                            </div>
+                            Información Básica
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Nombre del proyecto -->
+                            <div class="col-span-full">
+                                <label for="nombreproyecto" class="block text-sm font-medium text-gray-700 mb-1">Nombre del proyecto *</label>
+                                <input type="text" 
+                                       id="nombreproyecto" 
+                                       name="nombreproyecto" 
+                                       required 
+                                       value="{{ nombreproyecto|default:'' }}"
+                                       class="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm"
+                                       placeholder="Ej. Sistema de Gestión de Inventario">
+                                <p class="mt-1 text-xs text-gray-500">Un nombre descriptivo y único para identificar el proyecto.</p>
+                            </div>
+                            
+                            <!-- Descripción -->
+                            <div class="col-span-full">
+                                <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
+                                <textarea id="descripcion" 
+                                          name="descripcion" 
+                                          required
+                                          rows="4"
+                                          class="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md shadow-sm"
+                                          placeholder="Describe el propósito y alcance del proyecto...">{{ descripcion|default:'' }}</textarea>
+                                <p class="mt-1 text-xs text-gray-500">Proporciona una descripción clara y detallada del proyecto.</p>
+                            </div>
+                            
+                            <!-- Estado -->
+                            <div>
+                                <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
+                                <select id="estado" 
+                                        name="estado" 
+                                        required
+                                        class="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm">
+                                    <option value="Inicio" {% if estado == 'Inicio' %}selected{% endif %}>Inicio</option>
+                                    <option value="Planificación" {% if estado == 'Planificación' %}selected{% endif %}>Planificación</option>
+                                    <option value="Ejecución" {% if estado == 'Ejecución' %}selected{% endif %}>Ejecución</option>
+                                    <option value="Monitoreo-Control" {% if estado == 'Monitoreo-Control' %}selected{% endif %}>Monitoreo-Control</option>
+                                    <option value="Cierre" {% if estado == 'Cierre' %}selected{% endif %}>Cierre</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">Fase actual del ciclo de vida del proyecto.</p>
+                            </div>
+                            
+                            <!-- Equipo -->
+                            <div>
+                                <label for="idequipo" class="block text-sm font-medium text-gray-700 mb-1">Equipo *</label>
+                                <select id="idequipo" 
+                                        name="idequipo" 
+                                        required
+                                        class="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm">
+                                    <option value="">Selecciona un equipo</option>
+                                    {% for equipo in equipos %}
+                                    <option value="{{ equipo.idequipo }}" {% if idequipo == equipo.idequipo|stringformat:"i" %}selected{% endif %}>
+                                        {{ equipo.nombreequipo }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">El equipo que estará a cargo de este proyecto.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Nuevo Requerimiento</h3>
-                        <div class="mt-2">
-                            <form>
-                                <div class="mb-4">
-                                    <label for="nueva_descripcion_requerimiento" class="block text-sm font-medium text-gray-700">Descripción</label>
-                                    <textarea name="nueva_descripcion_requerimiento" id="nueva_descripcion_requerimiento" rows="3" 
-                                              class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"></textarea>
+                    
+                    <!-- Fechas y Presupuesto -->
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <div class="bg-green-100 p-2 rounded-lg mr-3">
+                                <i class="fas fa-calendar-alt text-green-600"></i>
+                            </div>
+                            Fechas y Presupuesto
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Fecha de inicio -->
+                            <div>
+                                <label for="fechainicio" class="block text-sm font-medium text-gray-700 mb-1">Fecha de inicio *</label>
+                                <input type="date" 
+                                       id="fechainicio" 
+                                       name="fechainicio" 
+                                       required
+                                       value="{{ fechainicio|default:'' }}"
+                                       class="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm">
+                                <p class="mt-1 text-xs text-gray-500">Fecha planificada de inicio del proyecto.</p>
+                            </div>
+                            
+                            <!-- Fecha de fin -->
+                            <div>
+                                <label for="fechafin" class="block text-sm font-medium text-gray-700 mb-1">Fecha de fin *</label>
+                                <input type="date" 
+                                       id="fechafin" 
+                                       name="fechafin" 
+                                       required
+                                       value="{{ fechafin|default:'' }}"
+                                       class="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm">
+                                <p class="mt-1 text-xs text-gray-500">Fecha esperada de finalización del proyecto.</p>
+                            </div>
+                            
+                            <!-- Presupuesto -->
+                            <div>
+                                <label for="presupuesto" class="block text-sm font-medium text-gray-700 mb-1">Presupuesto *</label>
+                                <div class="relative rounded-md">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 sm:text-sm">$</span>
+                                    </div>
+                                    <input type="number" 
+                                           id="presupuesto" 
+                                           name="presupuesto" 
+                                           required
+                                           min="0"
+                                           step="0.01"
+                                           value="{{ presupuesto|default:'' }}"
+                                           class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-8 sm:text-sm border-gray-300 rounded-md py-2.5 shadow-sm"
+                                           placeholder="0.00">
                                 </div>
-                            </form>
+                                <p class="mt-1 text-xs text-gray-500">Presupuesto total asignado al proyecto.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Requerimientos iniciales -->
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                                <i class="fas fa-tasks text-purple-600"></i>
+                            </div>
+                            Requerimientos Iniciales
+                            <span class="text-gray-500 text-sm ml-2 font-normal">(opcional)</span>
+                        </h2>
+                        
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                            <div class="requerimientos-container space-y-3" id="requerimientos-container">
+                                <div class="bg-white border border-gray-300 rounded-md p-3 flex items-center">
+                                    <input type="text" 
+                                           name="requerimiento_1" 
+                                           class="focus:ring-indigo-500 focus:border-indigo-500 flex-grow sm:text-sm border-gray-300 rounded-md shadow-sm"
+                                           placeholder="Descripción del requerimiento...">
+                                    <button type="button" 
+                                            class="ml-3 text-gray-400 hover:text-gray-500 disabled:opacity-50" 
+                                            disabled>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <button type="button" 
+                                    id="agregar-requerimiento"
+                                    class="mt-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800">
+                                <i class="fas fa-plus-circle mr-1.5"></i> Agregar otro requerimiento
+                            </button>
+                            
+                            <p class="text-xs text-gray-500 mt-2">
+                                Agrega los requerimientos principales del proyecto. Podrás añadir más requerimientos después.
+                            </p>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-500 text-base font-medium text-white hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm" onclick="addRequerimiento()">
-                    Guardar Requerimiento
-                </button>
-                <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm" onclick="closeModal('modalNuevoRequerimiento')">
-                    Cancelar
-                </button>
+                
+                <div class="pt-6 flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-200 mt-8">
+                    <a href="{% url 'gestion_proyectos:lista_proyectos' %}" 
+                       class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center">
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Crear Proyecto
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Guía de ayuda -->
+        <div class="mt-8 animate-fadeIn delay-200">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="text-md font-medium text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                    Consejos para crear un proyecto exitoso
+                </h3>
+                <ul class="text-sm text-blue-700 space-y-2 ml-6 list-disc">
+                    <li>Define claramente el alcance y los objetivos del proyecto.</li>
+                    <li>Establece fechas realistas basadas en la complejidad del proyecto.</li>
+                    <li>Asegúrate de asignar un presupuesto adecuado que cubra todos los gastos anticipados.</li>
+                    <li>Desglosa el proyecto en requerimientos específicos y medibles.</li>
+                    <li>Comunica el plan a todos los miembros del equipo una vez creado el proyecto.</li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación de fechas
+    const form = document.getElementById('proyectoForm');
+    const fechaInicio = document.getElementById('fechainicio');
+    const fechaFin = document.getElementById('fechafin');
+    
+    form.addEventListener('submit', function(event) {
+        // Validar que fecha inicio sea anterior a fecha fin
+        if (fechaInicio.value && fechaFin.value && fechaInicio.value >= fechaFin.value) {
+            event.preventDefault();
+            alert('La fecha de inicio debe ser anterior a la fecha de finalización.');
+            fechaInicio.classList.add('border-red-500');
+            fechaFin.classList.add('border-red-500');
+        }
+    });
+    
+    // Gestionar requerimientos
+    const container = document.getElementById('requerimientos-container');
+    const agregarBtn = document.getElementById('agregar-requerimiento');
+    let contadorReq = 1;
+    
+    agregarBtn.addEventListener('click', function() {
+        contadorReq++;
+        const nuevoReq = document.createElement('div');
+        nuevoReq.className = 'bg-white border border-gray-300 rounded-md p-3 flex items-center animate-fadeIn';
+        nuevoReq.innerHTML = `
+            <input type="text" 
+                   name="requerimiento_${contadorReq}" 
+                   class="focus:ring-indigo-500 focus:border-indigo-500 flex-grow sm:text-sm border-gray-300 rounded-md shadow-sm"
+                   placeholder="Descripción del requerimiento...">
+            <button type="button" 
+                    class="ml-3 text-gray-400 hover:text-red-500" 
+                    onclick="this.parentElement.remove()">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        container.appendChild(nuevoReq);
+    });
+    
+    // Animación de entrada
+    setTimeout(() => {
+        document.querySelectorAll('.animate-fadeIn').forEach(el => {
+            el.style.opacity = 1;
+        });
+    }, 100);
+});
+</script>
 {% endblock %}
