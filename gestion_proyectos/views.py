@@ -361,7 +361,7 @@ def detalle_proyecto(request, idproyecto):
 
         # Calcular el porcentaje de progreso (equivalente a la operación en la plantilla)
         if total_tareas > 0:
-            requerimiento.progreso = int((tareas_completadas * 100) / total_tareas_r)
+            requerimiento.progreso = int((requerimiento.tareas_completadas * 100) / total_tareas_r)
         else:
             requerimiento.progreso = 0
 
@@ -963,3 +963,114 @@ def ajustar_presupuesto(request, proyecto_id):
     return render(
         request, "gestion_proyectos/ajustar_presupuesto.html", {"proyecto": proyecto}
     )
+
+
+@login_required
+def analisis_valor_ganado(request, idproyecto):
+    proyecto = get_object_or_404(Proyecto, idproyecto=idproyecto)
+    import json
+    from datetime import datetime, timedelta
+    
+    # Obtener requerimientos y tareas del proyecto
+    requerimientos = proyecto.requerimiento_set.all()
+    tareas = Tarea.objects.filter(idrequerimiento__in=requerimientos)
+    
+    # Cálculos básicos de Valor Ganado
+    valor_planeado = tareas.aggregate(pv=Sum('costoestimado'))['pv'] or 0
+    valor_ganado = tareas.filter(estado='Completada').aggregate(ev=Sum('costoestimado'))['ev'] or 0
+    costo_real = tareas.aggregate(ac=Sum('costoactual'))['ac'] or 0
+    
+    # Varianzas
+    varianza_cronograma = valor_ganado - valor_planeado
+    varianza_costo = valor_ganado - costo_real
+    
+    # Índices de rendimiento
+    spi = valor_ganado / valor_planeado if valor_planeado > 0 else 0
+    cpi = valor_ganado / costo_real if costo_real > 0 else 0
+    
+    # Estimaciones
+    bac = proyecto.presupuesto or 0
+    eac = bac / cpi if cpi > 0 else 0
+    etc = eac - costo_real
+    vac = bac - eac
+    tcpi = (bac - valor_ganado) / (bac - costo_real) if (bac - costo_real) > 0 else 0
+    
+    # Datos para el Burndown Chart
+    tareas_totales = tareas.count()
+    fecha_inicio = proyecto.fechainicio
+    fecha_fin = proyecto.fechafin
+    
+    burndown_labels = []
+    burndown_ideal = []
+    burndown_real = []
+    
+    if fecha_inicio and fecha_fin and fecha_inicio < fecha_fin:
+        # Generar fechas entre inicio y fin
+        dias_totales = (fecha_fin - fecha_inicio).days
+        fechas = [(fecha_inicio + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(dias_totales + 1)]
+        
+        # Calcular tareas completadas por día
+        tareas_completadas_por_dia = {}
+        for tarea in tareas.filter(estado='Completada'):
+            if tarea.fechamodificacion:
+                fecha_str = tarea.fechamodificacion.date().strftime('%Y-%m-%d')
+                if fecha_str in tareas_completadas_por_dia:
+                    tareas_completadas_por_dia[fecha_str] += 1
+                else:
+                    tareas_completadas_por_dia[fecha_str] = 1
+        
+        # Calcular tareas restantes por día
+        tareas_restantes = tareas_totales
+        tareas_restantes_por_dia = {}
+        
+        for fecha in fechas:
+            tareas_restantes -= tareas_completadas_por_dia.get(fecha, 0)
+            tareas_restantes_por_dia[fecha] = tareas_restantes
+            
+        # Línea ideal (disminución uniforme)
+        ideal_por_dia = tareas_totales / (dias_totales + 1) if dias_totales > 0 else 0
+        ideal_restante = tareas_totales
+        
+        for fecha in fechas:
+            burndown_labels.append(fecha)
+            burndown_real.append(tareas_restantes_por_dia[fecha])
+            ideal_restante -= ideal_por_dia
+            burndown_ideal.append(max(0, ideal_restante))
+    
+    # Datos para el diagrama de Gantt
+    gantt_data = []
+    for tarea in tareas:
+        if tarea.fechainicio and tarea.fechafin:
+            gantt_data.append({
+                'id': tarea.idtarea,
+                'nombre': tarea.nombretarea,
+                'inicio': tarea.fechainicio.strftime('%Y-%m-%d'),
+                'fin': tarea.fechafin.strftime('%Y-%m-%d'),
+                'estado': tarea.estado,
+                'progreso': 100 if tarea.estado == 'Completada' else 
+                           (50 if tarea.estado == 'En Progreso' else 0)
+            })
+    
+    context = {
+        'proyecto': proyecto,
+        'valor_planeado': valor_planeado,
+        'valor_ganado': valor_ganado,
+        'costo_real': costo_real,
+        'varianza_cronograma': varianza_cronograma,
+        'varianza_costo': varianza_costo,
+        'cpi': round(cpi, 2),
+        'spi': round(spi, 2),
+        'eac': round(eac, 2),
+        'etc': round(etc, 2),
+        'vac': round(vac, 2),
+        'tcpi': round(tcpi, 2),
+        'burndown_labels': json.dumps(burndown_labels),
+        'burndown_ideal': json.dumps(burndown_ideal),
+        'burndown_real': json.dumps(burndown_real),
+        'gantt_data': json.dumps(gantt_data),
+        'tareas': tareas,
+        'presupuesto_total': bac,
+        'porcentaje_completado': (valor_ganado / bac * 100) if bac > 0 else 0,
+    }
+    
+    return render(request, 'gestion_proyectos/analisis_valor_ganado.html', context)
