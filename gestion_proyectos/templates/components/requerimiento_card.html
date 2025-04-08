@@ -130,6 +130,13 @@
                     <i class="fas fa-plus mr-1"></i>
                     Añadir tarea
                 </a>
+
+                <!-- Botón rápido para asignar recurso -->
+                <a href="{% url 'gestionRecursos:asignar_recurso' %}?proyecto={{ proyecto.idproyecto }}&req={{ requerimiento.idrequerimiento }}" 
+                    class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors flex items-center">
+                    <i class="fas fa-user-plus mr-1"></i>
+                    Asignar recurso
+                </a>
             </div>
         </div>
     </div>

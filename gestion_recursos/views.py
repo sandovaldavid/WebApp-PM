@@ -214,6 +214,11 @@ def eliminar_recurso(request, id):
 
 @login_required
 def asignar_recurso(request):
+
+    # Obtener parámetros de la URL
+    proyecto_id = request.GET.get("proyecto")
+    requerimiento_id = request.GET.get("req")
+
     if request.method == "POST":
         recurso_id = request.POST.get("recurso")
         tarea_id = request.POST.get("tarea")
@@ -232,6 +237,8 @@ def asignar_recurso(request):
     proyectos = Proyecto.objects.all()
     context = {
         "proyectos": proyectos,
+        "proyecto_id": proyecto_id,
+        "requerimiento_id": requerimiento_id,
     }
     return render(request, "gestion_recursos/asignar_recurso.html", context)
 

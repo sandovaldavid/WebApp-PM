@@ -32,7 +32,9 @@
                             onchange="loadRequerimientos(this.value); loadRecursos(this.value)">
                         <option value="">Seleccione un proyecto</option>
                         {% for proyecto in proyectos %}
-                        <option value="{{ proyecto.idproyecto }}">{{ proyecto.nombreproyecto }}</option>
+                        <option value="{{ proyecto.idproyecto }}" {% if proyecto_id == proyecto.idproyecto|stringformat:"s" %}selected{% endif %}>
+                            {{ proyecto.nombreproyecto }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -86,7 +88,7 @@
 </div>
 
 <script>
-    function loadRequerimientos(proyectoId) {
+    function loadRequerimientos(proyectoId, callback) {
         fetch(`/gestion-recursos/api/requerimientos/${proyectoId}/`)
             .then(response => response.json())
             .then(data => {
@@ -95,6 +97,10 @@
                 data.forEach(requerimiento => {
                     requerimientoSelect.innerHTML += `<option value="${requerimiento.idrequerimiento}">${requerimiento.descripcion}</option>`;
                 });
+                // Ejecutar el callback si existe
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
             });
     }
 
@@ -121,5 +127,29 @@
                 });
             });
     }
+
+    // Cargar automáticamente los requerimientos y recursos si hay un proyecto preseleccionado
+    document.addEventListener('DOMContentLoaded', function() {
+        const proyectoSelect = document.getElementById('proyecto');
+        const requerimiento_id = "{{ requerimiento_id }}";
+        
+        if (proyectoSelect.value) {
+            loadRequerimientos(proyectoSelect.value, function() {
+                // Callback para seleccionar el requerimiento después de cargar los requerimientos
+                if (requerimiento_id) {
+                    const requerimientoSelect = document.getElementById('requerimiento');
+                    for (let i = 0; i < requerimientoSelect.options.length; i++) {
+                        if (requerimientoSelect.options[i].value === requerimiento_id) {
+                            requerimientoSelect.selectedIndex = i;
+                            // Cargar las tareas del requerimiento
+                            loadTareas(requerimiento_id);
+                            break;
+                        }
+                    }
+                }
+            });
+            loadRecursos(proyectoSelect.value);
+        }
+    });
 </script>
 {% endblock %}
