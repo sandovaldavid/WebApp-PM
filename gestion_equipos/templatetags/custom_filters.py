@@ -17,4 +17,3 @@ def replace(value, old_new):
     if not value:
         return value
     return value.replace(" ", "_")
-
