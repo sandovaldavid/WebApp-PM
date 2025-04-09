@@ -1,71 +1,99 @@
-<div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+<div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
     <!-- Encabezado con estado -->
-    <div class="p-4 border-b border-gray-200">
+    <div class="p-4 border-b border-gray-100 bg-gradient-to-r 
+                {% if proyecto.estado == 'Inicio' %}from-yellow-50 to-yellow-100
+                {% elif proyecto.estado == 'Planificación' %}from-blue-50 to-blue-100
+                {% elif proyecto.estado == 'Ejecución' %}from-green-50 to-green-100
+                {% elif proyecto.estado == 'Monitoreo-Control' %}from-red-50 to-red-100
+                {% elif proyecto.estado == 'Cierre' %}from-purple-50 to-purple-100
+                {% else %}from-gray-50 to-gray-100{% endif %}">
         <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-800">{{ proyecto.nombreproyecto }}</h3>
-            <div class="flex space-x-2">
-                <!-- Estado -->
-                <span class="px-3 py-1 rounded-full text-sm font-semibold 
-                    {% if proyecto.estado == 'Inicio' %}bg-yellow-100 text-yellow-800
-                    {% elif proyecto.estado == 'Planificación' %}bg-blue-100 text-blue-800
-                    {% elif proyecto.estado == 'Ejecución' %}bg-green-100 text-green-800
-                    {% elif proyecto.estado == 'Monitoreo-Control' %}bg-red-100 text-red-800
-                    {% elif proyecto.estado == 'Cierre' %}bg-gray-100 text-gray-800
-                    {% else %}bg-gray-100 text-gray-800{% endif %}">
-                    <i class="fas {% if proyecto.estado == 'Inicio' %}fa-clock
-                              {% elif proyecto.estado == 'Planificación' %}fa-spinner fa-spin
-                              {% elif proyecto.estado == 'Ejecución' %}fa-play
-                              {% elif proyecto.estado == 'Monitoreo-Control' %}fa-chart-line
-                              {% elif proyecto.estado == 'Cierre' %}fa-check
-                              {% else %}fa-question{% endif %} mr-1"></i>
-                    {{ proyecto.estado }}
-                </span>
-            </div>
+            <h3 class="text-lg font-semibold text-gray-800 truncate max-w-[70%]">{{ proyecto.nombreproyecto }}</h3>
+            <!-- Estado -->
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center
+                {% if proyecto.estado == 'Inicio' %}bg-yellow-200 text-yellow-800
+                {% elif proyecto.estado == 'Planificación' %}bg-blue-200 text-blue-800
+                {% elif proyecto.estado == 'Ejecución' %}bg-green-200 text-green-800
+                {% elif proyecto.estado == 'Monitoreo-Control' %}bg-red-200 text-red-800
+                {% elif proyecto.estado == 'Cierre' %}bg-purple-200 text-purple-800
+                {% else %}bg-gray-200 text-gray-800{% endif %}">
+                <i class="fas {% if proyecto.estado == 'Inicio' %}fa-clock
+                          {% elif proyecto.estado == 'Planificación' %}fa-spinner fa-spin
+                          {% elif proyecto.estado == 'Ejecución' %}fa-play
+                          {% elif proyecto.estado == 'Monitoreo-Control' %}fa-chart-line
+                          {% elif proyecto.estado == 'Cierre' %}fa-check
+                          {% else %}fa-question{% endif %} mr-1 text-xs"></i>
+                {{ proyecto.estado }}
+            </span>
         </div>
     </div>
 
     <!-- Contenido principal -->
-    <div class="p-4 space-y-4">
+    <div class="p-4 flex-grow">
         <!-- Descripción -->
-        <div class="text-sm">
-            <span class="text-gray-600">Descripción:</span>
-            <p class="text-gray-800">{{ proyecto.descripcion|truncatechars:100 }}</p>
+        <div class="mb-4">
+            <p class="text-gray-600 text-sm line-clamp-3">{{ proyecto.descripcion|truncatechars:120 }}</p>
         </div>
 
         <!-- Fechas -->
-        <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-                <p class="text-gray-600">Inicio:</p>
-                <p class="font-medium">{{ proyecto.fechainicio|date:"d/m/Y" }}</p>
+        <div class="grid grid-cols-2 gap-3 text-sm mb-3">
+            <div class="bg-gray-50 p-2 rounded-lg">
+                <p class="text-xs text-gray-500">Inicio:</p>
+                <p class="font-medium flex items-center">
+                    <i class="fas fa-calendar-day text-blue-400 mr-1.5"></i>
+                    {{ proyecto.fechainicio|date:"d/m/Y" }}
+                </p>
             </div>
-            <div>
-                <p class="text-gray-600">Fin:</p>
-                <p class="font-medium">{{ proyecto.fechafin|date:"d/m/Y" }}</p>
+            <div class="bg-gray-50 p-2 rounded-lg">
+                <p class="text-xs text-gray-500">Fin:</p>
+                <p class="font-medium flex items-center">
+                    <i class="fas fa-calendar-check text-green-400 mr-1.5"></i>
+                    {{ proyecto.fechafin|date:"d/m/Y" }}
+                </p>
             </div>
         </div>
 
-        <!-- Presupuesto -->
-        <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-                <p class="text-gray-600">Presupuesto:</p>
-                <p class="font-medium">${{ proyecto.presupuesto|floatformat:2 }}</p>
+        <!-- Presupuesto con barra de progreso -->
+        <div class="mb-2">
+            <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-600">Presupuesto: ${{ proyecto.presupuesto|floatformat:2 }}</span>
+                {% if proyecto.presupuestoutilizado %}
+                <span class="text-gray-600">
+                    ${{ proyecto.presupuestoutilizado|floatformat:2 }}
+                    {% if proyecto.presupuesto %}
+                        ({% widthratio proyecto.presupuestoutilizado proyecto.presupuesto 100 %}%)
+                    {% endif %}
+                </span>
+                {% endif %}
             </div>
-            <div>
-                <p class="text-gray-600">Utilizado:</p>
-                <p class="font-medium">${{ proyecto.presupuestoutilizado|default:"0.00"|floatformat:2 }}</p>
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                {% if proyecto.presupuesto %}
+                    {% widthratio proyecto.presupuestoutilizado|default:0 proyecto.presupuesto 100 as porcentaje %}
+                    <div class="h-full {% if porcentaje > 100 %}bg-red-500{% else %}bg-blue-500{% endif %}"
+                         style="width: {{ porcentaje }}%">
+                    </div>
+                {% else %}
+                    <div class="h-full bg-blue-500" style="width: 0%"></div>
+                {% endif %}
             </div>
         </div>
     </div>
 
     <!-- Pie con acciones -->
-    <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
-        <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
-        class="text-blue-600 hover:text-blue-800" title="Ver detalles">
-            <i class="fas fa-eye"></i>
-        </a>
-        <a href="{% url 'gestion_proyectos:editar_proyecto' proyecto.idproyecto %}" 
-        class="text-yellow-600 hover:text-yellow-800" title="Editar">
-            <i class="fas fa-edit"></i>
-        </a>
+    <div class="p-3 bg-gray-50 border-t border-gray-100 flex justify-between">
+        <span class="text-xs text-gray-500 flex items-center">
+            <i class="fas fa-clock mr-1"></i>
+            {{ proyecto.fechacreacion|date:"d/m/Y" }}
+        </span>
+        <div class="flex space-x-4">
+            <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
+            class="text-blue-500 hover:text-blue-700 transition-colors" title="Ver detalles">
+                <i class="fas fa-eye"></i>
+            </a>
+            <a href="{% url 'gestion_proyectos:editar_proyecto' proyecto.idproyecto %}" 
+            class="text-yellow-500 hover:text-yellow-700 transition-colors" title="Editar">
+                <i class="fas fa-edit"></i>
+            </a>
+        </div>
     </div>
 </div>

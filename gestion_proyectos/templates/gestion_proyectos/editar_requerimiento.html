@@ -1,73 +1,277 @@
 {% extends 'layout.html' %}
+{% load static %}
 
-{% block title %}Editar Requerimiento{% endblock %}
+{% block title %}Editar Requerimiento - {{ requerimiento.idproyecto.nombreproyecto }}{% endblock %}
+
+{% block style %}
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+        animation: fadeIn 0.5s ease-out forwards;
+        opacity: 0;
+    }
+    .delay-100 { animation-delay: 0.1s; }
+    .input-focused:focus-within {
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+</style>
+{% endblock %}
 
 {% block title_body %}
-<div class="flex items-center">
-    <i class="fas fa-tasks text-blue-500 mr-2"></i>
-    <span>Editar Requerimiento para el Proyecto: {{ proyecto.nombreproyecto }}</span>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full text-white py-4 px-6">
+    <div class="flex items-center">
+        <div class="bg-white bg-opacity-20 p-3 rounded-xl mr-4">
+            <i class="fas fa-edit text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold">Editar Requerimiento</h1>
+            <p class="text-sm text-blue-100 mt-1 flex items-center">
+                <i class="fas fa-project-diagram mr-2"></i>
+                {{ requerimiento.idproyecto.nombreproyecto }}
+            </p>
+        </div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'gestion_proyectos:detalle_requerimiento' requerimiento.idrequerimiento %}" 
+           class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-xl transition-colors flex items-center">
+            <i class="fas fa-eye mr-2"></i>
+            Ver Detalle
+        </a>
+        <a href="{% url 'gestion_proyectos:detalle_proyecto' requerimiento.idproyecto.idproyecto %}" 
+           class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-xl transition-colors flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Volver al Proyecto
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block body %}
-<div class="p-8">
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-            <!-- Encabezado -->
-            <div class="p-6 bg-gradient-to-r from-blue-500 to-blue-600">
-                <h2 class="text-xl font-semibold text-white flex items-center">
-                    <i class="fas fa-tasks mr-2"></i>
-                    Editar Requerimiento
-                </h2>
-                <p class="mt-2 text-blue-100">
-                    Modifique la descripción del requerimiento
-                </p>
+<div class="p-6 md:p-10 bg-gray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto">
+        <!-- Tarjeta de información del proyecto -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-100 animate-fadeIn">
+            <div class="flex items-center mb-4 text-indigo-600">
+                <i class="fas fa-info-circle text-xl mr-3"></i>
+                <h2 class="text-lg font-semibold">Información del proyecto</h2>
             </div>
-
-            <!-- Formulario -->
-            <form method="POST" class="p-6 space-y-6">
-                {% csrf_token %}
-
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% else %}bg-green-100 text-green-700 border-l-4 border-green-500{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <!-- Descripción -->
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label for="descripcion" class="block text-sm font-medium text-gray-700">
-                        Descripción <span class="text-red-500">*</span>
-                    </label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-clipboard-list text-gray-400"></i>
-                        </div>
-                        <textarea id="descripcion" name="descripcion" rows="4" required
-                                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">{{ requerimiento.descripcion }}</textarea>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Nombre del proyecto</h3>
+                    <p class="text-gray-800 font-medium">{{ requerimiento.idproyecto.nombreproyecto }}</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Estado</h3>
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold inline-flex items-center
+                        {% if requerimiento.idproyecto.estado == 'Inicio' %}bg-yellow-100 text-yellow-800
+                        {% elif requerimiento.idproyecto.estado == 'Planificación' %}bg-blue-100 text-blue-800
+                        {% elif requerimiento.idproyecto.estado == 'Ejecución' %}bg-green-100 text-green-800
+                        {% elif requerimiento.idproyecto.estado == 'Monitoreo-Control' %}bg-purple-100 text-purple-800
+                        {% elif requerimiento.idproyecto.estado == 'Cierre' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        <i class="fas {% if requerimiento.idproyecto.estado == 'Inicio' %}fa-hourglass-start
+                                  {% elif requerimiento.idproyecto.estado == 'Planificación' %}fa-spinner
+                                  {% elif requerimiento.idproyecto.estado == 'Ejecución' %}fa-rocket
+                                  {% elif requerimiento.idproyecto.estado == 'Monitoreo-Control' %}fa-chart-line
+                                  {% elif requerimiento.idproyecto.estado == 'Cierre' %}fa-flag-checkered
+                                  {% else %}fa-question{% endif %} mr-1.5"></i>
+                        {{ requerimiento.idproyecto.estado }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-gray-100">
+                <h3 class="text-sm font-medium text-gray-500 mb-2">Requerimiento actual</h3>
+                <p class="text-gray-700 italic bg-gray-50 p-3 rounded-md border border-gray-100">
+                    "{{ requerimiento.descripcion }}"
+                </p>
+                <div class="mt-2 flex flex-wrap gap-2 text-xs text-gray-500">
+                    <span class="flex items-center">
+                        <i class="far fa-calendar-alt text-gray-400 mr-1"></i>
+                        Creado: {{ requerimiento.fechacreacion|date:"d/m/Y" }}
+                    </span>
+                    <span class="flex items-center">
+                        <i class="far fa-clock text-gray-400 mr-1"></i>
+                        Última modificación: {{ requerimiento.fechamodificacion|date:"d/m/Y" }}
+                    </span>
+                    <span class="flex items-center">
+                        <i class="fas fa-tasks text-gray-400 mr-1"></i>
+                        {{ requerimiento.tarea_set.count }} tareas asociadas
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de edición de requerimiento -->
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 animate-fadeIn delay-100">
+            <div class="flex items-center mb-6 text-indigo-600 border-b border-gray-100 pb-4">
+                <i class="fas fa-edit text-xl mr-3"></i>
+                <h2 class="text-lg font-semibold">Editar Requerimiento</h2>
+            </div>
+            
+            <form method="POST" class="space-y-6" id="requerimientoForm">
+                {% csrf_token %}
+                
+                <div class="space-y-4">
+                    <!-- Descripción del requerimiento -->
+                    <div>
+                        <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">
+                            Descripción del requerimiento *
+                        </label>
+                        <textarea id="descripcion" 
+                                  name="descripcion" 
+                                  rows="5"
+                                  required
+                                  class="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md shadow-sm"
+                                  placeholder="Describe el requerimiento de forma clara y detallada...">{{ requerimiento.descripcion }}</textarea>
+                        <p class="mt-1 text-xs text-gray-500">
+                            Un requerimiento bien definido debe ser específico, medible, alcanzable, relevante y con tiempo definido (SMART).
+                        </p>
                     </div>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Modifique la descripción detallada del requerimiento
-                    </p>
+                    
+                    <div class="bg-amber-50 rounded-lg p-4 border border-amber-100 mt-6">
+                        <h3 class="text-sm font-medium text-amber-800 mb-2 flex items-center">
+                            <i class="fas fa-lightbulb text-amber-500 mr-2"></i>
+                            Consejos para un buen requerimiento
+                        </h3>
+                        <ul class="text-xs text-amber-700 space-y-1 ml-6 list-disc">
+                            <li>Usa un lenguaje claro y preciso, evita ambigüedades.</li>
+                            <li>Especifica en detalle los criterios de aceptación.</li>
+                            <li>Considera las interdependencias con otros requerimientos del proyecto.</li>
+                            <li>Asegúrate de que sea verificable y medible.</li>
+                        </ul>
+                    </div>
                 </div>
 
-                <!-- Botones de Acción -->
-                <div class="flex justify-between space-x-4 pt-6 border-t border-gray-200">
-                    <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
-                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
-                        <i class="fas fa-arrow-left mr-2"></i>
-                        Volver
+                <!-- Tareas asociadas -->
+                <div class="pt-4 mt-6 border-t border-gray-100">
+                    <h3 class="text-md font-medium text-gray-800 mb-3 flex items-center">
+                        <i class="fas fa-tasks text-indigo-500 mr-2"></i>
+                        Tareas asociadas
+                    </h3>
+                    
+                    {% if requerimiento.tarea_set.all %}
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div class="space-y-2 max-h-60 overflow-y-auto">
+                            {% for tarea in requerimiento.tarea_set.all %}
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100 hover:border-indigo-200 transition-colors">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800">{{ tarea.nombretarea }}</p>
+                                    <div class="flex items-center mt-0.5 space-x-2">
+                                        <span class="px-1.5 py-0.5 rounded-full text-xs {% if tarea.estado == 'Completada' %}bg-green-100 text-green-800{% elif tarea.estado == 'En Progreso' %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {{ tarea.estado }}
+                                        </span>
+                                        <span class="text-xs text-gray-500">
+                                            {{ tarea.duracionestimada }} horas estimadas
+                                        </span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="{% url 'gestion_tareas:editar_tarea' tarea.idtarea %}" class="text-xs bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-2 py-1 rounded transition-colors">
+                                        <i class="fas fa-edit mr-1"></i> Editar
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <a href="{% url 'gestion_tareas:crear_tarea' %}?proyecto={{ proyecto.idproyecto }}&req={{ requerimiento.idrequerimiento }}" 
+                               class="text-sm bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-plus mr-1.5"></i> Agregar nueva tarea
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 flex flex-col items-center justify-center">
+                        <i class="fas fa-tasks text-gray-300 text-4xl mb-3"></i>
+                        <p class="text-gray-500 mb-4">No hay tareas asociadas a este requerimiento</p>
+                        <a href="{% url 'gestion_tareas:crear_tarea' %}?proyecto={{ requerimiento.idproyecto.idproyecto }}&req={{ requerimiento.idrequerimiento }}" 
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>
+                            Crear primera tarea
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="pt-6 flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-100 mt-8">
+                    <a href="{% url 'gestion_proyectos:detalle_proyecto' requerimiento.idproyecto.idproyecto %}" 
+                       class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
                     </a>
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                    <button type="submit" 
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center">
                         <i class="fas fa-save mr-2"></i>
                         Guardar Cambios
                     </button>
                 </div>
             </form>
         </div>
+        
+        <!-- Acción para eliminar el requerimiento -->
+        <div class="mt-8 bg-red-50 rounded-xl shadow-sm border border-red-200 p-4 animate-fadeIn delay-200">
+            <div class="flex items-start">
+                <div class="text-red-500 mr-3">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                </div>
+                <div class="flex-grow">
+                    <h3 class="text-sm font-medium text-red-800 mb-1">Zona de peligro</h3>
+                    <p class="text-sm text-red-700">
+                        Eliminar este requerimiento también eliminará todas las tareas asociadas a él. 
+                        Esta acción no se puede deshacer.
+                    </p>
+                </div>
+                <div class="ml-4">
+                    <form method="POST" action="{% url 'gestion_proyectos:eliminar_requerimiento' requerimiento.idrequerimiento %}"
+                          onsubmit="return confirm('¿Está seguro de que desea eliminar este requerimiento y todas sus tareas asociadas? Esta acción no se puede deshacer.')">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                class="px-3 py-2 bg-red-100 text-red-700 hover:bg-red-200 transition-colors rounded-lg flex items-center justify-center">
+                            <i class="fas fa-trash mr-2"></i>
+                            Eliminar Requerimiento
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('requerimientoForm');
+    const descripcion = document.getElementById('descripcion');
+    
+    // Validación al enviar el formulario
+    form.addEventListener('submit', function(event) {
+        if (descripcion.value.trim().length < 10) {
+            event.preventDefault();
+            alert('La descripción del requerimiento debe tener al menos 10 caracteres.');
+            descripcion.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+            descripcion.focus();
+        }
+    });
+    
+    // Validación en tiempo real
+    descripcion.addEventListener('input', function() {
+        if (this.value.trim().length < 10) {
+            this.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+        } else {
+            this.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+        }
+    });
+    
+    // Animación de entrada
+    setTimeout(() => {
+        document.querySelectorAll('.animate-fadeIn').forEach(el => {
+            el.style.opacity = 1;
+        });
+    }, 100);
+});
+</script>
 {% endblock %}

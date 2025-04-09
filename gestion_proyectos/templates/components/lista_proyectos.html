@@ -1,94 +1,142 @@
 <!-- Vista de Tarjetas -->
+{% load custom_filters %}
 {% if vista == 'grid' or not vista %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
     {% for proyecto in proyectos %}
-        {% include 'components/proyecto_card.html' with proyecto=proyecto %}
+        <div class="animate-fadeIn opacity-0" style="animation-delay: {{ forloop.counter0}}s;">
+            {% include 'components/proyecto_card.html' with proyecto=proyecto %}
+        </div>
     {% empty %}
-        <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
+        <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-400 bg-white bg-opacity-50 rounded-xl shadow-sm border border-gray-100">
             <i class="fas fa-project-diagram text-6xl mb-4"></i>
             <p class="text-xl font-medium">No hay proyectos disponibles</p>
             <p class="text-sm mt-2">Los proyectos que crees aparecerán aquí</p>
+            <a href="{% url 'gestion_proyectos:crear_proyecto' %}" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center">
+                <i class="fas fa-plus mr-2"></i>Crear Nuevo Proyecto
+            </a>
         </div>
     {% endfor %}
 </div>
 {% else %}
 <!-- Vista de Lista -->
-<div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha de Inicio</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha de Fin</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
-            </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-            {% for proyecto in proyectos %}
-            <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{{ proyecto.nombreproyecto }}</div>
-                </td>
-                <td class="px-6 py-4">
-                    <div class="text-sm text-gray-500">{{ proyecto.descripcion|truncatechars:100 }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-500">{{ proyecto.estado }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ proyecto.fechainicio|date:"d/m/Y" }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ proyecto.fechafin|date:"d/m/Y" }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div class="flex justify-end space-x-2">
-                        <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" class="text-blue-600 hover:text-blue-900" title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="{% url 'gestion_proyectos:editar_proyecto' proyecto.idproyecto %}" class="text-yellow-600 hover:text-yellow-800" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                    No hay proyectos disponibles
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 animate-fadeIn">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
+                    <th class="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Presupuesto</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for proyecto in proyectos %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-blue-100 rounded-full">
+                                <i class="fas fa-project-diagram text-blue-500"></i>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ proyecto.nombreproyecto }}</div>
+                                <div class="text-sm text-gray-500 truncate max-w-xs">{{ proyecto.descripcion|truncatechars:60 }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {% if proyecto.estado == 'Inicio' %}bg-yellow-100 text-yellow-800
+                            {% elif proyecto.estado == 'Planificación' %}bg-blue-100 text-blue-800
+                            {% elif proyecto.estado == 'Ejecución' %}bg-green-100 text-green-800
+                            {% elif proyecto.estado == 'Monitoreo-Control' %}bg-red-100 text-red-800
+                            {% elif proyecto.estado == 'Cierre' %}bg-gray-100 text-gray-800
+                            {% endif %}">
+                            {{ proyecto.estado }}
+                        </span>
+                    </td>
+                    <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                            <i class="fas fa-calendar-day text-blue-500 mr-1"></i> {{ proyecto.fechainicio|date:"d/m/Y" }}
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            <i class="fas fa-calendar-check text-green-500 mr-1"></i> {{ proyecto.fechafin|date:"d/m/Y" }}
+                        </div>
+                    </td>
+                    <td class="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${{ proyecto.presupuesto|floatformat:2 }}</div>
+                        <div class="text-sm text-gray-500">
+                            Utilizado: ${{ proyecto.presupuestoutilizado|default:"0.00"|floatformat:2 }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex justify-end space-x-3">
+                            <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
+                               class="text-blue-600 hover:text-blue-800 transition-colors" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'gestion_proyectos:editar_proyecto' proyecto.idproyecto %}" 
+                               class="text-yellow-600 hover:text-yellow-800 transition-colors" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-10 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fas fa-project-diagram text-gray-400 text-4xl mb-4"></i>
+                            <p class="text-gray-500">No hay proyectos disponibles</p>
+                            <a href="{% url 'gestion_proyectos:crear_proyecto' %}" 
+                               class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center">
+                                <i class="fas fa-plus mr-2"></i>Crear Nuevo Proyecto
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endif %}
 
-<!-- Paginación con HTMX -->
+<!-- Paginación con HTMX mejorada visualmente -->
 {% if proyectos.has_other_pages %}
-<div class="flex justify-center space-x-2 mt-6">
-    {% if proyectos.has_previous %}
-    <button hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?page={{ proyectos.previous_page_number }}{% if vista %}&vista={{ vista }}{% endif %}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}"
-           hx-target="#proyectos-contenido"
-           hx-push-url="true"
-           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-        <i class="fas fa-chevron-left"></i>
-    </button>
-    {% endif %}
+<div class="flex justify-center mt-6 bg-white p-3 rounded-lg shadow-sm">
+    <nav class="flex items-center space-x-2">
+        {% if proyectos.has_previous %}
+        <button hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?page={{ proyectos.previous_page_number }}{% if vista %}&vista={{ vista }}{% endif %}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}"
+                hx-target="#projects-container"
+                hx-push-url="true"
+                class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        {% endif %}
 
-    <span class="px-4 py-2 bg-blue-500 text-white rounded-lg">
-        {{ proyectos.number }}
-    </span>
+        {% for page_num in proyectos.paginator.page_range %}
+            {% if page_num == proyectos.number %}
+            <span class="px-3 py-2 bg-blue-500 text-white rounded-lg">{{ page_num }}</span>
+            {% elif page_num > proyectos.number|add:"-3" and page_num < proyectos.number|add:"3" %}
+            <button hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?page={{ page_num }}{% if vista %}&vista={{ vista }}{% endif %}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}"
+                    hx-target="#projects-container"
+                    hx-push-url="true"
+                    class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                {{ page_num }}
+            </button>
+            {% endif %}
+        {% endfor %}
 
-    {% if proyectos.has_next %}
-    <button hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?page={{ proyectos.next_page_number }}{% if vista %}&vista={{ vista }}{% endif %}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}"
-           hx-target="#proyectos-contenido"
-           hx-push-url="true"
-           class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-        <i class="fas fa-chevron-right"></i>
-    </button>
-    {% endif %}
+        {% if proyectos.has_next %}
+        <button hx-get="{% url 'gestion_proyectos:panel_lista_proyectos' %}?page={{ proyectos.next_page_number }}{% if vista %}&vista={{ vista }}{% endif %}{% if filtros.busqueda %}&busqueda={{ filtros.busqueda }}{% endif %}{% if request.GET.filtro %}&filtro={{ request.GET.filtro }}{% endif %}"
+                hx-target="#projects-container"
+                hx-push-url="true"
+                class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        {% endif %}
+    </nav>
 </div>
 {% endif %}

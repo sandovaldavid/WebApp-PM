@@ -1,0 +1,1282 @@
+{% extends 'layout.html' %}
+{% load custom_filters %}
+{% block title %}Análisis de Valor Ganado - {{ proyecto.nombreproyecto }}{% endblock %}
+
+{% block style %}
+<style>
+    /* Animaciones y transiciones */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+        opacity: 0;
+    }
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    
+    /* Efectos de hover */
+    .metric-card {
+        transition: all 0.3s ease;
+        cursor: default;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    /* Estilos del diagrama de Gantt */
+    .gantt-task {
+        border-radius: 6px;
+        padding: 6px 8px;
+        margin: 4px 0;
+        font-size: 0.85rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .gantt-task:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .task-completed {
+        background-color: rgba(52, 211, 153, 0.8);
+        border-left: 4px solid rgb(16, 185, 129);
+    }
+    .task-in-progress {
+        background-color: rgba(96, 165, 250, 0.8);
+        border-left: 4px solid rgb(59, 130, 246);
+    }
+    .task-pending {
+        background-color: rgba(209, 213, 219, 0.8);
+        border-left: 4px solid rgb(156, 163, 175);
+    }
+    
+    /* Diseño de gráficos */
+    canvas {
+        max-height: 400px;
+    }
+    
+    /* Brillo y pulsación en KPIs importantes */
+    .pulse-effect {
+        position: relative;
+    }
+    .pulse-effect::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+        opacity: 0;
+        border-radius: inherit;
+        z-index: 0;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.95); opacity: 0; }
+        50% { opacity: 0.2; }
+        100% { transform: scale(1.1); opacity: 0; }
+    }
+</style>
+{% endblock %}
+
+{% block title_body %}
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full text-white py-4 px-6">
+    <div class="flex items-center">
+        <div class="bg-white bg-opacity-20 p-3 rounded-xl mr-4">
+            <i class="fas fa-chart-line text-2xl"></i>
+        </div>
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold">Análisis de Valor Ganado</h1>
+            <p class="text-sm text-blue-100 mt-1 flex items-center">
+                <i class="fas fa-project-diagram mr-2"></i>
+                {{ proyecto.nombreproyecto }}
+            </p>
+        </div>
+    </div>
+    <div>
+        <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
+           class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-xl transition-colors flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Volver al Proyecto
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="p-4 md:p-8 space-y-8 bg-gray-50">
+    <!-- Resumen del Análisis de Valor Ganado -->
+    <div class="bg-white rounded-xl shadow p-6 animate-fade-in">
+        <h2 class="text-lg font-semibold mb-6 flex items-center text-gray-800 border-b pb-4">
+            <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                <i class="fas fa-chart-bar text-purple-600"></i>
+            </div>
+            Resumen de Análisis de Valor Ganado
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Estado del Proyecto -->
+            <div class="md:col-span-3">
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Estado General del Proyecto
+                    </h3>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center bg-blue-200 text-blue-700 p-2 px-3 rounded-full">
+                                <i class="fas fa-coins mr-2"></i>
+                                <span class="font-medium">Presupuesto Total: ${{ presupuesto_total|floatformat:2 }}</span>
+                            </div>
+                            <div class="flex items-center bg-green-200 text-green-700 p-2 px-3 rounded-full">
+                                <i class="fas fa-chart-pie mr-2"></i>
+                                <span class="font-medium">{{ porcentaje_completado|floatformat:1 }}% completado</span>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-sm font-semibold flex items-center
+                            {% if proyecto.estado == 'Inicio' %}bg-yellow-500 text-yellow-50
+                            {% elif proyecto.estado == 'Planificación' %}bg-blue-500 text-blue-50
+                            {% elif proyecto.estado == 'Ejecución' %}bg-green-500 text-green-50
+                            {% elif proyecto.estado == 'Monitoreo-Control' %}bg-purple-500 text-purple-50
+                            {% elif proyecto.estado == 'Cierre' %}bg-red-500 text-red-50
+                            {% else %}bg-gray-500 text-gray-50{% endif %}">
+                            <i class="fas {% if proyecto.estado == 'Inicio' %}fa-hourglass-start
+                                      {% elif proyecto.estado == 'Planificación' %}fa-spinner fa-spin
+                                      {% elif proyecto.estado == 'Ejecución' %}fa-rocket
+                                      {% elif proyecto.estado == 'Monitoreo-Control' %}fa-chart-line
+                                      {% elif proyecto.estado == 'Cierre' %}fa-flag-checkered
+                                      {% else %}fa-question{% endif %} mr-2"></i>
+                            {{ proyecto.estado }}
+                        </span>
+                    </div>
+                    <div class="mb-2">
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-blue-600 h-3 rounded-full" style="width: {{ porcentaje_completado }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Valor Ganado -->
+            <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg border border-green-200 metric-card relative overflow-hidden">
+                <div class="relative z-10">
+                    <h3 class="text-sm font-semibold mb-2 text-green-800 uppercase tracking-wide flex items-center">
+                        <i class="fas fa-trophy mr-2"></i>
+                        Valor Ganado (EV)
+                    </h3>
+                    <p class="text-3xl font-bold text-green-700">${{ valor_ganado|floatformat:2 }}</p>
+                    <p class="text-xs text-green-600 mt-1">Valor del trabajo completado</p>
+                </div>
+                <div class="absolute right-4 bottom-4 bg-green-200 rounded-full p-4 opacity-30">
+                    <i class="fas fa-check-circle text-4xl text-green-700"></i>
+                </div>
+            </div>
+            
+            <!-- Valor Planeado -->
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200 metric-card relative overflow-hidden">
+                <div class="relative z-10">
+                    <h3 class="text-sm font-semibold mb-2 text-blue-800 uppercase tracking-wide flex items-center">
+                        <i class="fas fa-bullseye mr-2"></i>
+                        Valor Planeado (PV)
+                    </h3>
+                    <p class="text-3xl font-bold text-blue-700">${{ valor_planeado|floatformat:2 }}</p>
+                    <p class="text-xs text-blue-600 mt-1">Valor del trabajo planificado</p>
+                </div>
+                <div class="absolute right-4 bottom-4 bg-blue-200 rounded-full p-4 opacity-30">
+                    <i class="fas fa-map-marker-alt text-4xl text-blue-700"></i>
+                </div>
+            </div>
+            
+            <!-- Costo Real -->
+            <div class="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-lg border border-red-200 metric-card relative overflow-hidden">
+                <div class="relative z-10">
+                    <h3 class="text-sm font-semibold mb-2 text-red-800 uppercase tracking-wide flex items-center">
+                        <i class="fas fa-dollar-sign mr-2"></i>
+                        Costo Real (AC)
+                    </h3>
+                    <p class="text-3xl font-bold text-red-700">${{ costo_real|floatformat:2 }}</p>
+                    <p class="text-xs text-red-600 mt-1">Costo real incurrido</p>
+                </div>
+                <div class="absolute right-4 bottom-4 bg-red-200 rounded-full p-4 opacity-30">
+                    <i class="fas fa-wallet text-4xl text-red-700"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs (Indicadores Clave de Rendimiento) -->
+    <div class="bg-white rounded-xl shadow p-6 animate-fade-in delay-100">
+        <h2 class="text-lg font-semibold mb-6 flex items-center text-gray-800 border-b pb-4">
+            <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                <i class="fas fa-tachometer-alt text-indigo-600"></i>
+            </div>
+            Indicadores Clave de Rendimiento (KPIs)
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- CPI - Índice de Rendimiento del Costo -->
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm metric-card relative overflow-hidden 
+                {% if cpi < 0.9 or cpi > 1.1 %}pulse-effect{% endif %}">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-sm font-medium mb-2 text-gray-700">Índice de Rendimiento del Costo (CPI)</h3>
+                        <div class="flex items-center mt-1">
+                            <span class="text-2xl font-bold {% if cpi > 1 %}text-green-600{% elif cpi < 1 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                {{ cpi }}
+                            </span>
+                            <span class="ml-2 text-sm {% if cpi > 1 %}text-green-600{% elif cpi < 1 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                {% if cpi > 1 %}
+                                    <i class="fas fa-arrow-up"></i> Por debajo del presupuesto
+                                {% elif cpi < 1 %}
+                                    <i class="fas fa-arrow-down"></i> Por encima del presupuesto
+                                {% else %}
+                                    Según presupuesto
+                                {% endif %}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">EV / AC = {{ valor_ganado|floatformat:2 }} / {{ costo_real|floatformat:2 }}</p>
+                    </div>
+                    <div class="ml-4 p-3 rounded-full 
+                        {% if cpi > 1 %}bg-green-100{% elif cpi < 1 %}bg-red-100{% else %}bg-gray-100{% endif %}">
+                        <i class="fas {% if cpi > 1 %}fa-smile{% elif cpi < 1 %}fa-frown{% else %}fa-meh{% endif %} 
+                            {% if cpi > 1 %}text-green-500{% elif cpi < 1 %}text-red-500{% else %}text-gray-500{% endif %} text-xl"></i>
+                    </div>
+                </div>
+                <!-- CPI Progress bar -->
+                <div class="mt-4">
+                    <div class="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-1.5 {% if cpi > 1 %}bg-green-500{% elif cpi < 1 %}bg-red-500{% else %}bg-gray-400{% endif %} rounded-full"
+                            style="width: {% widthratio cpi 2 100 %}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1 flex justify-between">
+                        <span>0</span>
+                        <span class="font-bold">{{ cpi }}</span>
+                        <span>2.0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SPI - Índice de Rendimiento del Cronograma -->
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm metric-card relative overflow-hidden 
+                {% if spi < 0.9 or spi > 1.1 %}pulse-effect{% endif %}">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-sm font-medium mb-2 text-gray-700">Índice de Rendimiento del Cronograma (SPI)</h3>
+                        <div class="flex items-center mt-1">
+                            <span class="text-2xl font-bold {% if spi > 1 %}text-green-600{% elif spi < 1 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                {{ spi }}
+                            </span>
+                            <span class="ml-2 text-sm {% if spi > 1 %}text-green-600{% elif spi < 1 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                {% if spi > 1 %}
+                                    <i class="fas fa-arrow-up"></i> Adelantado
+                                {% elif spi < 1 %}
+                                    <i class="fas fa-arrow-down"></i> Atrasado
+                                {% else %}
+                                    Según cronograma
+                                {% endif %}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">EV / PV = {{ valor_ganado|floatformat:2 }} / {{ valor_planeado|floatformat:2 }}</p>
+                    </div>
+                    <div class="ml-4 p-3 rounded-full 
+                        {% if spi > 1 %}bg-green-100{% elif spi < 1 %}bg-red-100{% else %}bg-gray-100{% endif %}">
+                        <i class="fas fa-clock 
+                            {% if spi > 1 %}text-green-500{% elif spi < 1 %}text-red-500{% else %}text-gray-500{% endif %} text-xl"></i>
+                    </div>
+                </div>
+                <!-- SPI Progress bar -->
+                <div class="mt-4">
+                    <div class="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-1.5 {% if spi > 1 %}bg-green-500{% elif spi < 1 %}bg-red-500{% else %}bg-gray-400{% endif %} rounded-full"
+                            style="width: {% widthratio cpi 2 100 %}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1 flex justify-between">
+                        <span>0</span>
+                        <span class="font-bold">{{ spi }}</span>
+                        <span>2.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Varianza de Costo (CV) -->
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm metric-card">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-sm font-medium mb-2 text-gray-700">Varianza de Costo (CV)</h3>
+                        <div class="flex items-center mt-1">
+                            <span class="text-2xl font-bold {% if varianza_costo > 0 %}text-green-600{% elif varianza_costo < 0 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                ${{ varianza_costo|floatformat:2 }}
+                            </span>
+                            <span class="ml-2 text-sm {% if varianza_costo > 0 %}text-green-600{% elif varianza_costo < 0 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                {% if varianza_costo > 0 %}
+                                    <i class="fas fa-arrow-up"></i> Ahorro
+                                {% elif varianza_costo < 0 %}
+                                    <i class="fas fa-arrow-down"></i> Sobrecosto
+                                {% else %}
+                                    Según lo previsto
+                                {% endif %}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">EV - AC = {{ valor_ganado|floatformat:2 }} - {{ costo_real|floatformat:2 }}</p>
+                    </div>
+                    <div class="ml-4 p-3 rounded-full 
+                        {% if varianza_costo > 0 %}bg-green-100{% elif varianza_costo < 0 %}bg-red-100{% else %}bg-gray-100{% endif %}">
+                        <i class="fas fa-money-bill-wave 
+                            {% if varianza_costo > 0 %}text-green-500{% elif varianza_costo < 0 %}text-red-500{% else %}text-gray-500{% endif %} text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Varianza de Cronograma (SV) -->
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm metric-card">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-sm font-medium mb-2 text-gray-700">Varianza de Cronograma (SV)</h3>
+                        <div class="flex items-center mt-1">
+                            <span class="text-2xl font-bold {% if varianza_cronograma > 0 %}text-green-600{% elif varianza_cronograma < 0 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                ${{ varianza_cronograma|floatformat:2 }}
+                            </span>
+                            <span class="ml-2 text-sm {% if varianza_cronograma > 0 %}text-green-600{% elif varianza_cronograma < 0 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                {% if varianza_cronograma > 0 %}
+                                    <i class="fas fa-arrow-up"></i> Adelantado
+                                {% elif varianza_cronograma < 0 %}
+                                    <i class="fas fa-arrow-down"></i> Atrasado
+                                {% else %}
+                                    Según lo previsto
+                                {% endif %}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">EV - PV = {{ valor_ganado|floatformat:2 }} - {{ valor_planeado|floatformat:2 }}</p>
+                    </div>
+                    <div class="ml-4 p-3 rounded-full 
+                        {% if varianza_cronograma > 0 %}bg-green-100{% elif varianza_cronograma < 0 %}bg-red-100{% else %}bg-gray-100{% endif %}">
+                        <i class="fas fa-calendar-check 
+                            {% if varianza_cronograma > 0 %}text-green-500{% elif varianza_cronograma < 0 %}text-red-500{% else %}text-gray-500{% endif %} text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EAC (Estimate At Completion) -->
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm metric-card">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-sm font-medium mb-2 text-gray-700">Estimación a la Conclusión (EAC)</h3>
+                        <div class="flex items-center mt-1">
+                            <span class="text-2xl font-bold {% if eac > presupuesto_total %}text-red-600{% elif eac < presupuesto_total %}text-green-600{% else %}text-gray-600{% endif %}">
+                                ${{ eac|floatformat:2 }}
+                            </span>
+                            <span class="ml-2 text-sm {% if eac > presupuesto_total %}text-red-600{% elif eac < presupuesto_total %}text-green-600{% else %}text-gray-600{% endif %}">
+                                {% if eac > presupuesto_total %}
+                                    <i class="fas fa-arrow-up"></i> Sobrecosto final esperado
+                                {% elif eac < presupuesto_total %}
+                                    <i class="fas fa-arrow-down"></i> Ahorro final esperado
+                                {% else %}
+                                    Presupuesto ajustado
+                                {% endif %}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">BAC / CPI = {{ presupuesto_total|floatformat:2 }} / {{ cpi }}</p>
+                    </div>
+                    <div class="ml-4 p-3 rounded-full 
+                        {% if eac > presupuesto_total %}bg-red-100{% elif eac < presupuesto_total %}bg-green-100{% else %}bg-gray-100{% endif %}">
+                        <i class="fas fa-calculator 
+                            {% if eac > presupuesto_total %}text-red-500{% elif eac < presupuesto_total %}text-green-500{% else %}text-gray-500{% endif %} text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ETC (Estimate To Complete) -->
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm metric-card">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-sm font-medium mb-2 text-gray-700">Estimado para Completar (ETC)</h3>
+                        <p class="text-2xl font-bold text-blue-600">${{ etc|floatformat:2 }}</p>
+                        <p class="text-xs text-gray-500 mt-2">EAC - AC = {{ eac|floatformat:2 }} - {{ costo_real|floatformat:2 }}</p>
+                        <p class="text-sm text-gray-500 mt-2">Costo estimado restante para completar el proyecto</p>
+                    </div>
+                    <div class="ml-4 p-3 rounded-full bg-blue-100">
+                        <i class="fas fa-hand-holding-usd text-blue-500 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VAC (Variance At Completion) -->
+            <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm metric-card">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-sm font-medium mb-2 text-gray-700">Varianza a la Conclusión (VAC)</h3>
+                        <div class="flex items-center mt-1">
+                            <span class="text-2xl font-bold {% if vac > 0 %}text-green-600{% elif vac < 0 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                ${{ vac|floatformat:2 }}
+                            </span>
+                            <span class="ml-2 text-sm {% if vac > 0 %}text-green-600{% elif vac < 0 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                {% if vac > 0 %}
+                                    <i class="fas fa-arrow-up"></i> Ahorro estimado
+                                {% elif vac < 0 %}
+                                    <i class="fas fa-arrow-down"></i> Sobrecosto estimado
+                                {% else %}
+                                    Según presupuesto
+                                {% endif %}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">BAC - EAC = {{ presupuesto_total|floatformat:2 }} - {{ eac|floatformat:2 }}</p>
+                    </div>
+                    <div class="ml-4 p-3 rounded-full 
+                        {% if vac > 0 %}bg-green-100{% elif vac < 0 %}bg-red-100{% else %}bg-gray-100{% endif %}">
+                        <i class="fas fa-balance-scale 
+                            {% if vac > 0 %}text-green-500{% elif vac < 0 %}text-red-500{% else %}text-gray-500{% endif %} text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen gráfico CPI y SPI -->
+            <div class="md:col-span-2 lg:col-span-3 mt-2">
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 class="text-sm font-medium mb-3 text-gray-700 border-b pb-2">Resumen de Rendimiento</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex flex-col items-center">
+                            <div class="flex justify-center items-center bg-gray-100 p-2 rounded-full h-20 w-20 mb-2">
+                                <div class="flex flex-col items-center">
+                                    <span class="font-bold text-lg {% if cpi > 1 %}text-green-600{% elif cpi < 1 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                        {{ cpi }}
+                                    </span>
+                                    <span class="text-xs text-gray-500">CPI</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-center">Rendimiento <span class="font-medium">financiero</span> del proyecto
+                                <span class="inline-block px-2 py-0.5 rounded-full text-xs
+                                {% if cpi > 1 %}bg-green-100 text-green-800
+                                {% elif cpi < 1 %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {% if cpi > 1.1 %}Excelente
+                                    {% elif cpi > 0.9 and cpi <= 1.1 %}Bueno
+                                    {% elif cpi > 0.8 and cpi <= 0.9 %}Regular
+                                    {% else %}Preocupante{% endif %}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="flex justify-center items-center bg-gray-100 p-2 rounded-full h-20 w-20 mb-2">
+                                <div class="flex flex-col items-center">
+                                    <span class="font-bold text-lg {% if spi > 1 %}text-green-600{% elif spi < 1 %}text-red-600{% else %}text-gray-600{% endif %}">
+                                        {{ spi }}
+                                    </span>
+                                    <span class="text-xs text-gray-500">SPI</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-center">Rendimiento del <span class="font-medium">cronograma</span> del proyecto
+                                <span class="inline-block px-2 py-0.5 rounded-full text-xs
+                                {% if spi > 1 %}bg-green-100 text-green-800
+                                {% elif spi < 1 %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {% if spi > 1.1 %}Excelente
+                                    {% elif spi > 0.9 and spi <= 1.1 %}Bueno
+                                    {% elif spi > 0.8 and spi <= 0.9 %}Regular
+                                    {% else %}Preocupante{% endif %}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visualización de gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in delay-200">
+        <!-- Gráfico de Burndown -->
+        <div class="bg-white rounded-xl shadow p-6">
+            <h2 class="text-lg font-semibold mb-5 flex items-center text-gray-800 border-b pb-4">
+                <div class="bg-yellow-100 p-2 rounded-lg mr-3">
+                    <i class="fas fa-chart-area text-yellow-600"></i>
+                </div>
+                Burndown Chart
+            </h2>
+            
+            <div class="w-full h-80">
+                <canvas id="burndownChart"></canvas>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                <p class="text-center sm:text-left mb-2 sm:mb-0">
+                    <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                    Muestra la velocidad de resolución de tareas vs progresión ideal
+                </p>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <span class="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
+                        <span>Real</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="inline-block w-3 h-3 bg-gray-400 rounded-full mr-1"></span>
+                        <span>Ideal</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Diagrama de Curva S -->
+        <div class="bg-white rounded-xl shadow p-6">
+            <h2 class="text-lg font-semibold mb-5 flex items-center text-gray-800 border-b pb-4">
+                <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                    <i class="fas fa-chart-line text-indigo-600"></i>
+                </div>
+                Curva S - Valor Ganado
+            </h2>
+            
+            <div class="w-full h-80">
+                <canvas id="curvaSChart"></canvas>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                <p class="text-center sm:text-left mb-2 sm:mb-0">
+                    <i class="fas fa-info-circle text-purple-500 mr-1"></i>
+                    Comparativa de PV, EV y AC a lo largo del tiempo
+                </p>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <span class="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
+                        <span>PV</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>
+                        <span>EV</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span>
+                        <span>AC</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagrama de Gantt -->
+    <div class="bg-white rounded-xl shadow p-6 animate-fade-in delay-300">
+        <h2 class="text-lg font-semibold mb-5 flex items-center text-gray-800 border-b pb-4">
+            <div class="bg-teal-100 p-2 rounded-lg mr-3">
+                <i class="fas fa-tasks text-teal-600"></i>
+            </div>
+            Diagrama de Gantt
+        </h2>
+        
+        <div class="overflow-x-auto">
+            <div id="ganttChart" class="w-full min-w-max pb-4" style="height: auto; min-height: 300px;">
+                <!-- Aquí se generará el diagrama de Gantt usando JavaScript -->
+            </div>
+        </div>
+        
+        <div class="flex flex-wrap justify-center items-center mt-4 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg gap-4">
+            <div class="flex items-center">
+                <div class="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
+                <span>Completada</span>
+            </div>
+            <div class="flex items-center">
+                <div class="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
+                <span>En Progreso</span>
+            </div>
+            <div class="flex items-center">
+                <div class="w-4 h-4 bg-gray-400 rounded-full mr-2"></div>
+                <span>Pendiente</span>
+            </div>
+            <button id="toggleGanttFullview" class="ml-auto bg-gray-200 text-gray-700 px-3 py-1 rounded-lg text-xs hover:bg-gray-300 transition-colors flex items-center">
+                <i class="fas fa-expand-alt mr-1"></i> Expandir vista
+            </button>
+        </div>
+    </div>
+    
+    <!-- Lista de Tareas -->
+    <div class="bg-white rounded-xl shadow p-6 animate-fade-in delay-300">
+        <h2 class="text-lg font-semibold mb-5 flex items-center text-gray-800 border-b pb-4">
+            <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                <i class="fas fa-clipboard-list text-purple-600"></i>
+            </div>
+            Tareas del Proyecto
+            <input type="text" id="taskSearchInput" placeholder="Buscar tarea..." class="ml-auto p-2 text-sm border border-gray-300 rounded-lg w-64">
+        </h2>
+        
+        <div class="overflow-x-auto">
+            <table id="tasksTable" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="name">
+                            Tarea <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="status">
+                            Estado <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="dates">
+                            Fechas <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="cost-est">
+                            Costo Est. <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="cost-real">
+                            Costo Real <i class="fas fa-sort ml-1"></i>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" data-sort="variance">
+                            Varianza <i class="fas fa-sort ml-1"></i>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for tarea in tareas %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">{{ tarea.nombretarea }}</div>
+                            <div class="text-xs text-gray-500">{{ tarea.idrequerimiento.descripcion|truncatechars:40 }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if tarea.estado == "Completada" %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i> Completada
+                            </span>
+                            {% elif tarea.estado == "En Progreso" %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                <i class="fas fa-spinner fa-spin mr-1"></i> En Progreso
+                            </span>
+                            {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                <i class="fas fa-clock mr-1"></i> Pendiente
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">
+                                <i class="fas fa-calendar-day text-blue-500 mr-1"></i> {{ tarea.fechainicio|date:"d/m/Y"|default:"-" }}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                <i class="fas fa-calendar-check text-green-500 mr-1"></i> {{ tarea.fechafin|date:"d/m/Y"|default:"-" }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${{ tarea.costoestimado|floatformat:2|default:"0.00" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${{ tarea.costoactual|floatformat:2|default:"0.00" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% with varianza=tarea.costoestimado|default:0|sub:tarea.costoactual|default:0 %}
+                            <span class="text-sm {% if varianza > 0 %}text-green-600{% elif varianza < 0 %}text-red-600{% else %}text-gray-500{% endif %}">
+                                ${{ varianza|floatformat:2 }}
+                            </span>
+                            {% endwith %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-10 whitespace-nowrap text-sm text-center text-gray-500">
+                            <div class="flex flex-col items-center justify-center">
+                                <i class="fas fa-tasks text-gray-300 text-4xl mb-4"></i>
+                                <p>No hay tareas registradas para este proyecto</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animación de entrada para los elementos
+        document.querySelectorAll('.animate-fade-in').forEach(el => {
+            el.style.opacity = 1;
+        });
+        
+        // Datos para el Burndown Chart
+        const burndownLabels = {{ burndown_labels|safe }};
+        const burndownIdeal = {{ burndown_ideal|safe }};
+        const burndownReal = {{ burndown_real|safe }};
+        
+        // Configuración del Burndown Chart
+        const burndownCtx = document.getElementById('burndownChart').getContext('2d');
+        const burndownChart = new Chart(burndownCtx, {
+            type: 'line',
+            data: {
+                labels: burndownLabels,
+                datasets: [
+                    {
+                        label: 'Tareas Restantes (Real)',
+                        data: burndownReal,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.1,
+                        fill: true,
+                        borderWidth: 3
+                    },
+                    {
+                        label: 'Tareas Restantes (Ideal)',
+                        data: burndownIdeal,
+                        borderColor: 'rgb(156, 163, 175)',
+                        backgroundColor: 'transparent',
+                        borderDash: [5, 5],
+                        tension: 0.1,
+                        fill: false,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    title: {
+                        display: false
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#334155',
+                        bodyColor: '#334155',
+                        borderColor: '#e2e8f0',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: true,
+                        boxPadding: 6,
+                        usePointStyle: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Tareas Restantes'
+                        },
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(226, 232, 240, 0.5)',
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Fecha'
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Crear el diagrama de Gantt
+        const ganttData = {{ gantt_data|safe }};
+        createGanttChart();
+        
+        // Inicializar Curva S
+        initCurvaSChart();
+
+        // Funciones para la tabla de tareas
+        initTasksTable();
+        
+        // Función para crear diagrama de Gantt con diseño mejorado
+        function createGanttChart() {
+            const ganttContainer = document.getElementById('ganttChart');
+            ganttContainer.innerHTML = '';
+            
+            // Obtener el rango de fechas
+            let minDate = null;
+            let maxDate = null;
+            
+            ganttData.forEach(task => {
+                const startDate = new Date(task.inicio);
+                const endDate = new Date(task.fin);
+                
+                if (!minDate || startDate < minDate) minDate = startDate;
+                if (!maxDate || endDate > maxDate) maxDate = endDate;
+            });
+            
+            // Si no hay datos, mostrar mensaje
+            if (!minDate || !maxDate) {
+                ganttContainer.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-gray-400"><i class="fas fa-chart-bar text-5xl mb-4"></i><p>No hay suficientes datos para generar el diagrama de Gantt.</p></div>';
+                return;
+            }
+            
+            // Asegurarse de que hay al menos una semana de diferencia para mostrar
+            if (maxDate - minDate < 7 * 24 * 60 * 60 * 1000) {
+                maxDate = new Date(minDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+            }
+            
+            // Calcular la escala de tiempo
+            const totalDays = Math.ceil((maxDate - minDate) / (24 * 60 * 60 * 1000));
+            const dayWidth = Math.max(30, Math.min(80, 1200 / totalDays)); // Entre 30px y 80px por día
+            
+            // Crear contenedor con scroll horizontal
+            const scrollContainer = document.createElement('div');
+            scrollContainer.className = 'overflow-x-auto pb-3';
+            ganttContainer.appendChild(scrollContainer);
+            
+            // Crear el gráfico dentro del contenedor de scroll
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'min-w-max';
+            scrollContainer.appendChild(chartContainer);
+            
+            // Crear encabezado de fechas
+            const headerRow = document.createElement('div');
+            headerRow.className = 'flex border-b border-gray-200 pb-2 mb-4 sticky top-0 z-10 bg-white';
+            
+            // Columna de nombre de tarea
+            const headerTaskName = document.createElement('div');
+            headerTaskName.className = 'w-48 font-medium text-gray-700 text-sm';
+            headerTaskName.textContent = 'Tarea';
+            headerRow.appendChild(headerTaskName);
+            
+            // Columnas de fechas
+            const headerDates = document.createElement('div');
+            headerDates.className = 'flex flex-grow';
+            
+            // Crear encabezados para meses
+            const monthsHeader = document.createElement('div');
+            monthsHeader.className = 'flex';
+            
+            let currentMonth = -1;
+            let monthWidth = 0;
+            let monthStartPos = 0;
+            
+            for (let i = 0; i <= totalDays; i++) {
+                const date = new Date(minDate);
+                date.setDate(date.getDate() + i);
+                
+                if (currentMonth !== date.getMonth()) {
+                    if (currentMonth !== -1) {
+                        // Agregar el header del mes anterior
+                        const monthHeader = document.createElement('div');
+                        monthHeader.className = 'text-xs font-medium text-gray-700 border-r border-gray-200 flex items-center justify-center';
+                        monthHeader.style.width = `${monthWidth}px`;
+                        monthHeader.textContent = new Date(minDate.getFullYear(), currentMonth).toLocaleDateString('es-ES', { month: 'long' });
+                        monthsHeader.appendChild(monthHeader);
+                    }
+                    currentMonth = date.getMonth();
+                    monthWidth = 0;
+                    monthStartPos = i;
+                }
+                
+                monthWidth += dayWidth;
+            }
+            
+            // Agregar el último mes
+            if (monthWidth > 0) {
+                const monthHeader = document.createElement('div');
+                monthHeader.className = 'text-xs font-medium text-gray-700 border-r border-gray-200 flex items-center justify-center';
+                monthHeader.style.width = `${monthWidth}px`;
+                monthHeader.textContent = new Date(minDate.getFullYear(), currentMonth).toLocaleDateString('es-ES', { month: 'long' });
+                monthsHeader.appendChild(monthHeader);
+            }
+            
+            headerDates.appendChild(monthsHeader);
+            headerRow.appendChild(headerDates);
+            chartContainer.appendChild(headerRow);
+            
+            // Crear filas de días
+            const daysRow = document.createElement('div');
+            daysRow.className = 'flex border-b border-gray-200 pb-1 mb-4';
+            
+            // Espacio para la columna de tarea
+            const daysSpacerCol = document.createElement('div');
+            daysSpacerCol.className = 'w-48';
+            daysRow.appendChild(daysSpacerCol);
+            
+            // Columnas de días
+            const daysColumns = document.createElement('div');
+            daysColumns.className = 'flex';
+            
+            for (let i = 0; i <= totalDays; i++) {
+                const date = new Date(minDate);
+                date.setDate(date.getDate() + i);
+                
+                const dayCol = document.createElement('div');
+                dayCol.className = `text-center text-xs ${date.getDay() === 0 || date.getDay() === 6 ? 'text-red-500 font-medium' : 'text-gray-600'}`;
+                dayCol.style.width = `${dayWidth}px`;
+                dayCol.textContent = date.getDate();
+                
+                // Línea vertical para separar días
+                dayCol.style.borderRight = '1px solid #edf2f7';
+                
+                daysColumns.appendChild(dayCol);
+            }
+            
+            daysRow.appendChild(daysColumns);
+            chartContainer.appendChild(daysRow);
+            
+            // Crear filas de tareas
+            ganttData.forEach(task => {
+                const taskRow = document.createElement('div');
+                taskRow.className = 'flex items-center mb-2 hover:bg-gray-50 p-1 rounded';
+                
+                // Nombre de la tarea
+                const taskName = document.createElement('div');
+                taskName.className = 'w-48 text-sm pr-4 truncate';
+                taskName.setAttribute('title', task.nombre);
+                taskName.textContent = task.nombre;
+                taskRow.appendChild(taskName);
+                
+                // Barra de Gantt
+                const ganttBar = document.createElement('div');
+                ganttBar.className = 'flex flex-grow relative';
+                ganttBar.style.height = '30px';
+                
+                const startDate = new Date(task.inicio);
+                const endDate = new Date(task.fin);
+                
+                // Calcular posición y ancho
+                const startOffset = Math.floor((startDate - minDate) / (24 * 60 * 60 * 1000)) * dayWidth;
+                const duration = Math.max(1, Math.ceil((endDate - startDate) / (24 * 60 * 60 * 1000))) * dayWidth;
+                
+                const taskBar = document.createElement('div');
+                
+                if (task.estado === 'Completada') {
+                    taskBar.className = 'task-completed gantt-task';
+                } else if (task.estado === 'En Progreso') {
+                    taskBar.className = 'task-in-progress gantt-task';
+                } else {
+                    taskBar.className = 'task-pending gantt-task';
+                }
+                
+                taskBar.style.position = 'absolute';
+                taskBar.style.left = `${startOffset}px`;
+                taskBar.style.width = `${duration}px`;
+                
+                // Añadir información de la tarea
+                const taskContent = document.createElement('div');
+                taskContent.className = 'flex items-center justify-between h-full w-full px-2 overflow-hidden';
+                
+                const taskTitle = document.createElement('span');
+                taskTitle.className = 'whitespace-nowrap overflow-hidden text-ellipsis';
+                taskTitle.textContent = task.nombre;
+                
+                const taskProgress = document.createElement('span');
+                taskProgress.className = 'whitespace-nowrap text-xs';
+                taskProgress.textContent = `${task.progreso}%`;
+                
+                if (duration > 80) { // Solo mostrar contenido si hay espacio suficiente
+                    taskContent.appendChild(taskTitle);
+                    taskContent.appendChild(taskProgress);
+                    taskBar.appendChild(taskContent);
+                } else {
+                    taskBar.setAttribute('title', `${task.nombre} (${task.inicio} - ${task.fin}) - ${task.progreso}%`);
+                }
+                
+                ganttBar.appendChild(taskBar);
+                taskRow.appendChild(ganttBar);
+                
+                chartContainer.appendChild(taskRow);
+            });
+
+            // Botón para alternar entre vista completa y compacta
+            const toggleBtn = document.getElementById('toggleGanttFullview');
+            toggleBtn.addEventListener('click', function() {
+                const isExpanded = this.getAttribute('data-expanded') === 'true';
+                if (isExpanded) {
+                    ganttContainer.style.height = '300px';
+                    this.innerHTML = '<i class="fas fa-expand-alt mr-1"></i> Expandir vista';
+                    this.setAttribute('data-expanded', 'false');
+                } else {
+                    ganttContainer.style.height = `${Math.min(800, ganttData.length * 40 + 100)}px`;
+                    this.innerHTML = '<i class="fas fa-compress-alt mr-1"></i> Colapsar vista';
+                    this.setAttribute('data-expanded', 'true');
+                }
+            });
+            toggleBtn.setAttribute('data-expanded', 'false');
+        }
+        
+        // Función para inicializar el gráfico de la curva S
+        function initCurvaSChart() {
+            // Este gráfico es hipotético ya que no tenemos los datos históricos reales
+            // En una implementación real, necesitaríamos datos de PV, EV y AC a lo largo del tiempo
+            const curvaSCtx = document.getElementById('curvaSChart').getContext('2d');
+            
+            // Generar datos de ejemplo para la curva S
+            const totalBudget = {{ presupuesto_total }};
+            const currentEV = {{ valor_ganado }};
+            const currentAC = {{ costo_real }};
+            const currentPV = {{ valor_planeado }};            
+            const spi = {{ spi }}; // Define spi como variable JavaScript
+            const cpi = {{ cpi }}; // Define cpi como variable JavaScript
+
+            // Crear datos para la curva S (simplificados)
+            const now = new Date();
+            const startDate = new Date(now);
+            startDate.setMonth(startDate.getMonth() - 4); // 4 meses atrás
+            
+            const endDate = new Date(now);
+            endDate.setMonth(endDate.getMonth() + 2); // 2 meses adelante
+            
+            const labels = [];
+            const pvData = [];
+            const evData = [];
+            const acData = [];
+            
+            // Crear datos mes a mes
+            for (let d = new Date(startDate); d <= endDate; d.setMonth(d.getMonth() + 1)) {
+                labels.push(d.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' }));
+                
+                // Cálculos simulados
+                const totalDuration = endDate - startDate;
+                const elapsed = d - startDate;
+                const progress = Math.min(1, Math.max(0, elapsed / totalDuration));
+                
+                // Simulación de curvas de PV, EV y AC
+                const plannedValue = totalBudget * progress;
+                
+                // Para EV, simulamos una curva que puede estar por encima o por debajo del PV
+                // basándonos en SPI actual
+                const earnedValue = d <= now ? 
+                    plannedValue * Math.min(2, Math.max(0.5, spi - (Math.random() * 0.1) + (Math.random() * 0.1))) :
+                    null; // No hay EV para fechas futuras
+                
+                // Para AC, simulamos una curva que puede estar por encima o por debajo del EV
+                // basándonos en CPI actual
+                const actualCost = d <= now ?
+                    (earnedValue / Math.min(2, Math.max(0.5, cpi - (Math.random() * 0.1) + (Math.random() * 0.1)))) :
+                    null; // No hay AC para fechas futuras
+                
+                // Añadir datos a los arrays
+                pvData.push(parseFloat(plannedValue.toFixed(2)));
+                evData.push(earnedValue !== null ? parseFloat(earnedValue.toFixed(2)) : null);
+                acData.push(actualCost !== null ? parseFloat(actualCost.toFixed(2)) : null);
+            }
+
+            // Configuración de Curva S Chart
+            const curvaSChart = new Chart(curvaSCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Valor Planeado (PV)',
+                            data: pvData,
+                            borderColor: 'rgb(59, 130, 246)', // Azul
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Valor Ganado (EV)',
+                            data: evData,
+                            borderColor: 'rgb(16, 185, 129)', // Verde
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Costo Real (AC)',
+                            data: acData,
+                            borderColor: 'rgb(239, 68, 68)', // Rojo
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        title: {
+                            display: false
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#334155',
+                            bodyColor: '#334155',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            boxPadding: 6,
+                            usePointStyle: true,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('es-ES', { 
+                                            style: 'currency', 
+                                            currency: 'USD',
+                                            minimumFractionDigits: 2 
+                                        }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Valor ($)'
+                            },
+                            grid: {
+                                drawBorder: false,
+                                color: 'rgba(226, 232, 240, 0.5)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString('es-ES');
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Fecha'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+                    
+        }
+
+        // Función para inicializar la tabla de tareas con búsqueda y ordenación
+        function initTasksTable() {
+            const taskSearchInput = document.getElementById('taskSearchInput');
+            const tasksTable = document.getElementById('tasksTable');
+            const tableRows = tasksTable ? tasksTable.querySelectorAll('tbody tr') : [];
+            
+            // Implementar búsqueda en la tabla de tareas
+            if (taskSearchInput) {
+                taskSearchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    
+                    tableRows.forEach(row => {
+                        const taskName = row.querySelector('td:first-child .text-sm').textContent.toLowerCase();
+                        const taskDesc = row.querySelector('td:first-child .text-xs')?.textContent.toLowerCase() || '';
+                        
+                        if (taskName.includes(searchTerm) || taskDesc.includes(searchTerm)) {
+                            row.classList.remove('hidden');
+                        } else {
+                            row.classList.add('hidden');
+                        }
+                    });
+                });
+            }
+            
+            // Implementar ordenamiento de columnas
+            if (tasksTable) {
+                const headers = tasksTable.querySelectorAll('th[data-sort]');
+                headers.forEach(header => {
+                    header.addEventListener('click', function() {
+                        const sortBy = this.dataset.sort;
+                        const isAscending = this.classList.contains('sort-asc');
+                        
+                        // Quitar clases de ordenación de todos los encabezados
+                        headers.forEach(h => {
+                            h.classList.remove('sort-asc', 'sort-desc');
+                            h.querySelector('i').className = 'fas fa-sort ml-1';
+                        });
+                        
+                        // Establecer clase de ordenación para el encabezado actual
+                        if (isAscending) {
+                            this.classList.add('sort-desc');
+                            this.querySelector('i').className = 'fas fa-sort-down ml-1';
+                        } else {
+                            this.classList.add('sort-asc');
+                            this.querySelector('i').className = 'fas fa-sort-up ml-1';
+                        }
+                        
+                        // Ordenar filas
+                        const sortedRows = Array.from(tableRows).sort((a, b) => {
+                            let valueA, valueB;
+                            
+                            // Extraer valores para comparar según la columna
+                            switch (sortBy) {
+                                case 'name':
+                                    valueA = a.querySelector('td:nth-child(1) .text-sm').textContent;
+                                    valueB = b.querySelector('td:nth-child(1) .text-sm').textContent;
+                                    break;
+                                case 'status':
+                                    valueA = a.querySelector('td:nth-child(2) span').textContent;
+                                    valueB = b.querySelector('td:nth-child(2) span').textContent;
+                                    break;
+                                case 'dates':
+                                    valueA = new Date(a.querySelector('td:nth-child(3) div:first-child').textContent.trim());
+                                    valueB = new Date(b.querySelector('td:nth-child(3) div:first-child').textContent.trim());
+                                    break;
+                                case 'cost-est':
+                                    valueA = parseFloat(a.querySelector('td:nth-child(4)').textContent.replace(/[^\d.-]/g, '')) || 0;
+                                    valueB = parseFloat(b.querySelector('td:nth-child(4)').textContent.replace(/[^\d.-]/g, '')) || 0;
+                                    break;
+                                case 'cost-real':
+                                    valueA = parseFloat(a.querySelector('td:nth-child(5)').textContent.replace(/[^\d.-]/g, '')) || 0;
+                                    valueB = parseFloat(b.querySelector('td:nth-child(5)').textContent.replace(/[^\d.-]/g, '')) || 0;
+                                    break;
+                                case 'variance':
+                                    valueA = parseFloat(a.querySelector('td:nth-child(6) span').textContent.replace(/[^\d.-]/g, '')) || 0;
+                                    valueB = parseFloat(b.querySelector('td:nth-child(6) span').textContent.replace(/[^\d.-]/g, '')) || 0;
+                                    break;
+                                default:
+                                    valueA = a.textContent;
+                                    valueB = b.textContent;
+                            }
+                            
+                            // Comparar valores
+                            if (valueA === valueB) return 0;
+                            
+                            if (isAscending) {
+                                return valueA > valueB ? 1 : -1;
+                            } else {
+                                return valueA < valueB ? 1 : -1;
+                            }
+                        });
+                        
+                        // Reordenar filas en la tabla
+                        const tbody = tasksTable.querySelector('tbody');
+                        sortedRows.forEach(row => {
+                            tbody.appendChild(row);
+                        });
+                    });
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

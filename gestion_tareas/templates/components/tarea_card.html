@@ -1,21 +1,27 @@
 {% comment %} gestion_tareas/templates/components/tarea_card.html {% endcomment %}
 
-<div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-    <!-- Encabezado con estado y prioridad -->
+<div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 tarea-card border border-gray-100">
+    <!-- Barra superior con estado -->
+    <div class="{% if tarea.estado == 'Pendiente' %}bg-yellow-500
+               {% elif tarea.estado == 'En Progreso' %}bg-blue-500
+               {% elif tarea.estado == 'Completada' %}bg-green-500
+               {% else %}bg-gray-500{% endif %} h-1.5"></div>
+    
+    <!-- Encabezado con título y prioridad -->
     <div class="p-4 border-b border-gray-200">
         <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-800">{{ tarea.nombretarea }}</h3>
+            <h3 class="font-semibold text-gray-800 line-clamp-1 hover:line-clamp-none transition-all duration-300">{{ tarea.nombretarea }}</h3>
             <div class="flex space-x-2">
                 <!-- Estado -->
-                <span class="px-3 py-1 rounded-full text-sm font-semibold 
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium flex items-center
                     {% if tarea.estado == 'Pendiente' %}bg-yellow-100 text-yellow-800
                     {% elif tarea.estado == 'En Progreso' %}bg-blue-100 text-blue-800
                     {% elif tarea.estado == 'Completada' %}bg-green-100 text-green-800
                     {% else %}bg-gray-100 text-gray-800{% endif %}">
                     <i class="fas {% if tarea.estado == 'Pendiente' %}fa-clock
-                              {% elif tarea.estado == 'En Progreso' %}fa-spinner fa-spin
-                              {% elif tarea.estado == 'Completada' %}fa-check
-                              {% else %}fa-question{% endif %} mr-1"></i>
+                            {% elif tarea.estado == 'En Progreso' %}fa-spinner fa-spin
+                            {% elif tarea.estado == 'Completada' %}fa-check
+                            {% else %}fa-question{% endif %} mr-1.5"></i>
                     {{ tarea.estado }}
                 </span>
             </div>
@@ -23,45 +29,49 @@
     </div>
 
     <!-- Contenido principal -->
-    <div class="p-4 space-y-4">
+    <div class="p-4 space-y-3">
         <!-- Requerimiento asociado -->
         <div class="text-sm">
-            <span class="text-gray-600">Requerimiento:</span>
+            <p class="text-gray-600 mb-1">Requerimiento:</p>
             <a href="{% url 'gestion_proyectos:detalle_proyecto' tarea.idrequerimiento.idproyecto.idproyecto %}"
-               class="text-blue-600 hover:text-blue-800">
-                {{ tarea.idrequerimiento.descripcion|truncatechars:100 }}
+               class="text-blue-600 hover:text-blue-800 line-clamp-2 hover:line-clamp-none transition-all duration-300">
+                {{ tarea.idrequerimiento.descripcion|truncatechars:120 }}
             </a>
         </div>
 
         <!-- Fechas y duración -->
-        <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-                <p class="text-gray-600">Inicio:</p>
-                <p class="font-medium">{{ tarea.fechainicio|date:"d/m/Y" }}</p>
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-gray-50 p-2 rounded-md">
+                <p class="text-gray-500 text-xs mb-1">Inicio</p>
+                <p class="font-medium flex items-center text-gray-800">
+                    <i class="fas fa-calendar-day mr-1.5 text-blue-500"></i>
+                    {{ tarea.fechainicio|date:"d/m/Y" }}
+                </p>
             </div>
-            <div>
-                <p class="text-gray-600">Fin:</p>
-                <p class="font-medium">{{ tarea.fechafin|date:"d/m/Y" }}</p>
-            </div>
-            <div>
-                <p class="text-gray-600">Duración Estimada:</p>
-                <p class="font-medium">{{ tarea.duracionestimada }} horas</p>
-            </div>
-            <div>
-                <p class="text-gray-600">Duración Actual:</p>
-                <p class="font-medium">{{ tarea.duracionactual|default:"No iniciada" }}</p>
+            <div class="bg-gray-50 p-2 rounded-md">
+                <p class="text-gray-500 text-xs mb-1">Fin</p>
+                <p class="font-medium flex items-center text-gray-800">
+                    <i class="fas fa-calendar-check mr-1.5 text-blue-500"></i>
+                    {{ tarea.fechafin|date:"d/m/Y" }}
+                </p>
             </div>
         </div>
 
-        <!-- Costos -->
-        <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-                <p class="text-gray-600">Costo Estimado:</p>
-                <p class="font-medium">${{ tarea.costoestimado|default:"0.00" }}</p>
+        <!-- Duración -->
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-gray-50 p-2 rounded-md">
+                <p class="text-gray-500 text-xs mb-1">Estimado</p>
+                <p class="font-medium flex items-center text-gray-800">
+                    <i class="fas fa-clock mr-1.5 text-blue-500"></i>
+                    {{ tarea.duracionestimada }} h
+                </p>
             </div>
-            <div>
-                <p class="text-gray-600">Costo Actual:</p>
-                <p class="font-medium">${{ tarea.costoactual|default:"0.00" }}</p>
+            <div class="bg-gray-50 p-2 rounded-md">
+                <p class="text-gray-500 text-xs mb-1">Actual</p>
+                <p class="font-medium flex items-center text-gray-800">
+                    <i class="fas fa-stopwatch mr-1.5 text-blue-500"></i>
+                    {{ tarea.duracionactual|default:"--" }} h
+                </p>
             </div>
         </div>
 
@@ -69,46 +79,85 @@
         {% if tarea.duracionactual and tarea.duracionestimada %}
             {% widthratio tarea.duracionactual tarea.duracionestimada 100 as progreso %}
             <div class="relative pt-1">
-                <div class="flex mb-2 items-center justify-between">
-                    <div class="text-xs font-semibold inline-block text-blue-600">
-                        Progreso: {{ progreso }}%
+                <p class="text-xs text-gray-500 mb-1">Progreso</p>
+                <div class="overflow-hidden h-2 mb-1 text-xs flex rounded bg-gray-200">
+                    <div style="width:{{ progreso }}%"
+                         class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center
+                         {% if progreso < 30 %}bg-red-500
+                         {% elif progreso < 70 %}bg-yellow-500
+                         {% else %}bg-green-500{% endif %} transition-all duration-500">
                     </div>
                 </div>
-                <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-100">
-                    <div style="width:{{ progreso }}%"
-                         class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500">
-                    </div>
+                <div class="flex justify-between text-xs text-gray-600">
+                    <span>{{ progreso }}%</span>
+                    <span>
+                        {% if progreso > 100 %}Excedido
+                        {% elif progreso == 100 %}Completado
+                        {% else %}En proceso{% endif %}
+                    </span>
                 </div>
             </div>
         {% endif %}
+
+        <!-- Prioridad -->
+        <div class="text-sm">
+            <p class="text-gray-500 text-xs mb-1">Prioridad</p>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+                {% if tarea.prioridad == 1 %}bg-green-100 text-green-800
+                {% elif tarea.prioridad == 2 %}bg-yellow-100 text-yellow-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                {% if tarea.prioridad == 1 %}
+                    <i class="fas fa-arrow-down mr-1.5"></i>Baja
+                {% elif tarea.prioridad == 2 %}
+                    <i class="fas fa-minus mr-1.5"></i>Media
+                {% else %}
+                    <i class="fas fa-arrow-up mr-1.5"></i>Alta
+                {% endif %}
+            </span>
+        </div>
     </div>
+
     <!-- Pie con acciones -->
-    <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
-        <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}"
-           class="text-blue-600 hover:text-blue-800" title="Ver detalles">
-            <i class="fas fa-eye"></i>
-        </a>
-        <a href="{% url 'gestion_tareas:editar_tarea' tarea.idtarea %}"
-           class="text-yellow-600 hover:text-yellow-800" title="Editar">
-            <i class="fas fa-edit"></i>
-        </a>
-        {% if tarea.estado != 'Completada' %}
-            <form method="POST" action="{% url 'gestion_tareas:tarea_marcar_completada' tarea.idtarea %}"
-                  class="inline">
+    <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+        <div class="text-xs text-gray-500">ID: {{ tarea.idtarea }}</div>
+        <div class="flex space-x-2">
+            <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}"
+               class="text-blue-600 hover:text-white hover:bg-blue-500 p-1.5 rounded-full transition-colors" 
+               title="Ver detalles">
+                <i class="fas fa-eye"></i>
+            </a>
+            <a href="{% url 'gestionRecursos:asignar_recurso' %}?proyecto={{ tarea.idrequerimiento.idproyecto.idproyecto }}&req={{ tarea.idrequerimiento.idrequerimiento }}&tarea={{ tarea.idtarea }}"
+                class="text-purple-600 hover:text-white hover:bg-purple-500 p-1.5 rounded-full transition-colors" 
+                title="Asignar recurso">
+                <i class="fas fa-user-plus"></i>
+            </a>
+            <a href="{% url 'gestion_tareas:editar_tarea' tarea.idtarea %}"
+               class="text-yellow-600 hover:text-white hover:bg-yellow-500 p-1.5 rounded-full transition-colors" 
+               title="Editar">
+                <i class="fas fa-edit"></i>
+            </a>
+            {% if tarea.estado != 'Completada' %}
+                <form method="POST" action="{% url 'gestion_tareas:tarea_marcar_completada' tarea.idtarea %}"
+                      class="inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="text-green-600 hover:text-white hover:bg-green-500 p-1.5 rounded-full transition-colors" 
+                            title="Marcar como completada">
+                        <i class="fas fa-check-circle"></i>
+                    </button>
+                </form>
+            {% endif %}
+            <!-- Botón Eliminar -->
+            <form method="POST" action="{% url 'gestion_tareas:eliminar_tarea' tarea.idtarea %}"
+                  class="inline"
+                  onsubmit="return confirm('¿Está seguro de eliminar esta tarea?');">
                 {% csrf_token %}
-                <button type="submit" class="text-green-600 hover:text-green-800" title="Marcar como completada">
-                    <i class="fas fa-check-circle"></i>
+                <button type="submit" 
+                        class="text-red-600 hover:text-white hover:bg-red-500 p-1.5 rounded-full transition-colors" 
+                        title="Eliminar tarea">
+                    <i class="fas fa-trash"></i>
                 </button>
             </form>
-        {% endif %}
-        <!-- Botón Eliminar -->
-        <form method="POST" action="{% url 'gestion_tareas:eliminar_tarea' tarea.idtarea %}"
-              class="inline"
-              onsubmit="return confirm('¿Está seguro de eliminar esta tarea?');">
-            {% csrf_token %}
-            <button type="submit" class="text-red-600 hover:text-red-800" title="Eliminar tarea">
-                <i class="fas fa-trash"></i>
-            </button>
-        </form>
+        </div>
     </div>
 </div>

@@ -128,7 +128,7 @@ def index(request):
 
     except Exception as e:
         messages.error(request, f"Error al generar reporte: {str(e)}")
-        return redirect("dashboard:panel_control")
+        return redirect("dashboard:index")
 
 
 def parse_date(date_str, default=None):
@@ -1028,7 +1028,7 @@ def exportar_pdf(request):
 
         # Aplicar filtro de proyecto
         proyecto_obj = None
-        if proyecto_id and proyecto_id != "":
+        if proyecto_id and proyecto_id != "" and proyecto_id != "None":
             try:
                 proyecto_obj = Proyecto.objects.get(idproyecto=proyecto_id)
                 tareas = tareas.filter(idrequerimiento__idproyecto=proyecto_obj)

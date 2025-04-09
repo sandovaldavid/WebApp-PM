@@ -4,12 +4,12 @@
 
 {% block title_body %}
     <div class="flex items-center justify-between">
-        <div class="flex items-center">
+        <div class="flex items-center mr-3">
             <i class="fas fa-tasks text-blue-500 mr-2"></i>
             <span>Lista de Tareas</span>
         </div>
         <a href="{% url 'gestion_tareas:crear_tarea' %}"
-           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+           class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center shadow-md">
             <i class="fas fa-plus mr-2"></i>
             Nueva Tarea
         </a>
@@ -17,95 +17,374 @@
 {% endblock %}
 
 {% block body %}
-    <div class="p-8">
+    <div class="p-6 lg:p-8">
         <!-- Panel de Filtros -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h3 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-filter text-gray-600 mr-2"></i>
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 transition-all duration-300 hover:shadow-xl border border-gray-100">
+            <h3 class="text-lg font-semibold mb-6 flex items-center text-gray-700">
+                <i class="fas fa-filter text-blue-500 mr-2"></i>
                 Filtros
             </h3>
-            <form method="GET" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <!-- Búsqueda -->
-                <div>
-                    <label for="busqueda" class="block text-sm font-medium text-gray-700 mb-2">Búsqueda</label>
-                    <input type="text" name="busqueda" id="busqueda"
-                           value="{{ filtros.busqueda }}"
-                           placeholder="Buscar tarea..."
-                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <form method="GET" class="space-y-6">
+                <!-- Primera Fila: Búsqueda y Dropdowns -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
+                    <!-- Búsqueda -->
+                    <div>
+                        <label for="busqueda" class="block text-sm font-medium text-gray-700 mb-2">Búsqueda</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" name="busqueda" id="busqueda"
+                                value="{{ filtros.busqueda|default:'' }}"
+                                placeholder="Buscar tarea..."
+                                class="w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <!-- Proyecto (Nuevo filtro) -->
+                    <div>
+                        <label for="proyecto" class="block text-sm font-medium text-gray-700 mb-2">Proyecto</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-project-diagram text-gray-400"></i>
+                            </div>
+                            <select name="proyecto" id="proyecto"
+                                    class="w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="">Todos los proyectos</option>
+                                {% for proyecto in proyectos %}
+                                    <option value="{{ proyecto.idproyecto }}" {% if filtros.proyecto == proyecto.idproyecto|stringformat:"i" %}selected{% endif %}>
+                                        {{ proyecto.nombreproyecto }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Requerimiento (Nuevo filtro) -->
+                    <div>
+                        <label for="requerimiento" class="block text-sm font-medium text-gray-700 mb-2">Requerimiento</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-clipboard-list text-gray-400"></i>
+                            </div>
+                            <select name="requerimiento" id="requerimiento"
+                                    class="w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="">Todos los requerimientos</option>
+                                {% for requerimiento in requerimientos %}
+                                    <option value="{{ requerimiento.idrequerimiento }}" 
+                                        {% if filtros.requerimiento == requerimiento.idrequerimiento|stringformat:"i" %}selected{% endif %}
+                                        data-proyecto="{{ requerimiento.idproyecto.idproyecto }}">
+                                        {{ requerimiento.descripcion|truncatechars:50 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Estado -->
+                    <div>
+                        <label for="estado" class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-flag-checkered text-gray-400"></i>
+                            </div>
+                            <select name="estado" id="estado"
+                                    class="w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="">Todos los estados</option>
+                                {% for estado in estados %}
+                                    <option value="{{ estado }}" {% if filtros.estado == estado %}selected{% endif %}>
+                                        {{ estado }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Prioridad -->
+                    <div>
+                        <label for="prioridad" class="block text-sm font-medium text-gray-700 mb-2">Prioridad</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-exclamation-circle text-gray-400"></i>
+                            </div>
+                            <select name="prioridad" id="prioridad"
+                                    class="w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="">Todas</option>
+                                {% for prioridad in prioridades %}
+                                    <option value="{{ prioridad }}" {% if filtros.prioridad == prioridad %}selected{% endif %}>
+                                        {% if prioridad == 1 %}Baja
+                                        {% elif prioridad == 2 %}Media
+                                        {% else %}Alta{% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Estado -->
-                <div>
-                    <label for="estado" class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-                    <select name="estado" id="estado"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Todos</option>
-                        {% for estado in estados %}
-                            <option value="{{ estado }}" {% if filtros.estado == estado %}selected{% endif %}>
-                                {{ estado }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+                <!-- Segunda Fila: Fechas y Botones -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 items-end">
+                    <!-- Fecha Desde -->
+                    <div>
+                        <label for="fecha_desde" class="block text-sm font-medium text-gray-700 mb-2">Fecha Desde</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-calendar-alt text-gray-400"></i>
+                            </div>
+                            <input type="date" name="fecha_desde" id="fecha_desde"
+                                value="{{ filtros.fecha_desde|default:'' }}"
+                                class="w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
 
-                <!-- Prioridad -->
-                <div>
-                    <label for="prioridad" class="block text-sm font-medium text-gray-700 mb-2">Prioridad</label>
-                    <select name="prioridad" id="prioridad"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Todas</option>
-                        {% for prioridad in prioridades %}
-                            <option value="{{ prioridad }}" {% if filtros.prioridad == prioridad %}selected{% endif %}>
-                                {% if prioridad == 1 %}Baja
-                                {% elif prioridad == 2 %}Media
-                                {% else %}Alta{% endif %}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
+                    <!-- Fecha Hasta -->
+                    <div>
+                        <label for="fecha_hasta" class="block text-sm font-medium text-gray-700 mb-2">Fecha Hasta</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-calendar-check text-gray-400"></i>
+                            </div>
+                            <input type="date" name="fecha_hasta" id="fecha_hasta"
+                                value="{{ filtros.fecha_hasta|default:'' }}"
+                                class="w-full pl-10 pr-3 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
 
-                <!-- Fecha Desde -->
-                <div>
-                    <label for="fecha_desde" class="block text-sm font-medium text-gray-700 mb-2">Fecha Desde</label>
-                    <input type="date" name="fecha_desde" id="fecha_desde"
-                           value="{{ filtros.fecha_desde }}"
-                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                </div>
-
-                <!-- Fecha Hasta -->
-                <div>
-                    <label for="fecha_hasta" class="block text-sm font-medium text-gray-700 mb-2">Fecha Hasta</label>
-                    <input type="date" name="fecha_hasta" id="fecha_hasta"
-                           value="{{ filtros.fecha_hasta }}"
-                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                </div>
-
-                <!-- Botones -->
-                <div class="col-span-full flex justify-end space-x-4 mt-4">
-                    <a href="{% url 'gestion_tareas:lista_tareas' %}"
-                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
-                        <i class="fas fa-undo mr-2"></i>
-                        Limpiar Filtros
-                    </a>
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
-                        <i class="fas fa-search mr-2"></i>
-                        Aplicar Filtros
-                    </button>
+                    <!-- Botones -->
+                    <div class="lg:col-span-2 flex justify-end space-x-4">
+                        <a href="{% url 'gestion_tareas:lista_tareas' %}"
+                        class="px-5 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center shadow-sm hover:shadow-md transform hover:-translate-y-0.5 duration-200">
+                            <i class="fas fa-undo mr-2"></i>
+                            Limpiar Filtros
+                        </a>
+                        <button type="submit"
+                                class="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200">
+                            <i class="fas fa-search mr-2"></i>
+                            Aplicar Filtros
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
 
-        <!-- Lista de Tareas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for tarea in tareas %}
-                {% include "components/tarea_card.html" with tarea=tarea %}
-            {% empty %}
-                <div class="col-span-full bg-gray-50 p-8 rounded-lg text-center">
-                    <i class="fas fa-tasks text-gray-400 text-4xl mb-4"></i>
-                    <p class="text-gray-500">No se encontraron tareas</p>
+        <!-- Lista de Tareas con Indicador de Resultados -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex flex-wrap justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold text-gray-700 flex items-center mb-3 md:mb-0">
+                    <i class="fas fa-list-ul text-blue-500 mr-2"></i>
+                    Resultados
+                    <span class="ml-2 text-sm font-normal text-gray-500">
+                        ({{ tareas|length }} tareas encontradas)
+                    </span>
+                </h3>
+                <div class="flex space-x-2">
+                    <!-- Toggle para cambiar la vista de las tareas -->
+                    <button id="view-grid" class="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-all">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button id="view-list" class="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">
+                        <i class="fas fa-th-list"></i>
+                    </button>
                 </div>
-            {% endfor %}
+            </div>
+            
+            <!-- Grid de tarjetas de tareas -->
+            <div id="tasks-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+                {% for tarea in tareas %}
+                    {% include "components/tarea_card.html" with tarea=tarea %}
+                {% empty %}
+                    <div class="col-span-full bg-gray-50 p-10 rounded-lg text-center">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-tasks text-gray-300 text-5xl mb-4"></i>
+                            <p class="text-gray-500 font-medium text-lg">No se encontraron tareas</p>
+                            <p class="text-gray-400 mt-2">Prueba con diferentes filtros o crea una nueva tarea</p>
+                            <a href="{% url 'gestion_tareas:crear_tarea' %}"
+                            class="mt-6 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all flex items-center shadow-md">
+                                <i class="fas fa-plus mr-2"></i>
+                                Crear Nueva Tarea
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Lista de tareas (oculta por defecto) -->
+            <div id="tasks-list" class="hidden space-y-4 animate-fade-in">
+                {% for tarea in tareas %}
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors flex flex-wrap justify-between items-center shadow-sm hover:shadow-md duration-200">
+                        <div class="w-full sm:w-auto mb-3 sm:mb-0">
+                            <h3 class="font-medium text-gray-800">{{ tarea.nombretarea }}</h3>
+                            <div class="text-sm text-gray-600 mt-1">
+                                <span>{{ tarea.idrequerimiento.descripcion|truncatechars:80 }}</span>
+                                <span class="mx-2 hidden md:inline">•</span>
+                                <span class="block md:inline mt-1 md:mt-0">{{ tarea.fechafin|date:"d/m/Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <!-- Estado -->
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold 
+                                {% if tarea.estado == 'Pendiente' %}bg-yellow-100 text-yellow-800
+                                {% elif tarea.estado == 'En Progreso' %}bg-blue-100 text-blue-800
+                                {% elif tarea.estado == 'Completada' %}bg-green-100 text-green-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ tarea.estado }}
+                            </span>
+                            <a href="{% url 'gestion_tareas:detalle_tarea' tarea.idtarea %}"
+                            class="text-blue-600 hover:text-blue-800 transition-colors ml-2 p-1.5 hover:bg-blue-100 rounded-full">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="bg-gray-50 p-10 rounded-lg text-center">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-tasks text-gray-300 text-5xl mb-4"></i>
+                            <p class="text-gray-500 font-medium text-lg">No se encontraron tareas</p>
+                            <p class="text-gray-400 mt-2">Prueba con diferentes filtros o crea una nueva tarea</p>
+                            <a href="{% url 'gestion_tareas:crear_tarea' %}"
+                            class="mt-6 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all flex items-center shadow-md">
+                                <i class="fas fa-plus mr-2"></i>
+                                Crear Nueva Tarea
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const proyectoSelect = document.getElementById('proyecto');
+            const requerimientoSelect = document.getElementById('requerimiento');
+            const viewGridBtn = document.getElementById('view-grid');
+            const viewListBtn = document.getElementById('view-list');
+            const tasksGrid = document.getElementById('tasks-grid');
+            const tasksList = document.getElementById('tasks-list');
+
+            // Obtener parámetros de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const proyectoURL = urlParams.get('proyecto');
+            const reqURL = urlParams.get('req');
+    
+
+            // Función para filtrar requerimientos según el proyecto
+            function filtrarRequerimientos() {
+                const proyectoId = proyectoSelect.value;
+                const todasLasOpciones = Array.from(requerimientoSelect.querySelectorAll('option'));
+                
+                // Si no hay proyecto seleccionado, mostrar todos los requerimientos
+                if (!proyectoId) {
+                    todasLasOpciones.forEach(option => {
+                        if (option.value !== '') {
+                            option.style.display = '';
+                        }
+                    });
+                    return;
+                }
+                
+                // Mostrar solo los requerimientos del proyecto seleccionado
+                let hayOpcionVisible = false;
+                todasLasOpciones.forEach(option => {
+                    if (option.value === '') {
+                        // Mantener la opción "Todos" siempre visible
+                        option.style.display = '';
+                        return;
+                    }
+                    
+                    const proyectoAsociado = option.getAttribute('data-proyecto');
+                    if (proyectoAsociado === proyectoId) {
+                        option.style.display = '';
+                        hayOpcionVisible = true;
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+                
+                // Si hay un requerimiento seleccionado que ya no es visible, seleccionar "Todos"
+                const requerimientoSeleccionado = requerimientoSelect.options[requerimientoSelect.selectedIndex];
+                if (requerimientoSeleccionado && 
+                    requerimientoSeleccionado.value !== '' &&
+                    requerimientoSeleccionado.style.display === 'none') {
+                    requerimientoSelect.value = '';
+                }
+
+                 // Si hay un parámetro req en la URL, seleccionarlo después de filtrar
+                if (reqURL && proyectoId === proyectoURL) {
+                    requerimientoSelect.value = reqURL;
+                }
+            }
+            
+            // Función para cambiar entre vistas de grid y lista
+            function toggleView(viewType) {
+                if (viewType === 'grid') {
+                    viewGridBtn.classList.add('bg-blue-100', 'text-blue-600');
+                    viewGridBtn.classList.remove('text-gray-600');
+                    viewListBtn.classList.remove('bg-blue-100', 'text-blue-600');
+                    viewListBtn.classList.add('text-gray-600');
+                    
+                    tasksGrid.classList.remove('hidden');
+                    tasksList.classList.add('hidden');
+                    
+                    // Guardar preferencia en localStorage
+                    localStorage.setItem('tasksViewPreference', 'grid');
+                } else {
+                    viewListBtn.classList.add('bg-blue-100', 'text-blue-600');
+                    viewListBtn.classList.remove('text-gray-600');
+                    viewGridBtn.classList.remove('bg-blue-100', 'text-blue-600');
+                    viewGridBtn.classList.add('text-gray-600');
+                    
+                    tasksList.classList.remove('hidden');
+                    tasksGrid.classList.add('hidden');
+                    
+                    // Guardar preferencia en localStorage
+                    localStorage.setItem('tasksViewPreference', 'list');
+                }
+            }
+            
+            // Ejecutar al cargar y cuando el proyecto cambia
+            if (proyectoSelect && requerimientoSelect) {
+                // Preseleccionar proyecto de la URL si existe
+                if (proyectoURL) {
+                    proyectoSelect.value = proyectoURL;
+                }
+                proyectoSelect.addEventListener('change', filtrarRequerimientos);
+                
+                // Filtrar al cargar la página
+                setTimeout(filtrarRequerimientos, 100); // Pequeño retraso para asegurarse de que el DOM esté listo
+            }
+            
+            // Configurar los botones de cambio de vista
+            viewGridBtn.addEventListener('click', () => toggleView('grid'));
+            viewListBtn.addEventListener('click', () => toggleView('list'));
+            
+            // Cargar preferencia guardada
+            const savedViewPreference = localStorage.getItem('tasksViewPreference');
+            if (savedViewPreference === 'list') {
+                toggleView('list');
+            }
+        });
+    </script>
+
+    <style>
+        /* Animaciones y efectos especiales */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        /* Mejoras para las tarjetas de tareas en componente tarea_card.html */
+        .tarea-card {
+            transition: all 0.3s ease;
+        }
+        
+        .tarea-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
 {% endblock %}

@@ -5,89 +5,210 @@
 
 {% block style %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/htmx.org"></script>
+    <style>
+        .filter-button {
+            transition: all 0.3s ease;
+        }
+        .filter-button:hover {
+            transform: translateY(-2px);
+        }
+        .dashboard-card {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .dashboard-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right bottom, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            pointer-events: none;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .rotate-icon {
+            transition: transform 0.3s ease;
+        }
+        .rotate-icon:hover {
+            transform: rotate(90deg);
+        }
+        .custom-chart-tooltip {
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #1F2937;
+        }
+        /* Pulso animado para indicadores de actividad */
+        .pulse-animation {
+            position: relative;
+        }
+        .pulse-animation::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            border-radius: inherit;
+            animation: pulse 2s infinite;
+            z-index: -1;
+        }
+
+        /* Estilos para el indicador de carga */
+        .htmx-indicator {
+            display: none; /* Oculto por defecto - no ocupa espacio */
+        }
+        .htmx-request .htmx-indicator, 
+        .htmx-request.htmx-indicator {
+            display: flex; /* Vuelve a ser flex cuando está activo */
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block title_body %}
-<div class="flex flex-col sm:flex-row w-full justify-between items-start sm:items-center gap-4 mb-6">
-    <div class="flex items-center">
-        <div class="p-2.5 bg-blue-100 rounded-full mr-3 shadow-sm">
-            <i class="fas fa-tasks text-blue-600 text-xl"></i>
+<div class="flex justify-between items-center w-full flex-wrap">
+    <div class="flex items-center mr-3">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-2 rounded-lg text-white mr-3 shadow-md pulse-animation">
+            <i class="fas fa-tasks text-write-600 text-xl"></i>
         </div>
         <div>
-            <h1 class="text-xl font-bold text-gray-800">Panel de Gestión de Tareas</h1>
-            <p class="text-sm text-gray-500 hidden sm:block">Visualiza y administra todas tus tareas en un solo lugar</p>
+            <h1 class="text-xl font-bold text-write-800">Panel de Gestión</h1>
+            <p class="text-sm text-write-100 hidden md:block">Visualiza y administra todas tus tareas</p>
         </div>
     </div>
-    <a href="{% url 'gestion_tareas:crear_tarea' %}" 
-       class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center transition-all transform hover:scale-105 shadow-md">
-        <i class="fas fa-plus mr-2"></i>
-        <span>Nueva Tarea</span>
-    </a>
+    
+    <div class="flex flex-wrap gap-2 mt-2 sm:mt-0">
+        <!-- Botón de filtros avanzados -->
+        <a href="{% url 'gestion_tareas:lista_tareas' %}" 
+           class="filter-button bg-gradient-to-r from-purple-500 to-purple-700 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-300 shadow-md flex items-center">
+            <i class="fas fa-sliders-h mr-2"></i>
+            <span class="text-sm lg:text-base">Filtros avanzados</span>
+        </a>
+
+        <!-- Botón de crear tarea -->
+        <a href="{% url 'gestion_tareas:crear_tarea' %}" 
+           class="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-800 transition-all duration-300 shadow-md flex items-center">
+            <i class="fas fa-plus mr-2 rotate-icon"></i>
+            <span class="text-sm lg:text-base">Nueva Tarea</span>
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block body %}
-    <div class="p-8 space-y-8">
+    <div class="p-4 md:p-8 space-y-6 md:space-y-8 animate-fade-in">
         <!-- Resumen Estadístico -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 animate-fade-in" style="animation-delay: 0.1s;">
             <!-- Total Tareas -->
-            <div class="bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="dashboard-card bg-gradient-to-br from-blue-50 to-blue-100 p-4 md:p-6 rounded-xl shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-blue-600">Total Tareas</p>
-                        <h3 class="text-2xl font-bold text-blue-900">{{ estadisticas.total }}</h3>
+                        <p class="text-xs md:text-sm text-blue-600">Total Tareas</p>
+                        <h3 class="text-xl md:text-2xl font-bold text-blue-900">{{ estadisticas.total }}</h3>
                     </div>
-                    <div class="bg-blue-100 p-3 rounded-full">
-                        <i class="fas fa-tasks text-blue-500 text-2xl"></i>
+                    <div class="bg-blue-200 p-2 md:p-3 rounded-full">
+                        <i class="fas fa-tasks text-blue-500 text-lg md:text-2xl"></i>
                     </div>
+                </div>
+                <div class="mt-2 text-xs text-blue-600 flex items-center">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    <span>Todas las tareas registradas</span>
                 </div>
             </div>
 
             <!-- Pendientes -->
-            <div class="bg-yellow-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="dashboard-card bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 md:p-6 rounded-xl shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-yellow-600">Pendientes</p>
-                        <h3 class="text-2xl font-bold text-yellow-900">{{ estadisticas.pendientes }}</h3>
+                        <p class="text-xs md:text-sm text-yellow-600">Pendientes</p>
+                        <h3 class="text-xl md:text-2xl font-bold text-yellow-900">{{ estadisticas.pendientes }}</h3>
                     </div>
-                    <div class="bg-yellow-100 p-3 rounded-full">
-                        <i class="fas fa-clock text-yellow-500 text-2xl"></i>
+                    <div class="bg-yellow-200 p-2 md:p-3 rounded-full">
+                        <i class="fas fa-clock text-yellow-500 text-lg md:text-2xl"></i>
                     </div>
+                </div>
+                <div class="mt-2 text-xs text-yellow-600 flex items-center">
+                    <i class="fas fa-exclamation-circle mr-1"></i>
+                    <span>Tareas por iniciar</span>
                 </div>
             </div>
 
             <!-- En Progreso -->
-            <div class="bg-green-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="dashboard-card bg-gradient-to-br from-green-50 to-green-100 p-4 md:p-6 rounded-xl shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-green-600">En Progreso</p>
-                        <h3 class="text-2xl font-bold text-green-900">{{ estadisticas.en_progreso }}</h3>
+                        <p class="text-xs md:text-sm text-green-600">En Progreso</p>
+                        <h3 class="text-xl md:text-2xl font-bold text-green-900">{{ estadisticas.en_progreso }}</h3>
                     </div>
-                    <div class="bg-green-100 p-3 rounded-full">
-                        <i class="fas fa-spinner fa-spin text-green-500 text-2xl"></i>
+                    <div class="bg-green-200 p-2 md:p-3 rounded-full pulse-animation">
+                        <i class="fas fa-spinner fa-spin text-green-500 text-lg md:text-2xl"></i>
                     </div>
+                </div>
+                <div class="mt-2 text-xs text-green-600 flex items-center">
+                    <i class="fas fa-play-circle mr-1"></i>
+                    <span>Tareas activas</span>
                 </div>
             </div>
 
             <!-- Completadas -->
-            <div class="bg-purple-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="dashboard-card bg-gradient-to-br from-purple-50 to-purple-100 p-4 md:p-6 rounded-xl shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-purple-600">Completadas</p>
-                        <h3 class="text-2xl font-bold text-purple-900">{{ estadisticas.completadas }}</h3>
+                        <p class="text-xs md:text-sm text-purple-600">Completadas</p>
+                        <h3 class="text-xl md:text-2xl font-bold text-purple-900">{{ estadisticas.completadas }}</h3>
                     </div>
-                    <div class="bg-purple-100 p-3 rounded-full">
-                        <i class="fas fa-check-circle text-purple-500 text-2xl"></i>
+                    <div class="bg-purple-200 p-2 md:p-3 rounded-full">
+                        <i class="fas fa-check-circle text-purple-500 text-lg md:text-2xl"></i>
                     </div>
+                </div>
+                <div class="mt-2 text-xs text-purple-600 flex items-center">
+                    <i class="fas fa-trophy mr-1"></i>
+                    <span>Tareas finalizadas</span>
                 </div>
             </div>
         </div>
 
         <!-- Gráficos -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 animate-slide-up" style="animation-delay: 0.3s;">
             <!-- Estado de Tareas (Donut) -->
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-lg font-semibold mb-4 flex items-center">
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                <h3 class="text-base md:text-lg font-semibold mb-4 flex items-center">
                     <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
                     Estado de Tareas
                 </h3>
@@ -97,8 +218,8 @@
             </div>
 
             <!-- Prioridades (Barras) -->
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-lg font-semibold mb-4 flex items-center">
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                <h3 class="text-base md:text-lg font-semibold mb-4 flex items-center">
                     <i class="fas fa-chart-bar text-green-500 mr-2"></i>
                     Distribución por Prioridad
                 </h3>
@@ -108,8 +229,8 @@
             </div>
 
             <!-- Tendencia de Tareas (Líneas) -->
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-lg font-semibold mb-4 flex items-center">
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                <h3 class="text-base md:text-lg font-semibold mb-4 flex items-center">
                     <i class="fas fa-chart-line text-purple-500 mr-2"></i>
                     Tendencia de Completitud
                 </h3>
@@ -119,8 +240,8 @@
             </div>
 
             <!-- Tiempo Promedio (Barras Horizontales) -->
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-lg font-semibold mb-4 flex items-center">
+            <div class="bg-white p-4 md:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                <h3 class="text-base md:text-lg font-semibold mb-4 flex items-center">
                     <i class="fas fa-clock text-yellow-500 mr-2"></i>
                     Tiempo Promedio por Estado
                 </h3>
@@ -130,12 +251,18 @@
             </div>
         </div>
 
-        <!-- Panel de Tareas -->
-        {% include "components/panel_tareas.html" %}
+        <!-- Panel de Tareas Mejorado -->
+        <div class="animate-fade-in" style="animation-delay: 0.5s;">
+            {% include "components/panel_tareas.html" %}
+        </div>
     </div>
 
     {% block extra_js %}
         <script>
+            // Improving chart styles and interactivity
+            Chart.defaults.font.family = "'Inter', 'Helvetica', 'Arial', sans-serif";
+            Chart.defaults.color = "#64748b";
+
             document.addEventListener('DOMContentLoaded', function () {
                 // Gráfico de Estado de Tareas (Donut)
                 const estadoCtx = document.getElementById('estadoTareasChart').getContext('2d');
@@ -145,8 +272,12 @@
                         labels: {{ datos_estado.labels|safe }},
                         datasets: [{
                             data: {{ datos_estado.data|safe }},
-                            backgroundColor: ['#FCD34D', '#60A5FA', '#34D399'],
-                            borderWidth: 1
+                            backgroundColor: ['#FBBF24', '#3B82F6', '#10B981'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff',
+                            hoverBorderColor: '#ffffff',
+                            hoverBorderWidth: 3,
+                            hoverOffset: 10
                         }]
                     },
                     options: {
@@ -154,9 +285,35 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                position: 'bottom'
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    boxWidth: 12,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                titleColor: '#1e293b',
+                                bodyColor: '#334155',
+                                bodyFont: {
+                                    size: 14
+                                },
+                                padding: 12,
+                                boxPadding: 6,
+                                usePointStyle: true,
+                                borderColor: 'rgba(226, 232, 240, 1)',
+                                borderWidth: 1
                             }
-                        }
+                        },
+                        animation: {
+                            animateScale: true,
+                            animateRotate: true,
+                            duration: 2000,
+                            easing: 'easeOutQuart'
+                        },
+                        cutout: '70%'
                     }
                 });
 
@@ -167,10 +324,13 @@
                     data: {
                         labels: {{ datos_prioridad.labels|safe }},
                         datasets: [{
-                            label: 'Tareas por Prioridad',
+                            label: 'Tareas',
                             data: {{ datos_prioridad.data|safe }},
-                            backgroundColor: ['#EF4444', '#F59E0B', '#10B981'],
-                            borderWidth: 1
+                            backgroundColor: ['rgba(34, 197, 94, 0.8)', 'rgba(250, 204, 21, 0.8)', 'rgba(239, 68, 68, 0.8)'],
+                            borderWidth: 0,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            hoverBackgroundColor: ['rgba(34, 197, 94, 1)', 'rgba(250, 204, 21, 1)', 'rgba(239, 68, 68, 1)']
                         }]
                     },
                     options: {
@@ -179,10 +339,52 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
+                                grid: {
+                                    display: true,
+                                    drawBorder: false,
+                                    color: 'rgba(226, 232, 240, 0.6)'
+                                },
                                 ticks: {
-                                    stepSize: 1
+                                    stepSize: 1,
+                                    padding: 10
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    padding: 10
                                 }
                             }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                titleColor: '#1e293b',
+                                bodyColor: '#334155',
+                                padding: 12,
+                                usePointStyle: true,
+                                borderColor: 'rgba(226, 232, 240, 1)',
+                                borderWidth: 1,
+                                callbacks: {
+                                    title: function(context) {
+                                        return `Prioridad: ${context[0].label}`;
+                                    },
+                                    label: function(context) {
+                                        return `Total: ${context.raw} tareas`;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeOutQuart',
+                            delay: (context) => context.dataIndex * 300
                         }
                     }
                 });
@@ -197,16 +399,26 @@
                             label: 'Tareas Completadas',
                             data: {{ datos_tendencia.completadas|default:'[10, 15, 8, 12, 20, 15]'|safe }},
                             borderColor: '#34D399',
+                            backgroundColor: 'rgba(52, 211, 153, 0.2)',
                             tension: 0.4,
-                            fill: false
+                            fill: true,
+                            pointBackgroundColor: '#34D399',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
                         },
-                            {
-                                label: 'Tareas Creadas',
-                                data: {{ datos_tendencia.creadas|default:'[8, 12, 15, 10, 18, 20]'|safe }},
-                                borderColor: '#60A5FA',
-                                tension: 0.4,
-                                fill: false
-                            }]
+                        {
+                            label: 'Tareas Creadas',
+                            data: {{ datos_tendencia.creadas|default:'[8, 12, 15, 10, 18, 20]'|safe }},
+                            borderColor: '#60A5FA',
+                            backgroundColor: 'rgba(96, 165, 250, 0.2)',
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#60A5FA',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                        }]
                     },
                     options: {
                         responsive: true,
@@ -215,6 +427,19 @@
                             y: {
                                 beginAtZero: true
                             }
+                        },
+                        animation: {
+                            duration: 2000,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                align: 'end'
+                            }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
                         }
                     }
                 });
@@ -229,7 +454,8 @@
                             label: 'Días Promedio',
                             data: {{ datos_tiempo.promedio|default:'[5, 8, 3]'|safe }},
                             backgroundColor: ['#FCD34D', '#60A5FA', '#34D399'],
-                            borderWidth: 1
+                            borderWidth: 1,
+                            borderRadius: 5,
                         }]
                     },
                     options: {
@@ -240,8 +466,42 @@
                             x: {
                                 beginAtZero: true
                             }
+                        },
+                        animation: {
+                            delay: function(context) {
+                                return context.dataIndex * 200;
+                            },
+                            duration: 1000,
                         }
                     }
+                });                
+
+                // Filtro de proyectos - actualización de títulos
+                document.getElementById('proyecto-filtro').addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    const projectName = selectedOption.text;
+                    const projectFilterTitle = document.querySelector('#lista-tareas h2');
+                    
+                    if (this.value && projectFilterTitle) {
+                        const originalTitle = projectFilterTitle.dataset.originalText || projectFilterTitle.textContent;
+                        projectFilterTitle.dataset.originalText = originalTitle;
+                        projectFilterTitle.innerHTML = `<i class="fas fa-filter text-blue-500 mr-2"></i>Tareas: ${projectName}`;
+                    } else if (projectFilterTitle && projectFilterTitle.dataset.originalText) {
+                        projectFilterTitle.innerHTML = projectFilterTitle.dataset.originalText;
+                    }
+                });
+
+                // Efecto hover para las tarjetas de estadísticas
+                document.querySelectorAll('.dashboard-card').forEach((card, index) => {
+                    card.style.animationDelay = `${0.1 + (index * 0.1)}s`;
+                    
+                    // Agregar efecto de hover mejorado
+                    card.addEventListener('mouseenter', function() {
+                        this.classList.add('shadow-md');
+                    });
+                    card.addEventListener('mouseleave', function() {
+                        this.classList.remove('shadow-md');
+                    });
                 });
             });
         </script>

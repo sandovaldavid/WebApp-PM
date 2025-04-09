@@ -59,4 +59,9 @@ urlpatterns = [
         views.ajustar_presupuesto,
         name="ajustar_presupuesto",
     ),
+    path(
+        "proyecto/<int:idproyecto>/analisis-valor-ganado/",
+        views.analisis_valor_ganado,
+        name="analisis_valor_ganado",
+    ),
 ]

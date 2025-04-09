@@ -39,7 +39,7 @@
                                         <i class="fas fa-user text-gray-400"></i>
                                     </div>
                                     <select name="usuario" id="usuario"
-                                            class="block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                            class="appearance-none block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                             required>
                                         <option value="">Seleccione un usuario</option>
                                         {% for usuario in usuarios %}
@@ -62,7 +62,7 @@
                                         <i class="fas fa-flag text-gray-400"></i>
                                     </div>
                                     <select name="prioridad" id="prioridad"
-                                            class="block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                                            class="appearance-none block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                                         <option value="baja" class="text-green-500" {% if prioridad == 'baja' %}selected{% endif %}>
                                             Baja
                                         </option>
@@ -87,7 +87,7 @@
                                         <i class="fas fa-tag text-gray-400"></i>
                                     </div>
                                     <select name="categoria" id="categoria"
-                                            class="block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                                            class="appearance-none block w-full pl-10 pr-10 py-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                                             <option value="Frontend" {% if categoria == 'Frontend' %}selected{% endif %}>Frontend</option>
                                             <option value="Backend" {% if categoria == 'Backend' %}selected{% endif %}>Backend</option>
                                             <option value="QA" {% if categoria == 'QA' %}selected{% endif %}>QA</option>

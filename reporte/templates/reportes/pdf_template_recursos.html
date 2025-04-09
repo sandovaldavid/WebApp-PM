@@ -285,14 +285,15 @@
     <div style="margin-top: 15px;">
         <h3>Distribución por Tipo de Recurso</h3>
         <div style="display: flex; gap: 15px;">
-            {% for tipo, recursos in datos_recursos.recursos|groupby:"tipo" %}
+            {% regroup datos_recursos.recursos by tipo as tipos_recursos %}
+            {% for tipo in tipos_recursos %}
                 <div style="flex: 1; text-align: center;">
-                    <div style="background-color: {% if tipo == 'Humano' %}#dbeafe{% else %}#fef3c7{% endif %}; padding: 10px; border-radius: 8px;">
-                        <div style="font-weight: bold; color: {% if tipo == 'Humano' %}#1e40af{% else %}#92400e{% endif %};">
-                            {{ tipo }}
+                    <div style="background-color: {% if tipo.grouper == 'Humano' %}#dbeafe{% else %}#fef3c7{% endif %}; padding: 10px; border-radius: 8px;">
+                        <div style="font-weight: bold; color: {% if tipo.grouper == 'Humano' %}#1e40af{% else %}#92400e{% endif %};">
+                            {{ tipo.grouper }}
                         </div>
-                        <div style="font-size: 18pt; font-weight: bold; color: {% if tipo == 'Humano' %}#1e3a8a{% else %}#78350f{% endif %};">
-                            {{ recursos|length }}
+                        <div style="font-size: 18pt; font-weight: bold; color: {% if tipo.grouper == 'Humano' %}#1e3a8a{% else %}#78350f{% endif %};">
+                            {{ tipo.list|length }}
                         </div>
                         <div style="font-size: 8pt; color: #4b5563;">recursos</div>
                     </div>

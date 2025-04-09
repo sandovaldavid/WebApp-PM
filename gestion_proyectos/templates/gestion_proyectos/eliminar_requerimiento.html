@@ -25,9 +25,12 @@
             </div>
 
             <!-- Formulario -->
-            <form method="POST" class="p-6 space-y-6">
+            <form method="POST" id="deleteForm" class="p-6 space-y-6">
                 {% csrf_token %}
-
+                
+                <!-- Agregar un campo oculto para verificar si se ha confirmado la eliminación de tareas -->
+                <input type="hidden" id="confirmed_task_deletion" name="confirmed_task_deletion" value="0">
+            
                 <!-- Descripción -->
                 <div>
                     <label for="descripcion" class="block text-sm font-medium text-gray-700">
@@ -38,7 +41,23 @@
                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md">{{ requerimiento.descripcion }}</textarea>
                     </div>
                 </div>
-
+                
+                <!-- Alertar sobre tareas existentes -->
+                {% if has_tasks %}
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                Este requerimiento tiene {{ task_count }} tarea(s) asociada(s). Si elimina este requerimiento, también se eliminarán todas sus tareas.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            
                 <!-- Botones de Acción -->
                 <div class="flex justify-between space-x-4 pt-6 border-t border-gray-200">
                     <a href="{% url 'gestion_proyectos:detalle_proyecto' proyecto.idproyecto %}" 
@@ -46,7 +65,7 @@
                         <i class="fas fa-arrow-left mr-2"></i>
                         Volver
                     </a>
-                    <button type="submit"
+                    <button type="button" id="deleteButton"
                             class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center">
                         <i class="fas fa-trash mr-2"></i>
                         Eliminar Requerimiento
@@ -56,4 +75,34 @@
         </div>
     </div>
 </div>
+
+<!-- Agregar script para la confirmación -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteForm = document.getElementById('deleteForm');
+        const deleteButton = document.getElementById('deleteButton');
+        const confirmedTaskDeletion = document.getElementById('confirmed_task_deletion');
+        
+        deleteButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Primera confirmación
+            if (!confirm('¿Está seguro de que desea eliminar este requerimiento?')) {
+                return;
+            }
+            
+            {% if has_tasks %}
+            // Segunda confirmación si hay tareas
+            if (!confirm('ADVERTENCIA: Este requerimiento tiene {{ task_count }} tarea(s) asociada(s). Al eliminar este requerimiento también se eliminarán todas sus tareas. ¿Desea continuar?')) {
+                return;
+            }
+            confirmedTaskDeletion.value = "1";
+            {% endif %}
+            
+            // Enviar el formulario si todo está confirmado
+            deleteForm.submit();
+        });
+    });
+</script>
+
 {% endblock %}
