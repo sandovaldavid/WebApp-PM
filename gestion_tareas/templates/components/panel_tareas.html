@@ -1,65 +1,230 @@
-<div class="bg-white rounded-lg shadow-lg">
+<div class="bg-white rounded-xl shadow-md overflow-hidden" id="panel-tareas-container">
     <!-- Encabezado del Panel -->
-    <div class="p-6 border-b border-gray-200">
-        <div class="flex justify-between items-center">
+    <div class="p-4 md:p-6 border-b border-gray-200">
+        <div class="flex justify-between items-center flex-wrap gap-3">
             <div class="flex items-center">
-                <i class="fas fa-tasks text-blue-500 text-2xl mr-2"></i>
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-2.5 rounded-lg text-white shadow-sm mr-3">
+                    <i class="fas fa-tasks"></i>
+                </div>
                 <div>
-                    <h2 class="text-xl font-semibold">Panel de Tareas</h2>
-                    <p class="text-sm text-gray-500">{{ tareas|length }} tareas en total</p>
+                    <h2 class="text-lg md:text-xl font-semibold text-gray-800" data-original-text="Panel de Tareas">Panel de Tareas</h2>
+                    <p class="text-xs md:text-sm text-gray-500">
+                        <span id="tareas-contador">{{ tareas|length }}</span> tareas en total
+                    </p>
                 </div>
             </div>
 
             <!-- Botones de Acción -->
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2 flex-wrap gap-2">
+                <!-- Filtro por proyecto (trasladado del index) -->
+                <div class="relative inline-block">
+                    <select id="proyecto-filtro" 
+                            name="proyecto"
+                            class="pl-10 pr-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 text-sm"
+                            hx-get="{% url 'gestion_tareas:filtrar_tareas' %}" 
+                            hx-target="#panel-tareas-contenido"
+                            hx-indicator="#loading"
+                            hx-include="[name='filtro-activo']"
+                            hx-trigger="change">
+                        <option value="">Todos los proyectos</option>
+                        {% for proyecto in proyectos %}
+                            <option value="{{ proyecto.idproyecto }}">{{ proyecto.nombreproyecto }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-filter text-blue-500"></i>
+                    </div>
+                </div>
+                
+                <!-- Orden de tareas -->
+                <select id="orden-tareas" 
+                        name="orden"
+                        class="py-2 px-3 text-sm rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white"
+                        hx-get="{% url 'gestion_tareas:filtrar_tareas' %}"
+                        hx-include="[name='filtro-activo'], [name='proyecto']"
+                        hx-target="#panel-tareas-contenido"
+                        hx-indicator="#loading"
+                        hx-trigger="change">
+                    <option value="fecha-reciente">Más recientes</option>
+                    <option value="fecha-antigua">Más antiguas</option>
+                    <option value="prioridad-alta">Prioridad alta</option>
+                    <option value="prioridad-baja">Prioridad baja</option>
+                </select>
+                
                 <a href="{% url 'gestion_tareas:crear_tarea' %}"
-                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                   class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2 px-4 rounded-lg transition-all duration-300 flex items-center shadow-sm hover:shadow-md transform hover:-translate-y-0.5">
                     <i class="fas fa-plus mr-2"></i>
-                    Nueva Tarea
+                    <span class="hidden sm:inline">Nueva Tarea</span>
                 </a>
             </div>
         </div>
     </div>
 
     <!-- Filtros Rápidos -->
-    <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4">
-        <button class="px-4 py-2 rounded-full {% if filtro_activo == 'todas' %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors"
+    <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-2">
+        <input type="hidden" name="filtro-activo" value="{{ filtro_activo }}" />
+        <button class="px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 transform hover:scale-105 
+                {% if filtro_activo == 'todas' %}bg-blue-500 text-white shadow-md{% else %}bg-white text-gray-700 shadow-sm hover:bg-gray-100{% endif %}"
                 hx-get="{% url 'gestion_tareas:filtrar_tareas' %}"
-                hx-target="#lista-tareas"
+                hx-target="#panel-tareas-contenido"
                 hx-indicator="#loading"
-                hx-trigger="click">
-            <i class="fas fa-list-ul mr-2"></i>Todas
+                hx-trigger="click"
+                onclick="document.querySelector('[name=filtro-activo]').value = 'todas'">
+            <i class="fas fa-list-ul mr-1.5"></i>Todas
         </button>
-        <button class="px-4 py-2 rounded-full {% if filtro_activo == 'pendientes' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-yellow-200 transition-colors"
+        <button class="px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 transform hover:scale-105 
+                {% if filtro_activo == 'pendientes' %}bg-yellow-500 text-white shadow-md{% else %}bg-white text-gray-700 shadow-sm hover:bg-gray-100{% endif %}"
                 hx-get="{% url 'gestion_tareas:filtrar_tareas' %}?filtro=pendientes"
-                hx-target="#lista-tareas"
+                hx-target="#panel-tareas-contenido"
                 hx-indicator="#loading"
-                hx-trigger="click">
-            <i class="fas fa-clock mr-2"></i>Pendientes
+                hx-trigger="click"
+                onclick="document.querySelector('[name=filtro-activo]').value = 'pendientes'">
+            <i class="fas fa-clock mr-1.5"></i>Pendientes
         </button>
-        <button class="px-4 py-2 rounded-full {% if filtro_activo == 'en_progreso' %}bg-blue-100 text-blue-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-blue-200 transition-colors"
+        <button class="px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 transform hover:scale-105 
+                {% if filtro_activo == 'en_progreso' %}bg-green-500 text-white shadow-md{% else %}bg-white text-gray-700 shadow-sm hover:bg-gray-100{% endif %}"
                 hx-get="{% url 'gestion_tareas:filtrar_tareas' %}?filtro=en_progreso"
-                hx-target="#lista-tareas"
+                hx-target="#panel-tareas-contenido"
                 hx-indicator="#loading"
-                hx-trigger="click">
-            <i class="fas fa-spinner mr-2"></i>En Progreso
+                hx-trigger="click"
+                onclick="document.querySelector('[name=filtro-activo]').value = 'en_progreso'">
+            <i class="fas fa-spinner mr-1.5"></i>En Progreso
         </button>
-        <button class="px-4 py-2 rounded-full {% if filtro_activo == 'completadas' %}bg-green-100 text-green-800{% else %}bg-gray-200 text-gray-700{% endif %} hover:bg-green-200 transition-colors"
+        <button class="px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 transform hover:scale-105 
+                {% if filtro_activo == 'completadas' %}bg-purple-500 text-white shadow-md{% else %}bg-white text-gray-700 shadow-sm hover:bg-gray-100{% endif %}"
                 hx-get="{% url 'gestion_tareas:filtrar_tareas' %}?filtro=completadas"
-                hx-target="#lista-tareas"
+                hx-target="#panel-tareas-contenido"
                 hx-indicator="#loading"
-                hx-trigger="click">
-            <i class="fas fa-check-circle mr-2"></i>Completadas
+                hx-trigger="click"
+                onclick="document.querySelector('[name=filtro-activo]').value = 'completadas'">
+            <i class="fas fa-check-circle mr-1.5"></i>Completadas
         </button>
     </div>
 
     <!-- Indicador de carga -->
-    <div id="loading" class="htmx-indicator flex justify-center p-4">
-        <i class="fas fa-circle-notch fa-spin text-blue-500 text-2xl"></i>
+    <div id="loading" class="htmx-indicator flex justify-center items-center p-8">
+        <div class="flex flex-col items-center">
+            <div class="rounded-full h-10 w-10 border-4 border-t-blue-500 border-b-blue-700 border-l-blue-600 border-r-blue-600 animate-spin"></div>
+            <p class="text-blue-600 font-medium mt-3 animate-pulse">Actualizando tareas...</p>
+        </div>
     </div>
 
-    <!-- Lista de Tareas -->
-    <div id="lista-tareas" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% include "components/lista_tareas.html" %}
+    <!-- Lista de Tareas - Este contenedor será actualizado por HTMX -->
+    <div id="panel-tareas-contenido" class="p-4 md:p-6">
+        {% if tareas %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 animate-fade-in">
+                {% for tarea in tareas %}
+                    {% include "components/tarea_card.html" with tarea=tarea %}
+                {% endfor %}
+            </div>
+            
+            <!-- Paginación -->
+            {% if tareas.has_other_pages %}
+                <div class="flex justify-center mt-8">
+                    <div class="inline-flex rounded-md shadow-sm">
+                        {% if tareas.has_previous %}
+                            <button class="px-4 py-2 bg-white text-blue-600 border border-gray-200 rounded-l-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                                    hx-get="{% url 'gestion_tareas:filtrar_tareas' %}?page={{ tareas.previous_page_number }}&filtro={{ filtro_activo }}"
+                                    hx-target="#panel-tareas-contenido"
+                                    hx-indicator="#loading">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                        {% endif %}
+
+                        <span class="px-4 py-2 bg-blue-50 text-blue-700 border border-gray-200 
+                               {% if not tareas.has_previous %}rounded-l-lg{% endif %} 
+                               {% if not tareas.has_next %}rounded-r-lg{% endif %}">
+                            {{ tareas.number }} de {{ tareas.paginator.num_pages }}
+                        </span>
+
+                        {% if tareas.has_next %}
+                            <button class="px-4 py-2 bg-white text-blue-600 border border-gray-200 rounded-r-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                                    hx-get="{% url 'gestion_tareas:filtrar_tareas' %}?page={{ tareas.next_page_number }}&filtro={{ filtro_activo }}"
+                                    hx-target="#panel-tareas-contenido"
+                                    hx-indicator="#loading">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+                <div class="bg-gray-50 p-6 rounded-full mb-4">
+                    <i class="fas fa-clipboard-list text-gray-300 text-5xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No hay tareas disponibles</h3>
+                <p class="text-gray-500 max-w-md mb-6">
+                    {% if filtro_activo != 'todas' %}
+                        No se encontraron tareas con el filtro seleccionado. Prueba con otro filtro o crea una nueva tarea.
+                    {% else %}
+                        Comienza creando tu primera tarea para gestionar tus actividades de manera eficiente.
+                    {% endif %}
+                </p>
+                <div class="flex flex-wrap gap-3 justify-center">
+                    {% if filtro_activo != 'todas' %}
+                        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors inline-flex items-center"
+                                hx-get="{% url 'gestion_tareas:filtrar_tareas' %}"
+                                hx-target="#panel-tareas-contenido"
+                                hx-indicator="#loading">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            Ver todas
+                        </button>
+                    {% endif %}
+                    <a href="{% url 'gestion_tareas:crear_tarea' %}" 
+                       class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear tarea
+                    </a>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
+
+<style>
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+}
+</style>
+
+<script>
+document.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'panel-tareas-contenido') {
+        // Actualizar contador de tareas
+        const totalTareas = document.querySelectorAll('#panel-tareas-contenido .tarea-card').length;
+        const contador = document.getElementById('tareas-contador');
+        if (contador) {
+            contador.textContent = totalTareas;
+        }
+        
+        // Aplicar animación a las nuevas tarjetas
+        const tarjetas = document.querySelectorAll('#panel-tareas-contenido .tarea-card');
+        tarjetas.forEach((tarjeta, index) => {
+            tarjeta.style.animationDelay = `${index * 0.05}s`;
+            tarjeta.classList.add('animate-fade-in');
+        });
+        
+        // Actualizar título si hay proyecto seleccionado
+        const proyectoSelect = document.getElementById('proyecto-filtro');
+        if (proyectoSelect) {
+            const selectedOption = proyectoSelect.options[proyectoSelect.selectedIndex];
+            const panelTitle = document.querySelector('#panel-tareas-container h2');
+            
+            if (selectedOption.value && selectedOption.value !== '' && panelTitle) {
+                const originalText = panelTitle.getAttribute('data-original-text') || "Panel de Tareas";
+                if (selectedOption.value === '') {
+                    panelTitle.textContent = originalText;
+                } else {
+                    const projectName = selectedOption.text;
+                    panelTitle.innerHTML = `<i class="fas fa-filter text-blue-500 mr-2"></i>Tareas: ${projectName}`;
+                }
+            }
+        }
+    }
+});
+</script>

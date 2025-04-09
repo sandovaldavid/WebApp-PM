@@ -4,272 +4,331 @@
 
 {% block title_body %}
     <div class="flex items-center">
-        <i class="fas fa-plus text-blue-500 mr-2"></i>
-        <span>Crear Nueva Tarea</span>
+        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-2.5 rounded-lg shadow-md mr-3">
+            <i class="fas fa-plus text-xl"></i>
+        </div>
+        <h1 class="text-xl font-bold text-write-800 dark:text-gray-100">Crear Nueva Tarea</h1>
     </div>
 {% endblock %}
 
 {% block body %}
-    <div class="p-8">
-        <div class="bg-white rounded-lg shadow-lg p-6">
-            <h2 class="text-xl font-semibold mb-6 flex items-center">
-                <i class="fas fa-tasks text-blue-500 mr-2"></i>
-                Nueva Tarea
-            </h2>
+    <div class="p-4 md:p-8">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+            <!-- Header del formulario -->
+            <div class="mb-8 pb-5 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+                    <span class="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-lg shadow-md text-white mr-3">
+                        <i class="fas fa-clipboard-list text-lg"></i>
+                    </span>
+                    Nueva Tarea
+                </h2>
+                <p class="text-gray-600 dark:text-gray-300 mt-2">Complete los datos básicos para crear una nueva tarea. Los parámetros avanzados serán calculados automáticamente.</p>
+            </div>
 
-            <form method="POST" class="space-y-6">
+            <form method="POST" class="space-y-8">
                 {% csrf_token %}
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Columna Izquierda -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <!-- Columna Izquierda: Información básica -->
                     <div class="space-y-6">
-                        <!-- Requerimiento -->
-                        <div>
-                            <label for="requerimiento"
-                                   class="block text-sm font-medium text-gray-700">Requerimiento</label>
-                            <div class="mt-1 relative">
-                                <select name="requerimiento" id="requerimiento"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                        required>
-                                    <option value="">Seleccione un requerimiento</option>
-                                    {% for req in requerimientos %}
-                                        <option value="{{ req.idrequerimiento }}" 
-                                                {% if requerimiento_preseleccionado|stringformat:"s" == req.idrequerimiento|stringformat:"s" %}selected{% endif %}>
-                                            {{ req.descripcion }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-clipboard-list text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Nombre de la Tarea -->
-                        <div>
-                            <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre de la
-                                Tarea</label>
-                            <div class="mt-1 relative">
-                                <input type="text" name="nombre" id="nombre"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                       required>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-tasks text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-5 shadow-sm backdrop-blur-sm mb-6">
+                            <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-4 flex items-center">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Información Básica
+                            </h3>
                         
-                        <!-- Descripción (nuevo campo) -->
-                        <div>
-                            <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
-                            <div class="mt-1 relative">
-                                <textarea name="descripcion" id="descripcion" rows="3"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"></textarea>
-                                <div class="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-align-left text-gray-400"></i>
+                            <!-- Requerimiento -->
+                            <div class="mb-5">
+                                <label for="requerimiento"
+                                       class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Requerimiento</label>
+                                <div class="relative">
+                                    <select name="requerimiento" id="requerimiento"
+                                            class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 pr-10 transition-all duration-200 hover:border-blue-300 text-base"
+                                            required>
+                                        <option value="">Seleccione un requerimiento</option>
+                                        {% for req in requerimientos %}
+                                            <option value="{{ req.idrequerimiento }}" 
+                                                    {% if requerimiento_preseleccionado|stringformat:"s" == req.idrequerimiento|stringformat:"s" %}selected{% endif %}>
+                                                {{ req.descripcion }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-clipboard-list text-blue-500 dark:text-blue-400"></i>
+                                    </div>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-blue-500 dark:text-blue-400 opacity-75">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <!-- Tags (nuevo campo) -->
-                        <div>
-                            <label for="tags" class="block text-sm font-medium text-gray-700">Etiquetas</label>
-                            <div class="mt-1 relative">
-                                <input type="text" name="tags" id="tags"
-                                       placeholder="Separadas por comas (ej: frontend, responsive, mobile)"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-tags text-gray-400"></i>
-                                </div>
-                            </div>
-                            <p class="mt-1 text-xs text-gray-500">
-                                Separe las etiquetas con comas
-                            </p>
-                        </div>
 
-                        <!-- Tipo de Tarea (nueva relación) -->
-                        <div>
-                            <label for="tipo_tarea" class="block text-sm font-medium text-gray-700">Tipo de Tarea</label>
-                            <div class="mt-1 relative">
-                                <select name="tipo_tarea" id="tipo_tarea"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                    <option value="">Seleccione un tipo</option>
-                                    {% for tipo in tipos_tarea %}
-                                        <option value="{{ tipo.idtipotarea }}">{{ tipo.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-code text-gray-400"></i>
+                            <!-- Nombre de la Tarea -->
+                            <div class="mb-5">
+                                <label for="nombre" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                                    Nombre de la Tarea
+                                </label>
+                                <div class="relative group">
+                                    <input type="text" name="nombre" id="nombre"
+                                           class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 transition-all duration-200 hover:border-blue-300 text-base"
+                                           required>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-tasks text-blue-500 dark:text-blue-400 group-hover:scale-110 transition-transform"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Descripción -->
+                            <div class="mb-5">
+                                <label for="descripcion" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                                    Descripción
+                                </label>
+                                <div class="relative">
+                                    <textarea name="descripcion" id="descripcion" rows="4"
+                                           class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 pt-2 transition-all duration-200 hover:border-blue-300 text-base"
+                                           placeholder="Descripción detallada de la tarea"></textarea>
+                                    <div class="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-align-left text-blue-500 dark:text-blue-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fechas -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="fecha_inicio" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                                        Fecha Inicio
+                                    </label>
+                                    <div class="mt-1 relative">
+                                        <input type="date" name="fecha_inicio" id="fecha_inicio"
+                                            class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 transition-all duration-200 hover:border-blue-300 text-base"
+                                            required>
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-calendar-alt text-blue-500 dark:text-blue-400"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="fecha_fin" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                                        Fecha Fin
+                                    </label>
+                                    <div class="mt-1 relative">
+                                        <input type="date" name="fecha_fin" id="fecha_fin"
+                                            class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 transition-all duration-200 hover:border-blue-300 text-base"
+                                            required>
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-calendar-check text-blue-500 dark:text-blue-400"></i>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <div class="bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-5 shadow-sm backdrop-blur-sm">
+                            <h3 class="text-lg font-semibold text-indigo-800 dark:text-indigo-300 mb-4 flex items-center">
+                                <i class="fas fa-tag mr-2"></i>
+                                Clasificación
+                            </h3>
 
-                        <!-- Fase (nueva relación) -->
-                        <div>
-                            <label for="fase" class="block text-sm font-medium text-gray-700">Fase</label>
-                            <div class="mt-1 relative">
-                                <select name="fase" id="fase"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                    <option value="">Seleccione una fase</option>
-                                    {% for fase in fases %}
-                                        <option value="{{ fase.idfase }}">{{ fase.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-project-diagram text-gray-400"></i>
+                            <!-- Tipo de Tarea -->
+                            <div class="mb-5">
+                                <label for="tipo_tarea" class="block text-sm font-medium text-indigo-700 dark:text-indigo-300 mb-2">
+                                    Tipo de Tarea
+                                </label>
+                                <div class="relative">
+                                    <select name="tipo_tarea" id="tipo_tarea"
+                                        class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pl-10 pr-10 transition-all duration-200 hover:border-indigo-300 text-base">
+                                        <option value="">Seleccione un tipo</option>
+                                        {% for tipo in tipos_tarea %}
+                                            <option value="{{ tipo.idtipotarea }}">{{ tipo.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-code text-indigo-500 dark:text-indigo-400"></i>
+                                    </div>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-indigo-500 dark:text-indigo-400 opacity-75">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fase -->
+                            <div>
+                                <label for="fase" class="block text-sm font-medium text-indigo-700 dark:text-indigo-300 mb-2">
+                                    Fase
+                                </label>
+                                <div class="relative">
+                                    <select name="fase" id="fase"
+                                        class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pl-10 pr-10 transition-all duration-200 hover:border-indigo-300 text-base">
+                                        <option value="">Seleccione una fase</option>
+                                        {% for fase in fases %}
+                                            <option value="{{ fase.idfase }}">{{ fase.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-project-diagram text-indigo-500 dark:text-indigo-400"></i>
+                                    </div>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-indigo-500 dark:text-indigo-400 opacity-75">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>                            
+                            </div>
+                        </div>                 
+                    </div>
+
+                    <!-- Columna Derecha: Propiedades -->
+                    <div class="space-y-6">
+                        <div class="bg-purple-50 dark:bg-purple-900/30 rounded-xl p-5 shadow-sm backdrop-blur-sm mb-6">
+                            <h3 class="text-lg font-semibold text-purple-800 dark:text-purple-300 mb-4 flex items-center">
+                                <i class="fas fa-sliders-h mr-2"></i>
+                                Propiedades
+                            </h3>
+                            
+                            <!-- Dificultad -->
+                            <div class="mb-5">
+                                <label for="dificultad" class="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
+                                    Dificultad
+                                </label>
+                                <div class="relative">
+                                    <select name="dificultad" id="dificultad"
+                                        class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10 pr-10 transition-all duration-200 hover:border-purple-300 text-base">
+                                        <option value="1">Muy Baja</option>
+                                        <option value="2">Baja</option>
+                                        <option value="3" selected>Media</option>
+                                        <option value="4">Alta</option>
+                                        <option value="5">Muy Alta</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-chart-line text-purple-500 dark:text-purple-400"></i>
+                                    </div>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-purple-500 dark:text-purple-400 opacity-75">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                                <p class="mt-1 text-xs text-purple-600 dark:text-purple-400">
+                                    Nivel de complejidad de la tarea
+                                </p>
+                            </div>
+
+                            <!-- Prioridad -->
+                            <div class="mb-5">
+                                <label for="prioridad" class="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
+                                    Prioridad
+                                </label>
+                                <div class="relative">
+                                    <select name="prioridad" id="prioridad"
+                                           class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10 pr-10 transition-all duration-200 hover:border-purple-300 text-base">
+                                        <option value="1">Baja</option>
+                                        <option value="2" selected>Media</option>
+                                        <option value="3">Alta</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-flag text-purple-500 dark:text-purple-400"></i>
+                                    </div>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-purple-500 dark:text-purple-400 opacity-75">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Estado -->
+                            <div class="mb-5">
+                                <label for="estado" class="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
+                                    Estado
+                                </label>
+                                <div class="relative">
+                                    <select name="estado" id="estado"
+                                           class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10 pr-10 transition-all duration-200 hover:border-purple-300 text-base">
+                                        <option value="Pendiente" selected>Pendiente</option>
+                                        <option value="En Progreso">En Progreso</option>
+                                        <option value="Completada">Completada</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-info-circle text-purple-500 dark:text-purple-400"></i>
+                                    </div>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-purple-500 dark:text-purple-400 opacity-75">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
                                 </div>
                             </div>                            
                         </div>
-                    </div>
-
-                    <!-- Columna Derecha -->
-                    <div class="space-y-6">
-                        <!-- Dificultad (campo que faltaba) -->
-                        <div>
-                            <label for="dificultad" class="block text-sm font-medium text-gray-700">Dificultad</label>
-                            <div class="mt-1 relative">
-                                <select name="dificultad" id="dificultad"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                    <option value="1">Muy Baja</option>
-                                    <option value="2">Baja</option>
-                                    <option value="3" selected>Media</option>
-                                    <option value="4">Alta</option>
-                                    <option value="5">Muy Alta</option>
-                                </select>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-chart-line text-gray-400"></i>
+                        
+                        <!-- Información sobre la estimación automática -->
+                        <div class="bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/40 dark:to-blue-900/30 rounded-2xl p-6 shadow-lg backdrop-blur-sm border border-green-100 dark:border-green-800/50 transition-all hover:shadow-xl">
+                            <div class="flex items-center mb-4">
+                                <div class="bg-gradient-to-r from-green-500 to-blue-500 text-white p-2.5 rounded-lg shadow-md mr-3 flex-shrink-0 transform transition-transform group-hover:scale-105">
+                                    <i class="fas fa-robot text-xl"></i>
                                 </div>
+                                <h3 class="text-xl font-bold text-green-800 dark:text-green-300 bg-clip-text text-transparent bg-gradient-to-r from-green-800 to-blue-700 dark:from-green-300 dark:to-blue-200">
+                                    Estimación Inteligente
+                                </h3>
                             </div>
-                            <p class="mt-1 text-xs text-gray-500">
-                                Nivel de complejidad de la tarea
+                            
+                            <p class="text-green-700 dark:text-green-300 text-sm leading-relaxed mb-5 pl-1">
+                                Los siguientes parámetros serán calculados automáticamente mediante IA:
                             </p>
-                        </div>
-
-                        <!-- Prioridad -->
-                        <div>
-                            <label for="prioridad" class="block text-sm font-medium text-gray-700">Prioridad</label>
-                            <div class="mt-1 relative">
-                                <select name="prioridad" id="prioridad"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                    <option value="1">Baja</option>
-                                    <option value="2" selected>Media</option>
-                                    <option value="3">Alta</option>
-                                </select>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-flag text-gray-400"></i>
+                            
+                            <!-- Contenedor de tarjetas -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                                <!-- Tarjeta DeepSeek -->
+                                <div class="bg-white dark:bg-gray-800/60 rounded-xl p-4 shadow-sm hover:shadow-md transition-all group border border-green-100/50 dark:border-green-700/30">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-gradient-to-r from-green-500 to-blue-500 p-2 rounded-lg text-white mr-3 group-hover:scale-105 transition-transform">
+                                            <i class="fas fa-brain"></i>
+                                        </div>
+                                        <h4 class="font-semibold text-green-700 dark:text-green-300">Modelo DeepSeek</h4>
+                                    </div>
+                                    
+                                    <div class="space-y-2 pl-2 text-sm text-green-600 dark:text-green-400">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-tag text-green-400"></i>
+                                            <span>Etiquetas relevantes</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-chart-pie text-green-400"></i>
+                                            <span>Tamaño (story points)</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-file-alt text-green-400"></i>
+                                            <span>Claridad de requisitos</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Estado -->
-                        <div>
-                            <label for="estado" class="block text-sm font-medium text-gray-700">Estado</label>
-                            <div class="mt-1 relative">
-                                <select name="estado" id="estado"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                    <option value="Pendiente">Pendiente</option>
-                                    <option value="En Progreso">En Progreso</option>
-                                    <option value="Completada">Completada</option>
-                                </select>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-info-circle text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Claridad de Requisitos (nuevo campo) -->
-                        <div>
-                            <label for="claridad_requisitos" class="block text-sm font-medium text-gray-700">
-                                Claridad de Requisitos
-                            </label>
-                            <div class="mt-1 relative">
-                                <input type="range" name="claridad_requisitos" id="claridad_requisitos"
-                                    min="0" max="1" step="0.1" value="0.8"
-                                    class="mt-1 block w-full">
-                                <div class="flex justify-between text-xs text-gray-600 px-1">
-                                    <span>Baja</span>
-                                    <span id="claridad_valor">80%</span>
-                                    <span>Alta</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Tamaño Estimado (nuevo campo) -->
-                        <div>
-                            <label for="tamano_estimado" class="block text-sm font-medium text-gray-700">
-                                Tamaño Estimado (story points)
-                            </label>
-                            <div class="mt-1 relative">
-                                <input type="number" name="tamano_estimado" id="tamano_estimado"
-                                    min="1" max="100" value="5"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-ruler text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Duración Estimada -->
-                        <div>
-                            <label for="duracion_estimada" class="block text-sm font-medium text-gray-700">
-                                Duración Estimada (horas)
-                            </label>
-                            <div class="mt-1 relative rounded-md shadow-sm">
-                                <div class="flex">
-                                    <input type="number" name="duracion_estimada" id="duracion_estimada"
-                                        class="mt-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        required>
-                                    <button type="button" id="btn-estimar"
-                                        class="px-4 py-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600 flex items-center">
-                                        <i class="fas fa-calculator mr-2"></i>
-                                        Estimar
-                                    </button>
-                                </div>
-                                <p class="mt-1 text-sm text-gray-500">
-                                    Estimación basada en el modelo de ML entrenado
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Costo Estimado -->
-                        <div>
-                            <label for="costo_estimado" class="block text-sm font-medium text-gray-700">
-                                Costo Estimado ($)
-                            </label>
-                            <div class="mt-1 relative">
-                                <input type="number" name="costo_estimado" id="costo_estimado"
-                                       value="400"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                       min="0" step="0.01" required>
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-dollar-sign text-gray-400"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fechas -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="fecha_inicio" class="block text-sm font-medium text-gray-700">Fecha
-                                    Inicio</label>
-                                <div class="mt-1 relative">
-                                    <input type="date" name="fecha_inicio" id="fecha_inicio"
-                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                           required>
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-calendar-alt text-gray-400"></i>
+                                
+                                <!-- Tarjeta RNN -->
+                                <div class="bg-white dark:bg-gray-800/60 rounded-xl p-4 shadow-sm hover:shadow-md transition-all group border border-green-100/50 dark:border-green-700/30">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-gradient-to-r from-green-500 to-blue-500 p-2 rounded-lg text-white mr-3 group-hover:scale-105 transition-transform">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
+                                        <h4 class="font-semibold text-green-700 dark:text-green-300">Red Neuronal</h4>
+                                    </div>
+                                    
+                                    <div class="space-y-2 pl-2 text-sm text-green-600 dark:text-green-400">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-hourglass-half text-green-400"></i>
+                                            <span>Duración estimada (horas)</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-dollar-sign text-green-400"></i>
+                                            <span>Costo estimado de recursos</span>
+                                        </div>
+                                        <!--<div class="flex items-center gap-2">
+                                            <i class="fas fa-calendar-alt text-green-400"></i>
+                                            <span>Ajustes de cronograma</span>
+                                        </div>-->
                                     </div>
                                 </div>
                             </div>
-                            <div>
-                                <label for="fecha_fin" class="block text-sm font-medium text-gray-700">Fecha Fin</label>
-                                <div class="mt-1 relative">
-                                    <input type="date" name="fecha_fin" id="fecha_fin"
-                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
-                                           required>
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-calendar-check text-gray-400"></i>
-                                    </div>
+                            
+                            <!-- Tip de uso -->
+                            <div class="mt-4 bg-gradient-to-r from-green-100/70 to-blue-100/70 dark:from-green-800/40 dark:to-blue-800/30 rounded-xl p-4 border-l-4 border-green-500 flex items-start gap-3 transition-all hover:translate-x-1">
+                                <div class="text-green-600 dark:text-green-300 flex-shrink-0 bg-white dark:bg-gray-800 p-2 rounded-full shadow-sm">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <div>
+                                    <h5 class="text-sm font-medium text-green-800 dark:text-green-300 mb-1">Consejo</h5>
+                                    <p class="text-xs text-green-600 dark:text-green-400 leading-relaxed">
+                                        Utilice la opción <span class="font-semibold">Parametrizar con IA</span> después de crear la tarea para obtener estimaciones precisas mediante tecnología de inteligencia artificial avanzada.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -277,14 +336,14 @@
                 </div>
 
                 <!-- Botones de Acción -->
-                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <a href="{% url 'gestion_tareas:index' %}"
-                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                       class="px-4 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center shadow-sm">
                         <i class="fas fa-times mr-2"></i>
                         Cancelar
                     </a>
                     <button type="submit"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                            class="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 flex items-center shadow-md hover:shadow-lg">
                         <i class="fas fa-save mr-2"></i>
                         Crear Tarea
                     </button>
@@ -304,54 +363,6 @@
             const nextWeek = new Date();
             nextWeek.setDate(nextWeek.getDate() + 7);
             document.getElementById('fecha_fin').value = nextWeek.toISOString().split('T')[0];
-        });
-        
-        // Actualizar el porcentaje de claridad de requisitos
-        document.getElementById('claridad_requisitos').addEventListener('input', function() {
-            const valor = Math.round(this.value * 100);
-            document.getElementById('claridad_valor').textContent = valor + '%';
-        });
-        
-        document.getElementById('btn-estimar').addEventListener('click', function () {
-            const formData = new FormData();
-
-            // Obtener todos los datos necesarios
-            formData.append('complejidad', document.getElementById('dificultad').value);  // Cambiado a dificultad
-            formData.append('prioridad', document.getElementById('prioridad').value);
-            formData.append('tipo_tarea', document.getElementById('tipo_tarea').value);
-            formData.append('requerimiento', document.getElementById('requerimiento').value);
-
-            // Mostrar indicador de carga
-            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Estimando...';
-            this.disabled = true;
-
-            fetch("{% url 'gestion_tareas:estimar_tarea' %}", {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('duracion_estimada').value = data.duracion_estimada;
-                        // Calcular costo estimado basado en la duración
-                        const costoHora = 50; // Definir costo por hora
-                        document.getElementById('costo_estimado').value = (data.duracion_estimada * costoHora).toFixed(2);
-                    } else {
-                        alert('Error al estimar la duración: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al realizar la estimación');
-                })
-                .finally(() => {
-                    // Restaurar botón
-                    this.innerHTML = '<i class="fas fa-calculator mr-2"></i>Estimar';
-                    this.disabled = false;
-                });
         });
     </script>
 {% endblock %}

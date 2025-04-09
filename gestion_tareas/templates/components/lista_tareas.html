@@ -1,35 +1,68 @@
-{% for tarea in tareas %}
-    {% include "components/tarea_card.html" with tarea=tarea %}
-{% empty %}
-    <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
-        <i class="fas fa-tasks text-6xl mb-4"></i>
-        <p class="text-xl font-medium">No hay tareas disponibles</p>
-        <p class="text-sm mt-2">Las tareas que crees aparecerán aquí</p>
+{% if tareas %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 animate-fade-in">
+        {% for tarea in tareas %}
+            {% include "components/tarea_card.html" with tarea=tarea %}
+        {% endfor %}
     </div>
-{% endfor %}
+    
+    <!-- Paginación -->
+    {% if tareas.has_other_pages %}
+        <div class="flex justify-center mt-8">
+            <div class="inline-flex rounded-md shadow-sm">
+                {% if tareas.has_previous %}
+                    <button class="px-4 py-2 bg-white text-blue-600 border border-gray-200 rounded-l-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                            hx-get="{% url 'gestion_tareas:filtrar_tareas' %}?page={{ tareas.previous_page_number }}&filtro={{ filtro_activo }}{% if request.GET.proyecto %}&proyecto={{ request.GET.proyecto }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}"
+                            hx-target="#panel-tareas-contenido"
+                            hx-indicator="#loading">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                {% endif %}
 
-{% if tareas.has_other_pages %}
-    <div class="col-span-full">
-        <div class="flex justify-center space-x-2 mt-6">
-            {% if tareas.has_previous %}
-                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                        hx-get="{% url 'gestion_tareas:filtrar_tareas' %}?page={{ tareas.previous_page_number }}&filtro={{ filtro_activo }}"
-                        hx-target="#lista-tareas">
-                    <i class="fas fa-chevron-left"></i>
+                <span class="px-4 py-2 bg-blue-50 text-blue-700 border border-gray-200 
+                       {% if not tareas.has_previous %}rounded-l-lg{% endif %} 
+                       {% if not tareas.has_next %}rounded-r-lg{% endif %}">
+                    {{ tareas.number }} de {{ tareas.paginator.num_pages }}
+                </span>
+
+                {% if tareas.has_next %}
+                    <button class="px-4 py-2 bg-white text-blue-600 border border-gray-200 rounded-r-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                            hx-get="{% url 'gestion_tareas:filtrar_tareas' %}?page={{ tareas.next_page_number }}&filtro={{ filtro_activo }}{% if request.GET.proyecto %}&proyecto={{ request.GET.proyecto }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}"
+                            hx-target="#panel-tareas-contenido"
+                            hx-indicator="#loading">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% else %}
+    <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div class="bg-gray-50 p-6 rounded-full mb-4">
+            <i class="fas fa-clipboard-list text-gray-300 text-5xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">No hay tareas disponibles</h3>
+        <p class="text-gray-500 max-w-md mb-6">
+            {% if filtro_activo != 'todas' %}
+                No se encontraron tareas con el filtro seleccionado. Prueba con otro filtro o crea una nueva tarea.
+            {% else %}
+                Comienza creando tu primera tarea para gestionar tus actividades de manera eficiente.
+            {% endif %}
+        </p>
+        <div class="flex flex-wrap gap-3 justify-center">
+            {% if filtro_activo != 'todas' %}
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors inline-flex items-center"
+                        hx-get="{% url 'gestion_tareas:filtrar_tareas' %}"
+                        hx-target="#panel-tareas-contenido"
+                        hx-indicator="#loading">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    Ver todas
                 </button>
             {% endif %}
-
-            <span class="px-4 py-2 bg-blue-500 text-white rounded-md">
-            {{ tareas.number }}
-        </span>
-
-            {% if tareas.has_next %}
-                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
-                        hx-get="{% url 'gestion_tareas:filtrar_tareas' %}?page={{ tareas.next_page_number }}&filtro={{ filtro_activo }}"
-                        hx-target="#lista-tareas">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            {% endif %}
+            <a href="{% url 'gestion_tareas:crear_tarea' %}" 
+               class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center">
+                <i class="fas fa-plus mr-2"></i>
+                Crear tarea
+            </a>
         </div>
     </div>
 {% endif %}

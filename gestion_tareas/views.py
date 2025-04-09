@@ -167,14 +167,25 @@ def index(request):
         ]
     }
 
+    # Nuevo: Obtener todos los proyectos para el filtro
+    from dashboard.models import Proyecto
+    proyectos = Proyecto.objects.all().order_by('nombreproyecto')
+
+    # Paginación
+    paginator = Paginator(tareas, 6)  # Mostrar 6 tareas por página en el dashboard
+    page = request.GET.get("page")
+    tareas_paginadas = paginator.get_page(page)
+
     context = {
-        "tareas": tareas,
+        "tareas": tareas_paginadas,
         "estadisticas": estadisticas,
         "datos_estado": datos_estado,
         "datos_prioridad": datos_prioridad,
         "datos_tendencia": datos_tendencia,
         "datos_tiempo": datos_tiempo,
         "is_admin": is_admin,
+        "proyectos": proyectos,  # Nuevo: proyectos para el filtro
+        "filtro_activo": "todas",
     }
 
     return render(request, "gestion_tareas/index.html", context)
@@ -200,17 +211,17 @@ def crear_tarea(request):
             nombre = request.POST.get("nombre")
             estado = request.POST.get("estado")
             prioridad = request.POST.get("prioridad")
-            duracion_estimada = request.POST.get("duracion_estimada")
+            #duracion_estimada = request.POST.get("duracion_estimada")
             fecha_inicio = request.POST.get("fecha_inicio")
             fecha_fin = request.POST.get("fecha_fin")
 
             # Nuevos campos
             descripcion = request.POST.get("descripcion", "")
-            tags = request.POST.get("tags", "")
+            #tags = request.POST.get("tags", "")
             tipo_tarea_id = request.POST.get("tipo_tarea")
             fase_id = request.POST.get("fase")
-            claridad_requisitos = request.POST.get("claridad_requisitos", 0.5)
-            tamano_estimado = request.POST.get("tamano_estimado", 0)
+            #claridad_requisitos = request.POST.get("claridad_requisitos", 0.5)
+            #tamano_estimado = request.POST.get("tamano_estimado", 0)
             dificultad = request.POST.get("dificultad", 3)  # Campo que faltaba
             costo_estimado = request.POST.get("costo_estimado", 0)
 
@@ -221,7 +232,7 @@ def crear_tarea(request):
                     nombre,
                     estado,
                     prioridad,
-                    duracion_estimada,
+                    #duracion_estimada,
                     fecha_inicio,
                     fecha_fin,
                 ]
@@ -241,15 +252,15 @@ def crear_tarea(request):
                 idrequerimiento_id=requerimiento_id,
                 nombretarea=nombre,
                 descripcion=descripcion,
-                tags=tags,
+                #tags=tags,
                 estado=estado,
                 prioridad=prioridad,
                 tipo_tarea_id=tipo_tarea_id if tipo_tarea_id else None,
                 fase_id=fase_id if fase_id else None,
-                claridad_requisitos=float(claridad_requisitos),
-                tamaño_estimado=int(tamano_estimado) if tamano_estimado else 0,
+                #claridad_requisitos=float(claridad_requisitos),
+                #tamaño_estimado=int(tamano_estimado) if tamano_estimado else 0,
                 dificultad=int(dificultad),  # Agregando campo dificultad
-                duracionestimada=duracion_estimada,
+                duracionestimada=0,
                 costoestimado=costo_estimado,
                 fechainicio=fecha_inicio,
                 fechafin=fecha_fin,
@@ -791,13 +802,28 @@ def lista_tareas(request):
             idrequerimiento__idproyecto__idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
         )
 
+    # Obtener todos los proyectos para el filtro
+    from dashboard.models import Proyecto
+    proyectos = Proyecto.objects.all().order_by('nombreproyecto')
+
+    # Obtener todos los requerimientos para el filtro
+    requerimientos = Requerimiento.objects.select_related('idproyecto').all()
+
     # Aplicar filtros
     estado = request.GET.get("estado")
     prioridad = request.GET.get("prioridad")
     fecha_desde = request.GET.get("fecha_desde")
     fecha_hasta = request.GET.get("fecha_hasta")
     busqueda = request.GET.get("busqueda")
+    
+    # Obtener los IDs de proyecto y requerimiento y convertirlos a enteros si es posible
+    proyecto_id = request.GET.get("proyecto")
+    requerimiento_id = request.GET.get("requerimiento")
 
+    # Añadir log para depuración
+    print(f"Filtros recibidos - Proyecto: {proyecto_id}, Requerimiento: {requerimiento_id}")
+    
+    # Aplicar los filtros básicos
     if estado:
         tareas = tareas.filter(estado=estado)
     if prioridad:
@@ -808,14 +834,30 @@ def lista_tareas(request):
         tareas = tareas.filter(fechafin__lte=fecha_hasta)
     if busqueda:
         tareas = tareas.filter(nombretarea__icontains=busqueda)
+        
+    # Aplicar filtros de proyecto y requerimiento con conversión de tipo segura
+    if proyecto_id and proyecto_id.isdigit():
+        proyecto_id_int = int(proyecto_id)
+        tareas = tareas.filter(idrequerimiento__idproyecto_id=proyecto_id_int)
+        print(f"Filtrando por proyecto ID: {proyecto_id_int}")
+        
+    if requerimiento_id and requerimiento_id.isdigit():
+        requerimiento_id_int = int(requerimiento_id)
+        tareas = tareas.filter(idrequerimiento_id=requerimiento_id_int)
+        print(f"Filtrando por requerimiento ID: {requerimiento_id_int}")
 
     # Ordenar y obtener relaciones
     tareas = tareas.select_related("idrequerimiento__idproyecto").order_by(
         "-fechacreacion"
     )
 
+    # Añadir log del número de tareas encontradas
+    print(f"Total de tareas encontradas después de filtrar: {tareas.count()}")
+
     context = {
         "tareas": tareas,
+        "proyectos": proyectos,
+        "requerimientos": requerimientos,        
         "estados": ["Pendiente", "En Progreso", "Completada"],
         "prioridades": [1, 2, 3],
         "filtros": {
@@ -824,6 +866,8 @@ def lista_tareas(request):
             "fecha_desde": fecha_desde,
             "fecha_hasta": fecha_hasta,
             "busqueda": busqueda,
+            "proyecto": proyecto_id,
+            "requerimiento": requerimiento_id,        
         },
         "is_admin": is_admin,
     }
@@ -860,6 +904,10 @@ def panel_tareas(request):
     # Ordenar tareas
     tareas = tareas.order_by("-fechamodificacion")
 
+    # Incluir proyectos para el filtro
+    from dashboard.models import Proyecto
+    proyectos = Proyecto.objects.all().order_by('nombreproyecto')
+
     # Paginación
     paginator = Paginator(tareas, 9)  # 9 tareas por página
     page = request.GET.get("page")
@@ -869,6 +917,7 @@ def panel_tareas(request):
         "tareas": tareas_paginadas,
         "filtro_activo": filtro,
         "is_admin": is_admin,
+        "proyectos": proyectos,  # Incluir proyectos para el filtro
     }
 
     return render(request, "components/panel_tareas.html", context)
@@ -893,36 +942,69 @@ def filtrar_tareas(request):
                 idrequerimiento__idproyecto__idequipo__miembro__idrecurso__recursohumano__idusuario=request.user
             )
 
-        # Obtener filtro
+        # Obtener filtro de estado
         filtro = request.GET.get("filtro", "todas")
 
-        # Aplicar filtros
+        # Aplicar filtro de estado
         if filtro == "pendientes":
             tareas = tareas.filter(estado="Pendiente")
         elif filtro == "en_progreso":
             tareas = tareas.filter(estado="En Progreso")
         elif filtro == "completadas":
             tareas = tareas.filter(estado="Completada")
+            
+        # Aplicar filtro por proyecto - Corregido
+        proyecto_id = request.GET.get("proyecto")
+        if proyecto_id and proyecto_id.isdigit():
+            tareas = tareas.filter(idrequerimiento__idproyecto_id=int(proyecto_id))
+            print(f"Filtrando por proyecto ID: {proyecto_id}")
+
+        # Aplicar ordenamiento - Corregido
+        orden = request.GET.get("orden")
+        print(f"Ordenando por: {orden}")
+        
+        if orden == "fecha-reciente":
+            tareas = tareas.order_by("-fechamodificacion")
+        elif orden == "fecha-antigua":
+            tareas = tareas.order_by("fechamodificacion")
+        elif orden == "prioridad-alta":
+            tareas = tareas.order_by("-prioridad", "-fechamodificacion")
+        elif orden == "prioridad-baja":
+            tareas = tareas.order_by("prioridad", "-fechamodificacion")
+        else:
+            # Por defecto, ordenar por fecha de modificación más reciente
+            tareas = tareas.order_by("-fechamodificacion")
 
         # Optimizar consultas
         tareas = tareas.select_related(
             "idrequerimiento", "idrequerimiento__idproyecto"
-        ).order_by("-fechamodificacion")
+        )
+
+        # Para debugging
+        print(f"Total de tareas filtradas: {tareas.count()}")
 
         # Paginación
-        paginator = Paginator(tareas, 9)
+        paginator = Paginator(tareas, 6)  # Mostrar 6 tareas por página en el dashboard
         page = request.GET.get("page", 1)
         tareas_paginadas = paginator.get_page(page)
+
+        # Obtener proyectos para el selector de filtro
+        from dashboard.models import Proyecto
+        proyectos = Proyecto.objects.all().order_by('nombreproyecto')
 
         context = {
             "tareas": tareas_paginadas,
             "filtro_activo": filtro,
             "is_admin": is_admin,
+            "proyectos": proyectos,  # Incluir proyectos para el filtro
         }
 
+        # Renderizar solo el contenido del panel de tareas
         return render(request, "components/lista_tareas.html", context)
 
     except Exception as e:
+        import traceback
+        print(traceback.format_exc())
         return HttpResponse(
             f'<div class="text-red-500 p-4">Error al filtrar tareas: {str(e)}</div>',
             status=500,
