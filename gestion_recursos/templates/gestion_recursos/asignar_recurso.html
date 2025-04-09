@@ -2,6 +2,43 @@
 
 {% block title %}Asignar Recurso{% endblock %}
 
+{% block style %}
+    <style>
+        /* Personalización de Select2 */
+        .select2-container--default .select2-selection--single {
+            height: auto !important;
+            padding: 0.5rem 1rem 0.5rem 2.5rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid rgb(209, 213, 219) !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 100% !important;
+            right: 10px !important;
+        }
+
+        .select2-dropdown {
+            border-radius: 0.5rem !important;
+            border: 1px solid rgb(209, 213, 219) !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+        }
+
+        .select2-search__field {
+            border-radius: 0.375rem !important;
+            padding: 0.5rem !important;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: rgb(59, 130, 246) !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 1.25rem !important;
+            padding: 0 !important;
+        }
+    </style>
+{% endblock %}
+
 {% block title_body %}
 <div class="flex items-center">
     <i class="fas fa-tasks text-blue-500 mr-2"></i>
@@ -10,6 +47,12 @@
 {% endblock %}
 
 {% block body %}
+<!-- Cargar la biblioteca Select2 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/es.js"></script>
+
 <div class="p-8">
     <div class="max-w-2xl mx-auto">
         <div class="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -27,57 +70,83 @@
 
                 <!-- Seleccionar Proyecto -->
                 <div class="mb-4">
-                    <label for="proyecto" class="block text-sm font-medium text-gray-700">Seleccionar Proyecto</label>
-                    <select id="proyecto" name="proyecto" class="w-full p-2 border rounded" 
-                            onchange="loadRequerimientos(this.value); loadRecursos(this.value)">
-                        <option value="">Seleccione un proyecto</option>
-                        {% for proyecto in proyectos %}
-                        <option value="{{ proyecto.idproyecto }}" {% if proyecto_id == proyecto.idproyecto|stringformat:"s" %}selected{% endif %}>
-                            {{ proyecto.nombreproyecto }}
-                        </option>
-                        {% endfor %}
-                    </select>
+                    <label for="proyecto" class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Proyecto</label>
+                    <div class="relative">
+                        <select id="proyecto" name="proyecto" class="custom-select w-full p-3 pl-10 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                onchange="loadRequerimientos(this.value); loadRecursos(this.value)">
+                            <option value="">Seleccione un proyecto</option>
+                            {% for proyecto in proyectos %}
+                            <option value="{{ proyecto.idproyecto }}" {% if proyecto_id == proyecto.idproyecto|stringformat:"s" %}selected{% endif %}>
+                                {{ proyecto.nombreproyecto }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-project-diagram text-blue-500"></i>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Seleccionar Requerimiento -->
                 <div class="mb-4">
-                    <label for="requerimiento" class="block text-sm font-medium text-gray-700">Seleccionar Requerimiento</label>
-                    <select id="requerimiento" name="requerimiento" class="w-full p-2 border rounded" onchange="loadTareas(this.value)">
-                        <option value="">Seleccione un requerimiento</option>
-                    </select>
+                    <label for="requerimiento" class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Requerimiento</label>
+                    <div class="relative">
+                        <select id="requerimiento" name="requerimiento" class="custom-select w-full p-3 pl-10 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                onchange="loadTareas(this.value)">
+                            <option value="">Seleccione un requerimiento</option>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-clipboard-list text-blue-500"></i>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Seleccionar Tarea -->
                 <div class="mb-4">
-                    <label for="tarea" class="block text-sm font-medium text-gray-700">Seleccionar Tarea</label>
-                    <select id="tarea" name="tarea" class="w-full p-2 border rounded">
-                        <option value="">Seleccione una tarea</option>
-                    </select>
+                    <label for="tarea" class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Tarea</label>
+                    <div class="relative">
+                        <select id="tarea" name="tarea" class="custom-select w-full p-3 pl-10 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Seleccione una tarea</option>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-tasks text-blue-500"></i>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Seleccionar Recurso -->
                 <div class="mb-4">
-                    <label for="recurso" class="block text-sm font-medium text-gray-700">Seleccionar Recurso</label>
-                    <select id="recurso" name="recurso" class="w-full p-2 border rounded">
-                        <option value="">Seleccione un recurso</option>
-                    </select>
+                    <label for="recurso" class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Recurso</label>
+                    <div class="relative">
+                        <select id="recurso" name="recurso" class="custom-select w-full p-3 pl-10 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Seleccione un recurso</option>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-blue-500"></i>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Fecha de Asignación -->
                 <div class="mb-4">
-                    <label for="fecha_asignacion" class="block text-sm font-medium text-gray-700">Fecha de Asignación</label>
-                    <input type="date" id="fecha_asignacion" name="fecha_asignacion" class="w-full p-2 border rounded">
+                    <label for="fecha_asignacion" class="block text-sm font-medium text-gray-700 mb-2">Fecha de Asignación</label>
+                    <div class="relative">
+                        <input type="date" id="fecha_asignacion" name="fecha_asignacion" class="w-full p-3 pl-10 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-calendar-alt text-blue-500"></i>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Botones de Acción -->
                 <div class="flex justify-end space-x-4">
                     <a href="{% url 'gestionRecursos:lista_recursos' %}" 
-                       class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                       class="px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center shadow-sm">
                         <i class="fas fa-times mr-2"></i>
                         Cancelar
                     </a>
                     <button type="submit"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center">
+                            class="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center shadow-md">
                         <i class="fas fa-save mr-2"></i>
                         Asignar
                     </button>
@@ -88,7 +157,71 @@
 </div>
 
 <script>
+    // Configuración común para Select2 - MOVIDA AL ÁMBITO GLOBAL
+    const select2Config = {
+        language: "es",
+        placeholder: function() {
+            return $(this).data('placeholder') || "Seleccione una opción";
+        },
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('form'),
+        templateResult: formatSelect2Result
+    };
+
+    // Función para formatear los resultados de Select2
+    function formatSelect2Result(state) {
+        if (!state.id) return state.text;
+        return $(`<span class="select2-result">${state.text}</span>`);
+    }
+
+    // Función para aplicar estilos consistentes a todos los selectores Select2
+    function aplicarEstilosSelect2() {
+        setTimeout(function() {
+            $('.select2-container--default .select2-selection--single').css({
+                'height': 'auto',
+                'padding': '0.5rem 1rem 0.5rem 2.5rem',
+                'border-radius': '0.5rem',
+                'border': '1px solid rgb(209, 213, 219)'
+            });
+            
+            $('.select2-container--default .select2-selection--single .select2-selection__arrow').css({
+                'height': '100%',
+                'right': '10px'
+            });
+            
+            $('.select2-container--default .select2-selection--single .select2-selection__rendered').css({
+                'line-height': '1.25rem',
+                'padding': '0'
+            });
+        }, 50);
+    }
+
     function loadRequerimientos(proyectoId, callback) {
+        // Siempre limpiar el selector de tareas cuando cambia el proyecto
+        const requerimientoSelect = document.getElementById('requerimiento');
+        const tareaSelect = document.getElementById('tarea');
+        
+        // Reiniciar selectores con valores predeterminados
+        requerimientoSelect.innerHTML = '<option value="">Seleccione un proyecto primero</option>';
+        tareaSelect.innerHTML = '<option value="">Seleccione un requerimiento primero</option>';
+        
+        // Reinicializar Select2 para ambos selectores
+        if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+            try {
+                $('#requerimiento').select2('destroy').select2(select2Config);
+                $('#tarea').select2('destroy').select2(select2Config);
+                aplicarEstilosSelect2();
+            } catch(e) {
+                console.error("Error al reinicializar Select2:", e);
+            }
+        }
+        
+        // Si no hay ID de proyecto, terminar aquí
+        if (!proyectoId) {
+            return;
+        }
+
         fetch(`/gestion-recursos/api/requerimientos/${proyectoId}/`)
             .then(response => response.json())
             .then(data => {
@@ -97,14 +230,51 @@
                 data.forEach(requerimiento => {
                     requerimientoSelect.innerHTML += `<option value="${requerimiento.idrequerimiento}">${requerimiento.descripcion}</option>`;
                 });
+                
+                // Reinicializar Select2
+                if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+                    try {
+                        $('#requerimiento').select2('destroy').select2(select2Config);
+                        aplicarEstilosSelect2(); // Aplicar estilos después de reinicializar
+                    } catch(e) {
+                        console.error("Error al reinicializar Select2:", e);
+                    }
+                }
+                
                 // Ejecutar el callback si existe
                 if (callback && typeof callback === 'function') {
                     callback();
                 }
-            });
+            })
+            .catch(error => {
+            console.error("Error al cargar requerimientos:", error);
+            requerimientoSelect.innerHTML = '<option value="">Error al cargar requerimientos</option>';
+            
+            if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+                $('#requerimiento').select2('destroy').select2(select2Config);
+                aplicarEstilosSelect2();
+            }
+        });
     }
 
     function loadTareas(requerimientoId, callback) {
+        if (!requerimientoId) {
+            const tareaSelect = document.getElementById('tarea');
+            tareaSelect.innerHTML = '<option value="">Seleccione un requerimiento primero</option>';
+            
+            // Reinicializar Select2 para el select de tareas
+            if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+                try {
+                    $('#tarea').select2('destroy').select2(select2Config);
+                    aplicarEstilosSelect2(); // Aplicar estilos después de reinicializar
+                } catch(e) {
+                    console.error("Error al reinicializar Select2:", e);
+                }
+            }
+            
+            return;
+        }
+
         fetch(`/gestion-recursos/api/tareas/${requerimientoId}/`)
             .then(response => response.json())
             .then(data => {
@@ -113,6 +283,17 @@
                 data.forEach(tarea => {
                     tareaSelect.innerHTML += `<option value="${tarea.idtarea}">${tarea.nombretarea}</option>`;
                 });
+                
+                // Reinicializar Select2
+                if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+                    try {
+                        $('#tarea').select2('destroy').select2(select2Config);
+                        aplicarEstilosSelect2(); // Aplicar estilos después de reinicializar
+                    } catch(e) {
+                        console.error("Error al reinicializar Select2:", e);
+                    }
+                }
+                
                 // Ejecutar el callback si existe
                 if (callback && typeof callback === 'function') {
                     callback();
@@ -121,6 +302,23 @@
     }
 
     function loadRecursos(proyectoId) {
+        if (!proyectoId) {
+            const recursoSelect = document.getElementById('recurso');
+            recursoSelect.innerHTML = '<option value="">Seleccione un proyecto primero</option>';
+            
+            // Reinicializar Select2 para el select de recursos
+            if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+                try {
+                    $('#recurso').select2('destroy').select2(select2Config);
+                    aplicarEstilosSelect2(); // Aplicar estilos después de reinicializar
+                } catch(e) {
+                    console.error("Error al reinicializar Select2:", e);
+                }
+            }
+            
+            return;
+        }
+
         fetch(`/gestion-recursos/api/recursos/${proyectoId}/`)
             .then(response => response.json())
             .then(data => {
@@ -129,10 +327,29 @@
                 data.forEach(recurso => {
                     recursoSelect.innerHTML += `<option value="${recurso.idrecurso}">${recurso.nombrerecurso}</option>`;
                 });
+                
+                // Reinicializar Select2
+                if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+                    try {
+                        $('#recurso').select2('destroy').select2(select2Config);
+                        aplicarEstilosSelect2(); // Aplicar estilos después de reinicializar
+                    } catch(e) {
+                        console.error("Error al reinicializar Select2:", e);
+                    }
+                }
             });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Verificar que jQuery y Select2 están disponibles
+        if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+            // Inicializar Select2 para todos los selectores
+            $('.custom-select').select2(select2Config);
+            aplicarEstilosSelect2(); // Aplicar estilos después de la inicialización inicial
+        } else {
+            console.error("jQuery o Select2 no están disponibles");
+        }
+
         const proyectoSelect = document.getElementById('proyecto');
         const requerimiento_id = "{{ requerimiento_id }}";
         const tarea_id = "{{ tarea_id }}";
@@ -146,6 +363,14 @@
                         if (requerimientoSelect.options[i].value === requerimiento_id) {
                             requerimientoSelect.selectedIndex = i;
                             
+                            // Actualizar el Select2 si está disponible
+                            if (typeof $ !== 'undefined') {
+                                $('#requerimiento').val(requerimiento_id).trigger('change');
+                            } else {
+                                // Disparar el evento change manualmente
+                                requerimientoSelect.dispatchEvent(new Event('change'));
+                            }
+                            
                             // Cargar las tareas del requerimiento con callback para seleccionar la tarea
                             loadTareas(requerimiento_id, function() {
                                 // Callback para seleccionar la tarea después de cargar las tareas
@@ -154,6 +379,12 @@
                                     for (let j = 0; j < tareaSelect.options.length; j++) {
                                         if (tareaSelect.options[j].value === tarea_id) {
                                             tareaSelect.selectedIndex = j;
+                                            
+                                            // Actualizar el Select2 si está disponible
+                                            if (typeof $ !== 'undefined') {
+                                                $('#tarea').val(tarea_id).trigger('change');
+                                            }
+                                            
                                             break;
                                         }
                                     }
@@ -166,6 +397,10 @@
             });
             loadRecursos(proyectoSelect.value);
         }
+        
+        // Establecer la fecha actual por defecto
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('fecha_asignacion').value = today;
     });
 </script>
 {% endblock %}

@@ -18,6 +18,11 @@
                     </div>
                     
                     {% if proyecto %}
+                    <a href="{% url 'gestion_tareas:crear_tarea' %}?proyecto={{ proyecto.idproyecto }}" 
+                        class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center">
+                        <i class="fas fa-tasks mr-2"></i>
+                        Añadir Tarea
+                    </a>
                     <!-- Botón para agregar requerimiento -->
                     <a href="{% url 'gestion_proyectos:crear_requerimiento' proyecto.idproyecto %}" 
                     class="flex items-center px-3 py-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-sm transition-colors">
@@ -125,7 +130,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex justify-end space-x-2">
-                                    <a href="{% url 'gestion_tareas:crear_tarea' %}?req={{ requerimiento.idrequerimiento }}" 
+                                    <a href="{% url 'gestion_tareas:crear_tarea' %}?proyecto={{ proyecto.idproyecto }}&req={{ requerimiento.idrequerimiento }}" 
                                     class="text-purple-600 hover:text-purple-800 transition-colors" title="Agregar tarea">
                                         <i class="fas fa-tasks"></i>
                                     </a>

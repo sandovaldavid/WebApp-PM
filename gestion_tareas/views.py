@@ -211,18 +211,14 @@ def crear_tarea(request):
             nombre = request.POST.get("nombre")
             estado = request.POST.get("estado")
             prioridad = request.POST.get("prioridad")
-            #duracion_estimada = request.POST.get("duracion_estimada")
             fecha_inicio = request.POST.get("fecha_inicio")
             fecha_fin = request.POST.get("fecha_fin")
 
             # Nuevos campos
             descripcion = request.POST.get("descripcion", "")
-            #tags = request.POST.get("tags", "")
             tipo_tarea_id = request.POST.get("tipo_tarea")
             fase_id = request.POST.get("fase")
-            #claridad_requisitos = request.POST.get("claridad_requisitos", 0.5)
-            #tamano_estimado = request.POST.get("tamano_estimado", 0)
-            dificultad = request.POST.get("dificultad", 3)  # Campo que faltaba
+            dificultad = request.POST.get("dificultad", 3)
             costo_estimado = request.POST.get("costo_estimado", 0)
 
             # Validaciones básicas
@@ -232,7 +228,6 @@ def crear_tarea(request):
                     nombre,
                     estado,
                     prioridad,
-                    #duracion_estimada,
                     fecha_inicio,
                     fecha_fin,
                 ]
@@ -252,14 +247,11 @@ def crear_tarea(request):
                 idrequerimiento_id=requerimiento_id,
                 nombretarea=nombre,
                 descripcion=descripcion,
-                #tags=tags,
                 estado=estado,
                 prioridad=prioridad,
                 tipo_tarea_id=tipo_tarea_id if tipo_tarea_id else None,
                 fase_id=fase_id if fase_id else None,
-                #claridad_requisitos=float(claridad_requisitos),
-                #tamaño_estimado=int(tamano_estimado) if tamano_estimado else 0,
-                dificultad=int(dificultad),  # Agregando campo dificultad
+                dificultad=int(dificultad),
                 duracionestimada=0,
                 costoestimado=costo_estimado,
                 fechainicio=fecha_inicio,
@@ -284,29 +276,17 @@ def crear_tarea(request):
 
     # GET request: mostrar formulario
     try:
-        # Obtener y contar los tipos de tarea y fases para diagnóstico
+        # Obtener y contar los tipos de tarea y fases
         tipos_tarea = TipoTarea.objects.all()
         fases = Fase.objects.all().order_by("orden")
-
-        # Añadir diagnóstico en los logs
-        print(f"Tipos de tarea encontrados: {tipos_tarea.count()}")
-        for tipo in tipos_tarea:
-            print(f"  - ID: {tipo.idtipotarea}, Nombre: {tipo.nombre}")
-
-        print(f"Fases encontradas: {fases.count()}")
-        for fase in fases:
-            print(f"  - ID: {fase.idfase}, Nombre: {fase.nombre}, Orden: {fase.orden}")
-
-        # Si no hay datos, podríamos mostrar un mensaje de error
-        if tipos_tarea.count() == 0:
-            messages.warning(
-                request, "No hay tipos de tarea disponibles en la base de datos."
-            )
-        if fases.count() == 0:
-            messages.warning(request, "No hay fases disponibles en la base de datos.")
+        
+        # Añadir lista de proyectos para el nuevo selector
+        from dashboard.models import Proyecto
+        proyectos = Proyecto.objects.all().order_by('nombreproyecto')
 
         context = {
             "requerimientos": Requerimiento.objects.all(),
+            "proyectos": proyectos,
             "tipos_tarea": tipos_tarea,
             "fases": fases,
             "estados_tarea": ["Pendiente", "En Progreso", "Completada"],
@@ -818,7 +798,7 @@ def lista_tareas(request):
     
     # Obtener los IDs de proyecto y requerimiento y convertirlos a enteros si es posible
     proyecto_id = request.GET.get("proyecto")
-    requerimiento_id = request.GET.get("requerimiento")
+    requerimiento_id = request.GET.get("requerimiento") or request.GET.get("req")
 
     # Añadir log para depuración
     print(f"Filtros recibidos - Proyecto: {proyecto_id}, Requerimiento: {requerimiento_id}")

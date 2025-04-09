@@ -2,6 +2,69 @@
 
 {% block title %}Crear Tarea{% endblock %}
 
+{% block style %}
+    <style>
+        /* Personalización de Select2 */
+        .select2-container--default .select2-selection--single {
+            height: auto !important;
+            padding: 0.5rem 1rem 0.5rem 2.5rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid rgb(209, 213, 219) !important;
+        }
+
+        .dark .select2-container--default .select2-selection--single {
+            background-color: rgb(55, 65, 81) !important;
+            color: white !important;
+            border-color: rgb(75, 85, 99) !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 100% !important;
+            right: 10px !important;
+        }
+
+        .select2-dropdown {
+            border-radius: 0.5rem !important;
+            border: 1px solid rgb(209, 213, 219) !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+        }
+
+        .dark .select2-dropdown {
+            background-color: rgb(55, 65, 81) !important;
+            color: white !important;
+            border-color: rgb(75, 85, 99) !important;
+        }
+
+        .select2-search__field {
+            border-radius: 0.375rem !important;
+            padding: 0.5rem !important;
+        }
+
+        .dark .select2-search__field {
+            background-color: rgb(55, 65, 81) !important;
+            color: white !important;
+            border-color: rgb(75, 85, 99) !important;
+        }
+
+        .dark .select2-results__option {
+            color: rgb(229, 231, 235) !important;
+        }
+
+        .dark .select2-results__option--highlighted {
+            background-color: rgb(55, 65, 81) !important;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: rgb(59, 130, 246) !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 1.25rem !important;
+            padding: 0 !important;
+        }
+    </style>
+{% endblock %}
+
 {% block title_body %}
     <div class="flex items-center">
         <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-2.5 rounded-lg shadow-md mr-3">
@@ -12,6 +75,12 @@
 {% endblock %}
 
 {% block body %}
+    <!-- Cargar la biblioteca Select2 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/es.js"></script>
+
     <div class="p-4 md:p-8">
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
             <!-- Header del formulario -->
@@ -37,28 +106,49 @@
                                 Información Básica
                             </h3>
                         
-                            <!-- Requerimiento -->
+                            <!-- Campo de Proyecto -->
+                            <div class="mb-5">
+                                <label for="proyecto"
+                                       class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Proyecto</label>
+                                <div class="relative">
+                                    <select name="proyecto" id="proyecto"
+                                            class="custom-select appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 pr-10 transition-all duration-200 hover:border-blue-300 text-base"
+                                            required onchange="loadRequerimientos(this.value)">
+                                        <option value="">Seleccione un proyecto</option>
+                                        {% for proyecto in proyectos %}
+                                            <option value="{{ proyecto.idproyecto }}">
+                                                {{ proyecto.nombreproyecto }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-project-diagram text-blue-500 dark:text-blue-400"></i>
+                                    </div>
+                                    <!--<div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-blue-500 dark:text-blue-400 opacity-75">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>-->
+                                </div>
+                            </div>
+
+                            <!-- Requerimiento (modificado para depender del proyecto) -->
                             <div class="mb-5">
                                 <label for="requerimiento"
                                        class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Requerimiento</label>
                                 <div class="relative">
                                     <select name="requerimiento" id="requerimiento"
-                                            class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 pr-10 transition-all duration-200 hover:border-blue-300 text-base"
+                                            class="custom-select appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 pr-10 transition-all duration-200 hover:border-blue-300 text-base"
                                             required>
-                                        <option value="">Seleccione un requerimiento</option>
-                                        {% for req in requerimientos %}
-                                            <option value="{{ req.idrequerimiento }}" 
-                                                    {% if requerimiento_preseleccionado|stringformat:"s" == req.idrequerimiento|stringformat:"s" %}selected{% endif %}>
-                                                {{ req.descripcion }}
-                                            </option>
-                                        {% endfor %}
+                                        <option value="">Primero seleccione un proyecto</option>
+                                        {% if requerimiento_preseleccionado %}
+                                            <option value="{{ requerimiento_preseleccionado }}" selected>Cargando...</option>
+                                        {% endif %}
                                     </select>
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <i class="fas fa-clipboard-list text-blue-500 dark:text-blue-400"></i>
                                     </div>
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-blue-500 dark:text-blue-400 opacity-75">
+                                    <!--<div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-blue-500 dark:text-blue-400 opacity-75">
                                         <i class="fas fa-chevron-down text-xs"></i>
-                                    </div>
+                                    </div>-->
                                 </div>
                             </div>
 
@@ -69,7 +159,7 @@
                                 </label>
                                 <div class="relative group">
                                     <input type="text" name="nombre" id="nombre"
-                                           class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 transition-all duration-200 hover:border-blue-300 text-base"
+                                           class="mt-1 py-2 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 transition-all duration-200 hover:border-blue-300 text-base"
                                            required>
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <i class="fas fa-tasks text-blue-500 dark:text-blue-400 group-hover:scale-110 transition-transform"></i>
@@ -100,7 +190,7 @@
                                     </label>
                                     <div class="mt-1 relative">
                                         <input type="date" name="fecha_inicio" id="fecha_inicio"
-                                            class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 transition-all duration-200 hover:border-blue-300 text-base"
+                                            class="mt-1 py-2 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 transition-all duration-200 hover:border-blue-300 text-base"
                                             required>
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                             <i class="fas fa-calendar-alt text-blue-500 dark:text-blue-400"></i>
@@ -113,7 +203,7 @@
                                     </label>
                                     <div class="mt-1 relative">
                                         <input type="date" name="fecha_fin" id="fecha_fin"
-                                            class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 transition-all duration-200 hover:border-blue-300 text-base"
+                                            class="mt-1 py-2 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10 transition-all duration-200 hover:border-blue-300 text-base"
                                             required>
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                             <i class="fas fa-calendar-check text-blue-500 dark:text-blue-400"></i>
@@ -135,7 +225,7 @@
                                 </label>
                                 <div class="relative">
                                     <select name="tipo_tarea" id="tipo_tarea"
-                                        class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pl-10 pr-10 transition-all duration-200 hover:border-indigo-300 text-base">
+                                        class="select2 py-2 appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pl-10 pr-10 transition-all duration-200 hover:border-indigo-300 text-base">
                                         <option value="">Seleccione un tipo</option>
                                         {% for tipo in tipos_tarea %}
                                             <option value="{{ tipo.idtipotarea }}">{{ tipo.nombre }}</option>
@@ -157,7 +247,7 @@
                                 </label>
                                 <div class="relative">
                                     <select name="fase" id="fase"
-                                        class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pl-10 pr-10 transition-all duration-200 hover:border-indigo-300 text-base">
+                                        class="select2 py-2 appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pl-10 pr-10 transition-all duration-200 hover:border-indigo-300 text-base">
                                         <option value="">Seleccione una fase</option>
                                         {% for fase in fases %}
                                             <option value="{{ fase.idfase }}">{{ fase.nombre }}</option>
@@ -189,7 +279,7 @@
                                 </label>
                                 <div class="relative">
                                     <select name="dificultad" id="dificultad"
-                                        class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10 pr-10 transition-all duration-200 hover:border-purple-300 text-base">
+                                        class="select2 py-2 appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10 pr-10 transition-all duration-200 hover:border-purple-300 text-base">
                                         <option value="1">Muy Baja</option>
                                         <option value="2">Baja</option>
                                         <option value="3" selected>Media</option>
@@ -215,7 +305,7 @@
                                 </label>
                                 <div class="relative">
                                     <select name="prioridad" id="prioridad"
-                                           class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10 pr-10 transition-all duration-200 hover:border-purple-300 text-base">
+                                           class="select2 py-2 appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10 pr-10 transition-all duration-200 hover:border-purple-300 text-base">
                                         <option value="1">Baja</option>
                                         <option value="2" selected>Media</option>
                                         <option value="3">Alta</option>
@@ -236,7 +326,7 @@
                                 </label>
                                 <div class="relative">
                                     <select name="estado" id="estado"
-                                           class="appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10 pr-10 transition-all duration-200 hover:border-purple-300 text-base">
+                                           class="select2 py-2 appearance-none mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500 pl-10 pr-10 transition-all duration-200 hover:border-purple-300 text-base">
                                         <option value="Pendiente" selected>Pendiente</option>
                                         <option value="En Progreso">En Progreso</option>
                                         <option value="Completada">Completada</option>
@@ -311,10 +401,6 @@
                                             <i class="fas fa-dollar-sign text-green-400"></i>
                                             <span>Costo estimado de recursos</span>
                                         </div>
-                                        <!--<div class="flex items-center gap-2">
-                                            <i class="fas fa-calendar-alt text-green-400"></i>
-                                            <span>Ajustes de cronograma</span>
-                                        </div>-->
                                     </div>
                                 </div>
                             </div>
@@ -354,15 +440,214 @@
 
 
     <script>
-        // Establecer la fecha mínima para los campos de fecha
+        // Dentro del DOMContentLoaded existente
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar fecha actual y fecha fin por defecto
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('fecha_inicio').value = today;
             
-            // Establecer fecha fin por defecto a una semana después
             const nextWeek = new Date();
             nextWeek.setDate(nextWeek.getDate() + 7);
-            document.getElementById('fecha_fin').value = nextWeek.toISOString().split('T')[0];
+            document.getElementById('fecha_fin').value = nextWeek.toISOString().split('T')[0];           
+            
+            // Verificar que jQuery está disponible
+            if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+                console.log("Inicializando Select2 para proyecto y requerimiento...");
+                
+                // Estilos personalizados para Select2
+                const select2CustomStyles = {
+                    dropdownCssClass: "custom-select2-dropdown",
+                    selectionCssClass: "custom-select2-selection",
+                    language: "es",
+                    placeholder: "Seleccione una opción",
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $('form'),
+                    templateResult: formatSelect2Result
+                };
+                
+                // Inicializar Select2 solo para proyecto y requerimiento
+                $('#proyecto, #requerimiento').select2(select2CustomStyles)
+                .on('select2:open', function() {
+                    console.log('Select2 abierto:', this.id);
+                    
+                    // Agregar estilos adicionales después de abrir el dropdown
+                    setTimeout(function() {
+                        $('.select2-search__field').addClass('dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500');
+                        $('.select2-results__option').addClass('dark:text-gray-200 dark:hover:bg-gray-600');
+                    }, 0);
+                });
+                
+                // Aplicar estilos al contenedor de Select2
+                $('.select2-container--default .select2-selection--single').addClass('dark:bg-gray-700 dark:text-white border-gray-300 dark:border-gray-600');
+            } else {
+                console.error("Error: jQuery o Select2 no están disponibles");
+            }
+
+            // Obtener parámetros de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const proyectoPreseleccionado = urlParams.get('proyecto');
+            const requerimientoPreseleccionado = urlParams.get('req');
+            
+            console.log("URL params - Proyecto:", proyectoPreseleccionado, "Requerimiento:", requerimientoPreseleccionado);
+            
+            // Manejar la preselección del proyecto
+            if(proyectoPreseleccionado) {
+                console.log("Preseleccionando proyecto:", proyectoPreseleccionado);
+                
+                // Seleccionar el proyecto en el dropdown
+                const proyectoSelect = document.getElementById('proyecto');
+                if(proyectoSelect) {
+                    proyectoSelect.value = proyectoPreseleccionado;
+                    
+                    // Inicializar select2 para el proyecto si está disponible
+                    if (typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+                        $('#proyecto').val(proyectoPreseleccionado).trigger('change');
+                        
+                        // Esperar a que se carguen los requerimientos antes de intentar seleccionar uno
+                        if(requerimientoPreseleccionado) {
+                            console.log("Esperando para preseleccionar requerimiento:", requerimientoPreseleccionado);
+                            // Dar tiempo a que los requerimientos se carguen
+                            setTimeout(() => {
+                                console.log("Intentando seleccionar requerimiento:", requerimientoPreseleccionado);
+                                $('#requerimiento').val(requerimientoPreseleccionado).trigger('change');
+                            }, 800); // Tiempo suficiente para que la API responda
+                        }
+                    } else {
+                        // Si select2 no está disponible, disparar el evento change manualmente
+                        const event = new Event('change');
+                        proyectoSelect.dispatchEvent(event);
+                        
+                        // Si también hay requerimiento preseleccionado, esperar y seleccionarlo
+                        if(requerimientoPreseleccionado) {
+                            setTimeout(() => {
+                                const requerimientoSelect = document.getElementById('requerimiento');
+                                if(requerimientoSelect) {
+                                    requerimientoSelect.value = requerimientoPreseleccionado;
+                                }
+                            }, 800);
+                        }
+                    }
+                }
+            }
         });
+
+        // Función para cargar los requerimientos según el proyecto seleccionado
+        function loadRequerimientos(proyectoId) {            
+            if (!proyectoId) {
+                const requerimientoSelect = document.getElementById('requerimiento');
+                requerimientoSelect.innerHTML = '<option value="">Seleccione un proyecto primero</option>';
+                
+                // Actualizar el select2 solo si jQuery está disponible
+                if (typeof $ !== 'undefined') {
+                    try {
+                        // Usar la misma configuración que en la inicialización original
+                        $('#requerimiento').select2('destroy').select2({
+                            dropdownCssClass: "custom-select2-dropdown",
+                            selectionCssClass: "custom-select2-selection",
+                            language: "es",
+                            placeholder: "Seleccione un proyecto primero",
+                            allowClear: true,
+                            width: '100%',
+                            dropdownParent: $('form'),
+                            templateResult: formatSelect2Result
+                        });
+                        
+                        // Re-aplicar estilos adicionales
+                        setTimeout(() => {
+                            $('.select2-container--default .select2-selection--single').addClass('dark:bg-gray-700 dark:text-white border-gray-300 dark:border-gray-600');
+                        }, 0);
+                    } catch(e) {
+                        console.error("Error al reinicializar Select2:", e);
+                    }
+                }
+                return;
+            }
+            
+            // Mostrar indicador de carga
+            const requerimientoSelect = document.getElementById('requerimiento');
+            requerimientoSelect.innerHTML = '<option value="">Cargando requerimientos...</option>';
+            
+            // URL de la API
+            const apiUrl = `/gestion-recursos/api/requerimientos/${proyectoId}/`;
+            console.log(`Cargando requerimientos para proyecto ${proyectoId} desde ${apiUrl}`);
+            
+            fetch(apiUrl)
+                .then(response => {
+                    console.log(`Respuesta API requerimientos: ${response.status} ${response.statusText}`);
+                    if (!response.ok) {
+                        throw new Error(`Error en la respuesta del servidor: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(`Requerimientos recibidos: ${data.length}`);
+                    requerimientoSelect.innerHTML = '<option value="">Seleccione un requerimiento</option>';
+                    
+                    if (data && data.length > 0) {
+                        // Agregar los requerimientos obtenidos al selector
+                        data.forEach(requerimiento => {
+                            const option = document.createElement('option');
+                            option.value = requerimiento.idrequerimiento;
+                            option.textContent = requerimiento.descripcion;
+                            requerimientoSelect.appendChild(option);
+                        });
+                        
+                        // Reinicializar Select2 solo si jQuery está disponible
+                        if (typeof $ !== 'undefined') {
+                            try {
+                                // Usar la misma configuración que en la inicialización original
+                                $('#requerimiento').select2('destroy').select2({
+                                    dropdownCssClass: "custom-select2-dropdown",
+                                    selectionCssClass: "custom-select2-selection",
+                                    language: "es",
+                                    placeholder: "Seleccione un requerimiento",
+                                    allowClear: true,
+                                    width: '100%',
+                                    dropdownParent: $('form'),
+                                    templateResult: formatSelect2Result
+                                });
+                                
+                                // Re-aplicar estilos adicionales
+                                setTimeout(() => {
+                                    $('.select2-container--default .select2-selection--single').addClass('dark:bg-gray-700 dark:text-white border-gray-300 dark:border-gray-600');
+                                }, 0);
+                                
+                                // Verificar si hay un requerimiento preseleccionado desde la URL
+                                const urlParams = new URLSearchParams(window.location.search);
+                                const reqPreseleccionadoURL = urlParams.get('req');
+                                
+                                if(reqPreseleccionadoURL) {
+                                    console.log(`Preseleccionando requerimiento ${reqPreseleccionadoURL} desde URL`);
+                                    $('#requerimiento').val(reqPreseleccionadoURL).trigger('change');
+                                }
+                            } catch(e) {
+                                console.error("Error al reinicializar Select2:", e);
+                            }
+                        }
+                    } else {
+                        requerimientoSelect.innerHTML = '<option value="">No hay requerimientos disponibles para este proyecto</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar requerimientos:', error);
+                    requerimientoSelect.innerHTML = '<option value="">Error: No se pudieron cargar los requerimientos</option>';
+                });
+        }
+        
+        // Función para formatear los resultados de Select2
+        function formatSelect2Result(state) {
+            if (!state.id) return state.text;
+            
+            // Verificar si estamos en modo oscuro
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            
+            // Crear elemento personalizado
+            const $state = $(
+                `<span class="select2-result ${isDarkMode ? 'text-white' : ''}">${state.text}</span>`
+            );
+            
+            return $state;
+        }
     </script>
 {% endblock %}

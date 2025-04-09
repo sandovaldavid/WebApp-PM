@@ -179,7 +179,7 @@
                             {% endfor %}
                         </div>
                         <div class="mt-4 flex justify-end">
-                            <a href="{% url 'gestion_tareas:crear_tarea' %}?req={{ requerimiento.idrequerimiento }}" 
+                            <a href="{% url 'gestion_tareas:crear_tarea' %}?proyecto={{ proyecto.idproyecto }}&req={{ requerimiento.idrequerimiento }}" 
                                class="text-sm bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors flex items-center">
                                 <i class="fas fa-plus mr-1.5"></i> Agregar nueva tarea
                             </a>
@@ -189,9 +189,10 @@
                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 flex flex-col items-center justify-center">
                         <i class="fas fa-tasks text-gray-300 text-4xl mb-3"></i>
                         <p class="text-gray-500 mb-4">No hay tareas asociadas a este requerimiento</p>
-                        <a href="{% url 'gestion_tareas:crear_tarea' %}?req={{ requerimiento.idrequerimiento }}" 
-                           class="text-sm bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors flex items-center">
-                            <i class="fas fa-plus mr-1.5"></i> Crear primera tarea
+                        <a href="{% url 'gestion_tareas:crear_tarea' %}?proyecto={{ requerimiento.idproyecto.idproyecto }}&req={{ requerimiento.idrequerimiento }}" 
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>
+                            Crear primera tarea
                         </a>
                     </div>
                     {% endif %}

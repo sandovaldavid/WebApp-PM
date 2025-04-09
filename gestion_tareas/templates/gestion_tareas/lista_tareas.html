@@ -4,7 +4,7 @@
 
 {% block title_body %}
     <div class="flex items-center justify-between">
-        <div class="flex items-center">
+        <div class="flex items-center mr-3">
             <i class="fas fa-tasks text-blue-500 mr-2"></i>
             <span>Lista de Tareas</span>
         </div>
@@ -262,6 +262,12 @@
             const tasksGrid = document.getElementById('tasks-grid');
             const tasksList = document.getElementById('tasks-list');
 
+            // Obtener parámetros de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const proyectoURL = urlParams.get('proyecto');
+            const reqURL = urlParams.get('req');
+    
+
             // Función para filtrar requerimientos según el proyecto
             function filtrarRequerimientos() {
                 const proyectoId = proyectoSelect.value;
@@ -302,6 +308,11 @@
                     requerimientoSeleccionado.style.display === 'none') {
                     requerimientoSelect.value = '';
                 }
+
+                 // Si hay un parámetro req en la URL, seleccionarlo después de filtrar
+                if (reqURL && proyectoId === proyectoURL) {
+                    requerimientoSelect.value = reqURL;
+                }
             }
             
             // Función para cambiar entre vistas de grid y lista
@@ -333,6 +344,10 @@
             
             // Ejecutar al cargar y cuando el proyecto cambia
             if (proyectoSelect && requerimientoSelect) {
+                // Preseleccionar proyecto de la URL si existe
+                if (proyectoURL) {
+                    proyectoSelect.value = proyectoURL;
+                }
                 proyectoSelect.addEventListener('change', filtrarRequerimientos);
                 
                 // Filtrar al cargar la página
