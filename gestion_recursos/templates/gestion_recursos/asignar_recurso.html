@@ -104,7 +104,7 @@
             });
     }
 
-    function loadTareas(requerimientoId) {
+    function loadTareas(requerimientoId, callback) {
         fetch(`/gestion-recursos/api/tareas/${requerimientoId}/`)
             .then(response => response.json())
             .then(data => {
@@ -113,7 +113,11 @@
                 data.forEach(tarea => {
                     tareaSelect.innerHTML += `<option value="${tarea.idtarea}">${tarea.nombretarea}</option>`;
                 });
-            });
+                // Ejecutar el callback si existe
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
+            });            
     }
 
     function loadRecursos(proyectoId) {
@@ -128,10 +132,10 @@
             });
     }
 
-    // Cargar automáticamente los requerimientos y recursos si hay un proyecto preseleccionado
     document.addEventListener('DOMContentLoaded', function() {
         const proyectoSelect = document.getElementById('proyecto');
         const requerimiento_id = "{{ requerimiento_id }}";
+        const tarea_id = "{{ tarea_id }}";
         
         if (proyectoSelect.value) {
             loadRequerimientos(proyectoSelect.value, function() {
@@ -141,8 +145,20 @@
                     for (let i = 0; i < requerimientoSelect.options.length; i++) {
                         if (requerimientoSelect.options[i].value === requerimiento_id) {
                             requerimientoSelect.selectedIndex = i;
-                            // Cargar las tareas del requerimiento
-                            loadTareas(requerimiento_id);
+                            
+                            // Cargar las tareas del requerimiento con callback para seleccionar la tarea
+                            loadTareas(requerimiento_id, function() {
+                                // Callback para seleccionar la tarea después de cargar las tareas
+                                if (tarea_id) {
+                                    const tareaSelect = document.getElementById('tarea');
+                                    for (let j = 0; j < tareaSelect.options.length; j++) {
+                                        if (tareaSelect.options[j].value === tarea_id) {
+                                            tareaSelect.selectedIndex = j;
+                                            break;
+                                        }
+                                    }
+                                }
+                            });
                             break;
                         }
                     }

@@ -218,6 +218,7 @@ def asignar_recurso(request):
     # Obtener parámetros de la URL
     proyecto_id = request.GET.get("proyecto")
     requerimiento_id = request.GET.get("req")
+    tarea_id_url = request.GET.get("tarea")
 
     if request.method == "POST":
         recurso_id = request.POST.get("recurso")
@@ -239,6 +240,7 @@ def asignar_recurso(request):
         "proyectos": proyectos,
         "proyecto_id": proyecto_id,
         "requerimiento_id": requerimiento_id,
+        "tarea_id": tarea_id_url,
     }
     return render(request, "gestion_recursos/asignar_recurso.html", context)
 
